@@ -54,9 +54,11 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt install -y git curl build-essential clang cmake ccache
       - name: configure
-        run: CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake .
+        run: CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake . -DTESTS=ON
       - name: compile
         run: make -j2
+      - name: run test
+        run: make test
   build_with_gcc:
     name: build_with_gcc
     runs-on: ${{ matrix.os }}
@@ -88,9 +90,11 @@ jobs:
       - name: install Ubuntu dependencies
         run: sudo apt install -y git curl build-essential cmake ccache
       - name: configure
-        run: cmake .
+        run: cmake . -DTESTS=ON
       - name: compile
         run: make -j2
+      - name: run test
+        run: make test
   ubuntu16_04_build_with_gcc:
     name: ubuntu16_04_build_with_gcc
     runs-on: ${{ matrix.os }}
@@ -122,9 +126,11 @@ jobs:
       - name: install Ubuntu dependencies
         run: sudo apt-get install -y software-properties-common python-software-properties && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt install -y git curl build-essential cmake ccache gcc-7 g++-7 && sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7 && sudo update-alternatives --config gcc
       - name: configure
-        run: cmake .
+        run: cmake . -DTESTS=ON
       - name: compile
         run: make -j2
+      - name: run test
+        run: make test
   build_with_centos:
     name: build_with_centos
     runs-on: ubuntu-latest
@@ -159,5 +165,6 @@ jobs:
         run: |
           source /opt/rh/devtoolset-7/enable
           mkdir -p build && cd build
-          cmake3 ..
+          cmake3 .. -DTESTS=ON
           make -j2
+          make test
