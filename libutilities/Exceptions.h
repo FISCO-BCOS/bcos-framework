@@ -52,6 +52,7 @@ private:
     {                            \
     }
 DERIVE_BCOS_EXCEPTION(ConstructFixedBytesFailed);
+DERIVE_BCOS_EXCEPTION(BadCast);
 DERIVE_BCOS_EXCEPTION(BadHexCharacter);
 
 using errinfo_invalidSymbol = boost::error_info<struct tag_invalidSymbol, char>;
