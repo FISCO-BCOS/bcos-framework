@@ -75,3 +75,9 @@ install(
 
 # for doxygen
 include(BuildDocs)
+
+# for code coverage
+if (COVERAGE)
+    include(Coverage)
+    config_coverage("'/usr*' '${CMAKE_SOURCE_DIR}/bcos-cmake-scripts*' '${CMAKE_SOURCE_DIR}/test/bcos-test*'")
+endif ()

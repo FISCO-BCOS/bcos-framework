@@ -124,13 +124,21 @@ jobs:
             ccache-v0-${{ runner.temp }}-${{ github.base_ref }}-
             ccache-v0-${{ runner.temp }}-
       - name: install Ubuntu dependencies
-        run: sudo apt-get install -y software-properties-common python-software-properties && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt install -y git curl build-essential cmake ccache gcc-7 g++-7 && sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7 && sudo update-alternatives --config gcc
+        run: sudo apt-get install -y software-properties-common python-software-properties && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt install -y git curl build-essential cmake ccache gcc-7 g++-7 lcov&& sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7 && sudo update-alternatives --config gcc
       - name: configure
-        run: cmake . -DTESTS=ON
+        run: cmake . -DTESTS=ON -DCOVERAGE=ON
       - name: compile
         run: make -j2
       - name: run test
         run: make test
+      - name: generate coverage
+        run: make coverage
+      - name: upload code coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.info
+          name: bcos-framework coverage
+          fail_ci_if_error: true
   build_with_centos:
     name: build_with_centos
     runs-on: ubuntu-latest
