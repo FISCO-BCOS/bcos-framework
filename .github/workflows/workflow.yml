@@ -94,7 +94,7 @@ jobs:
       - name: compile
         run: make -j2
       - name: run test
-        run: make test        
+        run: make test
   ubuntu16_04_build_with_gcc:
     name: ubuntu16_04_build_with_gcc
     runs-on: ${{ matrix.os }}
