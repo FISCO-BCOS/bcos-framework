@@ -43,7 +43,7 @@ configure_project()
 include(CompilerSettings)
 
 # install dependencies
-hunter_add_package(Boost COMPONENTS thread system filesystem iostreams log test)
+hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log test)
 
 include_directories("${CMAKE_SOURCE_DIR}")
 # set library target name
