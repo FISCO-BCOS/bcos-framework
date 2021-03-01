@@ -4,5 +4,5 @@ file(GLOB HEADERS "*.h")
 add_library(${UTILITIES_TARGET} ${SRC_LIST} ${HEADERS})
 target_compile_options(${UTILITIES_TARGET} PRIVATE -Wno-error -Wno-unused-variable)
 
-find_package(Boost CONFIG REQUIRED log chrono system filesystem iostreams thread)
-target_link_libraries(${UTILITIES_TARGET} PUBLIC Boost::log Boost::chrono Boost::iostreams Boost::filesystem Boost::thread)
+find_package(Boost CONFIG REQUIRED log program_options chrono system filesystem iostreams thread)
+target_link_libraries(${UTILITIES_TARGET} PUBLIC Boost::log Boost::program_options Boost::chrono Boost::iostreams Boost::filesystem Boost::thread)

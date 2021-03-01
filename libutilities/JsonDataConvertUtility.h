@@ -113,4 +113,9 @@ inline int64_t jsonStringToInt(std::string const& _s)
 {
     return int64_t(jsonStringToInt<8>(_s));
 }
+
+inline Address jsonStringToAddress(std::string const& _s)
+{
+    return toAddress(_s);
+}
 }  // namespace bcos
