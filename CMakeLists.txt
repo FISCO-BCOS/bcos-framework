@@ -45,11 +45,14 @@ include(CompilerSettings)
 # install dependencies
 hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log program_options test)
 
-include_directories("${CMAKE_SOURCE_DIR}")
+
+include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/..)
 # set library target name
 set(UTILITIES_TARGET "utilities")
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)
+add_subdirectory(interfaces)
 
 # test releated
 if (TESTS)
@@ -70,6 +73,12 @@ install(
 install(
     DIRECTORY "libutilities/"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bcos-framework/libutilities"
+    FILES_MATCHING PATTERN "*.h"
+)
+
+install(
+    DIRECTORY "interfaces"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bcos-framework"
     FILES_MATCHING PATTERN "*.h"
 )
 
