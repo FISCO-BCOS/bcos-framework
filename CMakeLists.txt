@@ -41,10 +41,9 @@ set(VERSION_SUFFIX "")
 include(Options)
 configure_project()
 include(CompilerSettings)
-
+include(ProjectProtocolBuffer)
 # install dependencies
 hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log program_options test)
-
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/..)
@@ -70,18 +69,7 @@ install(
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
     INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
-install(
-    DIRECTORY "libutilities/"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bcos-framework/libutilities"
-    FILES_MATCHING PATTERN "*.h"
-)
-
-install(
-    DIRECTORY "interfaces"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bcos-framework"
-    FILES_MATCHING PATTERN "*.h"
-)
-
+include(InstallInclude)
 # for doxygen
 include(BuildDocs)
 
