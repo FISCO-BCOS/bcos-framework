@@ -75,13 +75,13 @@ public:
     SignatureData(h256 const& _r, h256 const& _s) : m_r(_r), m_s(_s) {}
     virtual ~SignatureData() {}
     virtual void encode(bytesPointer _signatureData) const = 0;
-    virtual void decode(bytesConstRef _signatureData) = 0;
+    virtual void decode(bytes const& _signatureData) = 0;
 
     h256 const& r() const { return m_r; }
     h256 const& s() const { return m_s; }
 
 protected:
-    virtual void decodeCommonFields(bytesConstRef _signatureData)
+    virtual void decodeCommonFields(bytes const& _signatureData)
     {
         if (_signatureData.size() < m_signatureLen)
         {
@@ -108,22 +108,17 @@ private:
     h256 m_s;
 };
 
-class Crypto
+class SignatureCrypto
 {
 public:
-    using Ptr = std::shared_ptr<Crypto>;
-    Crypto() = default;
-    virtual ~Crypto() {}
+    using Ptr = std::shared_ptr<SignatureCrypto>;
+    SignatureCrypto() = default;
+    virtual ~SignatureCrypto() {}
     virtual std::shared_ptr<bytes> sign(KeyPair const& _keyPair, const h256& _hash) = 0;
     virtual bool verify(
         Public const& _pubKey, const h256& _hash, std::shared_ptr<bytes> _signatureData) = 0;
     // recover the public key from the given signature
     virtual Public recover(const h256& _hash, std::shared_ptr<bytes> _signatureData) = 0;
-
-    // recover the account address from the given input,
-    // provided for the ecRecover/sm2Recover precompiled interfaces
-    virtual std::pair<bool, bytes> recover(std::shared_ptr<bytes> _in) = 0;
-
     virtual std::shared_ptr<KeyPair> generateKeyPair() = 0;
 
     virtual bool verify(Public const& _pubKey, const h256& _hash, SignatureData::Ptr _signatureData)
