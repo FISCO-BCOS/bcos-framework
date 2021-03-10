@@ -31,6 +31,7 @@ class KeyPair
 {
 public:
     using Ptr = std::shared_ptr<KeyPair>;
+    KeyPair() = default;
     KeyPair(Secret const& _secretKey, Public const& _publicKey)
       : m_secretKey(_secretKey), m_publicKey(_publicKey)
     {}
@@ -49,15 +50,18 @@ public:
         return m_address;
     }
 
-    virtual Address const& calculateAddress(Secret const& _secret)
+    virtual Address calculateAddressBySecret(Secret const& _secret)
     {
         return calculateAddress(priToPub(_secret));
     }
 
-    virtual Address const& calculateAddress(Public const& _pub) = 0;
+    virtual Address calculateAddress(Public const& _pub) = 0;
     virtual Public priToPub(Secret const& _secret) = 0;
 
-private:
+    void setSecretKey(Secret const& _secretKey) { m_secretKey = _secretKey; }
+    void setPublicKey(Public const& _publicKey) { m_publicKey = _publicKey; }
+
+protected:
     Secret m_secretKey;
     Public m_publicKey;
     Address m_address = Address();
@@ -67,6 +71,7 @@ class SignatureData
 {
 public:
     using Ptr = std::shared_ptr<SignatureData>;
+    SignatureData() = default;
     SignatureData(h256 const& _r, h256 const& _s) : m_r(_r), m_s(_s) {}
     virtual ~SignatureData() {}
     virtual void encode(bytesPointer _signatureData) const = 0;
@@ -78,10 +83,17 @@ public:
 protected:
     virtual void decodeCommonFields(bytesConstRef _signatureData)
     {
+        if (_signatureData.size() < m_signatureLen)
+        {
+            BOOST_THROW_EXCEPTION(
+                InvalidSignatureData() << errinfo_comment(
+                    "invalid InvalidSignatureData: the signature data size must be at least " +
+                    std::to_string(m_signatureLen)));
+        }
         m_r = h256(_signatureData.data(), h256::ConstructorType::FromPointer);
         m_s = h256(_signatureData.data() + 32, h256::ConstructorType::FromPointer);
     }
-    virtual void encodeCommonFields(bytesPointer _signatureData)
+    virtual void encodeCommonFields(bytesPointer _signatureData) const
     {
         _signatureData->resize(m_signatureLen);
         memcpy(_signatureData->data(), m_r.data(), 32);
@@ -96,32 +108,36 @@ private:
     h256 m_s;
 };
 
-class Signature
+class Crypto
 {
 public:
-    using Ptr = std::shared_ptr<Signature>;
-    Signature() = default;
-    virtual ~Signature() {}
+    using Ptr = std::shared_ptr<Crypto>;
+    Crypto() = default;
+    virtual ~Crypto() {}
     virtual std::shared_ptr<bytes> sign(KeyPair const& _keyPair, const h256& _hash) = 0;
-    virtual bool verify(Public const& _pubKey, const h256& _hash, bytesConstRef _signatureData) = 0;
+    virtual bool verify(
+        Public const& _pubKey, const h256& _hash, std::shared_ptr<bytes> _signatureData) = 0;
     // recover the public key from the given signature
-    virtual Public recover(const h256& _hash, bytesConstRef _signatureData) = 0;
+    virtual Public recover(const h256& _hash, std::shared_ptr<bytes> _signatureData) = 0;
+
     // recover the account address from the given input,
     // provided for the ecRecover/sm2Recover precompiled interfaces
-    virtual std::pair<bool, bytes> recover(bytesConstRef _in) = 0;
+    virtual std::pair<bool, bytes> recover(std::shared_ptr<bytes> _in) = 0;
+
     virtual std::shared_ptr<KeyPair> generateKeyPair() = 0;
 
     virtual bool verify(Public const& _pubKey, const h256& _hash, SignatureData::Ptr _signatureData)
     {
         auto signatureRawData = std::make_shared<bytes>();
         _signatureData->encode(signatureRawData);
-        return verify(_pubKey, _hash, ref(*signatureRawData));
+        return verify(_pubKey, _hash, signatureRawData);
     }
-    virtual Public recover(const h256& _hash, SignatureData::Ptr _signatureData)
+
+    Public recoverSignature(const h256& _hash, SignatureData::Ptr _signatureData)
     {
         auto signatureRawData = std::make_shared<bytes>();
         _signatureData->encode(signatureRawData);
-        return recover(_hash, ref(*signatureRawData));
+        return recover(_hash, signatureRawData);
     }
 };
 }  // namespace crypto
