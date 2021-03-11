@@ -41,7 +41,6 @@ set(VERSION_SUFFIX "")
 include(Options)
 configure_project()
 include(CompilerSettings)
-include(ProjectProtocolBuffer)
 # install dependencies
 hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log program_options test)
 
