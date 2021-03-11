@@ -29,7 +29,7 @@ namespace crypto
 class CryptoSuite
 {
 public:
-    CryptoSuite(Hash::Ptr _hashImpl, Crypto::Ptr _signatureImpl,
+    CryptoSuite(Hash::Ptr _hashImpl, SignatureCrypto::Ptr _signatureImpl,
         SymmetricEncryption::Ptr _symmetricEncryptionHandler)
       : m_hashImpl(_hashImpl),
         m_signatureImpl(_signatureImpl),
@@ -37,7 +37,7 @@ public:
     {}
     virtual ~CryptoSuite() {}
     Hash::Ptr hashImpl() { return m_hashImpl; }
-    Crypto::Ptr signatureImpl() { return m_signatureImpl; }
+    SignatureCrypto::Ptr signatureImpl() { return m_signatureImpl; }
     SymmetricEncryption::Ptr symmetricEncryptionHandler() { return m_symmetricEncryptionHandler; }
 
     template <typename T>
@@ -48,7 +48,7 @@ public:
 
 private:
     Hash::Ptr m_hashImpl;
-    Crypto::Ptr m_signatureImpl;
+    SignatureCrypto::Ptr m_signatureImpl;
     SymmetricEncryption::Ptr m_symmetricEncryptionHandler;
 };
 }  // namespace crypto
