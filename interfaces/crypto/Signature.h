@@ -40,6 +40,8 @@ public:
 
     Secret const& secretKey() const { return m_secretKey; }
     Public const& publicKey() const { return m_publicKey; }
+    Secret& mutSecretKey() { return m_secretKey; }
+    Public& mutPublicKey() { return m_publicKey; }
 
     virtual Address const& address()
     {
