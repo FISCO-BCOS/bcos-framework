@@ -47,7 +47,7 @@ macro(configure_project)
             "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
     endif()
     
-    default_option(BUILD_STATIC ON)
+    default_option(BUILD_STATIC OFF)
 
     #ARCH TYPE
     default_option(ARCH_NATIVE OFF)
@@ -71,6 +71,7 @@ macro(configure_project)
     if (NOT DEFINED VERSION_SUFFIX)
         set(VERSION_SUFFIX "")
     endif()
+    print_config(${NAME})
 endmacro()
 
 macro(print_config NAME)
