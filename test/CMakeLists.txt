@@ -28,4 +28,6 @@ config_test_cases("" "${SOURCES}" bin/${TEST_BINARY_NAME} "")
 add_executable(${TEST_BINARY_NAME} ${SOURCES})
 target_include_directories(${TEST_BINARY_NAME} PRIVATE ..)
 find_package(Boost CONFIG REQUIRED unit_test_framework)
-target_link_libraries(${TEST_BINARY_NAME} ${UTILITIES_TARGET} Boost::unit_test_framework)
+
+include(InstallBcosCryptoDependencies)
+target_link_libraries(${TEST_BINARY_NAME} Boost::unit_test_framework bcos-crypto::bcos-crypto ${UTILITIES_TARGET} ${CODEC_TARGET})
