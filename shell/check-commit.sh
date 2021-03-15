@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 # "Copyright [2018] <bcos-cmake-scripts>"
 # @ function: check code format of {.h, .hpp and .cpp} files
 # @ require : Make sure your machine is linux (centos/ubuntu), yum or apt is ready
@@ -23,12 +23,12 @@ skip_check_words="sync code"
 
 LOG_ERROR() {
     content=${1}
-    echo -e "\033[31m"${content}"\033[0m"
+    echo -e "\033[31m${content}\033[0m"
 }
 
 LOG_INFO() {
     content=${1}
-    echo -e "\033[32m"${content}"\033[0m"
+    echo -e "\033[32m${content}\033[0m"
 }
 
 execute_cmd() {
