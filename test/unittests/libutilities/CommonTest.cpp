@@ -21,9 +21,9 @@
  */
 
 
-#include <libutilities/Common.h>
-#include <libutilities/Exceptions.h>
-#include <test/bcos-test/libutils/TestPromptFixture.h>
+#include <bcos-framework/libutilities/Common.h>
+#include <bcos-framework/libutilities/Exceptions.h>
+#include <bcos-test/libutils/TestPromptFixture.h>
 #include <unistd.h>
 #include <boost/test/unit_test.hpp>
 #include <thread>

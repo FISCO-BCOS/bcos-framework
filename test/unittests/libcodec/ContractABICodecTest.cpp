@@ -21,7 +21,7 @@
 #include <bcos-crypto/hash/Keccak256.h>
 #include <bcos-framework/libcodec/ContractABICodec.h>
 #include <bcos-framework/libcodec/ContractABIType.h>
-#include <test/bcos-test/libutils/TestPromptFixture.h>
+#include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 
 using namespace std;

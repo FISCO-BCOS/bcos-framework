@@ -41,11 +41,15 @@ set(VERSION_SUFFIX "")
 include(Options)
 configure_project()
 include(CompilerSettings)
+
+# install headers firstly
+include(CopyInclude)
+
 # install dependencies
 hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log program_options test)
 
-include_directories(${PROJECT_SOURCE_DIR})
-include_directories(${PROJECT_SOURCE_DIR}/..)
+include_directories(${CMAKE_INSTALL_INCLUDEDIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 # set library target name
 set(UTILITIES_TARGET "utilities")
 set(CODEC_TARGET "codec")

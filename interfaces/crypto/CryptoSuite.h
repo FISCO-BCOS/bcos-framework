@@ -29,6 +29,7 @@ namespace crypto
 class CryptoSuite
 {
 public:
+    using Ptr = std::shared_ptr<CryptoSuite>;
     CryptoSuite(Hash::Ptr _hashImpl, SignatureCrypto::Ptr _signatureImpl,
         SymmetricEncryption::Ptr _symmetricEncryptionHandler)
       : m_hashImpl(_hashImpl),
