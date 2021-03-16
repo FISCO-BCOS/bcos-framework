@@ -29,8 +29,8 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 # init hunter
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/FISCO-BCOS/hunter/archive/cd4f18180cf0ba7e54f115a851b2436c99880a64.tar.gz"
-    SHA1 "4952b5569103c25792275fe5ac94099c1b379e20"
+    URL "https://github.com/FISCO-BCOS/hunter/archive/718825c81fe974cc4fa764d96a3f4e705de7be3f.tar.gz"
+    SHA1 "9f4cd2fb76a69a0f037ccb932e37f1221623e980"
 )
 
 project(bcos-framework VERSION "3.0")
@@ -48,9 +48,11 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/..)
 # set library target name
 set(UTILITIES_TARGET "utilities")
+set(CODEC_TARGET "codec")
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)
 add_subdirectory(interfaces)
+add_subdirectory(libcodec)
 
 # test releated
 if (TESTS)
@@ -68,6 +70,16 @@ install(
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
     INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
+
+install(
+    TARGETS ${CODEC_TARGET}
+    EXPORT "${TARGETS_EXPORT_NAME}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
 include(InstallInclude)
 # for doxygen
 include(BuildDocs)
