@@ -18,7 +18,7 @@
  */
 
 #pragma once
-#include <libutilities/Common.h>
+#include <bcos-framework/libutilities/Common.h>
 #include <boost/filesystem.hpp>
 
 namespace bcos
