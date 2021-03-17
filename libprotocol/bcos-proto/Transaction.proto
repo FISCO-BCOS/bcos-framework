@@ -1,0 +1,19 @@
+syntax = "proto3";
+package bcos.protocol;
+
+// Fields to calculate hash
+message TransactionHashFields{
+    int32 version = 1;
+    bytes chainId = 2;
+    bytes groupId = 3;
+    int64 blockLimit = 4;
+    bytes nonce = 5;
+    bytes to = 6;
+    bytes input = 7;
+}
+
+message Transaction{
+    bytes hashFieldsData = 1;
+    bytes sigantureData = 2;
+    int64 import_time = 12;
+}
