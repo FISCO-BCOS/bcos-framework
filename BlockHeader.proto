@@ -1,0 +1,22 @@
+syntax = "proto3";
+package bcos.protocol;
+
+message BlockHeaderHashFields{
+    int32 version = 1;
+    bytes parentHash = 2;
+    bytes txsRoot = 3;
+    bytes receiptsRoot = 4;
+    bytes stateRoot = 5;
+    bytes logBloom = 6;
+    int64 number = 7;
+    bytes gasUsed = 8;
+    int64 timestamp = 9;
+    int64 sealer = 10;
+    repeated bytes sealerList = 11;
+    bytes extraData = 12;
+}
+
+message BlockHeader{
+    bytes hashFieldsData = 1;
+    repeated bytes signatureList = 2;
+}
