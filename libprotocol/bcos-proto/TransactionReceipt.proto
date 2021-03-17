@@ -1,0 +1,23 @@
+syntax = "proto3";
+package bcos.protocol;
+
+message LogEntry{
+    bytes address = 1;
+    repeated bytes topics = 2;
+    bytes data = 3;
+}
+message ReceiptHashFields{
+    int32 version = 1;
+    bytes stateRoot = 2;
+    bytes gasUsed = 3;
+    bytes contractAddress = 4;
+    bytes bloom = 5;
+    int32 status = 6;
+    repeated LogEntry logEntries=7;
+    bytes ouptput = 8;
+}
+
+message TransactionReceipt{
+    // Used to calculate receiptHash, which can be deserialized into ReceiptHashFields
+    bytes hashFieldsData = 1; 
+}
