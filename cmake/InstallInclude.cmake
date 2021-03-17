@@ -1,20 +1,34 @@
 # utilities
+set(DESTINATION_INCLUDE_DIR "${CMAKE_INSTALL_INCLUDEDIR}/bcos-framework")
 install(
-    DIRECTORY "libutilities/"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bcos-framework/libutilities"
+    DIRECTORY "libutilities"
+    DESTINATION "${DESTINATION_INCLUDE_DIR}"
     FILES_MATCHING PATTERN "*.h"
 )
 
 # interfaces
 install(
     DIRECTORY "interfaces"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bcos-framework"
+    DESTINATION "${DESTINATION_INCLUDE_DIR}"
     FILES_MATCHING PATTERN "*.h"
 )
 
 # codec
 install(
     DIRECTORY "libcodec"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bcos-framework/libcodec"
+    DESTINATION "${DESTINATION_INCLUDE_DIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
+
+# protocol
+install(
+    DIRECTORY "libprotocol"
+    DESTINATION "${DESTINATION_INCLUDE_DIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
+
+install(
+    DIRECTORY ${PROTO_GENERATE_DIR}
+    DESTINATION "${DESTINATION_INCLUDE_DIR}/libprotocol"
     FILES_MATCHING PATTERN "*.h"
 )

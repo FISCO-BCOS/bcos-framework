@@ -1,0 +1,186 @@
+/*
+ *  Copyright (C) 2021 FISCO BCOS.
+ *  SPDX-License-Identifier: Apache-2.0
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ * @brief test for Transaction
+ * @file TransactionTest.h
+ * @author: yujiechen
+ * @date: 2021-03-16
+ */
+#include <bcos-crypto/hash/Keccak256.h>
+#include <bcos-crypto/hash/SM3.h>
+#include <bcos-crypto/signature/secp256k1/Secp256k1Crypto.h>
+#include <bcos-crypto/signature/sm2/SM2Crypto.h>
+#include <bcos-framework/libprotocol/TransactionWrapper.h>
+#include <bcos-framework/libutilities/Common.h>
+#include <bcos-test/libutils/TestPromptFixture.h>
+#include <boost/test/unit_test.hpp>
+
+using namespace bcos;
+using namespace bcos::crypto;
+using namespace bcos::protocol;
+
+namespace bcos
+{
+namespace test
+{
+BOOST_FIXTURE_TEST_SUITE(TransactionWrapperTest, TestPromptFixture)
+
+TransactionWrapper::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair::Ptr _keyPair,
+    Address const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
+    std::string const& _chainId, std::string const& _groupId)
+{
+    auto transactionWrapper = std::make_shared<TransactionWrapper>(
+        _cryptoSuite, 1, _to, _input, _nonce, _blockLimit, _chainId, _groupId, utcTime());
+    // set signature
+    auto signData = _cryptoSuite->signatureImpl()->sign(*_keyPair, transactionWrapper->hash());
+    transactionWrapper->updateSignature(
+        bytesConstRef(signData->data(), signData->size()), _keyPair->address());
+    return transactionWrapper;
+}
+
+void testTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair::Ptr _keyPair, Address const& _to,
+    bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
+    std::string const& _chainId, std::string const& _groupId)
+{
+    auto transactionWrapper = fakeTransaction(
+        _cryptoSuite, _keyPair, _to, _input, _nonce, _blockLimit, _chainId, _groupId);
+    if (_to == Address())
+    {
+        BOOST_CHECK(transactionWrapper->type() == TransactionType::ContractCreation);
+    }
+    else
+    {
+        BOOST_CHECK(transactionWrapper->type() == TransactionType::MessageCall);
+    }
+
+    BOOST_CHECK(transactionWrapper->sender() == _keyPair->address());
+    // encode
+    std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
+    transactionWrapper->encode(*encodedData);
+    std::cout << "#### encodedData is:" << *toHexString(*encodedData) << std::endl;
+    std::cout << "### hash:" << transactionWrapper->hash().hex() << std::endl;
+    std::cout << "### sender:" << transactionWrapper->sender().hex() << std::endl;
+    std::cout << "### type:" << transactionWrapper->type() << std::endl;
+    std::cout << "### to:" << transactionWrapper->to().hex() << std::endl;
+    // decode
+    auto decodedTransaction =
+        std::make_shared<TransactionWrapper>(_cryptoSuite, *encodedData, true);
+    // check the fields
+    BOOST_CHECK(decodedTransaction->hash() == transactionWrapper->hash());
+    BOOST_CHECK(decodedTransaction->sender() == transactionWrapper->sender());
+    BOOST_CHECK(decodedTransaction->type() == transactionWrapper->type());
+    BOOST_CHECK(decodedTransaction->to() == transactionWrapper->to());
+    BOOST_CHECK(*decodedTransaction == *transactionWrapper);
+    // check the transaction hash fields
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->input() ==
+                transactionWrapper->transactionHashFields()->input());
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->nonce() ==
+                transactionWrapper->transactionHashFields()->nonce());
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->blocklimit() ==
+                transactionWrapper->transactionHashFields()->blocklimit());
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->chainid() ==
+                transactionWrapper->transactionHashFields()->chainid());
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->groupid() ==
+                transactionWrapper->transactionHashFields()->groupid());
+}
+
+BOOST_AUTO_TEST_CASE(testNormalTransaction)
+{
+    auto hashImpl = std::make_shared<Keccak256>();
+    auto signatureImpl = std::make_shared<Secp256k1Crypto>();
+    auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
+    auto keyPair = cryptoSuite->signatureImpl()->generateKeyPair();
+    auto to = keyPair->address();
+    std::string inputStr = "testTransaction";
+    bytes input = asBytes(inputStr);
+    u256 nonce = 120012323;
+    int64_t blockLimit = 1000023;
+    std::string chainId = "chainId";
+    std::string groupId = "groupId";
+
+    testTransaction(cryptoSuite, keyPair, to, input, nonce, blockLimit, chainId, groupId);
+}
+
+BOOST_AUTO_TEST_CASE(testSMTransaction)
+{
+    auto hashImpl = std::make_shared<SM3>();
+    auto signatureImpl = std::make_shared<SM2Crypto>();
+    auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
+    auto keyPair = cryptoSuite->signatureImpl()->generateKeyPair();
+    auto to = Address();
+    std::string inputStr = "testTransaction";
+    bytes input = asBytes(inputStr);
+    u256 nonce = 120012323;
+    int64_t blockLimit = 1000023;
+    std::string chainId = "chainId";
+    std::string groupId = "groupId";
+
+    testTransaction(cryptoSuite, keyPair, to, input, nonce, blockLimit, chainId, groupId);
+}
+
+BOOST_AUTO_TEST_CASE(testTransactionWithRawData)
+{
+    auto hashImpl = std::make_shared<Keccak256>();
+    auto signatureImpl = std::make_shared<Secp256k1Crypto>();
+    auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
+    auto encodedData =
+        "0a6108011207636861696e49641a0767726f7570496420d7843d2a200000000000000000000000000000000000"
+        "000000000000000000000007273e2332145fe3c4c3e2079879a0dba1937aca95ac16e68f0f3a0f746573745472"
+        "616e73616374696f6e1241e4dd502f6f5f3dbc0639e8587f2a9d6227dddac55e4c40b098fd3e3c4a60cabe6cd7"
+        "2c4b98b5d4d08f484b93541026e0144d1025d4b24e2cfcaa12f48bcf6499006080b99081842f";
+    auto hashData = "4f453741741d530125c9dc170dec385d2711c89d22f7c6a1842b51a4f0d9c486";
+    auto sender = "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f";
+    auto encodedBytes = fromHexString(encodedData);
+    auto decodedTransaction =
+        std::make_shared<TransactionWrapper>(cryptoSuite, *encodedBytes, true);
+    BOOST_CHECK(decodedTransaction->hash().hex() == hashData);
+    BOOST_CHECK(decodedTransaction->to().hex() == "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
+    BOOST_CHECK(decodedTransaction->sender().hex() == sender);
+    BOOST_CHECK(decodedTransaction->type() == TransactionType::MessageCall);
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->groupid() == "groupId");
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->chainid() == "chainId");
+    BOOST_CHECK(decodedTransaction->nonce() == u256(120012323));
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->blocklimit() == 1000023);
+}
+
+BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
+{
+    auto hashImpl = std::make_shared<SM3>();
+    auto signatureImpl = std::make_shared<SM2Crypto>();
+    auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
+    auto encodedData =
+        "0a4b08011207636861696e49641a0767726f7570496420d7843d2a200000000000000000000000000000000000"
+        "000000000000000000000007273e233a0f746573745472616e73616374696f6e128001dbbdfc7aafc79dda0225"
+        "61e020fc7246fe078ca2c652214bf8bff063b4bb9c4595af762147850eecd5bd002e43a99e653172920452b07b"
+        "12ae114e9d7b813d08679703c81bd859386b0c1496b715696a1e5848004558714e784ce2ead9272173314e9e5c"
+        "7d7b10756a55e2bf7f05e8ba8caebc9c1dc034cfdbdd11db78c7ecdc6083bb9081842f";
+    auto hashData = "0d7972e05888c7c6638aaeb0d3bfd8b5d4dd4cf73e3fbdae9ee6b6df733db040";
+    auto sender = "7f7be1e116815757279adf37a781863fee194e3b";
+    auto encodedBytes = fromHexString(encodedData);
+    auto decodedTransaction =
+        std::make_shared<TransactionWrapper>(cryptoSuite, *encodedBytes, true);
+    BOOST_CHECK(decodedTransaction->hash().hex() == hashData);
+    BOOST_CHECK(decodedTransaction->sender().hex() == sender);
+    BOOST_CHECK(decodedTransaction->to() == Address());
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->mutable_to()->size() == 0);
+    BOOST_CHECK(decodedTransaction->type() == TransactionType::ContractCreation);
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->groupid() == "groupId");
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->chainid() == "chainId");
+    BOOST_CHECK(decodedTransaction->nonce() == u256(120012323));
+    BOOST_CHECK(decodedTransaction->transactionHashFields()->blocklimit() == 1000023);
+}
+BOOST_AUTO_TEST_SUITE_END()
+}  // namespace test
+}  // namespace bcos
