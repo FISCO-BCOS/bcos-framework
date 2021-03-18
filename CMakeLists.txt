@@ -50,6 +50,9 @@ include(CopyInclude)
 hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log program_options test)
 # install protobuf dependency
 hunter_add_package(Protobuf)
+# install gsl dependencies
+hunter_add_package(Microsoft.GSL)
+find_package(Microsoft.GSL CONFIG REQUIRED)
 
 include_directories(${CMAKE_INSTALL_INCLUDEDIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
