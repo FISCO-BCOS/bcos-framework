@@ -29,8 +29,8 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 # init hunter
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/FISCO-BCOS/hunter/archive/718825c81fe974cc4fa764d96a3f4e705de7be3f.tar.gz"
-    SHA1 "9f4cd2fb76a69a0f037ccb932e37f1221623e980"
+    URL "https://github.com/cyjseagull/hunter/archive/7b6e6048d4f83314826e19135b39725c5ccdd57e.tar.gz"
+    SHA1 "0646a14886cf0a7943e8b0130a72a4c090bfed0e"
 )
 
 project(bcos-framework VERSION "3.0")
@@ -46,17 +46,27 @@ include(CompilerSettings)
 include(CopyInclude)
 
 # install dependencies
+# install boost dependency
 hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log program_options test)
+# install protobuf dependency
+hunter_add_package(Protobuf)
 
 include_directories(${CMAKE_INSTALL_INCLUDEDIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+set(INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
+
 # set library target name
 set(UTILITIES_TARGET "utilities")
 set(CODEC_TARGET "codec")
+set(PROTOCOL_TARGET "protocol")
+# define the generated proto file path
+set(PROTO_GENERATE_DIR ${INCLUDE_DIR}/bcos-framework/libprotocol/bcos-proto)
+
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)
 add_subdirectory(interfaces)
 add_subdirectory(libcodec)
+add_subdirectory(libprotocol)
 
 # test releated
 if (TESTS)
@@ -77,6 +87,15 @@ install(
 
 install(
     TARGETS ${CODEC_TARGET}
+    EXPORT "${TARGETS_EXPORT_NAME}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+install(
+    TARGETS ${PROTOCOL_TARGET}
     EXPORT "${TARGETS_EXPORT_NAME}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
