@@ -19,8 +19,8 @@
  */
 
 #include <bcos-crypto/hash/Keccak256.h>
-#include <bcos-framework/libcodec/ContractABICodec.h>
-#include <bcos-framework/libcodec/ContractABIType.h>
+#include <bcos-framework/libcodec/abi/ContractABICodec.h>
+#include <bcos-framework/libcodec/abi/ContractABIType.h>
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 
@@ -28,9 +28,6 @@ using namespace std;
 using namespace bcos;
 using namespace bcos::codec::abi;
 using namespace bcos::codec;
-using namespace bcos::test;
-namespace ut = boost::unit_test;
-
 namespace bcos
 {
 namespace test
