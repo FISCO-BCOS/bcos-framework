@@ -26,5 +26,24 @@ namespace protocol
 {
 DERIVE_BCOS_EXCEPTION(TransactionEncodeException);
 DERIVE_BCOS_EXCEPTION(TransactionDecodeException);
+DERIVE_BCOS_EXCEPTION(ReceiptEncodeException);
+DERIVE_BCOS_EXCEPTION(ReceiptDecodeException);
+
+// transaction exceptions
+DERIVE_BCOS_EXCEPTION(OutOfGasLimit);
+DERIVE_BCOS_EXCEPTION(NotEnoughCash);
+DERIVE_BCOS_EXCEPTION(BadInstruction);
+DERIVE_BCOS_EXCEPTION(BadJumpDestination);
+DERIVE_BCOS_EXCEPTION(OutOfGas);
+DERIVE_BCOS_EXCEPTION(OutOfStack);
+DERIVE_BCOS_EXCEPTION(StackUnderflow);
+DERIVE_BCOS_EXCEPTION(ContractAddressAlreadyUsed);
+DERIVE_BCOS_EXCEPTION(PrecompiledError);
+DERIVE_BCOS_EXCEPTION(RevertInstruction);
+DERIVE_BCOS_EXCEPTION(PermissionDenied);
+DERIVE_BCOS_EXCEPTION(CallAddressError);
+DERIVE_BCOS_EXCEPTION(GasOverflow);
+DERIVE_BCOS_EXCEPTION(ContractFrozen);
+DERIVE_BCOS_EXCEPTION(AccountFrozen);
 }  // namespace protocol
 }  // namespace bcos

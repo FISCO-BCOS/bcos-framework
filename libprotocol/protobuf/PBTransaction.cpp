@@ -13,22 +13,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief wrapper for Transaction
- * @file TransactionWrapper.cpp
+ * @brief Transaction coded in PB format
+ * @file PBTransaction.cpp
  * @author: yujiechen
  * @date: 2021-03-16
  */
-#include "TransactionWrapper.h"
-#include "Exceptions.h"
+#include "PBTransaction.h"
+#include <bcos-framework/libprotocol/Exceptions.h>
 using namespace bcos;
 using namespace bcos::protocol;
 using namespace bcos::crypto;
 
-TransactionWrapper::TransactionWrapper(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
-    int32_t const& _version, Address const& _to, bytes const& _input, u256 const& _nonce,
-    int64_t const& _blockLimit, std::string const& _chainId, std::string const& _groupId,
-    int64_t const& _importTime)
-  : TransactionWrapper(_cryptoSuite)
+PBTransaction::PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t const& _version,
+    Address const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
+    std::string const& _chainId, std::string const& _groupId, int64_t const& _importTime)
+  : PBTransaction(_cryptoSuite)
 {
     m_transactionHashFields->set_version(_version);
     // set receiver address
@@ -64,14 +63,13 @@ TransactionWrapper::TransactionWrapper(bcos::crypto::CryptoSuite::Ptr _cryptoSui
     m_transaction->set_import_time(_importTime);
 }
 
-TransactionWrapper::TransactionWrapper(
-    CryptoSuite::Ptr _cryptoSuite, bytesConstRef _txData, bool _checkSig)
-  : TransactionWrapper(_cryptoSuite)
+PBTransaction::PBTransaction(CryptoSuite::Ptr _cryptoSuite, bytesConstRef _txData, bool _checkSig)
+  : PBTransaction(_cryptoSuite)
 {
     decode(_txData, _checkSig);
 }
 
-void TransactionWrapper::decode(bytesConstRef _txData, bool _checkSig)
+void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
 {
     // decode transaction
     if (!m_transaction->ParseFromArray((const void*)_txData.data(), _txData.size()))
@@ -93,7 +91,7 @@ void TransactionWrapper::decode(bytesConstRef _txData, bool _checkSig)
         return;
     }
     // check the signatures
-    auto signaturePtr = m_transaction->mutable_siganturedata();
+    auto signaturePtr = m_transaction->mutable_signaturedata();
     auto publicKey = m_cryptoSuite->signatureImpl()->recover(
         hash(), bytesConstRef((const byte*)signaturePtr->data(), signaturePtr->size()));
     // recover the sender
@@ -113,7 +111,7 @@ void TransactionWrapper::decode(bytesConstRef _txData, bool _checkSig)
             m_transactionHashFields->nonce().size()));
 }
 
-void TransactionWrapper::encode(bytes& _txData) const
+void PBTransaction::encode(bytes& _txData) const
 {
     auto txSize = m_transaction->ByteSizeLong();
     _txData.resize(txSize);
@@ -125,7 +123,7 @@ void TransactionWrapper::encode(bytes& _txData) const
     }
 }
 
-h256 const& TransactionWrapper::hash() const
+h256 const& PBTransaction::hash() const
 {
     UpgradableGuard l(x_hash);
     if (m_hash != h256())
@@ -137,8 +135,14 @@ h256 const& TransactionWrapper::hash() const
     return m_hash;
 }
 
-void TransactionWrapper::updateSignature(bytesConstRef _signatureData, Address const& _sender)
+void PBTransaction::updateSignature(bytesConstRef _signatureData, Address const& _sender)
 {
-    m_transaction->set_siganturedata(_signatureData.data(), _signatureData.size());
+    m_transaction->set_signaturedata(_signatureData.data(), _signatureData.size());
     m_sender = _sender;
+}
+
+bytesConstRef PBTransaction::input() const
+{
+    auto const& inputData = m_transactionHashFields->input();
+    return bytesConstRef((byte const*)(inputData.data()), inputData.size());
 }
