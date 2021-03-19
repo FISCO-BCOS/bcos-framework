@@ -2,7 +2,7 @@ syntax = "proto3";
 package bcos.protocol;
 
 // Fields to calculate hash
-message TransactionHashFields{
+message PBRawTransactionHashFields{
     int32 version = 1;
     bytes chainId = 2;
     bytes groupId = 3;
@@ -12,8 +12,8 @@ message TransactionHashFields{
     bytes input = 7;
 }
 
-message Transaction{
+message PBRawTransaction{
     bytes hashFieldsData = 1;
-    bytes sigantureData = 2;
+    bytes signatureData = 2;
     int64 import_time = 12;
 }
