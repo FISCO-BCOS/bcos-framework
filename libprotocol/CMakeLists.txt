@@ -22,8 +22,12 @@ foreach(proto_file ${MESSAGES_PROTOS})
       VERBATIM
   )
 endforeach()
+
+aux_source_directory(./protobuf SRC_LIST)
+include_directories(./protobuf)
+
 add_library(${PROTOCOL_TARGET} ${SRC_LIST} ${MESSAGES_SRCS} ${HEADERS})
 target_compile_options(${PROTOCOL_TARGET} PRIVATE -Wno-error -Wno-unused-variable)
 
 find_package(Protobuf CONFIG REQUIRED)
-target_link_libraries(${PROTOCOL_TARGET} PUBLIC ${UTILITIES_TARGET} protobuf::libprotobuf)
+target_link_libraries(${PROTOCOL_TARGET} PUBLIC ${UTILITIES_TARGET} protobuf::libprotobuf ${UTILITIES_TARGET})

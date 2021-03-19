@@ -13,13 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief wrapper for Transaction
- * @file TransactionWrapper.h
+ * @brief Transaction coded in PB format
+ * @file PBTransaction.h
  * @author: yujiechen
  * @date: 2021-03-16
  */
 #pragma once
 #include <bcos-framework/interfaces/crypto/CryptoSuite.h>
+#include <bcos-framework/interfaces/protocol/Transaction.h>
 #include <bcos-framework/libprotocol/bcos-proto/Transaction.pb.h>
 #include <bcos-framework/libutilities/Common.h>
 #include <bcos-framework/libutilities/FixedBytes.h>
@@ -29,66 +30,65 @@ namespace bcos
 {
 namespace protocol
 {
-enum TransactionType
-{
-    NullTransaction,
-    ContractCreation,
-    MessageCall,
-};
-class TransactionWrapper
+class PBTransaction : public Transaction
 {
 public:
-    using Ptr = std::shared_ptr<TransactionWrapper>;
-    explicit TransactionWrapper(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
-      : m_transaction(std::make_shared<Transaction>()),
-        m_transactionHashFields(std::make_shared<TransactionHashFields>()),
+    using Ptr = std::shared_ptr<PBTransaction>;
+    explicit PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
+      : m_transaction(std::make_shared<PBRawTransaction>()),
+        m_transactionHashFields(std::make_shared<PBRawTransactionHashFields>()),
         m_cryptoSuite(_cryptoSuite)
     {
         GOOGLE_PROTOBUF_VERIFY_VERSION;
     }
-
-    TransactionWrapper(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t const& _version,
+    PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t const& _version,
         Address const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
         std::string const& _chainId, std::string const& _groupId, int64_t const& _importTime);
 
-    explicit TransactionWrapper(
+    explicit PBTransaction(
         bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytesConstRef _txData, bool _checkSig);
-    explicit TransactionWrapper(
+    explicit PBTransaction(
         bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytes const& _txData, bool _checkSig)
-      : TransactionWrapper(_cryptoSuite, &_txData, _checkSig)
+      : PBTransaction(_cryptoSuite, &_txData, _checkSig)
     {}
 
-    virtual ~TransactionWrapper() {}
+    ~PBTransaction() override {}
 
-    bool operator==(TransactionWrapper const& _comparedTx)
+    bool operator==(PBTransaction const& _comparedTx)
     {
         return (m_type == _comparedTx.type()) && (m_to == to()) &&
-               (m_transaction->import_time() == _comparedTx.transaction()->import_time()) &&
+               (importTime() == _comparedTx.importTime()) &&
                (m_transaction->hashfieldsdata() == _comparedTx.transaction()->hashfieldsdata());
     }
 
-    virtual void decode(bytesConstRef _txData, bool _checkSig);
-    virtual void encode(bytes& _txData) const;
-    virtual h256 const& hash() const;
+    void decode(bytesConstRef _txData, bool _checkSig) override;
+    void encode(bytes& _txData) const override;
+    h256 const& hash() const override;
 
-    std::shared_ptr<Transaction> transaction() const { return m_transaction; }
-    std::shared_ptr<TransactionHashFields> transactionHashFields() const
+    std::shared_ptr<PBRawTransaction> transaction() const { return m_transaction; }
+    std::shared_ptr<PBRawTransactionHashFields> transactionHashFields() const
     {
         return m_transactionHashFields;
     }
 
-    Address const& sender() const { return m_sender; }
-    Address const& to() const { return m_to; }
-    TransactionType const& type() const { return m_type; }
-    u256 const& nonce() const { return m_nonce; }
+    u256 const& nonce() const override { return m_nonce; }
+    int32_t version() const override { return m_transactionHashFields->version(); }
+    std::string const& chainId() const override { return m_transactionHashFields->chainid(); }
+    std::string const& groupId() const override { return m_transactionHashFields->groupid(); }
+    int64_t blockLimit() const override { return m_transactionHashFields->blocklimit(); }
+    Address const& sender() const override { return m_sender; }
+    Address const& to() const override { return m_to; }
+    TransactionType const& type() const override { return m_type; }
+    bytesConstRef input() const override;
+    int64_t importTime() const override { return m_transaction->import_time(); }
+    void forceSender(Address const& _sender) override { m_sender = _sender; }
+
     // only for ut
     void updateSignature(bytesConstRef _signatureData, Address const& _sender);
 
-    void forceSender(Address const& _sender) { m_sender = _sender; }
-
 private:
-    std::shared_ptr<Transaction> m_transaction;
-    std::shared_ptr<TransactionHashFields> m_transactionHashFields;
+    std::shared_ptr<PBRawTransaction> m_transaction;
+    std::shared_ptr<PBRawTransactionHashFields> m_transactionHashFields;
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
 
     mutable h256 m_hash;
