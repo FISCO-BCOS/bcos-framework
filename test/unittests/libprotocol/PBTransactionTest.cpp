@@ -22,6 +22,7 @@
 #include <bcos-crypto/hash/SM3.h>
 #include <bcos-crypto/signature/secp256k1/Secp256k1Crypto.h>
 #include <bcos-crypto/signature/sm2/SM2Crypto.h>
+#include <bcos-framework/libprotocol/Exceptions.h>
 #include <bcos-framework/libprotocol/protobuf/PBTransaction.h>
 #include <bcos-framework/libutilities/Common.h>
 #include <bcos-test/libutils/TestPromptFixture.h>
@@ -151,6 +152,11 @@ BOOST_AUTO_TEST_CASE(testTransactionWithRawData)
     BOOST_CHECK(decodedTransaction->transactionHashFields()->chainid() == "chainId");
     BOOST_CHECK(decodedTransaction->nonce() == u256(120012323));
     BOOST_CHECK(decodedTransaction->transactionHashFields()->blocklimit() == 1000023);
+
+    // test exception case
+    (*encodedBytes)[0] += 1;
+    BOOST_CHECK_THROW(std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true),
+        TransactionDecodeException);
 }
 
 BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
@@ -177,6 +183,10 @@ BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
     BOOST_CHECK(decodedTransaction->transactionHashFields()->chainid() == "chainId");
     BOOST_CHECK(decodedTransaction->nonce() == u256(120012323));
     BOOST_CHECK(decodedTransaction->transactionHashFields()->blocklimit() == 1000023);
+    // test exception case
+    (*encodedBytes)[0] += 1;
+    BOOST_CHECK_THROW(std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true),
+        TransactionDecodeException);
 }
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
