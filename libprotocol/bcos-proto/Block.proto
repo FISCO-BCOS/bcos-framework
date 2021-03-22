@@ -5,7 +5,7 @@ import "BlockHeader.proto";
 // Mainly used for block data packet encoding when network transmission
 message Block{
     int32 version = 1;
-    BlockHeader header = 2;
+    PBRawBlockHeader header = 2;
     repeated bytes transactions = 3;
     repeated bytes receipts = 4;
 }
