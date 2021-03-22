@@ -123,18 +123,8 @@ void encodeCompactInteger(const CompactInteger& value, ScaleEncoderStream& out)
 bytes ScaleEncoderStream::data() const
 {
     bytes buffer(m_stream.size(), 0u);
-    for (auto&& [it, dest] = std::pair(m_stream.begin(), buffer.begin()); it != m_stream.end();
-         ++it, ++dest)
-    {
-        *dest = *it;
-    }
+    buffer.assign(m_stream.begin(), m_stream.end());
     return buffer;
-}
-
-ScaleEncoderStream& ScaleEncoderStream::putByte(uint8_t v)
-{
-    m_stream.push_back(v);
-    return *this;
 }
 
 ScaleEncoderStream& ScaleEncoderStream::operator<<(const CompactInteger& v)

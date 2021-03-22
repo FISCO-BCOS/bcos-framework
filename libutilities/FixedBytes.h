@@ -595,6 +595,7 @@ using h256Set = std::set<h256>;
 using h160Set = std::set<h160>;
 using h256Hash = std::unordered_set<h256>;
 using h160Hash = std::unordered_set<h160>;
+using LogBloom = h2048;
 
 using Address = h160;
 /// A vector of addresses.

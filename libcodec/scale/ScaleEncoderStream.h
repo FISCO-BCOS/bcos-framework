@@ -18,10 +18,11 @@
  */
 #pragma once
 #include "FixedWidthIntegerCodec.h"
-#include <bcos-framework/libutilities/RefDataContainer.h>
+#include <bcos-framework/libutilities/FixedBytes.h>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include <deque>
+#include <gsl/span>
 namespace bcos
 {
 namespace codec
@@ -113,6 +114,12 @@ public:
         return *this << *v;
     }
 
+    template <unsigned N>
+    ScaleEncoderStream& operator<<(const FixedBytes<N>& fixedData)
+    {
+        return encodeCollection(FixedBytes<N>::size, fixedData.begin(), fixedData.end());
+    }
+
     /**
      * @brief scale-encodes collection of same time items
      * @tparam T type of item
@@ -166,7 +173,7 @@ public:
      * @return reference to stream
      */
     template <class T>
-    ScaleEncoderStream& operator<<(const RefDataContainer<T>& v)
+    ScaleEncoderStream& operator<<(const gsl::span<T>& v)
     {
         return encodeCollection(v.size(), v.begin(), v.end());
     }
@@ -293,10 +300,15 @@ protected:
      * @param v byte value
      * @return reference to stream
      */
-    ScaleEncoderStream& putByte(uint8_t v);
+    ScaleEncoderStream& putByte(uint8_t v)
+    {
+        m_stream.emplace_back(v);
+        return *this;
+    }
 
 private:
     ScaleEncoderStream& encodeOptionalBool(const boost::optional<bool>& v);
+    // std::deque<uint8_t> m_stream;
     std::deque<uint8_t> m_stream;
 };
 }  // namespace scale

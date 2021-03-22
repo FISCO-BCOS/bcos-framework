@@ -20,6 +20,7 @@
 #include "Common.h"
 #include "FixedWidthIntegerCodec.h"
 #include <bcos-framework/libutilities/Common.h>
+#include <bcos-framework/libutilities/FixedBytes.h>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
@@ -189,6 +190,14 @@ public:
         return *this >> const_cast<mutableT&>(*v);  // NOLINT
     }
 
+    ScaleDecoderStream& operator>>(u256& v)
+    {
+        CompactInteger value;
+        *this >> value;
+        v = (u256)(value);
+        return *this;
+    }
+
     /**
      * @brief scale-decodes compact integer value
      * @param v compact integer reference
@@ -196,6 +205,14 @@ public:
      */
     ScaleDecoderStream& operator>>(CompactInteger& v);
 
+    template <unsigned N>
+    ScaleDecoderStream& operator>>(FixedBytes<N>& fixedData)
+    {
+        bytes decodedData;
+        *this >> decodedData;
+        fixedData = FixedBytes<N>(decodedData.data(), FixedBytes<N>::ConstructorType::FromPointer);
+        return *this;
+    }
     /**
      * @brief decodes vector of items
      * @tparam T item type
@@ -214,7 +231,6 @@ public:
         *this >> size;
 
         auto item_count = size.convert_to<size_type>();
-
         std::vector<mutableT> vec;
         try
         {
@@ -225,12 +241,19 @@ public:
             BOOST_THROW_EXCEPTION(
                 ScaleDecodeException() << errinfo_comment("exception for TOO_MANY_ITEMS"));
         }
-
-        for (size_type i = 0u; i < item_count; ++i)
+        if constexpr (sizeof(T) == 1u)
         {
-            *this >> vec[i];
+            vec.assign(m_currentIterator, m_currentIterator + item_count);
+            m_currentIterator += item_count;
+            m_currentIndex += item_count;
         }
-
+        else
+        {
+            for (size_type i = 0u; i < item_count; ++i)
+            {
+                *this >> vec[i];
+            }
+        }
         v = std::move(vec);
         return *this;
     }
@@ -311,7 +334,16 @@ public:
      * advances current byte iterator by one
      * @return current byte
      */
-    uint8_t nextByte();
+    uint8_t nextByte()
+    {
+        if (!hasMore(1))
+        {
+            BOOST_THROW_EXCEPTION(ScaleDecodeException()
+                                  << errinfo_comment("nextByte exception for NOT_ENOUGH_DATA"));
+        }
+        ++m_currentIndex;
+        return *m_currentIterator++;
+    }
     using SizeType = gsl::span<const byte>::size_type;
 
     gsl::span<byte const> span() const { return m_span; }
