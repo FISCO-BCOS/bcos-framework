@@ -31,18 +31,22 @@ namespace protocol
 class PBTransactionReceipt : public TransactionReceipt
 {
 public:
-    PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytes const& _receiptData);
-    PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-        h256 const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
-        LogEntriesPtr _logEntries, TransactionStatus _status, bytes const& _output);
+    PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytesConstRef _receiptData);
+    PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytes const& _receiptData)
+      : PBTransactionReceipt(_cryptoSuite, ref(_receiptData))
+    {}
 
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
         h256 const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
-        LogEntriesPtr _logEntries, TransactionStatus _status, bytes&& _output);
+        LogEntriesPtr _logEntries, int32_t _status, bytes const& _output);
+
+    PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
+        h256 const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
+        LogEntriesPtr _logEntries, int32_t _status, bytes&& _output);
 
     ~PBTransactionReceipt() {}
 
-    void decode(bytes const& _receiptData) override;
+    void decode(bytesConstRef _receiptData) override;
     void encode(bytes& _encodeReceiptData) override;
     h256 const& hash() override;
 
@@ -58,7 +62,7 @@ public:
 private:
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
         h256 const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
-        LogEntriesPtr _logEntries, TransactionStatus _status);
+        LogEntriesPtr _logEntries, int32_t _status);
     void encodeHashFields();
 
 private:

@@ -23,7 +23,7 @@
 #include <bcos-crypto/signature/secp256k1/Secp256k1Crypto.h>
 #include <bcos-crypto/signature/sm2/SM2Crypto.h>
 #include <bcos-framework/libprotocol/Exceptions.h>
-#include <bcos-framework/libprotocol/protobuf/PBTransaction.h>
+#include <bcos-framework/libprotocol/protobuf/PBTransactionFactory.h>
 #include <bcos-framework/libutilities/Common.h>
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
@@ -55,6 +55,7 @@ void testTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair::Ptr _keyPair, Addre
     bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
     std::string const& _chainId, std::string const& _groupId)
 {
+    auto factory = std::make_shared<PBTransactionFactory>(_cryptoSuite);
     auto pbTransaction = fakeTransaction(
         _cryptoSuite, _keyPair, _to, _input, _nonce, _blockLimit, _chainId, _groupId);
     if (_to == Address())
@@ -76,24 +77,18 @@ void testTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair::Ptr _keyPair, Addre
     std::cout << "### type:" << pbTransaction->type() << std::endl;
     std::cout << "### to:" << pbTransaction->to().hex() << std::endl;
     // decode
-    auto decodedTransaction = std::make_shared<PBTransaction>(_cryptoSuite, *encodedData, true);
+    auto decodedTransaction = factory->createTransaction(*encodedData, true);
     // check the fields
     BOOST_CHECK(decodedTransaction->hash() == pbTransaction->hash());
     BOOST_CHECK(decodedTransaction->sender() == pbTransaction->sender());
     BOOST_CHECK(decodedTransaction->type() == pbTransaction->type());
     BOOST_CHECK(decodedTransaction->to() == pbTransaction->to());
-    BOOST_CHECK(*decodedTransaction == *pbTransaction);
     // check the transaction hash fields
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->input() ==
-                pbTransaction->transactionHashFields()->input());
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->nonce() ==
-                pbTransaction->transactionHashFields()->nonce());
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->blocklimit() ==
-                pbTransaction->transactionHashFields()->blocklimit());
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->chainid() ==
-                pbTransaction->transactionHashFields()->chainid());
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->groupid() ==
-                pbTransaction->transactionHashFields()->groupid());
+    BOOST_CHECK(decodedTransaction->input().toBytes() == pbTransaction->input().toBytes());
+    BOOST_CHECK(decodedTransaction->nonce() == pbTransaction->nonce());
+    BOOST_CHECK(decodedTransaction->blockLimit() == pbTransaction->blockLimit());
+    BOOST_CHECK(decodedTransaction->chainId() == pbTransaction->chainId());
+    BOOST_CHECK(decodedTransaction->groupId() == pbTransaction->groupId());
 }
 
 BOOST_AUTO_TEST_CASE(testNormalTransaction)
@@ -148,10 +143,10 @@ BOOST_AUTO_TEST_CASE(testTransactionWithRawData)
     BOOST_CHECK(decodedTransaction->to().hex() == "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
     BOOST_CHECK(decodedTransaction->sender().hex() == sender);
     BOOST_CHECK(decodedTransaction->type() == TransactionType::MessageCall);
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->groupid() == "groupId");
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->chainid() == "chainId");
+    BOOST_CHECK(decodedTransaction->groupId() == "groupId");
+    BOOST_CHECK(decodedTransaction->chainId() == "chainId");
     BOOST_CHECK(decodedTransaction->nonce() == u256(120012323));
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->blocklimit() == 1000023);
+    BOOST_CHECK(decodedTransaction->blockLimit() == 1000023);
 
     // test exception case
     (*encodedBytes)[0] += 1;
@@ -177,12 +172,12 @@ BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
     BOOST_CHECK(decodedTransaction->hash().hex() == hashData);
     BOOST_CHECK(decodedTransaction->sender().hex() == sender);
     BOOST_CHECK(decodedTransaction->to() == Address());
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->mutable_to()->size() == 0);
+    BOOST_CHECK(decodedTransaction->to() == Address());
     BOOST_CHECK(decodedTransaction->type() == TransactionType::ContractCreation);
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->groupid() == "groupId");
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->chainid() == "chainId");
+    BOOST_CHECK(decodedTransaction->groupId() == "groupId");
+    BOOST_CHECK(decodedTransaction->chainId() == "chainId");
     BOOST_CHECK(decodedTransaction->nonce() == u256(120012323));
-    BOOST_CHECK(decodedTransaction->transactionHashFields()->blocklimit() == 1000023);
+    BOOST_CHECK(decodedTransaction->blockLimit() == 1000023);
     // test exception case
     (*encodedBytes)[0] += 1;
     BOOST_CHECK_THROW(std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true),
