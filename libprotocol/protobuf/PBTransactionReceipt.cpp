@@ -96,6 +96,11 @@ void PBTransactionReceipt::encode(bytes& _encodeReceiptData)
 
 void PBTransactionReceipt::encodeHashFields()
 {
+    // the hash field has already been encoded
+    if (m_receipt->hashfieldsdata().size() > 0)
+    {
+        return;
+    }
     // encode the hashFieldsData
     ScaleEncoderStream stream;
     stream << m_status << m_output << m_contractAddress << m_stateRoot << m_gasUsed << m_bloom
