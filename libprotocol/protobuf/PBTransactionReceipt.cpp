@@ -28,7 +28,7 @@ using namespace bcos::crypto;
 using namespace bcos::codec::scale;
 
 PBTransactionReceipt::PBTransactionReceipt(
-    bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytes const& _receiptData)
+    bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytesConstRef _receiptData)
   : m_cryptoSuite(_cryptoSuite), m_receipt(std::make_shared<PBRawTransactionReceipt>())
 {
     decode(_receiptData);
@@ -36,14 +36,14 @@ PBTransactionReceipt::PBTransactionReceipt(
 
 PBTransactionReceipt::PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
     int32_t _version, h256 const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
-    LogEntriesPtr _logEntries, TransactionStatus _status)
+    LogEntriesPtr _logEntries, int32_t _status)
   : m_cryptoSuite(_cryptoSuite),
     m_receipt(std::make_shared<PBRawTransactionReceipt>()),
     m_stateRoot(_stateRoot),
     m_gasUsed(_gasUsed),
     m_contractAddress(_contractAddress),
     m_logEntries(_logEntries),
-    m_status((int32_t)_status),
+    m_status(_status),
     m_bloom(generateBloom(_logEntries, _cryptoSuite))
 {
     m_receipt->set_version(_version);
@@ -51,7 +51,7 @@ PBTransactionReceipt::PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _crypt
 
 PBTransactionReceipt::PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
     int32_t _version, h256 const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
-    LogEntriesPtr _logEntries, TransactionStatus _status, bytes const& _ouptput)
+    LogEntriesPtr _logEntries, int32_t _status, bytes const& _ouptput)
   : PBTransactionReceipt(
         _cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress, _logEntries, _status)
 {
@@ -60,14 +60,14 @@ PBTransactionReceipt::PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _crypt
 
 PBTransactionReceipt::PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
     int32_t _version, h256 const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
-    LogEntriesPtr _logEntries, TransactionStatus _status, bytes&& _ouptput)
+    LogEntriesPtr _logEntries, int32_t _status, bytes&& _ouptput)
   : PBTransactionReceipt(
         _cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress, _logEntries, _status)
 {
     m_output = std::move(_ouptput);
 }
 
-void PBTransactionReceipt::decode(bytes const& _data)
+void PBTransactionReceipt::decode(bytesConstRef _data)
 {
     // decode receipt
     if (!m_receipt->ParseFromArray(_data.data(), _data.size()))

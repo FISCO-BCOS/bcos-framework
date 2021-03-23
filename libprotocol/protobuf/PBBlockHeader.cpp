@@ -27,7 +27,7 @@ using namespace bcos;
 using namespace bcos::protocol;
 using namespace bcos::codec::scale;
 
-void PBBlockHeader::decode(bytes const& _data)
+void PBBlockHeader::decode(bytesConstRef _data)
 {
     if (!m_blockHeader->ParseFromArray(_data.data(), _data.size()))
     {

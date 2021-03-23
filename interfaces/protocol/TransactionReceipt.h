@@ -27,10 +27,12 @@ class LogEntry;
 class TransactionReceipt
 {
 public:
+    using Ptr = std::shared_ptr<TransactionReceipt>;
+    using ConstPtr = std::shared_ptr<const TransactionReceipt>;
     TransactionReceipt() = default;
     virtual ~TransactionReceipt() {}
 
-    virtual void decode(bytes const& _receiptData) = 0;
+    virtual void decode(bytesConstRef _receiptData) = 0;
     virtual void encode(bytes& _encodedData) = 0;
     virtual h256 const& hash() = 0;
 
@@ -43,5 +45,8 @@ public:
     virtual bytesConstRef output() const = 0;
     virtual std::shared_ptr<std::vector<std::shared_ptr<LogEntry>>> logEntries() const = 0;
 };
+using Receipts = std::vector<TransactionReceipt::Ptr>;
+using ReceiptsPtr = std::shared_ptr<Receipts>;
+using ReceiptsConstPtr = std::shared_ptr<const Receipts>;
 }  // namespace protocol
 }  // namespace bcos

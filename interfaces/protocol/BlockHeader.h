@@ -38,11 +38,12 @@ class BlockHeader
 {
 public:
     using Ptr = std::shared_ptr<BlockHeader>;
+    using ConstPtr = std::shared_ptr<const BlockHeader>;
     using BlockHeadersPtr = std::shared_ptr<std::vector<BlockHeader::Ptr>>;
     BlockHeader() = default;
     virtual ~BlockHeader() {}
 
-    virtual void decode(bytes const& _data) = 0;
+    virtual void decode(bytesConstRef _data) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
     virtual h256 const& hash() const = 0;
     virtual void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number) = 0;

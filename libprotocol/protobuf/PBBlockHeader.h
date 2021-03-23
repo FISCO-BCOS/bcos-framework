@@ -39,16 +39,19 @@ public:
         m_sealerList(std::make_shared<SealerList>()),
         m_signatureList(std::make_shared<SignatureList>())
     {}
-
-    PBBlockHeader(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytes const& _data)
+    PBBlockHeader(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytesConstRef _data)
       : PBBlockHeader(_cryptoSuite)
     {
         decode(_data);
     }
 
+    PBBlockHeader(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytes const& _data)
+      : PBBlockHeader(_cryptoSuite, &_data)
+    {}
+
     ~PBBlockHeader() override {}
 
-    void decode(bytes const& _data) override;
+    void decode(bytesConstRef _data) override;
     void encode(bytes& _encodeData) const override;
     h256 const& hash() const override;
     void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number) override;

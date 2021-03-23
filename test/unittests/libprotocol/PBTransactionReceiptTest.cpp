@@ -20,7 +20,7 @@
  */
 #include <bcos-crypto/hash/Keccak256.h>
 #include <bcos-crypto/hash/SM3.h>
-#include <bcos-framework/libprotocol/protobuf/PBTransactionReceipt.h>
+#include <bcos-framework/libprotocol/protobuf/PBTransactionReceiptFactory.h>
 #include <bcos-framework/libutilities/Common.h>
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
@@ -64,8 +64,9 @@ void testPBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite)
     {
         output += contractAddress.asBytes();
     }
-    auto receipt = std::make_shared<PBTransactionReceipt>(
-        _cryptoSuite, version, stateRoot, gasUsed, contractAddress, logEntries, status, output);
+    auto factory = std::make_shared<PBTransactionReceiptFactory>(_cryptoSuite);
+    auto receipt = factory->createReceipt(
+        version, stateRoot, gasUsed, contractAddress, logEntries, (int32_t)status, output);
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     auto start = utcTime();
@@ -77,11 +78,11 @@ void testPBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite)
               << ", encodedData size:" << encodedData->size() << std::endl;
 
     // decode
-    std::shared_ptr<PBTransactionReceipt> decodedReceipt;
+    std::shared_ptr<TransactionReceipt> decodedReceipt;
     start = utcTime();
     for (size_t i = 0; i < 20000; i++)
     {
-        decodedReceipt = std::make_shared<PBTransactionReceipt>(_cryptoSuite, *encodedData);
+        decodedReceipt = factory->createReceipt(*encodedData);
     }
     std::cout << "##### ScaleReceipt decodeT: " << (utcTime() - start) << std::endl;
 

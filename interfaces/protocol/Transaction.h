@@ -31,6 +31,8 @@ enum TransactionType
 class Transaction
 {
 public:
+    using Ptr = std::shared_ptr<Transaction>;
+    using ConstPtr = std::shared_ptr<const Transaction>;
     Transaction() = default;
     virtual ~Transaction() {}
 
@@ -50,5 +52,8 @@ public:
     virtual TransactionType const& type() const = 0;
     virtual void forceSender(Address const& _sender) = 0;
 };
+using Transactions = std::vector<Transaction::Ptr>;
+using TransactionsPtr = std::shared_ptr<Transactions>;
+using TransactionsConstPtr = std::shared_ptr<const Transactions>;
 }  // namespace protocol
 }  // namespace bcos

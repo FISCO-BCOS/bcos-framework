@@ -23,7 +23,7 @@
 #include <bcos-crypto/signature/secp256k1/Secp256k1Crypto.h>
 #include <bcos-crypto/signature/sm2/SM2Crypto.h>
 #include <bcos-framework/libprotocol/Exceptions.h>
-#include <bcos-framework/libprotocol/protobuf/PBBlockHeader.h>
+#include <bcos-framework/libprotocol/protobuf/PBBlockHeaderFactory.h>
 #include <bcos-framework/libutilities/Common.h>
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
@@ -44,7 +44,9 @@ BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, int32_t _
     int64_t _sealer, SealerListPtr _sealerList, bytes const& _extraData,
     SignatureListPtr _signatureList)
 {
-    BlockHeader::Ptr blockHeader = std::make_shared<PBBlockHeader>(_cryptoSuite);
+    BlockHeaderFactory::Ptr blockHeaderFactory =
+        std::make_shared<PBBlockHeaderFactory>(_cryptoSuite);
+    BlockHeader::Ptr blockHeader = blockHeaderFactory->createBlockHeader();
     blockHeader->setVersion(_version);
     blockHeader->setParentInfo(_parentInfo);
     blockHeader->setTxsRoot(_txsRoot);
@@ -63,7 +65,7 @@ BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, int32_t _
     blockHeader->encode(*encodedData);
 
     // decode
-    auto decodedBlockHeader = std::make_shared<PBBlockHeader>(_cryptoSuite, *encodedData);
+    auto decodedBlockHeader = blockHeaderFactory->createBlockHeader(*encodedData);
     // check the data of decodedBlockHeader
     BOOST_CHECK(decodedBlockHeader->version() == blockHeader->version());
     BOOST_CHECK(*(decodedBlockHeader->parentInfo()) == *(blockHeader->parentInfo()));

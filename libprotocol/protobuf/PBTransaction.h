@@ -34,13 +34,6 @@ class PBTransaction : public Transaction
 {
 public:
     using Ptr = std::shared_ptr<PBTransaction>;
-    explicit PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
-      : m_transaction(std::make_shared<PBRawTransaction>()),
-        m_transactionHashFields(std::make_shared<PBRawTransactionHashFields>()),
-        m_cryptoSuite(_cryptoSuite)
-    {
-        GOOGLE_PROTOBUF_VERIFY_VERSION;
-    }
     PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t const& _version,
         Address const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
         std::string const& _chainId, std::string const& _groupId, int64_t const& _importTime);
@@ -85,6 +78,15 @@ public:
 
     // only for ut
     void updateSignature(bytesConstRef _signatureData, Address const& _sender);
+
+protected:
+    explicit PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
+      : m_transaction(std::make_shared<PBRawTransaction>()),
+        m_transactionHashFields(std::make_shared<PBRawTransactionHashFields>()),
+        m_cryptoSuite(_cryptoSuite)
+    {
+        GOOGLE_PROTOBUF_VERIFY_VERSION;
+    }
 
 private:
     std::shared_ptr<PBRawTransaction> m_transaction;
