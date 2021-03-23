@@ -49,20 +49,13 @@ public:
 
     bool operator==(PBTransaction const& _comparedTx)
     {
-        return (m_type == _comparedTx.type()) && (m_to == to()) &&
-               (importTime() == _comparedTx.importTime()) &&
-               (m_transaction->hashfieldsdata() == _comparedTx.transaction()->hashfieldsdata());
+        return (m_type == _comparedTx.type()) && (importTime() == _comparedTx.importTime()) &&
+               (hash() == _comparedTx.hash());
     }
 
     void decode(bytesConstRef _txData, bool _checkSig) override;
     void encode(bytes& _txData) const override;
     h256 const& hash() const override;
-
-    std::shared_ptr<PBRawTransaction> transaction() const { return m_transaction; }
-    std::shared_ptr<PBRawTransactionHashFields> transactionHashFields() const
-    {
-        return m_transactionHashFields;
-    }
 
     u256 const& nonce() const override { return m_nonce; }
     int32_t version() const override { return m_transactionHashFields->version(); }

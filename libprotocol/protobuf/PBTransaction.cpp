@@ -86,16 +86,6 @@ void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
             TransactionDecodeException() << errinfo_comment(
                 "decode transaction hash fields failed, txData:" + *toHexString(_txData)));
     }
-    if (!_checkSig)
-    {
-        return;
-    }
-    // check the signatures
-    auto signaturePtr = m_transaction->mutable_signaturedata();
-    auto publicKey = m_cryptoSuite->signatureImpl()->recover(
-        hash(), bytesConstRef((const byte*)signaturePtr->data(), signaturePtr->size()));
-    // recover the sender
-    m_sender = m_cryptoSuite->signatureImpl()->calculateAddress(publicKey);
     if (m_transactionHashFields->mutable_to()->size() > 0)
     {
         m_to = Address((byte const*)m_transactionHashFields->mutable_to()->data(),
@@ -109,6 +99,16 @@ void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
     m_nonce =
         fromBigEndian<u256>(bytesConstRef((const byte*)m_transactionHashFields->nonce().data(),
             m_transactionHashFields->nonce().size()));
+    if (!_checkSig)
+    {
+        return;
+    }
+    // check the signatures
+    auto signaturePtr = m_transaction->mutable_signaturedata();
+    auto publicKey = m_cryptoSuite->signatureImpl()->recover(
+        hash(), bytesConstRef((const byte*)signaturePtr->data(), signaturePtr->size()));
+    // recover the sender
+    m_sender = m_cryptoSuite->signatureImpl()->calculateAddress(publicKey);
 }
 
 void PBTransaction::encode(bytes& _txData) const
