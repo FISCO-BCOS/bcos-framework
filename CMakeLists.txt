@@ -29,8 +29,8 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 # init hunter
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/cyjseagull/hunter/archive/7b6e6048d4f83314826e19135b39725c5ccdd57e.tar.gz"
-    SHA1 "0646a14886cf0a7943e8b0130a72a4c090bfed0e"
+    URL "https://github.com/FISCO-BCOS/hunter/archive/1984be9381f472aec11307f009344ef57b3cb4db.tar.gz"
+    SHA1 "3442c3ba973f505daec46ae7a42f9a2429e433f9"
 )
 
 project(bcos-framework VERSION "3.0")
@@ -50,9 +50,11 @@ include(CopyInclude)
 hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log program_options test)
 # install protobuf dependency
 hunter_add_package(Protobuf)
-# install gsl dependencies
+# install gsl dependency
 hunter_add_package(Microsoft.GSL)
 find_package(Microsoft.GSL CONFIG REQUIRED)
+# install tbb dependency
+hunter_add_package(tbb)
 
 include_directories(${CMAKE_INSTALL_INCLUDEDIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)

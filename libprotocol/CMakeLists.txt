@@ -30,4 +30,5 @@ add_library(${PROTOCOL_TARGET} ${SRC_LIST} ${MESSAGES_SRCS} ${HEADERS})
 target_compile_options(${PROTOCOL_TARGET} PRIVATE -Wno-error -Wno-unused-variable)
 
 find_package(Protobuf CONFIG REQUIRED)
-target_link_libraries(${PROTOCOL_TARGET} PUBLIC ${UTILITIES_TARGET} protobuf::libprotobuf ${UTILITIES_TARGET})
+find_package(tbb)
+target_link_libraries(${PROTOCOL_TARGET} PUBLIC ${UTILITIES_TARGET} protobuf::libprotobuf ${UTILITIES_TARGET} tbb::tbb)
