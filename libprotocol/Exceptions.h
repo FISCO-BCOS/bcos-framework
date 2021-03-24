@@ -32,6 +32,8 @@ DERIVE_BCOS_EXCEPTION(BlockHeaderEncodeException);
 DERIVE_BCOS_EXCEPTION(BlockHeaderDecodeException);
 DERIVE_BCOS_EXCEPTION(InvalidBlockHeader);
 DERIVE_BCOS_EXCEPTION(InvalidSignatureList);
+DERIVE_BCOS_EXCEPTION(BlockDecodeException);
+DERIVE_BCOS_EXCEPTION(BlockEncodeException);
 // transaction exceptions
 DERIVE_BCOS_EXCEPTION(OutOfGasLimit);
 DERIVE_BCOS_EXCEPTION(NotEnoughCash);
