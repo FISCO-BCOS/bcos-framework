@@ -1,11 +1,16 @@
 syntax = "proto3";
 package bcos.protocol;
-import "BlockHeader.proto";
 
 // Mainly used for block data packet encoding when network transmission
-message Block{
+message PBRawBlock{
     int32 version = 1;
-    PBRawBlockHeader header = 2;
+    bytes header = 2;
     repeated bytes transactions = 3;
     repeated bytes receipts = 4;
+    // In some scenarios, only transaction hashes are included in the block
+    repeated bytes transactionsHash = 5;
+    repeated bytes receiptsHash = 6;
+    // the block type, include: 
+    // CompleteBlock, OnlyWithTransactionsHash
+    int32 type = 7;
 }
