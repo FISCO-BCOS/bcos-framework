@@ -44,14 +44,14 @@ public:
     Block() = default;
     virtual ~Block() {}
 
-    virtual void decode(bytesConstRef _data, bool _calculateHash) = 0;
+    virtual void decode(bytesConstRef _data, bool _calculateHash, bool _checkSig) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
 
     virtual int32_t version() const = 0;
     virtual void setVersion(int32_t _version) = 0;
     virtual BlockType blockType() const = 0;
     // get blockHeader
-    virtual BlockHeader::ConstPtr blockHeader() const = 0;
+    virtual BlockHeader::Ptr blockHeader() const = 0;
     // get transactions
     virtual TransactionsConstPtr transactions() = 0;
     virtual Transaction::ConstPtr transaction(size_t _index) = 0;
@@ -71,15 +71,19 @@ public:
     // set transactions
     virtual void setTransactions(TransactionsPtr _transactions) = 0;
     virtual void setTransaction(size_t _index, Transaction::Ptr _transaction) = 0;
+    virtual void appendTransaction(Transaction::Ptr _transaction) = 0;
     // set receipts
     virtual void setReceipts(ReceiptsPtr _receipts) = 0;
     virtual void setReceipt(size_t _index, TransactionReceipt::Ptr _receipt) = 0;
+    virtual void appendReceipt(TransactionReceipt::Ptr _receipt) = 0;
     // set transaction hash
     virtual void setTransactionsHash(HashListPtr _transactionsHash) = 0;
     virtual void setTransactionHash(size_t _index, h256 const& _txHash) = 0;
+    virtual void appendTransactionHash(h256 const& _txHash) = 0;
     // set receipt hash
     virtual void setReceiptsHash(HashListPtr _receiptsHash) = 0;
     virtual void setReceiptHash(size_t _index, h256 const& _receptHash) = 0;
+    virtual void appendReceiptHash(h256 const& _receiptHash) = 0;
     // getNonces of the current block
     virtual NonceListPtr nonces() = 0;
     // get transactions size
