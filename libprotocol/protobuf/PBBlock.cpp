@@ -20,7 +20,7 @@
  */
 #include "PBBlock.h"
 #include <bcos-framework/libprotocol/Exceptions.h>
-#include <tbb/parallel_for.h>
+#include <bcos-framework/libprotocol/ParallelMerkleProof.h>
 #include <tbb/parallel_invoke.h>
 
 using namespace bcos;
@@ -259,6 +259,7 @@ void PBBlock::encodeTransactionsHash() const
         m_pbRawBlock->set_transactionshash(index++, txHash.data(), h256::size);
     }
 }
+
 void PBBlock::encodeReceiptsHash() const
 {
     auto receiptsHashNum = m_receiptsHash->size();
@@ -271,7 +272,7 @@ void PBBlock::encodeReceiptsHash() const
     {
         return;
     }
-    // extend receiptsshash
+    // extend receiptshash
     for (size_t i = 0; i < receiptsHashNum; i++)
     {
         m_pbRawBlock->add_receiptshash();
@@ -324,4 +325,56 @@ TransactionReceipt::ConstPtr PBBlock::receipt(size_t _index)
 h256 const& PBBlock::receiptHash(size_t _index)
 {
     return (*m_receiptsHash)[_index];
+}
+
+h256 PBBlock::calculateTransactionRoot(bool _updateHeader) const
+{
+    auto txsRoot = h256();
+    // with no transactions
+    if (m_transactions->size() == 0)
+    {
+        updateTxsRootForHeader(_updateHeader, txsRoot);
+        return txsRoot;
+    }
+    // hit the cache
+    UpgradableGuard l(x_txsRootCache);
+    if (m_txsRootCache != h256())
+    {
+        updateTxsRootForHeader(_updateHeader, m_txsRootCache);
+        return m_txsRootCache;
+    }
+    // miss the cache or the cache has been cleared
+    std::vector<bytes> transactionsList;
+    encodeToCalculateRoot(transactionsList, m_transactions);
+    txsRoot = calculateMerkleProofRoot(m_transactionFactory->cryptoSuite(), transactionsList);
+    UpgradeGuard ul(l);
+    m_txsRootCache = txsRoot;
+    updateTxsRootForHeader(_updateHeader, txsRoot);
+    return txsRoot;
+}
+
+h256 PBBlock::calculateReceiptRoot(bool _updateHeader) const
+{
+    auto receiptsRoot = h256();
+    // with no receipts
+    if (m_receipts->size() == 0)
+    {
+        updateReceiptRootForHeader(_updateHeader, receiptsRoot);
+        return receiptsRoot;
+    }
+    // hit the cache
+    UpgradableGuard l(x_receiptRootCache);
+    if (m_receiptRootCache != h256())
+    {
+        updateReceiptRootForHeader(_updateHeader, m_receiptRootCache);
+        return m_receiptRootCache;
+    }
+    // miss the cache or the cache has been cleared
+    std::vector<bytes> receiptsList;
+    encodeToCalculateRoot(receiptsList, m_receipts);
+    receiptsRoot = calculateMerkleProofRoot(m_receiptFactory->cryptoSuite(), receiptsList);
+    UpgradeGuard ul(l);
+    m_receiptRootCache = receiptsRoot;
+    updateReceiptRootForHeader(_updateHeader, receiptsRoot);
+    return receiptsRoot;
 }

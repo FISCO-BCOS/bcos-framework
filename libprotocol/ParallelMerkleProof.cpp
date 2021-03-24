@@ -24,14 +24,12 @@
 #include <tbb/parallel_for.h>
 #include <mutex>
 
+using namespace bcos;
 using namespace bcos::crypto;
 
 const uint32_t MAX_CHILD_COUNT = 16;
 
-
-namespace bcos
-{
-h256 calculateMerkleProofRoot(
+h256 bcos::protocol::calculateMerkleProofRoot(
     CryptoSuite::Ptr _cryptoSuite, const std::vector<bcos::bytes>& _bytesCaches)
 {
     if (_bytesCaches.empty())
@@ -70,7 +68,7 @@ h256 calculateMerkleProofRoot(
     return _cryptoSuite->hash(bytesCachesTemp[0]);
 }
 
-void calculateMerkleProof(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
+void bcos::protocol::calculateMerkleProof(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
     const std::vector<bcos::bytes>& _bytesCaches,
     std::shared_ptr<std::map<std::string, std::vector<std::string>>> _parent2ChildList)
 {
@@ -119,5 +117,3 @@ void calculateMerkleProof(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
     (*_parent2ChildList)[*toHexString(_cryptoSuite->hash(bytesCachesTemp[0]).asBytes())].push_back(
         *toHexString(bytesCachesTemp[0]));
 }
-
-}  // namespace bcos

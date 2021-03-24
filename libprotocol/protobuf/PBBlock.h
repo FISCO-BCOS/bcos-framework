@@ -24,8 +24,9 @@
 #include <bcos-framework/interfaces/protocol/BlockHeaderFactory.h>
 #include <bcos-framework/interfaces/protocol/TransactionFactory.h>
 #include <bcos-framework/interfaces/protocol/TransactionReceiptFactory.h>
+#include <bcos-framework/libcodec/scale/ScaleEncoderStream.h>
 #include <bcos-framework/libprotocol/bcos-proto/Block.pb.h>
-
+#include <tbb/parallel_for.h>
 namespace bcos
 {
 namespace protocol
@@ -62,6 +63,10 @@ public:
 
     void decode(bytesConstRef _data, bool _calculateHash, bool _checkSig) override;
     void encode(bytes& _encodeData) const override;
+
+    h256 calculateTransactionRoot(bool _updateHeader) const override;
+    h256 calculateReceiptRoot(bool _updateHeader) const override;
+
     // getNonces of the current block
     NonceListPtr nonces() override;
     Transaction::ConstPtr transaction(size_t _index) override;
@@ -174,13 +179,58 @@ private:
     void encodeReceipts() const;
     void encodeTransactionsHash() const;
     void encodeReceiptsHash() const;
-
-    void clearTransactionsCache() { m_pbRawBlock->clear_transactions(); }
-    void clearReceiptsCache() { m_pbRawBlock->clear_receipts(); }
+    void clearTransactionsCache()
+    {
+        m_pbRawBlock->clear_transactions();
+        WriteGuard l(x_txsRootCache);
+        m_txsRootCache = h256();
+    }
+    void clearReceiptsCache()
+    {
+        m_pbRawBlock->clear_receipts();
+        WriteGuard l(x_receiptRootCache);
+        m_receiptRootCache = h256();
+    }
 
     void clearTransactionsHashCache() { m_pbRawBlock->clear_transactionshash(); }
 
     void clearReceiptsHashCache() { m_pbRawBlock->clear_receiptshash(); }
+    void updateTxsRootForHeader(bool _updateHeader, h256 const& _txsRoot) const
+    {
+        if (!_updateHeader || !m_blockHeader)
+        {
+            return;
+        }
+        m_blockHeader->setTxsRoot(_txsRoot);
+    }
+
+    void updateReceiptRootForHeader(bool _updateHeader, h256 const& _receiptsRoot) const
+    {
+        if (!_updateHeader || !m_blockHeader)
+        {
+            return;
+        }
+        m_blockHeader->setReceiptRoot(_receiptsRoot);
+    }
+
+    template <typename T>
+    void encodeToCalculateRoot(std::vector<bytes>& _encodedList, T _protocolDataList) const
+    {
+        auto protocolDataSize = _protocolDataList->size();
+        _encodedList.resize(protocolDataSize);
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, protocolDataSize),
+            [&](const tbb::blocked_range<size_t>& _r) {
+                for (auto i = _r.begin(); i < _r.end(); ++i)
+                {
+                    bcos::codec::scale::ScaleEncoderStream stream;
+                    stream << i;
+                    bytes encodedData = stream.data();
+                    auto hash = ((*_protocolDataList)[i])->hash();
+                    encodedData.insert(encodedData.end(), hash.begin(), hash.end());
+                    _encodedList[i] = std::move(encodedData);
+                }
+            });
+    }
 
 private:
     BlockHeaderFactory::Ptr m_blockHeaderFactory;
@@ -192,6 +242,13 @@ private:
     ReceiptsPtr m_receipts;
     HashListPtr m_transactionsHash;
     HashListPtr m_receiptsHash;
+
+    // caches
+    mutable h256 m_txsRootCache;
+    mutable SharedMutex x_txsRootCache;
+
+    mutable h256 m_receiptRootCache;
+    mutable SharedMutex x_receiptRootCache;
 };
 }  // namespace protocol
 }  // namespace bcos

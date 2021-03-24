@@ -86,6 +86,41 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
     {
         BOOST_CHECK((*(decodedBlock->transactionsHash()))[i] == (*(block->transactionsHash()))[i]);
     }
+    // check receiptsRoot
+    h256 originHash = h256();
+    if (block->blockHeader())
+    {
+        originHash = block->blockHeader()->hash();
+    }
+    BOOST_CHECK(block->calculateReceiptRoot(true) == decodedBlock->calculateReceiptRoot(true));
+    if (block->blockHeader())
+    {
+        BOOST_CHECK(block->blockHeader()->receiptRoot() == block->calculateReceiptRoot(false));
+        BOOST_CHECK(decodedBlock->blockHeader()->receiptRoot() ==
+                    decodedBlock->calculateReceiptRoot(false));
+        BOOST_CHECK(decodedBlock->blockHeader()->hash() != originHash);
+        originHash = block->blockHeader()->hash();
+    }
+    // check transactionsRoot
+    BOOST_CHECK(
+        block->calculateTransactionRoot(true) == decodedBlock->calculateTransactionRoot(true));
+    if (block->blockHeader())
+    {
+        BOOST_CHECK(block->blockHeader()->txsRoot() == block->calculateTransactionRoot(false));
+        BOOST_CHECK(
+            decodedBlock->blockHeader()->txsRoot() == block->calculateTransactionRoot(false));
+        BOOST_CHECK(decodedBlock->blockHeader()->hash() != originHash);
+        originHash = decodedBlock->blockHeader()->hash();
+    }
+    // Check idempotence
+    auto txsRoot = block->calculateTransactionRoot(true);
+    auto receiptsRoot = block->calculateReceiptRoot(true);
+    BOOST_CHECK(txsRoot == block->calculateTransactionRoot(false));
+    BOOST_CHECK(receiptsRoot == block->calculateReceiptRoot(false));
+    if (decodedBlock->blockHeader())
+    {
+        BOOST_CHECK(decodedBlock->blockHeader()->hash() == originHash);
+    }
 }
 
 inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory::Ptr _blockFactory,
@@ -149,6 +184,10 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
         auto hash = _cryptoSuite->hashImpl()->hash(content);
         BOOST_CHECK((*(decodedBlock->receiptsHash()))[i] == hash);
     }
+
+    // exception test
+    (*encodedData)[0] += 1;
+    BOOST_CHECK_THROW(_blockFactory->createBlock(*encodedData, true, true), BlockDecodeException);
     return block;
 }
 

@@ -57,6 +57,8 @@ public:
             _blockLimit, _chainId, _groupId, _importTime);
     }
 
+    bcos::crypto::CryptoSuite::Ptr cryptoSuite() override { return m_cryptoSuite; }
+
 private:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
 };

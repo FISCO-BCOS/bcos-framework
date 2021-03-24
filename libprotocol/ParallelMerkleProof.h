@@ -27,10 +27,12 @@
 
 namespace bcos
 {
+namespace protocol
+{
 h256 calculateMerkleProofRoot(
-    bcos::crypto::CryptoSuite::Ptr _cryptoSuite, const std::vector<bcos::bytes>& bytesCaches);
+    bcos::crypto::CryptoSuite::Ptr _cryptoSuite, const std::vector<bcos::bytes>& _bytesCaches);
 void calculateMerkleProof(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
-    const std::vector<bcos::bytes>& bytesCaches,
+    const std::vector<bcos::bytes>& _bytesCaches,
     std::shared_ptr<std::map<std::string, std::vector<std::string>>> _parent2ChildList);
-
+}  // namespace protocol
 }  // namespace bcos

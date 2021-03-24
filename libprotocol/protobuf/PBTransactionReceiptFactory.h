@@ -62,6 +62,8 @@ public:
             _contractAddress, _logEntries, _status, _output);
     }
 
+    bcos::crypto::CryptoSuite::Ptr cryptoSuite() override { return m_cryptoSuite; }
+
 private:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
 };
