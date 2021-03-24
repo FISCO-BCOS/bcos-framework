@@ -48,6 +48,21 @@ inline PBTransaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair
     return pbTransaction;
 }
 
+inline void checkTransction(Transaction::Ptr pbTransaction, Transaction::Ptr decodedTransaction)
+{
+    // check the fields
+    BOOST_CHECK(decodedTransaction->hash() == pbTransaction->hash());
+    BOOST_CHECK(decodedTransaction->sender() == pbTransaction->sender());
+    BOOST_CHECK(decodedTransaction->type() == pbTransaction->type());
+    BOOST_CHECK(decodedTransaction->to() == pbTransaction->to());
+    // check the transaction hash fields
+    BOOST_CHECK(decodedTransaction->input().toBytes() == pbTransaction->input().toBytes());
+    BOOST_CHECK(decodedTransaction->nonce() == pbTransaction->nonce());
+    BOOST_CHECK(decodedTransaction->blockLimit() == pbTransaction->blockLimit());
+    BOOST_CHECK(decodedTransaction->chainId() == pbTransaction->chainId());
+    BOOST_CHECK(decodedTransaction->groupId() == pbTransaction->groupId());
+}
+
 inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair::Ptr _keyPair,
     Address const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
     std::string const& _chainId, std::string const& _groupId)
@@ -75,18 +90,21 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair::
     std::cout << "### to:" << pbTransaction->to().hex() << std::endl;
     // decode
     auto decodedTransaction = factory->createTransaction(*encodedData, true);
-    // check the fields
-    BOOST_CHECK(decodedTransaction->hash() == pbTransaction->hash());
-    BOOST_CHECK(decodedTransaction->sender() == pbTransaction->sender());
-    BOOST_CHECK(decodedTransaction->type() == pbTransaction->type());
-    BOOST_CHECK(decodedTransaction->to() == pbTransaction->to());
-    // check the transaction hash fields
-    BOOST_CHECK(decodedTransaction->input().toBytes() == pbTransaction->input().toBytes());
-    BOOST_CHECK(decodedTransaction->nonce() == pbTransaction->nonce());
-    BOOST_CHECK(decodedTransaction->blockLimit() == pbTransaction->blockLimit());
-    BOOST_CHECK(decodedTransaction->chainId() == pbTransaction->chainId());
-    BOOST_CHECK(decodedTransaction->groupId() == pbTransaction->groupId());
+    checkTransction(pbTransaction, decodedTransaction);
     return decodedTransaction;
+}
+
+inline Transaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite)
+{
+    auto keyPair = _cryptoSuite->signatureImpl()->generateKeyPair();
+    auto to = keyPair->address();
+    std::string inputStr = "testTransaction";
+    bytes input = asBytes(inputStr);
+    u256 nonce = 120012323;
+    int64_t blockLimit = 1000023;
+    std::string chainId = "chainId";
+    std::string groupId = "groupId";
+    return testTransaction(_cryptoSuite, keyPair, to, input, nonce, blockLimit, chainId, groupId);
 }
 }  // namespace test
 }  // namespace bcos

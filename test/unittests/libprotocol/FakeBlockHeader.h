@@ -33,6 +33,54 @@ namespace bcos
 {
 namespace test
 {
+inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr decodedBlockHeader)
+{
+    BOOST_CHECK(decodedBlockHeader->version() == blockHeader->version());
+    BOOST_CHECK(*(decodedBlockHeader->parentInfo()) == *(blockHeader->parentInfo()));
+    BOOST_CHECK(decodedBlockHeader->txsRoot() == blockHeader->txsRoot());
+    BOOST_CHECK(decodedBlockHeader->receiptRoot() == blockHeader->receiptRoot());
+    BOOST_CHECK(decodedBlockHeader->stateRoot() == blockHeader->stateRoot());
+    BOOST_CHECK(decodedBlockHeader->number() == blockHeader->number());
+    BOOST_CHECK(decodedBlockHeader->gasUsed() == blockHeader->gasUsed());
+    BOOST_CHECK(decodedBlockHeader->timestamp() == blockHeader->timestamp());
+    BOOST_CHECK(decodedBlockHeader->sealer() == blockHeader->sealer());
+    BOOST_CHECK(*(decodedBlockHeader->sealerList()) == *(blockHeader->sealerList()));
+    BOOST_CHECK(decodedBlockHeader->extraData() == blockHeader->extraData());
+    // check signature
+    BOOST_CHECK(
+        decodedBlockHeader->signatureList()->size() == blockHeader->signatureList()->size());
+    size_t index = 0;
+    for (auto signature : *(decodedBlockHeader->signatureList()))
+    {
+        BOOST_CHECK(signature.first == (*(blockHeader->signatureList()))[index].first);
+        BOOST_CHECK(*(signature.second) == *(*(blockHeader->signatureList()))[index].second);
+        std::cout << "#### signatureData:" << *toHexString(*(signature.second)) << std::endl;
+        index++;
+    }
+    // std::cout << "### PBBlockHeaderTest: encodedData:" << *toHexString(*encodedData) <<
+    // std::endl;
+    std::cout << "### PBBlockHeaderTest: version:" << decodedBlockHeader->version() << std::endl;
+    std::cout << "### PBBlockHeaderTest: txsRoot:" << decodedBlockHeader->txsRoot().hex()
+              << std::endl;
+    std::cout << "### PBBlockHeaderTest: receiptRoot:" << decodedBlockHeader->receiptRoot().hex()
+              << std::endl;
+    std::cout << "### PBBlockHeaderTest: stateRoot:" << decodedBlockHeader->stateRoot().hex()
+              << std::endl;
+    std::cout << "### PBBlockHeaderTest: number:" << decodedBlockHeader->number() << std::endl;
+    std::cout << "### PBBlockHeaderTest: gasUsed:" << decodedBlockHeader->gasUsed() << std::endl;
+    std::cout << "### PBBlockHeaderTest: timestamp:" << decodedBlockHeader->timestamp()
+              << std::endl;
+    std::cout << "### PBBlockHeaderTest: sealer:" << decodedBlockHeader->sealer() << std::endl;
+    std::cout << "### PBBlockHeaderTest: sealer:" << *toHexString(decodedBlockHeader->extraData())
+              << std::endl;
+    std::cout << "#### hash:" << decodedBlockHeader->hash().hex() << std::endl;
+    std::cout << "### parentHash:" << (*(blockHeader->parentInfo()))[0].second.hex() << std::endl;
+    for (auto const& sealer : *(decodedBlockHeader->sealerList()))
+    {
+        std::cout << "#### sealerList:" << sealer.hex() << std::endl;
+    }
+}
+
 inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
     ParentInfoListPtr _parentInfo, h256 const& _txsRoot, h256 const& _receiptRoot,
     h256 const& _stateRoot, int64_t _number, u256 const& _gasUsed, int64_t _timestamp,
@@ -62,50 +110,7 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
     // decode
     auto decodedBlockHeader = blockHeaderFactory->createBlockHeader(*encodedData);
     // check the data of decodedBlockHeader
-    BOOST_CHECK(decodedBlockHeader->version() == blockHeader->version());
-    BOOST_CHECK(*(decodedBlockHeader->parentInfo()) == *(blockHeader->parentInfo()));
-    BOOST_CHECK(decodedBlockHeader->txsRoot() == blockHeader->txsRoot());
-    BOOST_CHECK(decodedBlockHeader->receiptRoot() == blockHeader->receiptRoot());
-    BOOST_CHECK(decodedBlockHeader->stateRoot() == blockHeader->stateRoot());
-    BOOST_CHECK(decodedBlockHeader->number() == blockHeader->number());
-    BOOST_CHECK(decodedBlockHeader->gasUsed() == blockHeader->gasUsed());
-    BOOST_CHECK(decodedBlockHeader->timestamp() == blockHeader->timestamp());
-    BOOST_CHECK(decodedBlockHeader->sealer() == blockHeader->sealer());
-    BOOST_CHECK(*(decodedBlockHeader->sealerList()) == *(blockHeader->sealerList()));
-    BOOST_CHECK(decodedBlockHeader->extraData() == blockHeader->extraData());
-    // check signature
-    BOOST_CHECK(
-        decodedBlockHeader->signatureList()->size() == blockHeader->signatureList()->size());
-    size_t index = 0;
-    for (auto signature : *(decodedBlockHeader->signatureList()))
-    {
-        BOOST_CHECK(signature.first == (*(blockHeader->signatureList()))[index].first);
-        BOOST_CHECK(*(signature.second) == *(*(blockHeader->signatureList()))[index].second);
-        std::cout << "#### signatureData:" << *toHexString(*(signature.second)) << std::endl;
-        index++;
-    }
-    std::cout << "### PBBlockHeaderTest: encodedData:" << *toHexString(*encodedData) << std::endl;
-    std::cout << "### PBBlockHeaderTest: version:" << decodedBlockHeader->version() << std::endl;
-    std::cout << "### PBBlockHeaderTest: txsRoot:" << decodedBlockHeader->txsRoot().hex()
-              << std::endl;
-    std::cout << "### PBBlockHeaderTest: receiptRoot:" << decodedBlockHeader->receiptRoot().hex()
-              << std::endl;
-    std::cout << "### PBBlockHeaderTest: stateRoot:" << decodedBlockHeader->stateRoot().hex()
-              << std::endl;
-    std::cout << "### PBBlockHeaderTest: number:" << decodedBlockHeader->number() << std::endl;
-    std::cout << "### PBBlockHeaderTest: gasUsed:" << decodedBlockHeader->gasUsed() << std::endl;
-    std::cout << "### PBBlockHeaderTest: timestamp:" << decodedBlockHeader->timestamp()
-              << std::endl;
-    std::cout << "### PBBlockHeaderTest: sealer:" << decodedBlockHeader->sealer() << std::endl;
-    std::cout << "### PBBlockHeaderTest: sealer:" << *toHexString(decodedBlockHeader->extraData())
-              << std::endl;
-    std::cout << "#### hash:" << decodedBlockHeader->hash().hex() << std::endl;
-    std::cout << "### parentHash:" << (*(blockHeader->parentInfo()))[0].second.hex() << std::endl;
-    for (auto const& sealer : *(decodedBlockHeader->sealerList()))
-    {
-        std::cout << "#### sealerList:" << sealer.hex() << std::endl;
-    }
-
+    checkBlockHeader(blockHeader, decodedBlockHeader);
     // test encode exception
     (*encodedData)[0] += 1;
     BOOST_CHECK_THROW(

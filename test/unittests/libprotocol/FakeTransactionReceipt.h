@@ -48,6 +48,27 @@ inline LogEntriesPtr fakeLogEntries(Hash::Ptr _hashImpl, size_t _size)
     return logEntries;
 }
 
+inline void checkReceipts(
+    Hash::Ptr hashImpl, TransactionReceipt::Ptr receipt, TransactionReceipt::Ptr decodedReceipt)
+{
+    // check the decodedReceipt
+    BOOST_CHECK(decodedReceipt->version() == receipt->version());
+    BOOST_CHECK(decodedReceipt->stateRoot() == receipt->stateRoot());
+    BOOST_CHECK(decodedReceipt->gasUsed() == receipt->gasUsed());
+    BOOST_CHECK(decodedReceipt->contractAddress() == receipt->contractAddress());
+    BOOST_CHECK(decodedReceipt->status() == receipt->status());
+    BOOST_CHECK(decodedReceipt->output().toBytes() == receipt->output().toBytes());
+    BOOST_CHECK(decodedReceipt->hash() == receipt->hash());
+    BOOST_CHECK(decodedReceipt->bloom() == receipt->bloom());
+    // check LogEntries
+    BOOST_CHECK(decodedReceipt->logEntries()->size() == 2);
+    BOOST_CHECK(decodedReceipt->logEntries()->size() == receipt->logEntries()->size());
+    auto logEntry = (*(decodedReceipt->logEntries()))[1];
+    auto expectedTopic = hashImpl->hash(std::to_string(1));
+    BOOST_CHECK(logEntry->topics()[0] == expectedTopic);
+    BOOST_CHECK(logEntry->address() == right160(expectedTopic));
+    BOOST_CHECK(logEntry->data() == expectedTopic.asBytes());
+}
 inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite)
 {
     auto hashImpl = _cryptoSuite->hashImpl();
@@ -83,36 +104,7 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
         decodedReceipt = factory->createReceipt(*encodedData);
     }
     std::cout << "##### ScaleReceipt decodeT: " << (utcTime() - start) << std::endl;
-
-    // check the decodedReceipt
-    BOOST_CHECK(decodedReceipt->version() == receipt->version());
-    BOOST_CHECK(decodedReceipt->stateRoot() == receipt->stateRoot());
-    BOOST_CHECK(decodedReceipt->gasUsed() == receipt->gasUsed());
-    BOOST_CHECK(decodedReceipt->contractAddress() == receipt->contractAddress());
-    BOOST_CHECK(decodedReceipt->status() == receipt->status());
-    BOOST_CHECK(decodedReceipt->output().toBytes() == receipt->output().toBytes());
-    BOOST_CHECK(decodedReceipt->hash() == receipt->hash());
-    BOOST_CHECK(decodedReceipt->bloom() == receipt->bloom());
-    // check LogEntries
-    BOOST_CHECK(decodedReceipt->logEntries()->size() == 2);
-    BOOST_CHECK(decodedReceipt->logEntries()->size() == receipt->logEntries()->size());
-    auto logEntry = (*(decodedReceipt->logEntries()))[1];
-    auto expectedTopic = hashImpl->hash(std::to_string(1));
-    BOOST_CHECK(logEntry->topics()[0] == expectedTopic);
-    BOOST_CHECK(logEntry->address() == right160(expectedTopic));
-    BOOST_CHECK(logEntry->data() == expectedTopic.asBytes());
-
-    std::cout << "#### encodedData: " << *toHexString(*encodedData) << std::endl;
-    std::cout << "### stateRoot:" << decodedReceipt->stateRoot().hex() << std::endl;
-    std::cout << "### gasUsed:" << decodedReceipt->gasUsed() << std::endl;
-    std::cout << "### contractAddress:" << decodedReceipt->contractAddress().hex() << std::endl;
-    std::cout << "### status:" << decodedReceipt->status() << std::endl;
-    std::cout << "### output:" << *toHexString(decodedReceipt->output()) << std::endl;
-    std::cout << "### hash:" << decodedReceipt->hash().hex() << std::endl;
-    std::cout << "### bloom:" << decodedReceipt->bloom().hex() << std::endl;
-    std::cout << "### topic:" << (logEntry->topics()[0]).hex() << std::endl;
-    std::cout << "### log address:" << logEntry->address().hex() << std::endl;
-    std::cout << "### log data:" << *toHexString(logEntry->data()) << std::endl;
+    checkReceipts(hashImpl, receipt, decodedReceipt);
     return decodedReceipt;
 }
 }  // namespace test
