@@ -19,6 +19,7 @@
  * @date: 2021-03-23
  */
 #pragma once
+#include <bcos-framework/interfaces/crypto/CryptoSuite.h>
 #include <bcos-framework/interfaces/protocol/Transaction.h>
 namespace bcos
 {
@@ -35,6 +36,7 @@ public:
     virtual Transaction::Ptr createTransaction(int32_t const& _version, Address const& _to,
         bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
         std::string const& _chainId, std::string const& _groupId, int64_t const& _importTime) = 0;
+    virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() = 0;
 };
 }  // namespace protocol
 }  // namespace bcos

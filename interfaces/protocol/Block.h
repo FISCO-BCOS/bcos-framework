@@ -46,6 +46,8 @@ public:
 
     virtual void decode(bytesConstRef _data, bool _calculateHash, bool _checkSig) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
+    virtual h256 calculateTransactionRoot(bool _updateHeader) const = 0;
+    virtual h256 calculateReceiptRoot(bool _updateHeader) const = 0;
 
     virtual int32_t version() const = 0;
     virtual void setVersion(int32_t _version) = 0;
