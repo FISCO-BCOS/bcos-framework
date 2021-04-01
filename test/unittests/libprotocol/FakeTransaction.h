@@ -43,8 +43,8 @@ inline PBTransaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair
         _cryptoSuite, 1, _to, _input, _nonce, _blockLimit, _chainId, _groupId, utcTime());
     // set signature
     auto signData = _cryptoSuite->signatureImpl()->sign(*_keyPair, pbTransaction->hash());
-    pbTransaction->updateSignature(
-        bytesConstRef(signData->data(), signData->size()), _keyPair->address());
+    pbTransaction->updateSignature(bytesConstRef(signData->data(), signData->size()),
+        _keyPair->address(_cryptoSuite->hashImpl()));
     return pbTransaction;
 }
 
@@ -79,7 +79,7 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair::
         BOOST_CHECK(pbTransaction->type() == TransactionType::MessageCall);
     }
 
-    BOOST_CHECK(pbTransaction->sender() == _keyPair->address());
+    BOOST_CHECK(pbTransaction->sender() == _keyPair->address(_cryptoSuite->hashImpl()));
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     pbTransaction->encode(*encodedData);
@@ -97,7 +97,7 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair::
 inline Transaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite)
 {
     auto keyPair = _cryptoSuite->signatureImpl()->generateKeyPair();
-    auto to = keyPair->address();
+    auto to = keyPair->address(_cryptoSuite->hashImpl());
     std::string inputStr = "testTransaction";
     bytes input = asBytes(inputStr);
     u256 nonce = 120012323;

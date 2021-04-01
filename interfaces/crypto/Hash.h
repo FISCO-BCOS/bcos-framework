@@ -19,7 +19,8 @@
  * @date 2021-03-03
  */
 #pragma once
-#include "bcos-framework/libutilities/FixedBytes.h"
+#include <bcos-framework/interfaces/crypto/CommonType.h>
+#include <bcos-framework/libutilities/FixedBytes.h>
 #include <memory>
 namespace bcos
 {
@@ -31,29 +32,29 @@ public:
     using Ptr = std::shared_ptr<Hash>;
     Hash() = default;
     virtual ~Hash() {}
-    virtual h256 hash(bytesConstRef _data) = 0;
-    virtual h256 emptyHash()
+    virtual HashType hash(bytesConstRef _data) = 0;
+    virtual HashType emptyHash()
     {
-        if (h256() == m_emptyHash)
+        if (HashType() == m_emptyHash)
         {
             m_emptyHash = hash(bytesConstRef());
         }
         return m_emptyHash;
     }
-    virtual h256 hash(bytes const& _data)
+    virtual HashType hash(bytes const& _data)
     {
         return hash(bytesConstRef(_data.data(), _data.size()));
     }
-    virtual h256 hash(std::string const& _data) { return hash(bytesConstRef(_data)); }
+    virtual HashType hash(std::string const& _data) { return hash(bytesConstRef(_data)); }
 
     template <unsigned N>
-    inline h256 hash(FixedBytes<N> const& _input)
+    inline HashType hash(FixedBytes<N> const& _input)
     {
         return hash(_input.ref());
     }
 
 private:
-    h256 m_emptyHash = h256();
+    h256 m_emptyHash = HashType();
 };
 }  // namespace crypto
 }  // namespace bcos

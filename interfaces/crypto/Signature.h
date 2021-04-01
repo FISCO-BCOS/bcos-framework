@@ -19,14 +19,17 @@
  * @date 2021-03-03
  */
 #pragma once
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include <bcos-framework/interfaces/crypto/CommonType.h>
+#include <bcos-framework/interfaces/crypto/Hash.h>
 #include <memory>
 namespace bcos
 {
 namespace crypto
 {
-using Secret = SecureFixedBytes<32>;
-using Public = h512;
+Address inline getAddress(Hash::Ptr _hashImpl, Public const& _publicKey)
+{
+    return right160(_hashImpl->hash(_publicKey));
+}
 class KeyPair
 {
 public:
@@ -43,21 +46,18 @@ public:
     Secret& mutSecretKey() { return m_secretKey; }
     Public& mutPublicKey() { return m_publicKey; }
 
-    virtual Address const& address()
+    virtual Address address(Hash::Ptr _hashImpl) { return getAddress(_hashImpl, m_publicKey); }
+
+    virtual Address calculateAddressBySecret(Hash::Ptr _hashImpl, Secret const& _secret)
     {
-        if (Address() == m_address)
-        {
-            m_address = calculateAddress(m_publicKey);
-        }
-        return m_address;
+        return getAddress(_hashImpl, priToPub(_secret));
     }
 
-    virtual Address calculateAddressBySecret(Secret const& _secret)
+    virtual Address calculateAddress(Hash::Ptr _hashImpl, Public const& _pub)
     {
-        return calculateAddress(priToPub(_secret));
+        return getAddress(_hashImpl, _pub);
     }
 
-    virtual Address calculateAddress(Public const& _pub) = 0;
     virtual Public priToPub(Secret const& _secret) = 0;
 
     void setSecretKey(Secret const& _secretKey) { m_secretKey = _secretKey; }
@@ -66,7 +66,6 @@ public:
 protected:
     Secret m_secretKey;
     Public m_publicKey;
-    Address m_address = Address();
 };
 
 class SignatureData
@@ -116,15 +115,16 @@ public:
     using Ptr = std::shared_ptr<SignatureCrypto>;
     SignatureCrypto() = default;
     virtual ~SignatureCrypto() {}
-    virtual std::shared_ptr<bytes> sign(KeyPair const& _keyPair, const h256& _hash) = 0;
-    virtual bool verify(Public const& _pubKey, const h256& _hash, bytesConstRef _signatureData) = 0;
+    virtual std::shared_ptr<bytes> sign(KeyPair const& _keyPair, const HashType& _hash) = 0;
+    virtual bool verify(
+        Public const& _pubKey, const HashType& _hash, bytesConstRef _signatureData) = 0;
     // recover the public key from the given signature
-    virtual Public recover(const h256& _hash, bytesConstRef _signatureData) = 0;
-    virtual Address calculateAddress(Public const& _pubKey) = 0;
+    virtual Public recover(const HashType& _hash, bytesConstRef _signatureData) = 0;
 
     virtual std::shared_ptr<KeyPair> generateKeyPair() = 0;
 
-    virtual bool verify(Public const& _pubKey, const h256& _hash, SignatureData::Ptr _signatureData)
+    virtual bool verify(
+        Public const& _pubKey, const HashType& _hash, SignatureData::Ptr _signatureData)
     {
         auto signatureRawData = std::make_shared<bytes>();
         _signatureData->encode(signatureRawData);
@@ -132,7 +132,7 @@ public:
             _pubKey, _hash, bytesConstRef(signatureRawData->data(), signatureRawData->size()));
     }
 
-    Public recoverSignature(const h256& _hash, SignatureData::Ptr _signatureData)
+    Public recoverSignature(const HashType& _hash, SignatureData::Ptr _signatureData)
     {
         auto signatureRawData = std::make_shared<bytes>();
         _signatureData->encode(signatureRawData);

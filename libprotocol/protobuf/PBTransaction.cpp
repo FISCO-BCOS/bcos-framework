@@ -108,7 +108,7 @@ void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
     auto publicKey = m_cryptoSuite->signatureImpl()->recover(
         hash(), bytesConstRef((const byte*)signaturePtr->data(), signaturePtr->size()));
     // recover the sender
-    m_sender = m_cryptoSuite->signatureImpl()->calculateAddress(publicKey);
+    m_sender = m_cryptoSuite->calculateAddress(publicKey);
 }
 
 void PBTransaction::encode(bytes& _txData) const
