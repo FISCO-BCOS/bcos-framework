@@ -47,15 +47,10 @@ public:
     {
         return m_hashImpl->hash(_data);
     }
-    Address calculateAddress(Public const& _publicKey)
-    {
-        assert(m_hashImpl);
-        return getAddress(m_hashImpl, _publicKey);
-    }
 
-    Address calculateAddress(KeyPair const& _keyPair)
+    virtual Address calculateAddress(PublicPtr _public)
     {
-        return calculateAddress(_keyPair.publicKey());
+        return right160(m_hashImpl->hash(_public));
     }
 
 private:

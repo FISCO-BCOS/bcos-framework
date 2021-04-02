@@ -32,11 +32,11 @@ namespace test
 BOOST_FIXTURE_TEST_SUITE(PBTransactionTest, TestPromptFixture)
 BOOST_AUTO_TEST_CASE(testNormalTransaction)
 {
-    auto hashImpl = std::make_shared<Keccak256>();
-    auto signatureImpl = std::make_shared<Secp256k1Crypto>();
+    auto hashImpl = std::make_shared<Keccak256Hash>();
+    auto signatureImpl = std::make_shared<Secp256k1SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
     auto keyPair = cryptoSuite->signatureImpl()->generateKeyPair();
-    auto to = cryptoSuite->calculateAddress(*keyPair);
+    auto to = cryptoSuite->calculateAddress(keyPair->publicKey());
     std::string inputStr = "testTransaction";
     bytes input = asBytes(inputStr);
     u256 nonce = 120012323;
@@ -48,8 +48,8 @@ BOOST_AUTO_TEST_CASE(testNormalTransaction)
 }
 BOOST_AUTO_TEST_CASE(testSMTransaction)
 {
-    auto hashImpl = std::make_shared<SM3>();
-    auto signatureImpl = std::make_shared<SM2Crypto>();
+    auto hashImpl = std::make_shared<Sm3Hash>();
+    auto signatureImpl = std::make_shared<SM2SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
     auto keyPair = cryptoSuite->signatureImpl()->generateKeyPair();
     auto to = Address();
@@ -65,8 +65,8 @@ BOOST_AUTO_TEST_CASE(testSMTransaction)
 
 BOOST_AUTO_TEST_CASE(testTransactionWithRawData)
 {
-    auto hashImpl = std::make_shared<Keccak256>();
-    auto signatureImpl = std::make_shared<Secp256k1Crypto>();
+    auto hashImpl = std::make_shared<Keccak256Hash>();
+    auto signatureImpl = std::make_shared<Secp256k1SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
     auto encodedData =
         "0a6108011207636861696e49641a0767726f7570496420d7843d2a200000000000000000000000000000000000"
@@ -94,8 +94,8 @@ BOOST_AUTO_TEST_CASE(testTransactionWithRawData)
 
 BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
 {
-    auto hashImpl = std::make_shared<SM3>();
-    auto signatureImpl = std::make_shared<SM2Crypto>();
+    auto hashImpl = std::make_shared<Sm3Hash>();
+    auto signatureImpl = std::make_shared<SM2SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
     auto encodedData =
         "0a4b08011207636861696e49641a0767726f7570496420d7843d2a200000000000000000000000000000000000"

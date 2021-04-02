@@ -13,17 +13,28 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief common types for crypto
- * @file CommonType.h
+ * @brief interfaces for KeyPair
+ * @file KeyPairInterface.h
  * @author: yujiechen
- * @date 2021-04-01
+ * @date 2021-04-02
  */
 #pragma once
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include <bcos-framework/interfaces/crypto/Hash.h>
+#include <bcos-framework/interfaces/crypto/KeyInterface.h>
 namespace bcos
 {
 namespace crypto
 {
-using HashType = h256;
+class KeyPairInterface
+{
+public:
+    using Ptr = std::shared_ptr<KeyPairInterface>;
+    KeyPairInterface() = default;
+    virtual ~KeyPairInterface() {}
+
+    virtual SecretPtr secretKey() const = 0;
+    virtual PublicPtr publicKey() const = 0;
+    virtual Address address(Hash::Ptr _hashImpl) = 0;
+};
 }  // namespace crypto
 }  // namespace bcos

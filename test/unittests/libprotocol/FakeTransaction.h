@@ -18,13 +18,11 @@
  * @date: 2021-03-16
  */
 #pragma once
-#include <bcos-crypto/hash/Keccak256.h>
-#include <bcos-crypto/hash/SM3.h>
-#include <bcos-crypto/signature/secp256k1/Secp256k1Crypto.h>
-#include <bcos-crypto/signature/sm2/SM2Crypto.h>
 #include <bcos-framework/libprotocol/Exceptions.h>
 #include <bcos-framework/libprotocol/protobuf/PBTransactionFactory.h>
 #include <bcos-framework/libutilities/Common.h>
+#include <unittests/common/HashImpl.h>
+#include <unittests/common/SignatureImpl.h>
 #include <boost/test/unit_test.hpp>
 
 using namespace bcos;
@@ -35,14 +33,14 @@ namespace bcos
 {
 namespace test
 {
-inline PBTransaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair::Ptr _keyPair,
-    Address const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
-    std::string const& _chainId, std::string const& _groupId)
+inline PBTransaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite,
+    KeyPairInterface::Ptr _keyPair, Address const& _to, bytes const& _input, u256 const& _nonce,
+    int64_t const& _blockLimit, std::string const& _chainId, std::string const& _groupId)
 {
     auto pbTransaction = std::make_shared<PBTransaction>(
         _cryptoSuite, 1, _to, _input, _nonce, _blockLimit, _chainId, _groupId, utcTime());
     // set signature
-    auto signData = _cryptoSuite->signatureImpl()->sign(*_keyPair, pbTransaction->hash());
+    auto signData = _cryptoSuite->signatureImpl()->sign(_keyPair, pbTransaction->hash(), true);
     pbTransaction->updateSignature(bytesConstRef(signData->data(), signData->size()),
         _keyPair->address(_cryptoSuite->hashImpl()));
     return pbTransaction;
@@ -63,9 +61,9 @@ inline void checkTransction(Transaction::Ptr pbTransaction, Transaction::Ptr dec
     BOOST_CHECK(decodedTransaction->groupId() == pbTransaction->groupId());
 }
 
-inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite, KeyPair::Ptr _keyPair,
-    Address const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
-    std::string const& _chainId, std::string const& _groupId)
+inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
+    KeyPairInterface::Ptr _keyPair, Address const& _to, bytes const& _input, u256 const& _nonce,
+    int64_t const& _blockLimit, std::string const& _chainId, std::string const& _groupId)
 {
     auto factory = std::make_shared<PBTransactionFactory>(_cryptoSuite);
     auto pbTransaction = fakeTransaction(

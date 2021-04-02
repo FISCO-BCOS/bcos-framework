@@ -20,6 +20,7 @@
  */
 #pragma once
 #include <bcos-framework/interfaces/crypto/CommonType.h>
+#include <bcos-framework/interfaces/crypto/KeyInterface.h>
 #include <bcos-framework/libutilities/FixedBytes.h>
 #include <memory>
 namespace bcos
@@ -52,6 +53,8 @@ public:
     {
         return hash(_input.ref());
     }
+
+    inline HashType hash(PublicPtr _public) { return hash(_public->data()); }
 
 private:
     HashType m_emptyHash = HashType();

@@ -13,17 +13,34 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief common types for crypto
- * @file CommonType.h
+ * @brief interface for Public/Secret key
+ * @file KeyInterface.h
  * @author: yujiechen
- * @date 2021-04-01
+ * @date 2021-04-02
  */
 #pragma once
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include <bcos-framework/libutilities/Common.h>
 namespace bcos
 {
 namespace crypto
 {
-using HashType = h256;
+class KeyInterface
+{
+public:
+    using Ptr = std::shared_ptr<KeyInterface>;
+    KeyInterface() = default;
+    virtual ~KeyInterface() {}
+    virtual const bytes& data() const = 0;
+    virtual size_t size() const = 0;
+    virtual char* mutableData() = 0;
+    virtual const char* constData() const = 0;
+    virtual std::shared_ptr<bytes> encode() const = 0;
+    virtual void decode(bytesConstRef _data) = 0;
+    virtual void decode(bytes&& _data) = 0;
+};
+using Public = KeyInterface;
+using Secret = KeyInterface;
+using PublicPtr = KeyInterface::Ptr;
+using SecretPtr = KeyInterface::Ptr;
 }  // namespace crypto
 }  // namespace bcos

@@ -32,24 +32,24 @@ namespace test
 BOOST_FIXTURE_TEST_SUITE(PBBlockHeaderTest, TestPromptFixture)
 BOOST_AUTO_TEST_CASE(testNormalPBBlockHeader)
 {
-    auto hashImpl = std::make_shared<Keccak256>();
-    auto signImpl = std::make_shared<Secp256k1Crypto>();
+    auto hashImpl = std::make_shared<Keccak256Hash>();
+    auto signImpl = std::make_shared<Secp256k1SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signImpl, nullptr);
     testPBBlockHeader(cryptoSuite);
 }
 
 BOOST_AUTO_TEST_CASE(testSMPBBlockHeader)
 {
-    auto hashImpl = std::make_shared<SM3>();
-    auto signImpl = std::make_shared<SM2Crypto>();
+    auto hashImpl = std::make_shared<Sm3Hash>();
+    auto signImpl = std::make_shared<SM2SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signImpl, nullptr);
     testPBBlockHeader(cryptoSuite);
 }
 
 BOOST_AUTO_TEST_CASE(testRawPBBlockHeader)
 {
-    auto hashImpl = std::make_shared<Keccak256>();
-    auto signImpl = std::make_shared<Secp256k1Crypto>();
+    auto hashImpl = std::make_shared<Keccak256Hash>();
+    auto signImpl = std::make_shared<Secp256k1SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signImpl, nullptr);
     auto data = fromHexString(
         "080a12a8040c000000000000000080044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a"
@@ -92,16 +92,16 @@ BOOST_AUTO_TEST_CASE(testRawPBBlockHeader)
                 "2a23582ab11d58319189cd727949c4248da866771e467e8cfd74f24958253c4d");
     BOOST_CHECK((*decodedBlockHeader->parentInfo())[0].second.hex() ==
                 "044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d");
-    BOOST_CHECK((*decodedBlockHeader->sealerList())[0].hex() ==
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[0]) ==
                 "03705470fe0dbf390f16a00a08135bcbaa3886b250c553a472168e5edc5144a3ad217da7f43b956b24"
                 "9ea9cc1415841df4283fb07ce1a07021debfe0fbca038e");
-    BOOST_CHECK((*decodedBlockHeader->sealerList())[1].hex() ==
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[1]) ==
                 "79a30acb90df081b43bdb18bca1c8bbb6421f62c86b615abe539c2d9cd6df17fec46c64b8412cd1a65"
                 "e3c2e219531e73da8253654878490e0bc9e5c52f208351");
-    BOOST_CHECK((*decodedBlockHeader->sealerList())[2].hex() ==
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[2]) ==
                 "e61d6d6d35ab384c49ac4f620aa25f78601b326b33a66132316cd2b99eacc44c19eabdfa2c25213b29"
                 "59aa67b9180038d40d41007bd76b10f9b84e7617415931");
-    BOOST_CHECK((*decodedBlockHeader->sealerList())[3].hex() ==
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[3]) ==
                 "d7af5bfde217dc000037944803e4383a019dbbb4c2ef4eed109c180ff6ed4a85a9f288290c82e72bfc"
                 "d46eefb5583fe60206d9423583731450baad3bb559abe7");
 
@@ -120,8 +120,8 @@ BOOST_AUTO_TEST_CASE(testRawPBBlockHeader)
 }
 BOOST_AUTO_TEST_CASE(testRawSMPBBlockHeader)
 {
-    auto hashImpl = std::make_shared<SM3>();
-    auto signImpl = std::make_shared<SM2Crypto>();
+    auto hashImpl = std::make_shared<Sm3Hash>();
+    auto signImpl = std::make_shared<SM2SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signImpl, nullptr);
 
     auto data = fromHexString(
@@ -170,16 +170,16 @@ BOOST_AUTO_TEST_CASE(testRawSMPBBlockHeader)
                 "53288d6e5ced9b1af30898ced137f04653e90c4d9c5e68f3bdb560cbe702e1ec");
     BOOST_CHECK((*decodedBlockHeader->parentInfo())[0].second.hex() ==
                 "06d47b6f2f121e85160d1d8072e58843de1eed164ed526c3b56b22c2b47324a0");
-    BOOST_CHECK((*decodedBlockHeader->sealerList())[0].hex() ==
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[0]) ==
                 "676ebe6db5ab41f03a69eda2b5d168dbef1a39d45c02bcda519ddc142831c745d48232b533fdab95d0"
                 "a9c4a949bfbda1654efb5a26dca4028c5fdd26988cb22b");
-    BOOST_CHECK((*decodedBlockHeader->sealerList())[1].hex() ==
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[1]) ==
                 "d8f7cf8d26bbc32b78ce60da7a37c57a1764ff4632febb4dbc037ae2829375e236443ca64b0339ad83"
                 "4f3eeda05172f7d580a6d3cbc82939699da95b91a927f7");
-    BOOST_CHECK((*decodedBlockHeader->sealerList())[2].hex() ==
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[2]) ==
                 "c737cd87858df22fb12999b5cba3fb13cb03195bf79c816ad8fcf906b12ed24ffb0ef9c6dd591b8352"
                 "6a2d0c47bd40abb0df8104ea0765b9a70496d7d2316fcb");
-    BOOST_CHECK((*decodedBlockHeader->sealerList())[3].hex() ==
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[3]) ==
                 "75dd6eb3679fce6944e808304eb79a5e0e37eea7a530d4f59f4ba7edfab79864fd91988ce82ffc1c6b"
                 "e84712b81bd29325fb247af2f6698d9c180fc36a07344a");
 

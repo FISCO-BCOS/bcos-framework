@@ -32,20 +32,20 @@ namespace test
 BOOST_FIXTURE_TEST_SUITE(PBTransationReceiptTest, TestPromptFixture)
 BOOST_AUTO_TEST_CASE(testNormalPBransactionReceipt)
 {
-    auto hashImpl = std::make_shared<Keccak256>();
+    auto hashImpl = std::make_shared<Keccak256Hash>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, nullptr, nullptr);
     testPBTransactionReceipt(cryptoSuite);
 }
 BOOST_AUTO_TEST_CASE(testSMPBTransactionReceipt)
 {
-    auto hashImpl = std::make_shared<SM3>();
+    auto hashImpl = std::make_shared<Sm3Hash>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, nullptr, nullptr);
     testPBTransactionReceipt(cryptoSuite);
 }
 
 BOOST_AUTO_TEST_CASE(testNormalPBTransactionRecept)
 {
-    auto hashImpl = std::make_shared<Keccak256>();
+    auto hashImpl = std::make_shared<Keccak256Hash>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, nullptr, nullptr);
     auto receiptData = fromHexString(
         "08d0f181e10312d1050b00000071035fe3c4c3e2079879a0dba1937aca95ac16e68f0f5fe3c4c3e2079879a0db"
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(testNormalPBTransactionRecept)
 
 BOOST_AUTO_TEST_CASE(testSMPBTransactionRecept)
 {
-    auto hashImpl = std::make_shared<SM3>();
+    auto hashImpl = std::make_shared<Sm3Hash>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, nullptr, nullptr);
     auto receiptData = fromHexString(
         "088f9ffc9afeffffffff0112d1050b00000071035fe3c4c3e2079879a0dba1937aca95ac16e68f0f5fe3c4c3e2"
