@@ -53,7 +53,7 @@ public:
 
     void decode(bytesConstRef _data) override;
     void encode(bytes& _encodeData) const override;
-    h256 const& hash() const override;
+    bcos::crypto::HashType const& hash() const override;
     void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number) override;
     void clear() override;
 
@@ -62,11 +62,11 @@ public:
     // the parent information, including (parentBlockNumber, parentHash)
     ParentInfoListPtr parentInfo() const override { return m_parentInfo; }
     // the txsRoot of the current block
-    h256 const& txsRoot() const override { return m_txsRoot; }
+    bcos::crypto::HashType const& txsRoot() const override { return m_txsRoot; }
     // the receiptRoot of the current block
-    h256 const& receiptRoot() const override { return m_receiptRoot; }
+    bcos::crypto::HashType const& receiptRoot() const override { return m_receiptRoot; }
     // the stateRoot of the current block
-    h256 const& stateRoot() const override { return m_stateRoot; }
+    bcos::crypto::HashType const& stateRoot() const override { return m_stateRoot; }
     // the number of the current block
     BlockNumber number() const override { return m_number; }
     u256 const& gasUsed() override { return m_gasUsed; }
@@ -86,18 +86,18 @@ public:
         m_parentInfo = _parentInfo;
         noteDirty();
     }
-    void setTxsRoot(h256 const& _txsRoot) override
+    void setTxsRoot(bcos::crypto::HashType const& _txsRoot) override
     {
         m_txsRoot = _txsRoot;
         noteDirty();
     }
 
-    void setReceiptRoot(h256 const& _receiptRoot) override
+    void setReceiptRoot(bcos::crypto::HashType const& _receiptRoot) override
     {
         m_receiptRoot = _receiptRoot;
         noteDirty();
     }
-    void setStateRoot(h256 const& _stateRoot) override
+    void setStateRoot(bcos::crypto::HashType const& _stateRoot) override
     {
         m_stateRoot = _stateRoot;
         noteDirty();
@@ -165,7 +165,7 @@ private:
     {
         m_blockHeader->clear_hashfieldsdata();
         WriteGuard l(x_hash);
-        m_hash = h256();
+        m_hash = bcos::crypto::HashType();
     }
 
     void noteSignatureDirty() { m_blockHeader->clear_signaturelist(); }
@@ -174,9 +174,9 @@ private:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
     mutable std::shared_ptr<PBRawBlockHeader> m_blockHeader;
     ParentInfoListPtr m_parentInfo;
-    bcos::h256 m_txsRoot;
-    bcos::h256 m_receiptRoot;
-    bcos::h256 m_stateRoot;
+    bcos::crypto::HashType m_txsRoot;
+    bcos::crypto::HashType m_receiptRoot;
+    bcos::crypto::HashType m_stateRoot;
     BlockNumber m_number;
     u256 m_gasUsed;
     int64_t m_timestamp;
@@ -185,7 +185,7 @@ private:
     bytes m_extraData;
 
     SignatureListPtr m_signatureList;
-    mutable bcos::h256 m_hash = h256();
+    mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
     mutable SharedMutex x_hash;
 };
 }  // namespace protocol

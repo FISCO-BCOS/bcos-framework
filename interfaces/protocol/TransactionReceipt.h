@@ -34,10 +34,10 @@ public:
 
     virtual void decode(bytesConstRef _receiptData) = 0;
     virtual void encode(bytes& _encodedData) = 0;
-    virtual h256 const& hash() = 0;
+    virtual bcos::crypto::HashType const& hash() = 0;
 
     virtual int32_t version() const = 0;
-    virtual h256 const& stateRoot() const = 0;
+    virtual bcos::crypto::HashType const& stateRoot() const = 0;
     virtual u256 const& gasUsed() const = 0;
     virtual Address const& contractAddress() const = 0;
     virtual LogBloom const& bloom() const = 0;

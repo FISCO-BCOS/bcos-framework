@@ -38,7 +38,7 @@ public:
 
     virtual void decode(bytesConstRef _txData, bool _checkSig) = 0;
     virtual void encode(bytes& _txData) const = 0;
-    virtual h256 const& hash() const = 0;
+    virtual bcos::crypto::HashType const& hash() const = 0;
 
     virtual int32_t version() const = 0;
     virtual std::string const& chainId() const = 0;

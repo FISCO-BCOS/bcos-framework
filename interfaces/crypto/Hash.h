@@ -54,7 +54,7 @@ public:
     }
 
 private:
-    h256 m_emptyHash = HashType();
+    HashType m_emptyHash = HashType();
 };
 }  // namespace crypto
 }  // namespace bcos

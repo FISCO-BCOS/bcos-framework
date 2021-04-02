@@ -28,14 +28,14 @@ using namespace bcos::crypto;
 using namespace bcos::codec::scale;
 
 PBTransactionReceipt::PBTransactionReceipt(
-    bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytesConstRef _receiptData)
+    CryptoSuite::Ptr _cryptoSuite, bytesConstRef _receiptData)
   : m_cryptoSuite(_cryptoSuite), m_receipt(std::make_shared<PBRawTransactionReceipt>())
 {
     decode(_receiptData);
 }
 
-PBTransactionReceipt::PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
-    int32_t _version, h256 const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
+PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
+    HashType const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
     LogEntriesPtr _logEntries, int32_t _status)
   : m_cryptoSuite(_cryptoSuite),
     m_receipt(std::make_shared<PBRawTransactionReceipt>()),
@@ -49,8 +49,8 @@ PBTransactionReceipt::PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _crypt
     m_receipt->set_version(_version);
 }
 
-PBTransactionReceipt::PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
-    int32_t _version, h256 const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
+PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
+    HashType const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
     LogEntriesPtr _logEntries, int32_t _status, bytes const& _ouptput)
   : PBTransactionReceipt(
         _cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress, _logEntries, _status)
@@ -58,8 +58,8 @@ PBTransactionReceipt::PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _crypt
     m_output = _ouptput;
 }
 
-PBTransactionReceipt::PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite,
-    int32_t _version, h256 const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
+PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
+    HashType const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
     LogEntriesPtr _logEntries, int32_t _status, bytes&& _ouptput)
   : PBTransactionReceipt(
         _cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress, _logEntries, _status)
@@ -110,10 +110,10 @@ void PBTransactionReceipt::encodeHashFields()
     m_receipt->set_hashfieldsdata(hashFieldsData.data(), hashFieldsData.size());
 }
 
-h256 const& PBTransactionReceipt::hash()
+HashType const& PBTransactionReceipt::hash()
 {
     UpgradableGuard l(x_hash);
-    if (m_hash != h256())
+    if (m_hash != HashType())
     {
         return m_hash;
     }
