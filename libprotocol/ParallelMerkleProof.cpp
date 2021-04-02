@@ -29,7 +29,7 @@ using namespace bcos::crypto;
 
 const uint32_t MAX_CHILD_COUNT = 16;
 
-h256 bcos::protocol::calculateMerkleProofRoot(
+HashType bcos::protocol::calculateMerkleProofRoot(
     CryptoSuite::Ptr _cryptoSuite, const std::vector<bcos::bytes>& _bytesCaches)
 {
     if (_bytesCaches.empty())

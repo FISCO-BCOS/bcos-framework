@@ -27,7 +27,7 @@ namespace protocol
 using BlockNumber = int64_t;
 using SealerList = std::vector<h512>;
 using SealerListPtr = std::shared_ptr<SealerList>;
-using ParentInfoList = std::vector<std::pair<BlockNumber, h256>>;
+using ParentInfoList = std::vector<std::pair<BlockNumber, bcos::crypto::HashType>>;
 using ParentInfoListPtr = std::shared_ptr<ParentInfoList>;
 using SignatureList = std::vector<std::pair<int64_t, std::shared_ptr<bytes>>>;
 using SignatureListPtr = std::shared_ptr<SignatureList>;
@@ -45,7 +45,7 @@ public:
 
     virtual void decode(bytesConstRef _data) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
-    virtual h256 const& hash() const = 0;
+    virtual bcos::crypto::HashType const& hash() const = 0;
     virtual void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number) = 0;
     virtual void clear() = 0;
     // verify the signatureList
@@ -57,11 +57,11 @@ public:
     // the parent information, including (parentBlockNumber, parentHash)
     virtual ParentInfoListPtr parentInfo() const = 0;
     // the txsRoot of the current block
-    virtual h256 const& txsRoot() const = 0;
+    virtual bcos::crypto::HashType const& txsRoot() const = 0;
     // the receiptRoot of the current block
-    virtual h256 const& receiptRoot() const = 0;
+    virtual bcos::crypto::HashType const& receiptRoot() const = 0;
     // the stateRoot of the current block
-    virtual h256 const& stateRoot() const = 0;
+    virtual bcos::crypto::HashType const& stateRoot() const = 0;
     // the number of the current block
     virtual BlockNumber number() const = 0;
     virtual u256 const& gasUsed() = 0;
@@ -75,9 +75,9 @@ public:
 
     virtual void setVersion(int32_t _version) = 0;
     virtual void setParentInfo(ParentInfoListPtr _parentInfo) = 0;
-    virtual void setTxsRoot(h256 const& _txsRoot) = 0;
-    virtual void setReceiptRoot(h256 const& _receiptRoot) = 0;
-    virtual void setStateRoot(h256 const& _stateRoot) = 0;
+    virtual void setTxsRoot(bcos::crypto::HashType const& _txsRoot) = 0;
+    virtual void setReceiptRoot(bcos::crypto::HashType const& _receiptRoot) = 0;
+    virtual void setStateRoot(bcos::crypto::HashType const& _stateRoot) = 0;
     virtual void setNumber(BlockNumber _blockNumber) = 0;
     virtual void setGasUsed(u256 const& _gasUsed) = 0;
     virtual void setTimestamp(int64_t const& _timestamp) = 0;

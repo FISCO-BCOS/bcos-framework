@@ -25,6 +25,7 @@
 
 using namespace bcos;
 using namespace bcos::protocol;
+using namespace bcos::crypto;
 
 void PBBlock::decode(bytesConstRef _data, bool _calculateHash, bool _checkSig)
 {
@@ -109,8 +110,9 @@ void PBBlock::decodeTxsHashList()
     // decode the transactionsHash
     for (auto i = 0; i < txsHashNum; i++)
     {
-        m_transactionsHash->push_back(h256((byte const*)m_pbRawBlock->transactionshash(i).data(),
-            h256::ConstructorType::FromPointer));
+        m_transactionsHash->push_back(
+            HashType((byte const*)m_pbRawBlock->transactionshash(i).data(),
+                HashType::ConstructorType::FromPointer));
     }
 }
 
@@ -124,8 +126,8 @@ void PBBlock::decodeReceiptsHashList()
     // decode the transactionsHash
     for (auto i = 0; i < receiptsHashNum; i++)
     {
-        m_receiptsHash->push_back(h256(
-            (byte const*)m_pbRawBlock->receiptshash(i).data(), h256::ConstructorType::FromPointer));
+        m_receiptsHash->push_back(HashType((byte const*)m_pbRawBlock->receiptshash(i).data(),
+            HashType::ConstructorType::FromPointer));
     }
 }
 
@@ -256,7 +258,7 @@ void PBBlock::encodeTransactionsHash() const
     int index = 0;
     for (auto const& txHash : *m_transactionsHash)
     {
-        m_pbRawBlock->set_transactionshash(index++, txHash.data(), h256::size);
+        m_pbRawBlock->set_transactionshash(index++, txHash.data(), HashType::size);
     }
 }
 
@@ -280,7 +282,7 @@ void PBBlock::encodeReceiptsHash() const
     int index = 0;
     for (auto const& receiptHash : *m_receiptsHash)
     {
-        m_pbRawBlock->set_receiptshash(index++, receiptHash.data(), h256::size);
+        m_pbRawBlock->set_receiptshash(index++, receiptHash.data(), HashType::size);
     }
 }
 
@@ -308,7 +310,7 @@ Transaction::ConstPtr PBBlock::transaction(size_t _index)
     return (*m_transactions)[_index];
 }
 
-h256 const& PBBlock::transactionHash(size_t _index)
+HashType const& PBBlock::transactionHash(size_t _index)
 {
     return (*m_transactionsHash)[_index];
 }
@@ -322,14 +324,14 @@ TransactionReceipt::ConstPtr PBBlock::receipt(size_t _index)
     return (*m_receipts)[_index];
 }
 
-h256 const& PBBlock::receiptHash(size_t _index)
+HashType const& PBBlock::receiptHash(size_t _index)
 {
     return (*m_receiptsHash)[_index];
 }
 
-h256 PBBlock::calculateTransactionRoot(bool _updateHeader) const
+HashType PBBlock::calculateTransactionRoot(bool _updateHeader) const
 {
-    auto txsRoot = h256();
+    auto txsRoot = HashType();
     // with no transactions
     if (m_transactions->size() == 0)
     {
@@ -338,7 +340,7 @@ h256 PBBlock::calculateTransactionRoot(bool _updateHeader) const
     }
     // hit the cache
     UpgradableGuard l(x_txsRootCache);
-    if (m_txsRootCache != h256())
+    if (m_txsRootCache != HashType())
     {
         updateTxsRootForHeader(_updateHeader, m_txsRootCache);
         return m_txsRootCache;
@@ -353,9 +355,9 @@ h256 PBBlock::calculateTransactionRoot(bool _updateHeader) const
     return txsRoot;
 }
 
-h256 PBBlock::calculateReceiptRoot(bool _updateHeader) const
+HashType PBBlock::calculateReceiptRoot(bool _updateHeader) const
 {
-    auto receiptsRoot = h256();
+    auto receiptsRoot = HashType();
     // with no receipts
     if (m_receipts->size() == 0)
     {
@@ -364,7 +366,7 @@ h256 PBBlock::calculateReceiptRoot(bool _updateHeader) const
     }
     // hit the cache
     UpgradableGuard l(x_receiptRootCache);
-    if (m_receiptRootCache != h256())
+    if (m_receiptRootCache != HashType())
     {
         updateReceiptRootForHeader(_updateHeader, m_receiptRootCache);
         return m_receiptRootCache;

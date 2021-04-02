@@ -55,7 +55,7 @@ public:
 
     void decode(bytesConstRef _txData, bool _checkSig) override;
     void encode(bytes& _txData) const override;
-    h256 const& hash() const override;
+    bcos::crypto::HashType const& hash() const override;
 
     u256 const& nonce() const override { return m_nonce; }
     int32_t version() const override { return m_transactionHashFields->version(); }
@@ -86,7 +86,7 @@ private:
     std::shared_ptr<PBRawTransactionHashFields> m_transactionHashFields;
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
 
-    mutable h256 m_hash;
+    mutable bcos::crypto::HashType m_hash;
     mutable SharedMutex x_hash;
 
     bcos::Address m_sender;

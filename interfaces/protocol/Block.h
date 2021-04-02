@@ -27,7 +27,7 @@ namespace bcos
 {
 namespace protocol
 {
-using HashList = std::vector<h256>;
+using HashList = std::vector<bcos::crypto::HashType>;
 using HashListPtr = std::shared_ptr<HashList>;
 using HashListConstPtr = std::shared_ptr<const HashList>;
 using NonceList = std::vector<u256>;
@@ -46,8 +46,8 @@ public:
 
     virtual void decode(bytesConstRef _data, bool _calculateHash, bool _checkSig) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
-    virtual h256 calculateTransactionRoot(bool _updateHeader) const = 0;
-    virtual h256 calculateReceiptRoot(bool _updateHeader) const = 0;
+    virtual bcos::crypto::HashType calculateTransactionRoot(bool _updateHeader) const = 0;
+    virtual bcos::crypto::HashType calculateReceiptRoot(bool _updateHeader) const = 0;
 
     virtual int32_t version() const = 0;
     virtual void setVersion(int32_t _version) = 0;
@@ -62,10 +62,10 @@ public:
     virtual TransactionReceipt::ConstPtr receipt(size_t _index) = 0;
     // get transaction hash
     virtual HashListConstPtr transactionsHash() = 0;
-    virtual h256 const& transactionHash(size_t _index) = 0;
+    virtual bcos::crypto::HashType const& transactionHash(size_t _index) = 0;
     // get receipt hash
     virtual HashListConstPtr receiptsHash() = 0;
-    virtual h256 const& receiptHash(size_t _index) = 0;
+    virtual bcos::crypto::HashType const& receiptHash(size_t _index) = 0;
 
     virtual void setBlockType(BlockType _blockType) = 0;
     // set blockHeader
@@ -80,12 +80,12 @@ public:
     virtual void appendReceipt(TransactionReceipt::Ptr _receipt) = 0;
     // set transaction hash
     virtual void setTransactionsHash(HashListPtr _transactionsHash) = 0;
-    virtual void setTransactionHash(size_t _index, h256 const& _txHash) = 0;
-    virtual void appendTransactionHash(h256 const& _txHash) = 0;
+    virtual void setTransactionHash(size_t _index, bcos::crypto::HashType const& _txHash) = 0;
+    virtual void appendTransactionHash(bcos::crypto::HashType const& _txHash) = 0;
     // set receipt hash
     virtual void setReceiptsHash(HashListPtr _receiptsHash) = 0;
-    virtual void setReceiptHash(size_t _index, h256 const& _receptHash) = 0;
-    virtual void appendReceiptHash(h256 const& _receiptHash) = 0;
+    virtual void setReceiptHash(size_t _index, bcos::crypto::HashType const& _receptHash) = 0;
+    virtual void appendReceiptHash(bcos::crypto::HashType const& _receiptHash) = 0;
     // getNonces of the current block
     virtual NonceListPtr nonces() = 0;
     // get transactions size

@@ -104,10 +104,10 @@ void PBBlockHeader::encode(bytes& _encodedData) const
     }
 }
 
-h256 const& PBBlockHeader::hash() const
+bcos::crypto::HashType const& PBBlockHeader::hash() const
 {
     UpgradableGuard l(x_hash);
-    if (m_hash != h256())
+    if (m_hash != bcos::crypto::HashType())
     {
         return m_hash;
     }
@@ -135,15 +135,15 @@ void PBBlockHeader::clear()
     m_blockHeader->clear_hashfieldsdata();
     m_blockHeader->clear_signaturelist();
     m_parentInfo->clear();
-    m_txsRoot = h256();
-    m_receiptRoot = h256();
-    m_stateRoot = h256();
+    m_txsRoot = bcos::crypto::HashType();
+    m_receiptRoot = bcos::crypto::HashType();
+    m_stateRoot = bcos::crypto::HashType();
     m_number = 0;
     m_gasUsed = u256(0);
     m_sealer = InvalidSealerIndex;
     m_sealerList->clear();
     m_extraData.clear();
-    m_hash = h256();
+    m_hash = bcos::crypto::HashType();
 }
 
 void PBBlockHeader::verifySignatureList() const

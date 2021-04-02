@@ -64,15 +64,15 @@ public:
     void decode(bytesConstRef _data, bool _calculateHash, bool _checkSig) override;
     void encode(bytes& _encodeData) const override;
 
-    h256 calculateTransactionRoot(bool _updateHeader) const override;
-    h256 calculateReceiptRoot(bool _updateHeader) const override;
+    bcos::crypto::HashType calculateTransactionRoot(bool _updateHeader) const override;
+    bcos::crypto::HashType calculateReceiptRoot(bool _updateHeader) const override;
 
     // getNonces of the current block
     NonceListPtr nonces() override;
     Transaction::ConstPtr transaction(size_t _index) override;
-    h256 const& transactionHash(size_t _index) override;
+    bcos::crypto::HashType const& transactionHash(size_t _index) override;
     TransactionReceipt::ConstPtr receipt(size_t _index) override;
-    h256 const& receiptHash(size_t _index) override;
+    bcos::crypto::HashType const& receiptHash(size_t _index) override;
 
     int32_t version() const override { return m_pbRawBlock->version(); }
 
@@ -136,12 +136,12 @@ public:
         m_transactionsHash = _transactionsHash;
         clearTransactionsHashCache();
     }
-    void setTransactionHash(size_t _index, h256 const& _txHash) override
+    void setTransactionHash(size_t _index, bcos::crypto::HashType const& _txHash) override
     {
         (*m_transactionsHash)[_index] = _txHash;
         clearTransactionsHashCache();
     }
-    void appendTransactionHash(h256 const& _txHash) override
+    void appendTransactionHash(bcos::crypto::HashType const& _txHash) override
     {
         m_transactionsHash->push_back(_txHash);
     }
@@ -152,12 +152,12 @@ public:
         clearReceiptsHashCache();
     }
 
-    void setReceiptHash(size_t _index, h256 const& _receiptHash) override
+    void setReceiptHash(size_t _index, bcos::crypto::HashType const& _receiptHash) override
     {
         (*m_receiptsHash)[_index] = _receiptHash;
         clearReceiptsHashCache();
     }
-    void appendReceiptHash(h256 const& _receiptHash) override
+    void appendReceiptHash(bcos::crypto::HashType const& _receiptHash) override
     {
         m_receiptsHash->push_back(_receiptHash);
     }
@@ -183,19 +183,19 @@ private:
     {
         m_pbRawBlock->clear_transactions();
         WriteGuard l(x_txsRootCache);
-        m_txsRootCache = h256();
+        m_txsRootCache = bcos::crypto::HashType();
     }
     void clearReceiptsCache()
     {
         m_pbRawBlock->clear_receipts();
         WriteGuard l(x_receiptRootCache);
-        m_receiptRootCache = h256();
+        m_receiptRootCache = bcos::crypto::HashType();
     }
 
     void clearTransactionsHashCache() { m_pbRawBlock->clear_transactionshash(); }
 
     void clearReceiptsHashCache() { m_pbRawBlock->clear_receiptshash(); }
-    void updateTxsRootForHeader(bool _updateHeader, h256 const& _txsRoot) const
+    void updateTxsRootForHeader(bool _updateHeader, bcos::crypto::HashType const& _txsRoot) const
     {
         if (!_updateHeader || !m_blockHeader)
         {
@@ -204,7 +204,8 @@ private:
         m_blockHeader->setTxsRoot(_txsRoot);
     }
 
-    void updateReceiptRootForHeader(bool _updateHeader, h256 const& _receiptsRoot) const
+    void updateReceiptRootForHeader(
+        bool _updateHeader, bcos::crypto::HashType const& _receiptsRoot) const
     {
         if (!_updateHeader || !m_blockHeader)
         {
@@ -244,10 +245,10 @@ private:
     HashListPtr m_receiptsHash;
 
     // caches
-    mutable h256 m_txsRootCache;
+    mutable bcos::crypto::HashType m_txsRootCache;
     mutable SharedMutex x_txsRootCache;
 
-    mutable h256 m_receiptRootCache;
+    mutable bcos::crypto::HashType m_receiptRootCache;
     mutable SharedMutex x_receiptRootCache;
 };
 }  // namespace protocol

@@ -123,10 +123,10 @@ void PBTransaction::encode(bytes& _txData) const
     }
 }
 
-h256 const& PBTransaction::hash() const
+HashType const& PBTransaction::hash() const
 {
     UpgradableGuard l(x_hash);
-    if (m_hash != h256())
+    if (m_hash != HashType())
     {
         return m_hash;
     }
