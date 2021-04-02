@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(testNormalTransaction)
     auto signatureImpl = std::make_shared<Secp256k1Crypto>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
     auto keyPair = cryptoSuite->signatureImpl()->generateKeyPair();
-    auto to = keyPair->address();
+    auto to = cryptoSuite->calculateAddress(*keyPair);
     std::string inputStr = "testTransaction";
     bytes input = asBytes(inputStr);
     u256 nonce = 120012323;

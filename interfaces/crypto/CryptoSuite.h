@@ -19,9 +19,10 @@
  * @date 2021-03-03
  */
 #pragma once
-#include "Hash.h"
-#include "Signature.h"
-#include "SymmetricEncryption.h"
+#include <bcos-framework/interfaces/crypto/CommonType.h>
+#include <bcos-framework/interfaces/crypto/Hash.h>
+#include <bcos-framework/interfaces/crypto/Signature.h>
+#include <bcos-framework/interfaces/crypto/SymmetricEncryption.h>
 namespace bcos
 {
 namespace crypto
@@ -42,9 +43,19 @@ public:
     SymmetricEncryption::Ptr symmetricEncryptionHandler() { return m_symmetricEncryptionHandler; }
 
     template <typename T>
-    h256 hash(T&& _data)
+    HashType hash(T&& _data)
     {
         return m_hashImpl->hash(_data);
+    }
+    Address calculateAddress(Public const& _publicKey)
+    {
+        assert(m_hashImpl);
+        return getAddress(m_hashImpl, _publicKey);
+    }
+
+    Address calculateAddress(KeyPair const& _keyPair)
+    {
+        return calculateAddress(_keyPair.publicKey());
     }
 
 private:

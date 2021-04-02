@@ -29,8 +29,8 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 # init hunter
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/FISCO-BCOS/hunter/archive/1984be9381f472aec11307f009344ef57b3cb4db.tar.gz"
-    SHA1 "3442c3ba973f505daec46ae7a42f9a2429e433f9"
+    URL "https://github.com/cyjseagull/hunter/archive/5314cbfa19b5527c75c5ab0c1f57c5138097aa9a.tar.gz"
+    SHA1 "3c0393537791653be70f27dbf1c51ebc1aea6cfd"
 )
 
 project(bcos-framework VERSION "3.0")
