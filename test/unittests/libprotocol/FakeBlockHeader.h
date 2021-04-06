@@ -18,13 +18,11 @@
  * @date: 2021-03-16
  */
 #pragma once
-#include <bcos-crypto/hash/Keccak256.h>
-#include <bcos-crypto/hash/SM3.h>
-#include <bcos-crypto/signature/secp256k1/Secp256k1Crypto.h>
-#include <bcos-crypto/signature/sm2/SM2Crypto.h>
 #include <bcos-framework/libprotocol/Exceptions.h>
 #include <bcos-framework/libprotocol/protobuf/PBBlockHeaderFactory.h>
 #include <bcos-framework/libutilities/Common.h>
+#include <unittests/common/HashImpl.h>
+#include <unittests/common/SignatureImpl.h>
 #include <boost/test/unit_test.hpp>
 using namespace bcos;
 using namespace bcos::protocol;
@@ -44,7 +42,11 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     BOOST_CHECK(decodedBlockHeader->gasUsed() == blockHeader->gasUsed());
     BOOST_CHECK(decodedBlockHeader->timestamp() == blockHeader->timestamp());
     BOOST_CHECK(decodedBlockHeader->sealer() == blockHeader->sealer());
-    BOOST_CHECK(*(decodedBlockHeader->sealerList()) == *(blockHeader->sealerList()));
+    BOOST_CHECK(decodedBlockHeader->sealerList()->size() == blockHeader->sealerList()->size());
+    for (size_t i = 0; i < decodedBlockHeader->sealerList()->size(); i++)
+    {
+        BOOST_CHECK(*(*decodedBlockHeader->sealerList())[i] == *(*blockHeader->sealerList())[i]);
+    }
     BOOST_CHECK(decodedBlockHeader->extraData() == blockHeader->extraData());
     // check signature
     BOOST_CHECK(
@@ -75,10 +77,6 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
               << std::endl;
     std::cout << "#### hash:" << decodedBlockHeader->hash().hex() << std::endl;
     std::cout << "### parentHash:" << (*(blockHeader->parentInfo()))[0].second.hex() << std::endl;
-    for (auto const& sealer : *(decodedBlockHeader->sealerList()))
-    {
-        std::cout << "#### sealerList:" << sealer.hex() << std::endl;
-    }
 }
 
 inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
@@ -137,26 +135,26 @@ inline ParentInfoListPtr fakeParentInfo(Hash::Ptr _hashImpl, size_t _size)
 }
 
 inline SealerListPtr fakeSealerList(
-    std::vector<KeyPair::Ptr>& _keyPairVec, SignatureCrypto::Ptr _signImpl, size_t size)
+    std::vector<KeyPairInterface::Ptr>& _keyPairVec, SignatureCrypto::Ptr _signImpl, size_t size)
 {
     SealerListPtr sealerList = std::make_shared<SealerList>();
     for (size_t i = 0; i < size; i++)
     {
         auto keyPair = _signImpl->generateKeyPair();
         _keyPairVec.emplace_back(keyPair);
-        sealerList->emplace_back(keyPair->publicKey());
+        sealerList->emplace_back(keyPair->publicKey()->encode());
     }
     return sealerList;
 }
 
-inline SignatureListPtr fakeSignatureList(
-    SignatureCrypto::Ptr _signImpl, std::vector<KeyPair::Ptr>& _keyPairVec, h256 const& _hash)
+inline SignatureListPtr fakeSignatureList(SignatureCrypto::Ptr _signImpl,
+    std::vector<KeyPairInterface::Ptr>& _keyPairVec, h256 const& _hash)
 {
     auto sealerIndex = 0;
     auto signatureList = std::make_shared<SignatureList>();
     for (auto keyPair : _keyPairVec)
     {
-        auto signature = _signImpl->sign(*keyPair, _hash);
+        auto signature = _signImpl->sign(keyPair, _hash);
         signatureList->push_back(std::make_pair(sealerIndex++, signature));
     }
     return signatureList;
@@ -176,7 +174,7 @@ inline BlockHeader::Ptr testPBBlockHeader(CryptoSuite::Ptr _cryptoSuite)
     u256 gasUsed = 3453456346534;
     int64_t timestamp = 9234234234;
     int64_t sealer = 100;
-    std::vector<KeyPair::Ptr> keyPairVec;
+    std::vector<KeyPairInterface::Ptr> keyPairVec;
     auto sealerList = fakeSealerList(keyPairVec, signImpl, 4);
     bytes extraData = stateRoot.asBytes();
     auto signatureList = fakeSignatureList(signImpl, keyPairVec, receiptRoot);

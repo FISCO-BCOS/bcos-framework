@@ -29,5 +29,7 @@ add_executable(${TEST_BINARY_NAME} ${SOURCES})
 target_include_directories(${TEST_BINARY_NAME} PRIVATE .)
 find_package(Boost CONFIG REQUIRED unit_test_framework)
 
-include(InstallBcosCryptoDependencies)
-target_link_libraries(${TEST_BINARY_NAME} Boost::unit_test_framework bcos-crypto::bcos-crypto ${UTILITIES_TARGET} ${CODEC_TARGET} ${PROTOCOL_TARGET})
+hunter_add_package(wedpr-crypto)
+find_package(wedpr-crypto CONFIG REQUIRED)
+
+target_link_libraries(${TEST_BINARY_NAME} Boost::unit_test_framework ${UTILITIES_TARGET} ${CODEC_TARGET} ${PROTOCOL_TARGET} wedpr-crypto::crypto)

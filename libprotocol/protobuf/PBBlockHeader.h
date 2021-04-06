@@ -127,11 +127,6 @@ public:
         *m_sealerList = _sealerList;
         noteDirty();
     }
-    void setSealerList(SealerList&& _sealerList) override
-    {
-        *m_sealerList = std::move(_sealerList);
-        noteDirty();
-    }
     void setExtraData(bytes const& _extraData) override
     {
         m_extraData = _extraData;

@@ -37,6 +37,7 @@ void PBBlockHeader::decode(bytesConstRef _data)
     }
     // decode hashFields data
     auto hashFieldsPtr = m_blockHeader->mutable_hashfieldsdata();
+
     ScaleDecoderStream stream(
         gsl::span<byte const>((byte*)hashFieldsPtr->data(), hashFieldsPtr->size()));
     stream >> m_parentInfo >> m_txsRoot >> m_receiptRoot >> m_stateRoot >> m_number >> m_gasUsed >>
@@ -61,6 +62,7 @@ void PBBlockHeader::encodeHashFields() const
         return;
     }
     ScaleEncoderStream stream;
+
     stream << m_parentInfo << m_txsRoot << m_receiptRoot << m_stateRoot << m_number << m_gasUsed
            << m_timestamp << m_sealer << m_sealerList << m_extraData;
     auto hashFieldsData = stream.data();

@@ -55,7 +55,6 @@ DERIVE_BCOS_EXCEPTION(ConstructFixedBytesFailed);
 DERIVE_BCOS_EXCEPTION(BadCast);
 DERIVE_BCOS_EXCEPTION(BadHexCharacter);
 DERIVE_BCOS_EXCEPTION(InvalidAddress);
-DERIVE_BCOS_EXCEPTION(InvalidSignatureData);
 
 using errinfo_invalidSymbol = boost::error_info<struct tag_invalidSymbol, char>;
 using errinfo_comment = boost::error_info<struct tag_comment, std::string>;

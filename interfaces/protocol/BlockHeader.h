@@ -19,13 +19,13 @@
  * @date: 2021-03-22
  */
 #pragma once
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include <bcos-framework/interfaces/crypto/CommonType.h>
 namespace bcos
 {
 namespace protocol
 {
 using BlockNumber = int64_t;
-using SealerList = std::vector<h512>;
+using SealerList = std::vector<std::shared_ptr<bytes>>;
 using SealerListPtr = std::shared_ptr<SealerList>;
 using ParentInfoList = std::vector<std::pair<BlockNumber, bcos::crypto::HashType>>;
 using ParentInfoListPtr = std::shared_ptr<ParentInfoList>;
@@ -83,7 +83,6 @@ public:
     virtual void setTimestamp(int64_t const& _timestamp) = 0;
     virtual void setSealer(int64_t _sealerId) = 0;
     virtual void setSealerList(SealerList const& _sealerList) = 0;
-    virtual void setSealerList(SealerList&& _sealerList) = 0;
     virtual void setExtraData(bytes const& _extraData) = 0;
     virtual void setExtraData(bytes&& _extraData) = 0;
     virtual void setSignatureList(SignatureListPtr _signatureList) = 0;
