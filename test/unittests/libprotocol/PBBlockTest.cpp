@@ -19,6 +19,7 @@
  * @date: 2021-03-23
  */
 #include "FakeBlock.h"
+#include <bcos-framework/libprotocol/TransactionOnChainResult.h>
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 using namespace bcos;
@@ -36,12 +37,12 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     // without blockHeader
     auto block2 = fakeAndCheckBlock(cryptoSuite, blockFactory, false, 10, 4, 8, 6);
     // update transactions
-    TransactionsPtr txs = std::make_shared<Transactions>();
+    TransactionsPtr txs1 = std::make_shared<Transactions>();
     for (int i = 0; i < 5; i++)
     {
-        txs->push_back(fakeTransaction(cryptoSuite));
+        txs1->push_back(fakeTransaction(cryptoSuite));
     }
-    block2->setTransactions(txs);
+    block2->setTransactions(txs1);
     BOOST_CHECK(block2->transactions()->size() == 5);
     // encode
     auto encodedData = std::make_shared<bytes>();
@@ -51,7 +52,7 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     checkBlock(cryptoSuite, block2, decodedBlock);
 
     // update transactions to empty
-    txs = std::make_shared<Transactions>();
+    auto txs = std::make_shared<Transactions>();
     auto receipts = std::make_shared<Receipts>();
     for (int i = 0; i < 2; i++)
     {
@@ -68,6 +69,19 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     checkBlock(cryptoSuite, block2, decodedBlock);
     BOOST_CHECK(decodedBlock->transactions()->size() == 0);
     BOOST_CHECK(decodedBlock->receipts()->size() == 2);
+    decodedBlock->setTransactions(txs1);
+    BOOST_CHECK(decodedBlock->transactions()->size() == 5);
+    // test TransactionOnChainResult
+    auto tx = (*txs1)[0];
+    auto receipt = (*receipts)[0];
+    auto onChainResult =
+        std::make_shared<TransactionOnChainResult>(receipt, tx, 0, decodedBlock->blockHeader());
+    BOOST_CHECK(onChainResult->transactionIndex() == 0);
+    BOOST_CHECK(onChainResult->from() == tx->sender());
+    BOOST_CHECK(onChainResult->to() == tx->to());
+    BOOST_CHECK(onChainResult->txHash() == tx->hash());
+    BOOST_CHECK(onChainResult->blockHash() == decodedBlock->blockHeader()->hash());
+    BOOST_CHECK(onChainResult->blockNumber() == decodedBlock->blockHeader()->number());
 }
 BOOST_AUTO_TEST_CASE(testNormalBlock)
 {

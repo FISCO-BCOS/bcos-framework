@@ -22,6 +22,7 @@
 
 
 #include <bcos-framework/libutilities/Common.h>
+#include <bcos-framework/libutilities/Error.h>
 #include <bcos-framework/libutilities/Exceptions.h>
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <unistd.h>
@@ -178,6 +179,21 @@ BOOST_AUTO_TEST_CASE(testRecursiveGuard)
     uint64_t begin_time = begin.tv_sec * 1000000 + begin.tv_usec;
     BOOST_CHECK((end_time - begin_time) >= (uint64_t(max) * 1000));
     BOOST_CHECK(count == 2 * max);
+}
+BOOST_AUTO_TEST_CASE(testError)
+{
+    std::string errorMessage = " test error";
+    int64_t errorCode = -100042;
+    Error::Ptr error = std::make_shared<Error>(errorCode, errorMessage);
+    BOOST_CHECK(error->errorCode() == errorCode);
+    BOOST_CHECK(error->errorMessage() == errorMessage);
+
+    errorMessage = " test error234";
+    errorCode = 100044;
+    error->setErrorCode(errorCode);
+    error->setErrorMessage(errorMessage);
+    BOOST_CHECK(error->errorCode() == errorCode);
+    BOOST_CHECK(error->errorMessage() == errorMessage);
 }
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
