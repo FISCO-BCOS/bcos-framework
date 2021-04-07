@@ -92,12 +92,14 @@ public:
     /// Explicitly construct, copying from a byte array.
     explicit FixedBytes(
         bytesConstRef _bytesRefData, DataAlignType _alignType = DataAlignType::AlignRight)
+      : FixedBytes()
     {
         constructFixedBytes(_bytesRefData, _alignType);
     }
 
     explicit FixedBytes(
         bytes const& _bytesData, DataAlignType _alignType = DataAlignType::AlignRight)
+      : FixedBytes()
     {
         constructFixedBytes(bytesConstRef(_bytesData.data(), _bytesData.size()), _alignType);
     }
@@ -114,6 +116,7 @@ public:
     explicit FixedBytes(
         FixedBytes<M> const& _fixedBytes, DataAlignType _alignType = DataAlignType::AlignLeft)
     {
+        m_data.fill(0);
         constructFixedBytes(_fixedBytes.ref(), _alignType);
     }
 
@@ -121,9 +124,18 @@ public:
      * @brief Construct a new Fixed Bytes object according to the given number
      * @param _arithNumber: the number used to construct the new FixedBytes
      */
-    FixedBytes(ArithType const& _arithNumber) { toBigEndian(_arithNumber, m_data); }
-    FixedBytes(unsigned _arithNumber) { toBigEndian(_arithNumber, m_data); }
-    explicit FixedBytes(byte const* _bs, ConstructorType) { memcpy(m_data.data(), _bs, N); }
+    FixedBytes(ArithType const& _arithNumber) : FixedBytes() { toBigEndian(_arithNumber, m_data); }
+    FixedBytes(unsigned _arithNumber) : FixedBytes() { toBigEndian(_arithNumber, m_data); }
+
+    explicit FixedBytes(byte const* _data, size_t _dataSize) : FixedBytes()
+    {
+        memcpy(m_data.data(), _data, std::min(_dataSize, (size_t)N));
+    }
+
+    explicit FixedBytes(byte const* _bs, ConstructorType) : FixedBytes()
+    {
+        memcpy(m_data.data(), _bs, N);
+    }
 
     /// Explicitly construct, copying from a  string.
     explicit FixedBytes(std::string const& _s, StringDataType _t = FromHex,
