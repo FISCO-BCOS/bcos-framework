@@ -20,7 +20,7 @@
 #pragma once
 #include <bcos-framework/interfaces/protocol/Block.h>
 #include <bcos-framework/interfaces/protocol/Transaction.h>
-#include <bcos-framework/libprotocol/TransactionOnChainResult.h>
+#include <bcos-framework/interfaces/protocol/TransactionSubmitResult.h>
 #include <bcos-framework/libutilities/Error.h>
 namespace bcos
 {
@@ -45,7 +45,7 @@ public:
      * on-chain
      */
     virtual void asyncSubmit(bcos::protocol::Transaction::Ptr _tx,
-        std::function<void(Error::Ptr, bcos::protocol::TransactionOnChainResult::Ptr)>
+        std::function<void(Error::Ptr, bcos::protocol::TransactionSubmitResult::Ptr)>
             _onChainCallback) = 0;
 
     /**
@@ -88,7 +88,7 @@ public:
      * @param _onBlockFilled callback to be called after the block has been filled
      */
     virtual void asyncFillBlock(bcos::protocol::Block::Ptr _block,
-        std::function<void(Error, bcos::protocol::TransactionOnChainResults)> _onBlockFilled) = 0;
+        std::function<void(Error, bcos::protocol::TransactionSubmitResults)> _onBlockFilled) = 0;
 
     /**
      * @brief After the blockchain is on-chain, the interface is called to notify the transaction

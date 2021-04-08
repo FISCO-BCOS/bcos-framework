@@ -13,24 +13,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @file TransactionOnChainResult.h
+ * @file TransactionSubmitResultImpl.h
  * @author: yujiechen
  * @date: 2021-04-07
  */
 #pragma once
-#include <bcos-framework/interfaces/protocol/BlockHeader.h>
-#include <bcos-framework/interfaces/protocol/Transaction.h>
-#include <bcos-framework/interfaces/protocol/TransactionReceipt.h>
-#include <bcos-framework/libprotocol/TransactionStatus.h>
+#include <bcos-framework/interfaces/protocol/TransactionSubmitResult.h>
 namespace bcos
 {
 namespace protocol
 {
-class TransactionOnChainResult
+class TransactionSubmitResultImpl : public TransactionSubmitResult
 {
 public:
-    using Ptr = std::shared_ptr<TransactionOnChainResult>;
-    TransactionOnChainResult(TransactionReceipt::Ptr _receipt, bcos::crypto::HashType _txHash,
+    using Ptr = std::shared_ptr<TransactionSubmitResultImpl>;
+    TransactionSubmitResultImpl(TransactionReceipt::Ptr _receipt, bcos::crypto::HashType _txHash,
         int64_t _transactionIndex, bcos::crypto::HashType _blockHash, BlockNumber _blockNumber,
         Address const& _sender, Address const& _to)
       : m_receipt(_receipt),
@@ -42,34 +39,34 @@ public:
         m_to(_to)
     {}
 
-    TransactionOnChainResult(TransactionReceipt::Ptr _receipt, Transaction::Ptr _tx,
+    TransactionSubmitResultImpl(TransactionReceipt::Ptr _receipt, Transaction::Ptr _tx,
         int64_t _transactionIndex, BlockHeader::Ptr _blockHeader)
-      : TransactionOnChainResult(_receipt, _tx->hash(), _transactionIndex, _blockHeader->hash(),
+      : TransactionSubmitResultImpl(_receipt, _tx->hash(), _transactionIndex, _blockHeader->hash(),
             _blockHeader->number(), _tx->sender(), _tx->to())
     {}
 
-    explicit TransactionOnChainResult(TransactionStatus _status) : m_status(_status) {}
-    virtual ~TransactionOnChainResult() {}
+    explicit TransactionSubmitResultImpl(TransactionStatus _status) : m_status((uint32_t)_status) {}
+    virtual ~TransactionSubmitResultImpl() {}
 
     // get transaction status
-    virtual TransactionStatus status() const { return m_status; }
+    uint32_t status() const override { return m_status; }
     // get transaction receipt
-    virtual TransactionReceipt::Ptr receipt() const { return m_receipt; }
+    TransactionReceipt::Ptr receipt() const override { return m_receipt; }
     // get transactionHash
-    virtual bcos::crypto::HashType const& txHash() const { return m_txHash; }
+    bcos::crypto::HashType const& txHash() const override { return m_txHash; }
     // get blockHash
-    virtual bcos::crypto::HashType const& blockHash() const { return m_blockHash; }
+    bcos::crypto::HashType const& blockHash() const override { return m_blockHash; }
     // get blockNumber
-    virtual BlockNumber blockNumber() const { return m_blockNumber; }
+    BlockNumber blockNumber() const override { return m_blockNumber; }
     // the sender
-    virtual Address const& from() const { return m_sender; }
+    Address const& from() const override { return m_sender; }
     // to
-    virtual Address const& to() const { return m_to; }
+    Address const& to() const override { return m_to; }
     // txIndex
-    virtual int64_t transactionIndex() const { return m_transactionIndex; }
+    int64_t transactionIndex() const override { return m_transactionIndex; }
 
 private:
-    TransactionStatus m_status = TransactionStatus::None;
+    uint32_t m_status = (uint32_t)TransactionStatus::None;
     TransactionReceipt::Ptr m_receipt;
     bcos::crypto::HashType m_txHash;
     int64_t m_transactionIndex;
@@ -78,8 +75,5 @@ private:
     Address m_sender;
     Address m_to;
 };
-
-using TransactionOnChainResults = std::vector<TransactionOnChainResult::Ptr>;
-using TransactionOnChainResultsPtr = std::shared_ptr<TransactionOnChainResults>;
 }  // namespace protocol
 }  // namespace bcos

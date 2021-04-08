@@ -19,7 +19,7 @@
  * @date: 2021-03-23
  */
 #include "FakeBlock.h"
-#include <bcos-framework/libprotocol/TransactionOnChainResult.h>
+#include <bcos-framework/libprotocol/TransactionSubmitResultImpl.h>
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 using namespace bcos;
@@ -71,11 +71,11 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     BOOST_CHECK(decodedBlock->receipts()->size() == 2);
     decodedBlock->setTransactions(txs1);
     BOOST_CHECK(decodedBlock->transactions()->size() == 5);
-    // test TransactionOnChainResult
+    // test TransactionSubmitResult
     auto tx = (*txs1)[0];
     auto receipt = (*receipts)[0];
-    auto onChainResult =
-        std::make_shared<TransactionOnChainResult>(receipt, tx, 0, decodedBlock->blockHeader());
+    TransactionSubmitResult::Ptr onChainResult =
+        std::make_shared<TransactionSubmitResultImpl>(receipt, tx, 0, decodedBlock->blockHeader());
     BOOST_CHECK(onChainResult->transactionIndex() == 0);
     BOOST_CHECK(onChainResult->from() == tx->sender());
     BOOST_CHECK(onChainResult->to() == tx->to());
