@@ -19,21 +19,11 @@
  * @date: 2021-03-22
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/CommonType.h>
+#include <bcos-framework/interfaces/protocol/ProtocolTypeDef.h>
 namespace bcos
 {
 namespace protocol
 {
-using BlockNumber = int64_t;
-using SealerList = std::vector<std::shared_ptr<bytes>>;
-using SealerListPtr = std::shared_ptr<SealerList>;
-using ParentInfoList = std::vector<std::pair<BlockNumber, bcos::crypto::HashType>>;
-using ParentInfoListPtr = std::shared_ptr<ParentInfoList>;
-using SignatureList = std::vector<std::pair<int64_t, std::shared_ptr<bytes>>>;
-using SignatureListPtr = std::shared_ptr<SignatureList>;
-
-int64_t constexpr InvalidSealerIndex = INT64_MAX;
-
 class BlockHeader
 {
 public:
@@ -69,7 +59,7 @@ public:
     // the sealer that generate this block
     virtual int64_t sealer() = 0;
     // the current sealer list
-    virtual SealerListPtr sealerList() const = 0;
+    virtual BytesListPtr sealerList() const = 0;
     virtual bytes const& extraData() const = 0;
     virtual SignatureListPtr signatureList() const = 0;
 
@@ -82,7 +72,7 @@ public:
     virtual void setGasUsed(u256 const& _gasUsed) = 0;
     virtual void setTimestamp(int64_t const& _timestamp) = 0;
     virtual void setSealer(int64_t _sealerId) = 0;
-    virtual void setSealerList(SealerList const& _sealerList) = 0;
+    virtual void setSealerList(BytesList const& _sealerList) = 0;
     virtual void setExtraData(bytes const& _extraData) = 0;
     virtual void setExtraData(bytes&& _extraData) = 0;
     virtual void setSignatureList(SignatureListPtr _signatureList) = 0;

@@ -36,7 +36,7 @@ public:
       : m_cryptoSuite(_cryptoSuite),
         m_blockHeader(std::make_shared<PBRawBlockHeader>()),
         m_parentInfo(std::make_shared<ParentInfoList>()),
-        m_sealerList(std::make_shared<SealerList>()),
+        m_sealerList(std::make_shared<BytesList>()),
         m_signatureList(std::make_shared<SignatureList>())
     {}
     PBBlockHeader(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytesConstRef _data)
@@ -74,7 +74,7 @@ public:
     // the sealer that generate this block
     int64_t sealer() override { return m_sealer; }
     // the current sealer list
-    SealerListPtr sealerList() const override { return m_sealerList; }
+    BytesListPtr sealerList() const override { return m_sealerList; }
     bytes const& extraData() const override { return m_extraData; }
     SignatureListPtr signatureList() const override { return m_signatureList; }
 
@@ -122,7 +122,7 @@ public:
         m_sealer = _sealerId;
         noteDirty();
     }
-    void setSealerList(SealerList const& _sealerList) override
+    void setSealerList(BytesList const& _sealerList) override
     {
         *m_sealerList = _sealerList;
         noteDirty();
@@ -176,7 +176,7 @@ private:
     u256 m_gasUsed;
     int64_t m_timestamp;
     int64_t m_sealer = InvalidSealerIndex;
-    SealerListPtr m_sealerList;
+    BytesListPtr m_sealerList;
     bytes m_extraData;
 
     SignatureListPtr m_signatureList;
