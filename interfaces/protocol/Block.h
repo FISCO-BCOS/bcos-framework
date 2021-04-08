@@ -97,5 +97,7 @@ public:
 
     // TODO: set DAG mutually exclusive parameters
 };
+using Blocks = std::vector<Block::Ptr>;
+using BlocksPtr = std::shared_ptr<Blocks>;
 }  // namespace protocol
 }  // namespace bcos

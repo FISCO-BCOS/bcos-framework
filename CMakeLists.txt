@@ -64,6 +64,7 @@ set(INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 set(UTILITIES_TARGET "utilities")
 set(CODEC_TARGET "codec")
 set(PROTOCOL_TARGET "protocol")
+set(PBPROTOCOL_TARGET "protocol-pb")
 # define the generated proto file path
 set(PROTO_GENERATE_DIR ${INCLUDE_DIR}/bcos-framework/libprotocol/bcos-proto)
 
@@ -72,6 +73,7 @@ add_subdirectory(libutilities)
 add_subdirectory(interfaces)
 add_subdirectory(libcodec)
 add_subdirectory(libprotocol)
+add_subdirectory(libprotocol/protobuf)
 
 # test releated
 if (TESTS)
@@ -101,6 +103,15 @@ install(
 
 install(
     TARGETS ${PROTOCOL_TARGET}
+    EXPORT "${TARGETS_EXPORT_NAME}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+install(
+    TARGETS ${PBPROTOCOL_TARGET}
     EXPORT "${TARGETS_EXPORT_NAME}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
