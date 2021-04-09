@@ -24,9 +24,6 @@ namespace bcos
 {
 namespace consensus
 {
-using SealerList = std::vector<bcos::crypto::PublicPtr>;
-using SealerListPtr = std::shared_ptr<SealerList>;
-using ObserverListPtr = SealerListPtr;
 using NodeType = uint64_t;
 using IndexType = uint64_t;
 };  // namespace consensus
