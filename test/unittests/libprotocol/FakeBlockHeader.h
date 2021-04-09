@@ -82,7 +82,7 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
 inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
     ParentInfoListPtr _parentInfo, h256 const& _txsRoot, h256 const& _receiptRoot,
     h256 const& _stateRoot, int64_t _number, u256 const& _gasUsed, int64_t _timestamp,
-    int64_t _sealer, SealerListPtr _sealerList, bytes const& _extraData,
+    int64_t _sealer, BytesListPtr _sealerList, bytes const& _extraData,
     SignatureListPtr _signatureList)
 {
     BlockHeaderFactory::Ptr blockHeaderFactory =
@@ -134,10 +134,10 @@ inline ParentInfoListPtr fakeParentInfo(Hash::Ptr _hashImpl, size_t _size)
     return parentInfos;
 }
 
-inline SealerListPtr fakeSealerList(
+inline BytesListPtr fakeSealerList(
     std::vector<KeyPairInterface::Ptr>& _keyPairVec, SignatureCrypto::Ptr _signImpl, size_t size)
 {
-    SealerListPtr sealerList = std::make_shared<SealerList>();
+    BytesListPtr sealerList = std::make_shared<BytesList>();
     for (size_t i = 0; i < size; i++)
     {
         auto keyPair = _signImpl->generateKeyPair();
