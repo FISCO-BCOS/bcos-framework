@@ -47,7 +47,7 @@ include(CopyInclude)
 
 # install dependencies
 # install boost dependency
-hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log program_options test)
+hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log)
 # install protobuf dependency
 hunter_add_package(Protobuf)
 # install gsl dependency
@@ -77,6 +77,7 @@ add_subdirectory(libprotocol/protobuf)
 
 # test releated
 if (TESTS)
+    hunter_add_package(Boost COMPONENTS test)
     enable_testing()
     set(CTEST_OUTPUT_ON_FAILURE TRUE)
     add_subdirectory(test)
