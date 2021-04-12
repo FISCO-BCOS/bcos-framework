@@ -39,9 +39,6 @@ public:
     // get node index
     virtual void asyncGetNodeIndex(std::function<void(Error::Ptr, IndexType)> _onGetNodeIndex) = 0;
 
-    // get sealerList
-    virtual void asyncGetSealerList(std::function<void(SealerListPtr)> _onGetSealerList) = 0;
-
     // get the type of the consensus node
     virtual void asyncGetNodeType(std::function<void(NodeType const&)> _onGetNodeType) = 0;
 
