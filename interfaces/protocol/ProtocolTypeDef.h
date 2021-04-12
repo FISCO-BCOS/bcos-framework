@@ -31,6 +31,11 @@ using ParentInfoList = std::vector<std::pair<BlockNumber, bcos::crypto::HashType
 using ParentInfoListPtr = std::shared_ptr<ParentInfoList>;
 using SignatureList = std::vector<std::pair<int64_t, std::shared_ptr<bytes>>>;
 using SignatureListPtr = std::shared_ptr<SignatureList>;
+
+// the weight list
+using WeightList = std::vector<uint64_t>;
+using WeightListPtr = std::shared_ptr<WeightList>;
+
 int64_t constexpr InvalidSealerIndex = INT64_MAX;
 }  // namespace protocol
 }  // namespace bcos

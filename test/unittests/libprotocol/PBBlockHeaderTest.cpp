@@ -52,25 +52,25 @@ BOOST_AUTO_TEST_CASE(testRawPBBlockHeader)
     auto signImpl = std::make_shared<Secp256k1SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signImpl, nullptr);
     auto data = fromHexString(
-        "080a12a8040c000000000000000080044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a"
+        "080a12a9040c000000000000000080044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a"
         "116d010000000000000080c89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc60200"
         "00000000000080ad7c5bef027816a800da1736444fb58a807ef4c9603b7848673f7e3a68eb14a5808fc1d10c13"
         "0a57800c446a858cf3bb4699c25d17f6318484814f18a9e1227f1b80fbc6d2ca221fb45933acae4194e9c1f132"
         "bd6565e678e3a21d088b2545d11c24808ea407c24ec9663ee0e7a5f2d0e9afffec28087c25f296e68585bb292e"
-        "d6c5e55cfadedd020000000ba6ed091224037a3b672602000000640000000000000010010103705470fe0dbf39"
-        "0f16a00a08135bcbaa3886b250c553a472168e5edc5144a3ad217da7f43b956b249ea9cc1415841df4283fb07c"
-        "e1a07021debfe0fbca038e010179a30acb90df081b43bdb18bca1c8bbb6421f62c86b615abe539c2d9cd6df17f"
-        "ec46c64b8412cd1a65e3c2e219531e73da8253654878490e0bc9e5c52f2083510101e61d6d6d35ab384c49ac4f"
-        "620aa25f78601b326b33a66132316cd2b99eacc44c19eabdfa2c25213b2959aa67b9180038d40d41007bd76b10"
-        "f9b84e76174159310101d7af5bfde217dc000037944803e4383a019dbbb4c2ef4eed109c180ff6ed4a85a9f288"
-        "290c82e72bfcd46eefb5583fe60206d9423583731450baad3bb559abe7808ea407c24ec9663ee0e7a5f2d0e9af"
-        "ffec28087c25f296e68585bb292ed6c5e51a43124169c93bc8a1987698e8da61366512c918e7019ec52213689f"
-        "869cf1605ef55c0d43032a88cac1e068447eed7856dc2b89979601c18c9e33cd7627453daef72e87001a450801"
-        "1241a56d6b451842f5d8d040125f97fc0cad118ee9366b11110db0d10b77301a38377e45ed8b6c9d5d80ad3ab6"
-        "2e6e13162eab349a6175b2f615e5e6f4f61367473c011a4508021241496d150934a3465fb590877ae9147c5308"
-        "c5370a12ff8eaf0bc7d8cd2e39d2d753adac4c90ca5cf8b5b3736bf9aba97304fd8f43e3c5d173b6d87d1e0ac8"
-        "9d8a011a4508031241c1694c5052cdddbfcc2219af7000ab5b0d4de0833ffefba044c0aadba8ee6e4827da216e"
-        "fb969294be677db95a5e7d616534b3076ae22cfe4392a32b6337d84601");
+        "d6c5e55cfadedd020000000ba6ed091224037a3b6726020000006400000000000000100101d7fdd8c32486b984"
+        "304b4c254b48255c564030a83b89b7e7b9ad2358dedc48afd8eab69f90a3e305d2325fc6034bd9b0d8d004872e"
+        "10c98078279d322c56c7ce0101a886ee251bd5799d9453e050413a16cdbc72a7a1f755a018f623843f435de2cc"
+        "1ca49d6a0037e5f0aa0253572d70e0218af07043facfbc5d1cb5bf7091c64dd10101a1039da8932ec26b2be14b"
+        "fdd34ddb1fbf45a0adb10bfd2a25bc0d4204cf1f101eaf3ec90c30e9535e0ab89227ceccb5804726515f981804"
+        "556f4187e068ecb90101f7f2e5c1747316c57d77b8fa8ee53d5b03e04e001c7e9b5b961b1eacfc0bdba94e7985"
+        "095d2b25305c47a4e2d6fe615cc7b28955cb5d39525cb00c9e5f9f0d5800808ea407c24ec9663ee0e7a5f2d0e9"
+        "afffec28087c25f296e68585bb292ed6c5e51a431241c1564b743653c3ee51155892fb1d53551ae065e3726473"
+        "ed52391bcc7f6dc96719518537cc90891243b3796bba578e5f33e76f115b6df91d4e588290dc79f942001a4508"
+        "011241141a3a0ec110bfa18c5d8983526fcb5ce185fe846a44708308fe2355ce6bebd94d9a57438895381cd391"
+        "5e124dd75c19f25188d22354b133a92df2ed88f802d3001a4508021241798169fce3f226cfc7016e11bb3a06c7"
+        "3dbc3721eb59a39fadb4f46e31e804fe3fa5bbe2093925bb95219d03af7ee89553f3e0d172d305737c219f5a5d"
+        "5178e3001a4508031241a34453eca746d38c348a0e9aab589eda5dcb6a5ee9759941a35778fe0cc40ee7769abb"
+        "947355cbf3f9aaafaa201c481d2712be605e604483ca41d09210e85ff901");
     auto decodedBlockHeader = std::make_shared<PBBlockHeader>(cryptoSuite, *data);
 
     BOOST_CHECK(decodedBlockHeader->version() == 10);
@@ -89,34 +89,35 @@ BOOST_AUTO_TEST_CASE(testRawPBBlockHeader)
     // check signature
     BOOST_CHECK(decodedBlockHeader->signatureList()->size() == 4);
     BOOST_CHECK(decodedBlockHeader->hash().hex() ==
-                "2a23582ab11d58319189cd727949c4248da866771e467e8cfd74f24958253c4d");
+                "da717c040800a6dd6eaf93380f922e21575db5c55898935297691292576ac893");
     BOOST_CHECK((*decodedBlockHeader->parentInfo())[0].second.hex() ==
                 "044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[0]) ==
-                "03705470fe0dbf390f16a00a08135bcbaa3886b250c553a472168e5edc5144a3ad217da7f43b956b24"
-                "9ea9cc1415841df4283fb07ce1a07021debfe0fbca038e");
+                "d7fdd8c32486b984304b4c254b48255c564030a83b89b7e7b9ad2358dedc48afd8eab69f90a3e305d2"
+                "325fc6034bd9b0d8d004872e10c98078279d322c56c7ce");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[1]) ==
-                "79a30acb90df081b43bdb18bca1c8bbb6421f62c86b615abe539c2d9cd6df17fec46c64b8412cd1a65"
-                "e3c2e219531e73da8253654878490e0bc9e5c52f208351");
+                "a886ee251bd5799d9453e050413a16cdbc72a7a1f755a018f623843f435de2cc1ca49d6a0037e5f0aa"
+                "0253572d70e0218af07043facfbc5d1cb5bf7091c64dd1");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[2]) ==
-                "e61d6d6d35ab384c49ac4f620aa25f78601b326b33a66132316cd2b99eacc44c19eabdfa2c25213b29"
-                "59aa67b9180038d40d41007bd76b10f9b84e7617415931");
+                "a1039da8932ec26b2be14bfdd34ddb1fbf45a0adb10bfd2a25bc0d4204cf1f101eaf3ec90c30e9535e"
+                "0ab89227ceccb5804726515f981804556f4187e068ecb9");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[3]) ==
-                "d7af5bfde217dc000037944803e4383a019dbbb4c2ef4eed109c180ff6ed4a85a9f288290c82e72bfc"
-                "d46eefb5583fe60206d9423583731450baad3bb559abe7");
+                "f7f2e5c1747316c57d77b8fa8ee53d5b03e04e001c7e9b5b961b1eacfc0bdba94e7985095d2b25305c"
+                "47a4e2d6fe615cc7b28955cb5d39525cb00c9e5f9f0d58");
 
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[0].second) ==
-                "69c93bc8a1987698e8da61366512c918e7019ec52213689f869cf1605ef55c0d43032a88cac1e06844"
-                "7eed7856dc2b89979601c18c9e33cd7627453daef72e8700");
+                "c1564b743653c3ee51155892fb1d53551ae065e3726473ed52391bcc7f6dc96719518537cc90891243"
+                "b3796bba578e5f33e76f115b6df91d4e588290dc79f94200");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[1].second) ==
-                "a56d6b451842f5d8d040125f97fc0cad118ee9366b11110db0d10b77301a38377e45ed8b6c9d5d80ad"
-                "3ab62e6e13162eab349a6175b2f615e5e6f4f61367473c01");
+                "141a3a0ec110bfa18c5d8983526fcb5ce185fe846a44708308fe2355ce6bebd94d9a57438895381cd3"
+                "915e124dd75c19f25188d22354b133a92df2ed88f802d300");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[2].second) ==
-                "496d150934a3465fb590877ae9147c5308c5370a12ff8eaf0bc7d8cd2e39d2d753adac4c90ca5cf8b5"
-                "b3736bf9aba97304fd8f43e3c5d173b6d87d1e0ac89d8a01");
+                "798169fce3f226cfc7016e11bb3a06c73dbc3721eb59a39fadb4f46e31e804fe3fa5bbe2093925bb95"
+                "219d03af7ee89553f3e0d172d305737c219f5a5d5178e300");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[3].second) ==
-                "c1694c5052cdddbfcc2219af7000ab5b0d4de0833ffefba044c0aadba8ee6e4827da216efb969294be"
-                "677db95a5e7d616534b3076ae22cfe4392a32b6337d84601");
+                "a34453eca746d38c348a0e9aab589eda5dcb6a5ee9759941a35778fe0cc40ee7769abb947355cbf3f9"
+                "aaafaa201c481d2712be605e604483ca41d09210e85ff901");
+    BOOST_CHECK(decodedBlockHeader->consensusWeights().size() == 0);
 }
 BOOST_AUTO_TEST_CASE(testRawSMPBBlockHeader)
 {
@@ -125,31 +126,25 @@ BOOST_AUTO_TEST_CASE(testRawSMPBBlockHeader)
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signImpl, nullptr);
 
     auto data = fromHexString(
-        "080a12a8040c00000000000000008006d47b6f2f121e85160d1d8072e58843de1eed164ed526c3b56b22c2b473"
+        "080a12a9040c00000000000000008006d47b6f2f121e85160d1d8072e58843de1eed164ed526c3b56b22c2b473"
         "24a0010000000000000080cbdddb8e8421b23498480570d7d75330538a6882f5dfdc3b64115c647f3328c40200"
         "00000000000080a0dc2d74b9b0e3c87e076003dbfe472a424cb3032463cb339e351460765a822e80bcd22fd79b"
         "459e46e3fbe2d1c63eb0421ef14479c5f187fa1230459e4052215d8036433bdcdf6144fa6abee2ffccf57897f6"
         "33a1f45e0f82e7796f25fed1b2f94b800f000c0d3cf849632ed9aa2925251c0a13ee4f09f991b30bf396c15bf7"
-        "ae80975cfadedd020000000ba6ed091224037a3b6726020000006400000000000000100101676ebe6db5ab41f0"
-        "3a69eda2b5d168dbef1a39d45c02bcda519ddc142831c745d48232b533fdab95d0a9c4a949bfbda1654efb5a26"
-        "dca4028c5fdd26988cb22b0101d8f7cf8d26bbc32b78ce60da7a37c57a1764ff4632febb4dbc037ae2829375e2"
-        "36443ca64b0339ad834f3eeda05172f7d580a6d3cbc82939699da95b91a927f70101c737cd87858df22fb12999"
-        "b5cba3fb13cb03195bf79c816ad8fcf906b12ed24ffb0ef9c6dd591b83526a2d0c47bd40abb0df8104ea0765b9"
-        "a70496d7d2316fcb010175dd6eb3679fce6944e808304eb79a5e0e37eea7a530d4f59f4ba7edfab79864fd9198"
-        "8ce82ffc1c6be84712b81bd29325fb247af2f6698d9c180fc36a07344a800f000c0d3cf849632ed9aa2925251c"
-        "0a13ee4f09f991b30bf396c15bf7ae80971a83011280016b36496b3501cb68faac7ed258a1c0fd0c9a97711548"
-        "2720b9e322ee0a74a94ef4e4297863136eb7dd53581c8cb69bd4f134a3a2756ab3ddb38d30bf3529bbec676ebe"
-        "6db5ab41f03a69eda2b5d168dbef1a39d45c02bcda519ddc142831c745d48232b533fdab95d0a9c4a949bfbda1"
-        "654efb5a26dca4028c5fdd26988cb22b1a8501080112800195e6b6ba6516d1fe2b124fe673e33dd51dc39fce17"
-        "d973f606612320f609b3568ab1dd7395f9f46306a81cf639e67289f84cefb20d371694e678794842b6163bd8f7"
-        "cf8d26bbc32b78ce60da7a37c57a1764ff4632febb4dbc037ae2829375e236443ca64b0339ad834f3eeda05172"
-        "f7d580a6d3cbc82939699da95b91a927f71a85010802128001b4c563d15c1333b69f5684172668539f08794cb2"
-        "311e60ae820529ee2efb877ef12ba1b1a42d24cd58e3ef5e021b5a0bc78e9dabaff4fe85e99c78ee4989cd40c7"
-        "37cd87858df22fb12999b5cba3fb13cb03195bf79c816ad8fcf906b12ed24ffb0ef9c6dd591b83526a2d0c47bd"
-        "40abb0df8104ea0765b9a70496d7d2316fcb1a850108031280016c0230cdc6db0b7f699d1562b7dd7d0afc38aa"
-        "03f1ae60d40a37ad372b3bd1b90f08260566a9f2fed3d6d100aa3fc7f4fd4654da0663c7dd6fabeb82767a902f"
-        "75dd6eb3679fce6944e808304eb79a5e0e37eea7a530d4f59f4ba7edfab79864fd91988ce82ffc1c6be84712b8"
-        "1bd29325fb247af2f6698d9c180fc36a07344a");
+        "ae80975cfadedd020000000ba6ed091224037a3b6726020000006400000000000000100101f604d70d59bf3cf7"
+        "66a6cba8a3fca8f5837d20526062cc06d0bfe2d2624fedadd483518bc73eff22bed25aa633b2cee4f2c7d7b90f"
+        "efbf59a27806e403ef5aff01014a676e2641875b76c58c5bce3a8cbb6a1934c9267b51d982add373c38eb3c34a"
+        "f333ebad785b5b0cb7df15e7358e764706705d9d2de6c5efe7c13001842273c20101fa4b61c4b5d50bfe270f3f"
+        "c5d486a4e262f87dcea20157204374a026fe94c2f17d4e6248fd93c899385c0bce8029fcf1e2a8b8aa1faf083f"
+        "2ae88f4d971bdd190101deeb46a1b389fa1e4b225df5c9ced5cffb4cb8c7ad2729eb78b5d99e59b4c64eaa654e"
+        "7e955c612998954f5463f25a8e7b6e26a61a100e0ac68b629fa415928200800f000c0d3cf849632ed9aa292525"
+        "1c0a13ee4f09f991b30bf396c15bf7ae80971a4212409529fc4f0064656104f209706d4d20d86637c30c2ec35e"
+        "d9248695ee453b06754251494fb0ff8f2e9f779c884dbf17d9d97c4b126fb5c7c39c7b6adb44f8a79a1a440801"
+        "1240f5af51722e4519709f430d20ea3cf1158dffd30fae01b7548d7c52733217587f31948d405d0792e9b4b852"
+        "757fcd92e876f645818dd493cce3fb6310a073dcbd1a44080212401483270d9bd8bc98121035d537d84c8ee7a2"
+        "52b5cbd26004cfe8a35b31461df8b90de93453ee713cac973a559039905a8009613d06941eab935bc017c8fdc1"
+        "d21a4408031240d058eca499d70c0c751672f407c263488b28194ea970fe8ed09d03945ae84e75ec2fb395370d"
+        "6486552cef01208a4436f9f790ffa16f4d0c0538b08a29dd9c58");
     auto decodedBlockHeader = std::make_shared<PBBlockHeader>(cryptoSuite, *data);
     BOOST_CHECK(decodedBlockHeader->version() == 10);
     BOOST_CHECK(decodedBlockHeader->txsRoot().hex() ==
@@ -167,42 +162,35 @@ BOOST_AUTO_TEST_CASE(testRawSMPBBlockHeader)
     // check signature
     BOOST_CHECK(decodedBlockHeader->signatureList()->size() == 4);
     BOOST_CHECK(decodedBlockHeader->hash().hex() ==
-                "53288d6e5ced9b1af30898ced137f04653e90c4d9c5e68f3bdb560cbe702e1ec");
+                "ce67da303b36a5ee46736fa75e1b47a65089637dd8294911dab54d57d4d4a7b1");
     BOOST_CHECK((*decodedBlockHeader->parentInfo())[0].second.hex() ==
                 "06d47b6f2f121e85160d1d8072e58843de1eed164ed526c3b56b22c2b47324a0");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[0]) ==
-                "676ebe6db5ab41f03a69eda2b5d168dbef1a39d45c02bcda519ddc142831c745d48232b533fdab95d0"
-                "a9c4a949bfbda1654efb5a26dca4028c5fdd26988cb22b");
+                "f604d70d59bf3cf766a6cba8a3fca8f5837d20526062cc06d0bfe2d2624fedadd483518bc73eff22be"
+                "d25aa633b2cee4f2c7d7b90fefbf59a27806e403ef5aff");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[1]) ==
-                "d8f7cf8d26bbc32b78ce60da7a37c57a1764ff4632febb4dbc037ae2829375e236443ca64b0339ad83"
-                "4f3eeda05172f7d580a6d3cbc82939699da95b91a927f7");
+                "4a676e2641875b76c58c5bce3a8cbb6a1934c9267b51d982add373c38eb3c34af333ebad785b5b0cb7"
+                "df15e7358e764706705d9d2de6c5efe7c13001842273c2");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[2]) ==
-                "c737cd87858df22fb12999b5cba3fb13cb03195bf79c816ad8fcf906b12ed24ffb0ef9c6dd591b8352"
-                "6a2d0c47bd40abb0df8104ea0765b9a70496d7d2316fcb");
+                "fa4b61c4b5d50bfe270f3fc5d486a4e262f87dcea20157204374a026fe94c2f17d4e6248fd93c89938"
+                "5c0bce8029fcf1e2a8b8aa1faf083f2ae88f4d971bdd19");
     BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[3]) ==
-                "75dd6eb3679fce6944e808304eb79a5e0e37eea7a530d4f59f4ba7edfab79864fd91988ce82ffc1c6b"
-                "e84712b81bd29325fb247af2f6698d9c180fc36a07344a");
+                "deeb46a1b389fa1e4b225df5c9ced5cffb4cb8c7ad2729eb78b5d99e59b4c64eaa654e7e955c612998"
+                "954f5463f25a8e7b6e26a61a100e0ac68b629fa4159282");
 
-    BOOST_CHECK(
-        *toHexString(*(*decodedBlockHeader->signatureList())[0].second) ==
-        "6b36496b3501cb68faac7ed258a1c0fd0c9a977115482720b9e322ee0a74a94ef4e4297863136eb7dd53581c8c"
-        "b69bd4f134a3a2756ab3ddb38d30bf3529bbec676ebe6db5ab41f03a69eda2b5d168dbef1a39d45c02bcda519d"
-        "dc142831c745d48232b533fdab95d0a9c4a949bfbda1654efb5a26dca4028c5fdd26988cb22b");
-    BOOST_CHECK(
-        *toHexString(*(*decodedBlockHeader->signatureList())[1].second) ==
-        "95e6b6ba6516d1fe2b124fe673e33dd51dc39fce17d973f606612320f609b3568ab1dd7395f9f46306a81cf639"
-        "e67289f84cefb20d371694e678794842b6163bd8f7cf8d26bbc32b78ce60da7a37c57a1764ff4632febb4dbc03"
-        "7ae2829375e236443ca64b0339ad834f3eeda05172f7d580a6d3cbc82939699da95b91a927f7");
-    BOOST_CHECK(
-        *toHexString(*(*decodedBlockHeader->signatureList())[2].second) ==
-        "b4c563d15c1333b69f5684172668539f08794cb2311e60ae820529ee2efb877ef12ba1b1a42d24cd58e3ef5e02"
-        "1b5a0bc78e9dabaff4fe85e99c78ee4989cd40c737cd87858df22fb12999b5cba3fb13cb03195bf79c816ad8fc"
-        "f906b12ed24ffb0ef9c6dd591b83526a2d0c47bd40abb0df8104ea0765b9a70496d7d2316fcb");
-    BOOST_CHECK(
-        *toHexString(*(*decodedBlockHeader->signatureList())[3].second) ==
-        "6c0230cdc6db0b7f699d1562b7dd7d0afc38aa03f1ae60d40a37ad372b3bd1b90f08260566a9f2fed3d6d100aa"
-        "3fc7f4fd4654da0663c7dd6fabeb82767a902f75dd6eb3679fce6944e808304eb79a5e0e37eea7a530d4f59f4b"
-        "a7edfab79864fd91988ce82ffc1c6be84712b81bd29325fb247af2f6698d9c180fc36a07344a");
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[0].second) ==
+                "9529fc4f0064656104f209706d4d20d86637c30c2ec35ed9248695ee453b06754251494fb0ff8f2e9f"
+                "779c884dbf17d9d97c4b126fb5c7c39c7b6adb44f8a79a");
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[1].second) ==
+                "f5af51722e4519709f430d20ea3cf1158dffd30fae01b7548d7c52733217587f31948d405d0792e9b4"
+                "b852757fcd92e876f645818dd493cce3fb6310a073dcbd");
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[2].second) ==
+                "1483270d9bd8bc98121035d537d84c8ee7a252b5cbd26004cfe8a35b31461df8b90de93453ee713cac"
+                "973a559039905a8009613d06941eab935bc017c8fdc1d2");
+    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[3].second) ==
+                "d058eca499d70c0c751672f407c263488b28194ea970fe8ed09d03945ae84e75ec2fb395370d648655"
+                "2cef01208a4436f9f790ffa16f4d0c0538b08a29dd9c58");
+    BOOST_CHECK(decodedBlockHeader->consensusWeights().size() == 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

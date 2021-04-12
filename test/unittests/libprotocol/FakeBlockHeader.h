@@ -46,8 +46,11 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     for (size_t i = 0; i < decodedBlockHeader->sealerList()->size(); i++)
     {
         BOOST_CHECK(*(*decodedBlockHeader->sealerList())[i] == *(*blockHeader->sealerList())[i]);
+        std::cout << "#### sealer " << i << ":" << *toHexString(*(*blockHeader->sealerList())[i])
+                  << std::endl;
     }
     BOOST_CHECK(decodedBlockHeader->extraData() == blockHeader->extraData());
+    BOOST_CHECK((decodedBlockHeader->consensusWeights()) == (blockHeader->consensusWeights()));
     // check signature
     BOOST_CHECK(
         decodedBlockHeader->signatureList()->size() == blockHeader->signatureList()->size());
@@ -59,8 +62,6 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
         std::cout << "#### signatureData:" << *toHexString(*(signature.second)) << std::endl;
         index++;
     }
-    // std::cout << "### PBBlockHeaderTest: encodedData:" << *toHexString(*encodedData) <<
-    // std::endl;
     std::cout << "### PBBlockHeaderTest: version:" << decodedBlockHeader->version() << std::endl;
     std::cout << "### PBBlockHeaderTest: txsRoot:" << decodedBlockHeader->txsRoot().hex()
               << std::endl;
@@ -100,13 +101,16 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
     blockHeader->setSealerList(*_sealerList);
     blockHeader->setExtraData(_extraData);
     blockHeader->setSignatureList(_signatureList);
-
+    WeightListPtr weights = std::make_shared<WeightList>();
+    weights->push_back(0);
+    blockHeader->setConsensusWeights(weights);
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     blockHeader->encode(*encodedData);
 
     // decode
     auto decodedBlockHeader = blockHeaderFactory->createBlockHeader(*encodedData);
+    std::cout << "### PBBlockHeaderTest: encodedData:" << *toHexString(*encodedData) << std::endl;
     // check the data of decodedBlockHeader
     checkBlockHeader(blockHeader, decodedBlockHeader);
     // test encode exception
@@ -121,6 +125,8 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
     // recover the hash field
     blockHeader->setNumber(_number);
     BOOST_CHECK(blockHeader->hash() == decodedBlockHeader->hash());
+    BOOST_CHECK(decodedBlockHeader->consensusWeights().size() == 1);
+    BOOST_CHECK(decodedBlockHeader->consensusWeights()[0] == 0);
     return blockHeader;
 }
 

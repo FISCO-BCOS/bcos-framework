@@ -37,7 +37,8 @@ public:
         m_blockHeader(std::make_shared<PBRawBlockHeader>()),
         m_parentInfo(std::make_shared<ParentInfoList>()),
         m_sealerList(std::make_shared<BytesList>()),
-        m_signatureList(std::make_shared<SignatureList>())
+        m_signatureList(std::make_shared<SignatureList>()),
+        m_consensusWeights(std::make_shared<WeightList>())
     {}
     PBBlockHeader(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytesConstRef _data)
       : PBBlockHeader(_cryptoSuite)
@@ -152,6 +153,14 @@ public:
         noteDirty();
     }
 
+    WeightList const& consensusWeights() const override { return *m_consensusWeights; }
+
+    void setConsensusWeights(WeightListPtr _consensusWeights) override
+    {
+        m_consensusWeights = _consensusWeights;
+        noteDirty();
+    }
+
 private:
     void encodeHashFields() const;
     void encodeSignatureList() const;
@@ -182,6 +191,8 @@ private:
     SignatureListPtr m_signatureList;
     mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
     mutable SharedMutex x_hash;
+
+    WeightListPtr m_consensusWeights;
 };
 }  // namespace protocol
 }  // namespace bcos
