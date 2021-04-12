@@ -37,11 +37,10 @@ void PBBlockHeader::decode(bytesConstRef _data)
     }
     // decode hashFields data
     auto hashFieldsPtr = m_blockHeader->mutable_hashfieldsdata();
-
     ScaleDecoderStream stream(
         gsl::span<byte const>((byte*)hashFieldsPtr->data(), hashFieldsPtr->size()));
     stream >> m_parentInfo >> m_txsRoot >> m_receiptRoot >> m_stateRoot >> m_number >> m_gasUsed >>
-        m_timestamp >> m_sealer >> m_sealerList >> m_extraData;
+        m_timestamp >> m_sealer >> m_sealerList >> m_consensusWeights >> m_extraData;
 
     // decode signatureList
     for (int i = 0; i < m_blockHeader->signaturelist_size(); i++)
@@ -62,9 +61,8 @@ void PBBlockHeader::encodeHashFields() const
         return;
     }
     ScaleEncoderStream stream;
-
     stream << m_parentInfo << m_txsRoot << m_receiptRoot << m_stateRoot << m_number << m_gasUsed
-           << m_timestamp << m_sealer << m_sealerList << m_extraData;
+           << m_timestamp << m_sealer << m_sealerList << m_consensusWeights << m_extraData;
     auto hashFieldsData = stream.data();
     m_blockHeader->set_hashfieldsdata(hashFieldsData.data(), hashFieldsData.size());
 }

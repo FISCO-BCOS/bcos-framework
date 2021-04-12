@@ -63,6 +63,8 @@ public:
     virtual bytes const& extraData() const = 0;
     virtual SignatureListPtr signatureList() const = 0;
 
+    virtual WeightList const& consensusWeights() const = 0;
+
     virtual void setVersion(int32_t _version) = 0;
     virtual void setParentInfo(ParentInfoListPtr _parentInfo) = 0;
     virtual void setTxsRoot(bcos::crypto::HashType const& _txsRoot) = 0;
@@ -73,6 +75,9 @@ public:
     virtual void setTimestamp(int64_t const& _timestamp) = 0;
     virtual void setSealer(int64_t _sealerId) = 0;
     virtual void setSealerList(BytesList const& _sealerList) = 0;
+
+    virtual void setConsensusWeights(WeightListPtr _weightList) = 0;
+
     virtual void setExtraData(bytes const& _extraData) = 0;
     virtual void setExtraData(bytes&& _extraData) = 0;
     virtual void setSignatureList(SignatureListPtr _signatureList) = 0;
