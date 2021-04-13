@@ -31,5 +31,5 @@ find_package(Boost CONFIG REQUIRED unit_test_framework)
 
 hunter_add_package(wedpr-crypto)
 find_package(wedpr-crypto CONFIG REQUIRED)
-
+find_package(Boost CONFIG REQUIRED unit_test_framework)
 target_link_libraries(${TEST_BINARY_NAME} Boost::unit_test_framework ${UTILITIES_TARGET} ${CODEC_TARGET} ${PROTOCOL_TARGET} ${PBPROTOCOL_TARGET} wedpr-crypto::crypto)
