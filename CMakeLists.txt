@@ -16,8 +16,8 @@
 # limitations under the License.
 # ------------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.10)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
+cmake_minimum_required(VERSION 3.12)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 
 # cmake settings
 set(BCOS_CMAKE_SCRIPTS "bcos-cmake-scripts")
@@ -27,11 +27,17 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_CMAKE_SCRIPTS_DIR})
 list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 
 # init hunter
+set(HUNTER_PACKAGE_LOG_BUILD ON CACHE STRING "Hunter output build info to log")
+set(HUNTER_CONFIGURATION_TYPES Release CACHE STRING "Build type of Hunter packages")
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/FISCO-BCOS/hunter/archive/0e29553bc3a91d30f8225a72649006b15109a7d5.tar.gz"
-    SHA1 "937dee7be5a5c238d595e91524a1e0a37a5b6377"
+    URL "https://github.com/FISCO-BCOS/hunter/archive/8b5e8f5e01940f175ab3488938119f4a253ec915.tar.gz"
+    SHA1 "2cc356093d3c6411304d9c3632241fb457e22ad6"
 )
+
+# set CMP0074 to NEW to suppress warnning, https://cmake.org/cmake/help/latest/policy/CMP0074.html
+cmake_policy(VERSION 3.12)
+cmake_policy(SET CMP0074 NEW)
 
 project(bcos-framework VERSION "3.0")
 # Suffix like "-rc1" e.t.c. to append to versions wherever needed.
@@ -47,7 +53,7 @@ include(CopyInclude)
 
 # install dependencies
 # install boost dependency
-hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log)
+hunter_add_package(Boost COMPONENTS all)
 # install protobuf dependency
 hunter_add_package(Protobuf)
 # install gsl dependency
@@ -77,7 +83,6 @@ add_subdirectory(libprotocol/protobuf)
 
 # test releated
 if (TESTS)
-    hunter_add_package(Boost COMPONENTS test)
     enable_testing()
     set(CTEST_OUTPUT_ON_FAILURE TRUE)
     add_subdirectory(test)
