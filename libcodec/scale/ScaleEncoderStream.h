@@ -117,7 +117,7 @@ public:
     template <unsigned N>
     ScaleEncoderStream& operator<<(const FixedBytes<N>& fixedData)
     {
-        return encodeCollection(FixedBytes<N>::size, fixedData.begin(), fixedData.end());
+        return encodeCollection((size_t)FixedBytes<N>::size, fixedData.begin(), fixedData.end());
     }
 
     /**

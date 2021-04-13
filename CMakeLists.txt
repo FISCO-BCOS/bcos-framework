@@ -27,15 +27,16 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_CMAKE_SCRIPTS_DIR})
 list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 
 # init hunter
-set(HUNTER_PACKAGE_LOG_BUILD OFF CACHE STRING "Hunter output build info to log")
-# set(HUNTER_STATUS_DEBUG ON CACHE STRING "Hunter debug output")
-set(HUNTER_CONFIGURATION_TYPES Release CACHE STRING "Build type of Hunter packages")
+set(HUNTER_PACKAGE_LOG_BUILD ON CACHE STRING "Hunter output build info to log")
+set(HUNTER_PACKAGE_LOG_INSTALL ON CACHE STRING "Hunter output install info to log")
+set(HUNTER_STATUS_DEBUG OFF CACHE STRING "Hunter debug output")
+# set(HUNTER_CONFIGURATION_TYPES Release CACHE STRING "Build type of Hunter packages")
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/FISCO-BCOS/hunter/archive/8b5e8f5e01940f175ab3488938119f4a253ec915.tar.gz"
-    SHA1 "2cc356093d3c6411304d9c3632241fb457e22ad6"
+    URL "https://github.com/FISCO-BCOS/hunter/archive/d73ee00ba165b521f0e63161119fbf18a7eb6e60.tar.gz"
+    SHA1 "baeb7665f6755232e86bb1c86974b2000a1c4c8e"
+    FILEPATH "${BCOS_FRAMEWORK_CMAKE_DIR}/config.cmake"
 )
-
 # set CMP0074 to NEW to suppress warnning, https://cmake.org/cmake/help/latest/policy/CMP0074.html
 cmake_policy(VERSION 3.12)
 cmake_policy(SET CMP0074 NEW)
@@ -51,7 +52,7 @@ include(CompilerSettings)
 
 # install dependencies
 # install boost dependency
-hunter_add_package(Boost COMPONENTS all thread system filesystem chrono iostreams log)
+hunter_add_package(Boost COMPONENTS all)
 # install protobuf dependency
 hunter_add_package(Protobuf)
 # install gsl dependency
