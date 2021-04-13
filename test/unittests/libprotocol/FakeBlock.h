@@ -22,8 +22,8 @@
 #include "FakeBlockHeader.h"
 #include "FakeTransaction.h"
 #include "FakeTransactionReceipt.h"
-#include <bcos-framework/libprotocol/protobuf/PBBlock.h>
-#include <bcos-framework/libprotocol/protobuf/PBBlockFactory.h>
+#include "libprotocol/protobuf/PBBlock.h"
+#include "libprotocol/protobuf/PBBlockFactory.h"
 #include <unittests/common/HashImpl.h>
 #include <boost/test/unit_test.hpp>
 using namespace bcos;

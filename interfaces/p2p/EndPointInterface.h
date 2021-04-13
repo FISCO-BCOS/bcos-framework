@@ -19,7 +19,7 @@
  * @date 2021-04-08
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/KeyInterface.h>
+#include "interfaces/crypto/KeyInterface.h"
 namespace bcos
 {
 namespace p2p

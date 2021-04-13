@@ -19,7 +19,7 @@
  * @date: 2021-04-9
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/CommonType.h>
+#include "interfaces/crypto/CommonType.h"
 namespace bcos
 {
 namespace protocol

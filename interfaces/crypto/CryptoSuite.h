@@ -19,10 +19,10 @@
  * @date 2021-03-03
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/CommonType.h>
-#include <bcos-framework/interfaces/crypto/Hash.h>
-#include <bcos-framework/interfaces/crypto/Signature.h>
-#include <bcos-framework/interfaces/crypto/SymmetricEncryption.h>
+#include "interfaces/crypto/CommonType.h"
+#include "interfaces/crypto/Hash.h"
+#include "interfaces/crypto/Signature.h"
+#include "interfaces/crypto/SymmetricEncryption.h"
 namespace bcos
 {
 namespace crypto

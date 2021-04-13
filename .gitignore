@@ -31,3 +31,7 @@ build/**
 *.exe
 *.out
 *.app
+
+# pb files
+*.pb.cc
+*.pb.h

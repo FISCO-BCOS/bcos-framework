@@ -18,9 +18,9 @@
  * @author: chaychen
  */
 
-#include <bcos-framework/libutilities/DataConvertUtility.h>
-#include <bcos-framework/libutilities/FixedBytes.h>
-#include <bcos-framework/libutilities/JsonDataConvertUtility.h>
+#include "libutilities/DataConvertUtility.h"
+#include "libutilities/FixedBytes.h"
+#include "libutilities/JsonDataConvertUtility.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 #include <string>

@@ -48,9 +48,6 @@ include(Options)
 configure_project()
 include(CompilerSettings)
 
-# install headers firstly
-include(CopyInclude)
-
 # install dependencies
 # install boost dependency
 hunter_add_package(Boost COMPONENTS all)
@@ -62,8 +59,8 @@ find_package(Microsoft.GSL CONFIG REQUIRED)
 # install tbb dependency
 hunter_add_package(tbb)
 
+include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_INSTALL_INCLUDEDIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 set(INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # set library target name
@@ -72,7 +69,7 @@ set(CODEC_TARGET "codec")
 set(PROTOCOL_TARGET "protocol")
 set(PBPROTOCOL_TARGET "protocol-pb")
 # define the generated proto file path
-set(PROTO_GENERATE_DIR ${INCLUDE_DIR}/bcos-framework/libprotocol/bcos-proto)
+set(PROTO_GENERATE_DIR ${CMAKE_SOURCE_DIR}/libprotocol/bcos-proto)
 
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)

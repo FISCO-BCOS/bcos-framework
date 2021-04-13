@@ -19,9 +19,9 @@
  * @date 2021-03-03
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/CommonType.h>
-#include <bcos-framework/interfaces/crypto/KeyInterface.h>
-#include <bcos-framework/interfaces/crypto/KeyPairInterface.h>
+#include "interfaces/crypto/CommonType.h"
+#include "interfaces/crypto/KeyInterface.h"
+#include "interfaces/crypto/KeyPairInterface.h"
 #include <memory>
 namespace bcos
 {

@@ -19,7 +19,7 @@
  * @date: 2021-03-18
  */
 #include "PBTransactionReceipt.h"
-#include <bcos-framework/libcodec/scale/Scale.h>
+#include "libcodec/scale/Scale.h"
 #include <gsl/span>
 
 using namespace bcos;

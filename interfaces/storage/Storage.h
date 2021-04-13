@@ -19,8 +19,7 @@
  * @date: 2021-04-07
  */
 #pragma once
-#pragma once
-#include "DB.h"
+#include "interfaces/storage/DB.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -35,18 +34,18 @@ public:
     using Ptr = std::shared_ptr<Storage>;
     Storage() = default;
     virtual ~Storage() {}
-    virtual std::vector<string> getPrimaryKeys(std::shared_ptr<Query>& _query) = 0;
+    virtual std::vector<std::string> getPrimaryKeys(std::shared_ptr<Query>& _query) = 0;
     virtual std::shared_ptr<Entry> getRow(
         std::shared_ptr<TableInfo>& _tableInfo, const std::string_view& _key) = 0;
     virtual std::map<std::string, std::shared_ptr<Entry>> getRows(
         std::shared_ptr<TableInfo>& _tableInfo, const std::vector<std::string_view>& _keys) = 0;
     virtual size_t commitTables(
-        const map<TableInfo, std::map<std::string, std::shared_ptr<Entry>>>& _data) = 0;
+        const std::map<TableInfo, std::map<std::string, std::shared_ptr<Entry>>>& _data) = 0;
 
     virtual void asyncGetPrimaryKeys(std::shared_ptr<Query>& _query,
-        std::function<void(Error, std::vector<std::string> >)> _callback) = 0;
-    virtual void asyncGetRow(std::shared_ptr<TableInfo>& _tableInfo, const string_view& _key,
-        std::function<void(Error, std::shared_ptr<Entry> >)> _callback) = 0;
+        std::function<void(Error, std::vector<std::string>)> _callback) = 0;
+    virtual void asyncGetRow(std::shared_ptr<TableInfo>& _tableInfo, const std::string_view& _key,
+        std::function<void(Error, std::shared_ptr<Entry>)> _callback) = 0;
     virtual void asyncGetRows(std::shared_ptr<TableInfo>& _tableInfo,
         const std::vector<std::string>& _keys,
         std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback) = 0;

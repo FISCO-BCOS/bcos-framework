@@ -19,8 +19,8 @@
  * @date: 2021-04-07
  */
 #pragma once
-#include "Table.h"
-#include "bcos-framework/libutilities/Error.h"
+#include "interfaces/storage/Table.h"
+#include "libutilities/Error.h"
 #include <functional>
 
 namespace bcos
@@ -30,8 +30,8 @@ namespace storage
 struct Query : public std::enable_shared_from_this<Query>
 {
     using Ptr = std::shared_ptr<Query>;
-    shared_ptr<TableInfo> tableInfo;
-    shared_ptr<Condition> condition;
+    std::shared_ptr<TableInfo> tableInfo;
+    std::shared_ptr<Condition> condition;
 };
 
 class DB : public std::enable_shared_from_this<DB>
@@ -40,18 +40,18 @@ public:
     using Ptr = std::shared_ptr<DB>;
     DB() = default;
     virtual ~DB() {}
-    virtual std::vector<string> getPrimaryKeys(std::shared_ptr<Query>& _query) = 0;
+    virtual std::vector<std::string> getPrimaryKeys(std::shared_ptr<Query>& _query) = 0;
     virtual std::shared_ptr<Entry> getRow(
         std::shared_ptr<TableInfo>& _tableInfo, const std::string_view& _key) = 0;
     virtual std::map<std::string, std::shared_ptr<Entry>> getRows(
         std::shared_ptr<TableInfo>& _tableInfo, const std::vector<std::string_view>& _keys) = 0;
     virtual size_t commitTables(
-        const map<TableInfo, std::map<std::string, std::shared_ptr<Entry>>>& _data) = 0;
+        const std::map<TableInfo, std::map<std::string, std::shared_ptr<Entry>>>& _data) = 0;
 
     virtual void asyncGetPrimaryKeys(std::shared_ptr<Query>& _query,
-        std::function<void(Error, std::vector<std::string> >)> _callback) = 0;
-    virtual void asyncGetRow(std::shared_ptr<TableInfo>& _tableInfo, const string_view& _key,
-        std::function<void(Error, std::shared_ptr<Entry> >)> _callback) = 0;
+        std::function<void(Error, std::vector<std::string>)> _callback) = 0;
+    virtual void asyncGetRow(std::shared_ptr<TableInfo>& _tableInfo, const std::string_view& _key,
+        std::function<void(Error, std::shared_ptr<Entry>)> _callback) = 0;
     virtual void asyncGetRows(std::shared_ptr<TableInfo>& _tableInfo,
         const std::vector<std::string>& _keys,
         std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback) = 0;

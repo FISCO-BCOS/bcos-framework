@@ -81,6 +81,35 @@ public:
     virtual bool isValid(const std::string_view& key) const = 0;
 };
 
+class Table;
+struct Change
+{
+    enum Kind : int
+    {
+        Set,
+        Remove,
+    };
+    std::shared_ptr<Table> table;
+    Kind kind;  ///< The kind of the change.
+    std::string key;
+    struct Record
+    {
+        size_t index;
+        std::string key;
+        std::string oldValue;
+        size_t id;
+        Record(size_t _index, std::string _key = std::string(),
+            std::string _oldValue = std::string(), size_t _id = 0)
+          : index(_index), key(_key), oldValue(_oldValue), id(_id)
+        {}
+    };
+    std::vector<Record> value;
+    Change(std::shared_ptr<Table> _table, Kind _kind, std::string const& _key,
+        std::vector<Record>& _value)
+      : table(_table), kind(_kind), key(_key), value(std::move(_value))
+    {}
+};
+
 struct TableInfo : public std::enable_shared_from_this<TableInfo>
 {
     using Ptr = std::shared_ptr<TableInfo>;
@@ -94,6 +123,7 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
     bool enableCache = true;
 };
 
+class Storage;
 class Table : public std::enable_shared_from_this<Table>
 {
 public:
@@ -106,7 +136,7 @@ public:
     virtual std::vector<std::string> getPrimaryKeys(std::shared_ptr<Condition> _condition) = 0;
     virtual bool setRow(const std::string_view& _key, std::shared_ptr<Entry> _entry) = 0;
     virtual bool remove(const std::string_view& _key) = 0;
-    virtual HashType hash() = 0;
+    virtual crypto::HashType hash() = 0;
     virtual TableInfo::Ptr tableInfo() = 0;
 
     virtual bool checkAuthority(Address const& _origin) const = 0;
@@ -124,11 +154,11 @@ public:
     virtual ~TableFactory() {}
     virtual void init() = 0;
 
-    virtual shared_ptr<Table> openTable(const std::string& _tableName, bool _authority = true) = 0;
+    virtual std::shared_ptr<Table> openTable(const std::string& _tableName, bool _authority = true) = 0;
     virtual bool createTable(const std::string& _tableName, const std::string& _keyField,
         const std::string& _valueFields) = 0;
 
-    virtual HashType hash() = 0;
+    virtual crypto::HashType hash() = 0;
     virtual size_t savepoint() = 0;
     virtual void rollback(size_t _savepoint) = 0;
     virtual void commit(protocol::Block::Ptr _block) = 0;

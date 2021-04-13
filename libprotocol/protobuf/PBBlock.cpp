@@ -19,8 +19,8 @@
  * @date: 2021-03-23
  */
 #include "PBBlock.h"
-#include <bcos-framework/libprotocol/Exceptions.h>
-#include <bcos-framework/libprotocol/ParallelMerkleProof.h>
+#include "libprotocol/Exceptions.h"
+#include "libprotocol/ParallelMerkleProof.h"
 #include <tbb/parallel_invoke.h>
 
 using namespace bcos;

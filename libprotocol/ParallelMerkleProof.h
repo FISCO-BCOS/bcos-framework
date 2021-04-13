@@ -21,8 +21,8 @@
  */
 #pragma once
 
-#include <bcos-framework/interfaces/crypto/CryptoSuite.h>
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include "interfaces/crypto/CryptoSuite.h"
+#include "libutilities/FixedBytes.h"
 #include <vector>
 
 namespace bcos

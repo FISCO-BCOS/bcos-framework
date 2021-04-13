@@ -20,8 +20,8 @@
  */
 #pragma once
 #include "PBBlockHeader.h"
-#include <bcos-framework/interfaces/crypto/CryptoSuite.h>
-#include <bcos-framework/interfaces/protocol/BlockHeaderFactory.h>
+#include "interfaces/crypto/CryptoSuite.h"
+#include "interfaces/protocol/BlockHeaderFactory.h"
 
 namespace bcos
 {

@@ -19,10 +19,10 @@
  * @date: 2021-03-22
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/CryptoSuite.h>
-#include <bcos-framework/interfaces/protocol/BlockHeader.h>
-#include <bcos-framework/libprotocol/bcos-proto/BlockHeader.pb.h>
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include "interfaces/crypto/CryptoSuite.h"
+#include "interfaces/protocol/BlockHeader.h"
+#include "libprotocol/bcos-proto/BlockHeader.pb.h"
+#include "libutilities/FixedBytes.h"
 
 namespace bcos
 {

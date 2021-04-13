@@ -18,7 +18,7 @@
  */
 #pragma once
 #include "Exceptions.h"
-#include <bcos-framework/libutilities/Common.h>
+#include "libutilities/Common.h"
 namespace bcos
 {
 namespace codec

@@ -19,7 +19,7 @@
  * @author: tabsu
  */
 
-#include <bcos-framework/libutilities/Worker.h>
+#include "libutilities/Worker.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 

@@ -19,7 +19,7 @@
  * @date: 2021-03-16
  */
 #include "PBTransaction.h"
-#include <bcos-framework/libprotocol/Exceptions.h>
+#include "libprotocol/Exceptions.h"
 using namespace bcos;
 using namespace bcos::protocol;
 using namespace bcos::crypto;

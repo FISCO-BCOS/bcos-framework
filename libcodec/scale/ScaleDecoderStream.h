@@ -19,8 +19,8 @@
 #pragma once
 #include "Common.h"
 #include "FixedWidthIntegerCodec.h"
-#include <bcos-framework/libutilities/Common.h>
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include "libutilities/Common.h"
+#include "libutilities/FixedBytes.h"
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>

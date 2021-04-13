@@ -19,7 +19,7 @@
  * @date: 2021-03-23
  */
 #include "FakeBlock.h"
-#include <bcos-framework/libprotocol/TransactionSubmitResultImpl.h>
+#include "libprotocol/TransactionSubmitResultImpl.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 using namespace bcos;

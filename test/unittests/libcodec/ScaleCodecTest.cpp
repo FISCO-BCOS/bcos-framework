@@ -13,11 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-#include <bcos-framework/libcodec/scale/Scale.h>
-#include <bcos-framework/libcodec/scale/ScaleDecoderStream.h>
-#include <bcos-framework/libcodec/scale/ScaleEncoderStream.h>
-#include <bcos-framework/libutilities/Common.h>
-#include <bcos-framework/libutilities/DataConvertUtility.h>
+#include "libcodec/scale/Scale.h"
+#include "libcodec/scale/ScaleDecoderStream.h"
+#include "libcodec/scale/ScaleEncoderStream.h"
+#include "libutilities/Common.h"
+#include "libutilities/DataConvertUtility.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 
@@ -554,7 +554,7 @@ BOOST_AUTO_TEST_CASE(testCollections)
         s << collectionInt16;
         auto&& out = s.data();
         // clang-format off
-  BOOST_CHECK(out == 
+  BOOST_CHECK(out ==
           (bytes{
               16,  // header
             1, 0,  // first item
@@ -588,7 +588,7 @@ std::vector<uint64_t> collection = {506097522914230528ull,
   s << collection;
   auto &&out = s.data();
   // clang-format off
-  BOOST_CHECK(out == 
+  BOOST_CHECK(out ==
             (bytes{
                     8,                // header
                     0, 1, 2, 3,        // first item

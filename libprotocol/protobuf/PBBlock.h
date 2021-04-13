@@ -19,13 +19,13 @@
  * @date: 2021-03-23
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/CryptoSuite.h>
-#include <bcos-framework/interfaces/protocol/Block.h>
-#include <bcos-framework/interfaces/protocol/BlockHeaderFactory.h>
-#include <bcos-framework/interfaces/protocol/TransactionFactory.h>
-#include <bcos-framework/interfaces/protocol/TransactionReceiptFactory.h>
-#include <bcos-framework/libcodec/scale/ScaleEncoderStream.h>
-#include <bcos-framework/libprotocol/bcos-proto/Block.pb.h>
+#include "interfaces/crypto/CryptoSuite.h"
+#include "interfaces/protocol/Block.h"
+#include "interfaces/protocol/BlockHeaderFactory.h"
+#include "interfaces/protocol/TransactionFactory.h"
+#include "interfaces/protocol/TransactionReceiptFactory.h"
+#include "libcodec/scale/ScaleEncoderStream.h"
+#include "libprotocol/bcos-proto/Block.pb.h"
 #include <tbb/parallel_for.h>
 namespace bcos
 {

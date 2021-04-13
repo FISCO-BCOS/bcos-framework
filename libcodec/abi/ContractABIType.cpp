@@ -19,7 +19,7 @@
  */
 
 #include "ContractABIType.h"
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include "libutilities/FixedBytes.h"
 
 using namespace std;
 using namespace bcos;
