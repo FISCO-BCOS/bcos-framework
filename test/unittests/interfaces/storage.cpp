@@ -36,7 +36,6 @@ BOOST_AUTO_TEST_CASE(testStorageInterface)
     Storage::Ptr s = nullptr;
     DB::Ptr d = nullptr;
     Table::Ptr t = nullptr;
-
 }
 
 BOOST_AUTO_TEST_SUITE_END()

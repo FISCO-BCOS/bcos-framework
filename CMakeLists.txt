@@ -27,7 +27,8 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_CMAKE_SCRIPTS_DIR})
 list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 
 # init hunter
-set(HUNTER_PACKAGE_LOG_BUILD ON CACHE STRING "Hunter output build info to log")
+set(HUNTER_PACKAGE_LOG_BUILD OFF CACHE STRING "Hunter output build info to log")
+# set(HUNTER_STATUS_DEBUG ON CACHE STRING "Hunter debug output")
 set(HUNTER_CONFIGURATION_TYPES Release CACHE STRING "Build type of Hunter packages")
 include(HunterGate)
 HunterGate(
@@ -39,7 +40,7 @@ HunterGate(
 cmake_policy(VERSION 3.12)
 cmake_policy(SET CMP0074 NEW)
 
-project(bcos-framework VERSION "3.0")
+project(bcos-framework VERSION "3.0.0")
 # Suffix like "-rc1" e.t.c. to append to versions wherever needed.
 set(VERSION_SUFFIX "")
 
@@ -50,7 +51,7 @@ include(CompilerSettings)
 
 # install dependencies
 # install boost dependency
-hunter_add_package(Boost COMPONENTS all)
+hunter_add_package(Boost COMPONENTS all thread system filesystem chrono iostreams log)
 # install protobuf dependency
 hunter_add_package(Protobuf)
 # install gsl dependency
@@ -73,7 +74,6 @@ set(PROTO_GENERATE_DIR ${CMAKE_SOURCE_DIR}/libprotocol/bcos-proto)
 
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)
-add_subdirectory(interfaces)
 add_subdirectory(libcodec)
 add_subdirectory(libprotocol)
 add_subdirectory(libprotocol/protobuf)
