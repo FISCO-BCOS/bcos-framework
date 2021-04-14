@@ -18,10 +18,10 @@
  * @date: 2021-04-07
  */
 #pragma once
-#include <bcos-framework/interfaces/protocol/Block.h>
-#include <bcos-framework/interfaces/protocol/Transaction.h>
-#include <bcos-framework/interfaces/protocol/TransactionSubmitResult.h>
-#include <bcos-framework/libutilities/Error.h>
+#include "interfaces/protocol/Block.h"
+#include "interfaces/protocol/Transaction.h"
+#include "interfaces/protocol/TransactionSubmitResult.h"
+#include "libutilities/Error.h"
 namespace bcos
 {
 namespace txpool

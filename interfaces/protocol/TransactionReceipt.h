@@ -18,7 +18,7 @@
  */
 #pragma once
 
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include "libutilities/FixedBytes.h"
 namespace bcos
 {
 namespace protocol

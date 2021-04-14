@@ -18,9 +18,9 @@
  * @date: 2021-03-18
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/CryptoSuite.h>
-#include <bcos-framework/libutilities/Common.h>
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include "interfaces/crypto/CryptoSuite.h"
+#include "libutilities/Common.h"
+#include "libutilities/FixedBytes.h"
 namespace bcos
 {
 namespace protocol

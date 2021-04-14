@@ -13,28 +13,31 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief interfaces for KeyPair
- * @file KeyPairInterface.h
- * @author: yujiechen
- * @date 2021-04-02
+ * @brief Unit tests for the Base64
+ * @file Base64.cpp
  */
-#pragma once
-#include "interfaces/crypto/Hash.h"
-#include "interfaces/crypto/KeyInterface.h"
+
+#include "interfaces/storage/Storage.h"
+#include <bcos-test/libutils/TestPromptFixture.h>
+#include <boost/test/unit_test.hpp>
+#include <iostream>
+#include <string>
+
+using namespace bcos;
+using namespace bcos::storage;
 namespace bcos
 {
-namespace crypto
+namespace test
 {
-class KeyPairInterface
-{
-public:
-    using Ptr = std::shared_ptr<KeyPairInterface>;
-    KeyPairInterface() = default;
-    virtual ~KeyPairInterface() {}
+BOOST_FIXTURE_TEST_SUITE(StorageInterface, TestPromptFixture)
 
-    virtual SecretPtr secretKey() const = 0;
-    virtual PublicPtr publicKey() const = 0;
-    virtual Address address(Hash::Ptr _hashImpl) = 0;
-};
-}  // namespace crypto
+BOOST_AUTO_TEST_CASE(testStorageInterface)
+{
+    Storage::Ptr s = nullptr;
+    DB::Ptr d = nullptr;
+    Table::Ptr t = nullptr;
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+}  // namespace test
 }  // namespace bcos

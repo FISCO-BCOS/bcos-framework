@@ -18,7 +18,7 @@
  */
 #pragma once
 #include "FixedWidthIntegerCodec.h"
-#include <bcos-framework/libutilities/FixedBytes.h>
+#include "libutilities/FixedBytes.h"
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include <deque>
@@ -117,7 +117,7 @@ public:
     template <unsigned N>
     ScaleEncoderStream& operator<<(const FixedBytes<N>& fixedData)
     {
-        return encodeCollection(FixedBytes<N>::size, fixedData.begin(), fixedData.end());
+        return encodeCollection((size_t)FixedBytes<N>::size, fixedData.begin(), fixedData.end());
     }
 
     /**

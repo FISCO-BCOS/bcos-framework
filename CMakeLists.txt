@@ -16,8 +16,8 @@
 # limitations under the License.
 # ------------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.10)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
+cmake_minimum_required(VERSION 3.12)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 
 # cmake settings
 set(BCOS_CMAKE_SCRIPTS "bcos-cmake-scripts")
@@ -27,13 +27,21 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_CMAKE_SCRIPTS_DIR})
 list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 
 # init hunter
+set(HUNTER_PACKAGE_LOG_BUILD ON CACHE STRING "Hunter output build info to log")
+set(HUNTER_PACKAGE_LOG_INSTALL ON CACHE STRING "Hunter output install info to log")
+set(HUNTER_STATUS_DEBUG OFF CACHE STRING "Hunter debug output")
+# set(HUNTER_CONFIGURATION_TYPES Release CACHE STRING "Build type of Hunter packages")
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/FISCO-BCOS/hunter/archive/0e29553bc3a91d30f8225a72649006b15109a7d5.tar.gz"
-    SHA1 "937dee7be5a5c238d595e91524a1e0a37a5b6377"
+    URL "https://github.com/FISCO-BCOS/hunter/archive/d73ee00ba165b521f0e63161119fbf18a7eb6e60.tar.gz"
+    SHA1 "baeb7665f6755232e86bb1c86974b2000a1c4c8e"
+    FILEPATH "${BCOS_FRAMEWORK_CMAKE_DIR}/config.cmake"
 )
+# set CMP0074 to NEW to suppress warnning, https://cmake.org/cmake/help/latest/policy/CMP0074.html
+cmake_policy(VERSION 3.12)
+cmake_policy(SET CMP0074 NEW)
 
-project(bcos-framework VERSION "3.0")
+project(bcos-framework VERSION "3.0.0")
 # Suffix like "-rc1" e.t.c. to append to versions wherever needed.
 set(VERSION_SUFFIX "")
 
@@ -42,12 +50,9 @@ include(Options)
 configure_project()
 include(CompilerSettings)
 
-# install headers firstly
-include(CopyInclude)
-
 # install dependencies
 # install boost dependency
-hunter_add_package(Boost COMPONENTS thread system filesystem chrono iostreams log)
+hunter_add_package(Boost COMPONENTS all)
 # install protobuf dependency
 hunter_add_package(Protobuf)
 # install gsl dependency
@@ -56,8 +61,8 @@ find_package(Microsoft.GSL CONFIG REQUIRED)
 # install tbb dependency
 hunter_add_package(tbb)
 
+include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_INSTALL_INCLUDEDIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 set(INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # set library target name
@@ -66,18 +71,16 @@ set(CODEC_TARGET "codec")
 set(PROTOCOL_TARGET "protocol")
 set(PBPROTOCOL_TARGET "protocol-pb")
 # define the generated proto file path
-set(PROTO_GENERATE_DIR ${INCLUDE_DIR}/bcos-framework/libprotocol/bcos-proto)
+set(PROTO_GENERATE_DIR ${CMAKE_SOURCE_DIR}/libprotocol/bcos-proto)
 
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)
-add_subdirectory(interfaces)
 add_subdirectory(libcodec)
 add_subdirectory(libprotocol)
 add_subdirectory(libprotocol/protobuf)
 
 # test releated
 if (TESTS)
-    hunter_add_package(Boost COMPONENTS test)
     enable_testing()
     set(CTEST_OUTPUT_ON_FAILURE TRUE)
     add_subdirectory(test)

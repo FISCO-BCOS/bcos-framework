@@ -17,7 +17,7 @@
  * @file Exceptions.h
  */
 #pragma once
-#include <bcos-framework/libutilities/Exceptions.h>
+#include "libutilities/Exceptions.h"
 namespace bcos
 {
 namespace codec

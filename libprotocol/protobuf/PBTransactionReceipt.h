@@ -19,11 +19,11 @@
  * @date: 2021-03-18
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/CryptoSuite.h>
-#include <bcos-framework/interfaces/protocol/TransactionReceipt.h>
-#include <bcos-framework/libprotocol/LogEntry.h>
-#include <bcos-framework/libprotocol/TransactionStatus.h>
-#include <bcos-framework/libprotocol/bcos-proto/TransactionReceipt.pb.h>
+#include "interfaces/crypto/CryptoSuite.h"
+#include "interfaces/protocol/TransactionReceipt.h"
+#include "libprotocol/LogEntry.h"
+#include "libprotocol/TransactionStatus.h"
+#include "libprotocol/bcos-proto/TransactionReceipt.pb.h"
 namespace bcos
 {
 namespace protocol

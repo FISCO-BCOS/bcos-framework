@@ -18,11 +18,11 @@
  * @date: 2021-04-06
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/KeyInterface.h>
-#include <bcos-framework/interfaces/crypto/KeyPairInterface.h>
-#include <bcos-framework/interfaces/crypto/Signature.h>
-#include <bcos-framework/libutilities/DataConvertUtility.h>
-#include <bcos-framework/libutilities/Exceptions.h>
+#include "interfaces/crypto/KeyInterface.h"
+#include "interfaces/crypto/KeyPairInterface.h"
+#include "interfaces/crypto/Signature.h"
+#include "libutilities/DataConvertUtility.h"
+#include "libutilities/Exceptions.h"
 namespace bcos
 {
 namespace test

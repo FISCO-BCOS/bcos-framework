@@ -19,9 +19,9 @@
  * @date: 2021-03-23
  */
 #pragma once
-#include <bcos-framework/interfaces/protocol/BlockHeader.h>
-#include <bcos-framework/interfaces/protocol/Transaction.h>
-#include <bcos-framework/interfaces/protocol/TransactionReceipt.h>
+#include "interfaces/protocol/BlockHeader.h"
+#include "interfaces/protocol/Transaction.h"
+#include "interfaces/protocol/TransactionReceipt.h"
 
 namespace bcos
 {

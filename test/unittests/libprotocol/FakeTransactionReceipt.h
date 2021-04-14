@@ -18,8 +18,8 @@
  * @date: 2021-03-16
  */
 #pragma once
-#include <bcos-framework/libprotocol/protobuf/PBTransactionReceiptFactory.h>
-#include <bcos-framework/libutilities/Common.h>
+#include "libprotocol/protobuf/PBTransactionReceiptFactory.h"
+#include "libutilities/Common.h"
 #include <unittests/common/HashImpl.h>
 #include <boost/test/unit_test.hpp>
 

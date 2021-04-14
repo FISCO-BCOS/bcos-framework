@@ -20,17 +20,17 @@
  */
 
 #pragma once
-#include <bcos-framework/interfaces/crypto/CommonType.h>
-#include <bcos-framework/interfaces/protocol/Transaction.h>
-#include <bcos-framework/interfaces/protocol/TransactionReceipt.h>
-#include <bcos-framework/interfaces/protocol/Block.h>
-#include <bcos-framework/interfaces/protocol/BlockHeader.h>
-#include <bcos-framework/libutilities/Error.h>
+#include "interfaces/crypto/CommonType.h"
+#include "interfaces/protocol/Transaction.h"
+#include "interfaces/protocol/TransactionReceipt.h"
+#include "interfaces/protocol/Block.h"
+#include "interfaces/protocol/BlockHeader.h"
+#include "libutilities/Error.h"
 
 namespace bcos
 {
 namespace ledger
-{ 
+{
 class LedgerInterface
 {
 public:

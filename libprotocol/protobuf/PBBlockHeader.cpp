@@ -19,8 +19,8 @@
  * @date: 2021-03-22
  */
 #include "PBBlockHeader.h"
-#include <bcos-framework/libcodec/scale/Scale.h>
-#include <bcos-framework/libprotocol/Exceptions.h>
+#include "libcodec/scale/Scale.h"
+#include "libprotocol/Exceptions.h"
 #include <gsl/span>
 
 using namespace bcos;

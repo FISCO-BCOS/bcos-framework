@@ -17,7 +17,7 @@
  * @file Transaction.h
  */
 #pragma once
-#include <bcos-framework/libutilities/Common.h>
+#include "libutilities/Common.h"
 namespace bcos
 {
 namespace protocol

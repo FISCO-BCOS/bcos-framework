@@ -19,8 +19,8 @@
  * @date 2021-04-08
  */
 #pragma once
-#include <bcos-framework/interfaces/consensus/ConsensusTypeDef.h>
-#include <bcos-framework/libutilities/Error.h>
+#include "interfaces/consensus/ConsensusTypeDef.h"
+#include "libutilities/Error.h"
 
 namespace bcos
 {

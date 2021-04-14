@@ -19,8 +19,8 @@
  * @date: 2021-03-23
  */
 #pragma once
-#include <bcos-framework/interfaces/crypto/CryptoSuite.h>
-#include <bcos-framework/interfaces/protocol/Transaction.h>
+#include "interfaces/crypto/CryptoSuite.h"
+#include "interfaces/protocol/Transaction.h"
 namespace bcos
 {
 namespace protocol

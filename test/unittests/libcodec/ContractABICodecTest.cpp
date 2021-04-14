@@ -17,8 +17,8 @@
  * @author: octopuswang
  * @date: 2019-04-01
  */
-#include <bcos-framework/libcodec/abi/ContractABICodec.h>
-#include <bcos-framework/libcodec/abi/ContractABIType.h>
+#include "libcodec/abi/ContractABICodec.h"
+#include "libcodec/abi/ContractABIType.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <unittests/common/HashImpl.h>
 #include <boost/test/unit_test.hpp>

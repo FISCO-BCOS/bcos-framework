@@ -18,7 +18,7 @@
  * @date: 2021-03-23
  */
 #pragma once
-#include <bcos-framework/interfaces/protocol/Block.h>
+#include "interfaces/protocol/Block.h"
 namespace bcos
 {
 namespace protocol

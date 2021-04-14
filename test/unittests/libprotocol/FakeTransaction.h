@@ -18,9 +18,9 @@
  * @date: 2021-03-16
  */
 #pragma once
-#include <bcos-framework/libprotocol/Exceptions.h>
-#include <bcos-framework/libprotocol/protobuf/PBTransactionFactory.h>
-#include <bcos-framework/libutilities/Common.h>
+#include "libprotocol/Exceptions.h"
+#include "libprotocol/protobuf/PBTransactionFactory.h"
+#include "libutilities/Common.h"
 #include <unittests/common/HashImpl.h>
 #include <unittests/common/SignatureImpl.h>
 #include <boost/test/unit_test.hpp>

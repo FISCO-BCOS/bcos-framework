@@ -19,7 +19,7 @@
  * @date 2021-04-02
  */
 #pragma once
-#include <bcos-framework/libutilities/Common.h>
+#include "libutilities/Common.h"
 namespace bcos
 {
 namespace crypto

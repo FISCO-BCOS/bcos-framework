@@ -20,8 +20,8 @@
  */
 #pragma once
 #include "PBTransaction.h"
-#include <bcos-framework/interfaces/crypto/CryptoSuite.h>
-#include <bcos-framework/interfaces/protocol/TransactionFactory.h>
+#include "interfaces/crypto/CryptoSuite.h"
+#include "interfaces/protocol/TransactionFactory.h"
 
 namespace bcos
 {

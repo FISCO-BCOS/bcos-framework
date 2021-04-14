@@ -18,7 +18,7 @@
  * @date: 2021-04-07
  */
 #pragma once
-#include <bcos-framework/interfaces/protocol/TransactionSubmitResult.h>
+#include "interfaces/protocol/TransactionSubmitResult.h"
 namespace bcos
 {
 namespace protocol
