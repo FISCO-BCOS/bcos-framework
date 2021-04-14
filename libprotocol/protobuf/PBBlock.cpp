@@ -19,6 +19,7 @@
  * @date: 2021-03-23
  */
 #include "PBBlock.h"
+#include "libprotocol/Common.h"
 #include "libprotocol/Exceptions.h"
 #include "libprotocol/ParallelMerkleProof.h"
 #include <tbb/parallel_invoke.h>
@@ -29,12 +30,7 @@ using namespace bcos::crypto;
 
 void PBBlock::decode(bytesConstRef _data, bool _calculateHash, bool _checkSig)
 {
-    if (!m_pbRawBlock->ParseFromArray(_data.data(), _data.size()))
-    {
-        BOOST_THROW_EXCEPTION(BlockDecodeException() << errinfo_comment(
-                                  "decode block exception, blockData:" + *toHexString(_data)));
-    }
-
+    decodePBObject(m_pbRawBlock, _data);
     tbb::parallel_invoke(
         [this]() {
             // decode blockHeader
@@ -92,12 +88,8 @@ void PBBlock::encode(bytes& _encodedData) const
             // encode receipts hash
             encodeReceiptsHash();
         });
-    auto blockLen = m_pbRawBlock->ByteSizeLong();
-    _encodedData.resize(blockLen);
-    if (!m_pbRawBlock->SerializeToArray(_encodedData.data(), blockLen))
-    {
-        BOOST_THROW_EXCEPTION(BlockEncodeException() << errinfo_comment("encode Block failed"));
-    }
+    auto data = encodePBObject(m_pbRawBlock);
+    _encodedData = *data;
 }
 
 void PBBlock::decodeTxsHashList()

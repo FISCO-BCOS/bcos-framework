@@ -34,7 +34,7 @@ namespace bcos
 namespace test
 {
 inline PBTransaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite,
-    KeyPairInterface::Ptr _keyPair, Address const& _to, bytes const& _input, u256 const& _nonce,
+    KeyPairInterface::Ptr _keyPair, bytes const& _to, bytes const& _input, u256 const& _nonce,
     int64_t const& _blockLimit, std::string const& _chainId, std::string const& _groupId)
 {
     auto pbTransaction = std::make_shared<PBTransaction>(
@@ -42,7 +42,7 @@ inline PBTransaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite,
     // set signature
     auto signData = _cryptoSuite->signatureImpl()->sign(_keyPair, pbTransaction->hash(), true);
     pbTransaction->updateSignature(bytesConstRef(signData->data(), signData->size()),
-        _keyPair->address(_cryptoSuite->hashImpl()));
+        _keyPair->address(_cryptoSuite->hashImpl()).asBytes());
     return pbTransaction;
 }
 
@@ -52,7 +52,7 @@ inline void checkTransction(Transaction::Ptr pbTransaction, Transaction::Ptr dec
     BOOST_CHECK(decodedTransaction->hash() == pbTransaction->hash());
     BOOST_CHECK(decodedTransaction->sender() == pbTransaction->sender());
     BOOST_CHECK(decodedTransaction->type() == pbTransaction->type());
-    BOOST_CHECK(decodedTransaction->to() == pbTransaction->to());
+    BOOST_CHECK(decodedTransaction->to().toBytes() == pbTransaction->to().toBytes());
     // check the transaction hash fields
     BOOST_CHECK(decodedTransaction->input().toBytes() == pbTransaction->input().toBytes());
     BOOST_CHECK(decodedTransaction->nonce() == pbTransaction->nonce());
@@ -62,13 +62,13 @@ inline void checkTransction(Transaction::Ptr pbTransaction, Transaction::Ptr dec
 }
 
 inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
-    KeyPairInterface::Ptr _keyPair, Address const& _to, bytes const& _input, u256 const& _nonce,
+    KeyPairInterface::Ptr _keyPair, bytes const& _to, bytes const& _input, u256 const& _nonce,
     int64_t const& _blockLimit, std::string const& _chainId, std::string const& _groupId)
 {
     auto factory = std::make_shared<PBTransactionFactory>(_cryptoSuite);
     auto pbTransaction = fakeTransaction(
         _cryptoSuite, _keyPair, _to, _input, _nonce, _blockLimit, _chainId, _groupId);
-    if (_to == Address())
+    if (_to == bytes())
     {
         BOOST_CHECK(pbTransaction->type() == TransactionType::ContractCreation);
     }
@@ -77,15 +77,15 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
         BOOST_CHECK(pbTransaction->type() == TransactionType::MessageCall);
     }
 
-    BOOST_CHECK(pbTransaction->sender() == _keyPair->address(_cryptoSuite->hashImpl()));
+    BOOST_CHECK(pbTransaction->sender() == _keyPair->address(_cryptoSuite->hashImpl()).asBytes());
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     pbTransaction->encode(*encodedData);
     std::cout << "#### encodedData is:" << *toHexString(*encodedData) << std::endl;
     std::cout << "### hash:" << pbTransaction->hash().hex() << std::endl;
-    std::cout << "### sender:" << pbTransaction->sender().hex() << std::endl;
+    std::cout << "### sender:" << *toHexString(pbTransaction->sender()) << std::endl;
     std::cout << "### type:" << pbTransaction->type() << std::endl;
-    std::cout << "### to:" << pbTransaction->to().hex() << std::endl;
+    std::cout << "### to:" << *toHexString(pbTransaction->to()) << std::endl;
     // decode
     auto decodedTransaction = factory->createTransaction(*encodedData, true);
     checkTransction(pbTransaction, decodedTransaction);
@@ -95,7 +95,7 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
 inline Transaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite)
 {
     auto keyPair = _cryptoSuite->signatureImpl()->generateKeyPair();
-    auto to = keyPair->address(_cryptoSuite->hashImpl());
+    auto to = keyPair->address(_cryptoSuite->hashImpl()).asBytes();
     std::string inputStr = "testTransaction";
     bytes input = asBytes(inputStr);
     u256 nonce = 120012323;

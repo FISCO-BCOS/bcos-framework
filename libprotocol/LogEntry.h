@@ -30,20 +30,20 @@ class LogEntry
 public:
     using Ptr = std::shared_ptr<LogEntry>;
     LogEntry() = default;
-    LogEntry(Address const& _address, h256s _topics, bytes _data)
+    LogEntry(bytes const& _address, h256s _topics, bytes _data)
       : m_address(_address), m_topics(std::move(_topics)), m_data(std::move(_data))
     {}
 
     virtual ~LogEntry() {}
 
-    virtual Address const& address() const { return m_address; }
+    virtual bytes const& address() const { return m_address; }
     virtual h256s const& topics() const { return m_topics; }
     virtual bytes const& data() const { return m_data; }
 
     virtual LogBloom bloom(bcos::crypto::CryptoSuite::Ptr _cryptoSuite) const
     {
         LogBloom logBloom;
-        logBloom.shiftBloom<3>(_cryptoSuite->hash(m_address.ref()));
+        logBloom.shiftBloom<3>(_cryptoSuite->hash(m_address));
         for (auto const& topic : m_topics)
         {
             logBloom.shiftBloom<3>(_cryptoSuite->hash(topic.ref()));
@@ -66,7 +66,7 @@ public:
     }
 
 private:
-    bcos::Address m_address;
+    bcos::bytes m_address;
     bcos::h256s m_topics;
     bytes m_data;
 };

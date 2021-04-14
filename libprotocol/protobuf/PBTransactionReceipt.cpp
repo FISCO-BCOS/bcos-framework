@@ -20,6 +20,7 @@
  */
 #include "PBTransactionReceipt.h"
 #include "libcodec/scale/Scale.h"
+#include "libprotocol/Common.h"
 #include <gsl/span>
 
 using namespace bcos;
@@ -35,7 +36,7 @@ PBTransactionReceipt::PBTransactionReceipt(
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    HashType const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
+    HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
     LogEntriesPtr _logEntries, int32_t _status)
   : m_cryptoSuite(_cryptoSuite),
     m_receipt(std::make_shared<PBRawTransactionReceipt>()),
@@ -50,7 +51,7 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    HashType const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
+    HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
     LogEntriesPtr _logEntries, int32_t _status, bytes const& _ouptput)
   : PBTransactionReceipt(
         _cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress, _logEntries, _status)
@@ -59,7 +60,7 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    HashType const& _stateRoot, u256 const& _gasUsed, Address const& _contractAddress,
+    HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
     LogEntriesPtr _logEntries, int32_t _status, bytes&& _ouptput)
   : PBTransactionReceipt(
         _cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress, _logEntries, _status)
@@ -70,12 +71,7 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
 void PBTransactionReceipt::decode(bytesConstRef _data)
 {
     // decode receipt
-    if (!m_receipt->ParseFromArray(_data.data(), _data.size()))
-    {
-        BOOST_THROW_EXCEPTION(
-            ReceiptDecodeException() << errinfo_comment(
-                "decode transaction receipt failed, receiptData:" + *toHexString(_data)));
-    }
+    decodePBObject(m_receipt, _data);
     ScaleDecoderStream stream(gsl::span<const byte>(
         (byte*)m_receipt->hashfieldsdata().data(), m_receipt->hashfieldsdata().size()));
     stream >> m_status >> m_output >> m_contractAddress >> m_stateRoot >> m_gasUsed >> m_bloom >>
@@ -87,11 +83,8 @@ void PBTransactionReceipt::encode(bytes& _encodeReceiptData)
     encodeHashFields();
     auto receiptDataLen = m_receipt->ByteSizeLong();
     _encodeReceiptData.resize(receiptDataLen);
-    if (!m_receipt->SerializeToArray(_encodeReceiptData.data(), receiptDataLen))
-    {
-        BOOST_THROW_EXCEPTION(
-            ReceiptEncodeException() << errinfo_comment("encode transactionReceipt failed"));
-    }
+    auto data = encodePBObject(m_receipt);
+    _encodeReceiptData = *data;
 }
 
 void PBTransactionReceipt::encodeHashFields()

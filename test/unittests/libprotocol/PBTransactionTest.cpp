@@ -19,6 +19,7 @@
  * @date: 2021-03-16
  */
 #include "FakeTransaction.h"
+#include "libprotocol/Common.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 
 using namespace bcos;
@@ -44,7 +45,7 @@ BOOST_AUTO_TEST_CASE(testNormalTransaction)
     std::string chainId = "chainId";
     std::string groupId = "groupId";
 
-    testTransaction(cryptoSuite, keyPair, to, input, nonce, blockLimit, chainId, groupId);
+    testTransaction(cryptoSuite, keyPair, to.asBytes(), input, nonce, blockLimit, chainId, groupId);
 }
 BOOST_AUTO_TEST_CASE(testSMTransaction)
 {
@@ -60,7 +61,7 @@ BOOST_AUTO_TEST_CASE(testSMTransaction)
     std::string chainId = "chainId";
     std::string groupId = "groupId";
 
-    testTransaction(cryptoSuite, keyPair, to, input, nonce, blockLimit, chainId, groupId);
+    testTransaction(cryptoSuite, keyPair, to.asBytes(), input, nonce, blockLimit, chainId, groupId);
 }
 
 BOOST_AUTO_TEST_CASE(testTransactionWithRawData)
@@ -78,8 +79,9 @@ BOOST_AUTO_TEST_CASE(testTransactionWithRawData)
     auto encodedBytes = fromHexString(encodedData);
     auto decodedTransaction = std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true);
     BOOST_CHECK(decodedTransaction->hash().hex() == hashData);
-    BOOST_CHECK(decodedTransaction->to().hex() == "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
-    BOOST_CHECK(decodedTransaction->sender().hex() == sender);
+    BOOST_CHECK(
+        *toHexString(decodedTransaction->to()) == "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
+    BOOST_CHECK(*toHexString(decodedTransaction->sender()) == sender);
     BOOST_CHECK(decodedTransaction->type() == TransactionType::MessageCall);
     BOOST_CHECK(decodedTransaction->groupId() == "groupId");
     BOOST_CHECK(decodedTransaction->chainId() == "chainId");
@@ -88,8 +90,8 @@ BOOST_AUTO_TEST_CASE(testTransactionWithRawData)
 
     // test exception case
     (*encodedBytes)[0] += 1;
-    BOOST_CHECK_THROW(std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true),
-        TransactionDecodeException);
+    BOOST_CHECK_THROW(
+        std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true), PBObjectDecodeException);
 }
 
 BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
@@ -108,9 +110,9 @@ BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
     auto encodedBytes = fromHexString(encodedData);
     auto decodedTransaction = std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true);
     BOOST_CHECK(decodedTransaction->hash().hex() == hashData);
-    BOOST_CHECK(decodedTransaction->sender().hex() == sender);
-    BOOST_CHECK(decodedTransaction->to() == Address());
-    BOOST_CHECK(decodedTransaction->to() == Address());
+    BOOST_CHECK(*toHexString(decodedTransaction->sender()) == sender);
+    BOOST_CHECK(decodedTransaction->to().toBytes() == bytes());
+    BOOST_CHECK(decodedTransaction->to().toBytes() == bytes());
     BOOST_CHECK(decodedTransaction->type() == TransactionType::ContractCreation);
     BOOST_CHECK(decodedTransaction->groupId() == "groupId");
     BOOST_CHECK(decodedTransaction->chainId() == "chainId");
@@ -118,8 +120,8 @@ BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
     BOOST_CHECK(decodedTransaction->blockLimit() == 1000023);
     // test exception case
     (*encodedBytes)[0] += 1;
-    BOOST_CHECK_THROW(std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true),
-        TransactionDecodeException);
+    BOOST_CHECK_THROW(
+        std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true), PBObjectDecodeException);
 }
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test

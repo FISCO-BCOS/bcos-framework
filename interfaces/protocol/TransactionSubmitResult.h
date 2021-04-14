@@ -43,9 +43,9 @@ public:
     // get blockNumber
     virtual BlockNumber blockNumber() const = 0;
     // the sender
-    virtual Address const& from() const = 0;
+    virtual bytes const& from() const = 0;
     // to
-    virtual Address const& to() const = 0;
+    virtual bytes const& to() const = 0;
     // txIndex
     virtual int64_t transactionIndex() const = 0;
 };

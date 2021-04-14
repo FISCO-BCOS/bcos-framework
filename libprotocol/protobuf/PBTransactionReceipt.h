@@ -38,13 +38,12 @@ public:
 
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        Address const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
+        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
         bytes const& _output);
 
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        Address const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
-        bytes&& _output);
+        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status, bytes&& _output);
 
     ~PBTransactionReceipt() {}
 
@@ -55,7 +54,7 @@ public:
     int32_t version() const override { return m_receipt->version(); }
     int32_t status() const override { return m_status; }
     bytesConstRef output() const override { return ref(m_output); }
-    Address const& contractAddress() const override { return m_contractAddress; }
+    bytes const& contractAddress() const override { return m_contractAddress; }
     bcos::crypto::HashType const& stateRoot() const override { return m_stateRoot; }
     u256 const& gasUsed() const override { return m_gasUsed; }
     LogEntriesPtr logEntries() const override { return m_logEntries; }
@@ -64,7 +63,7 @@ public:
 private:
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        Address const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status);
+        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status);
     void encodeHashFields();
 
 private:
@@ -74,7 +73,7 @@ private:
     int32_t m_version;
     bcos::crypto::HashType m_stateRoot;
     u256 m_gasUsed;
-    Address m_contractAddress;
+    bytes m_contractAddress;
     LogEntriesPtr m_logEntries;
     int32_t m_status;
     bytes m_output;
