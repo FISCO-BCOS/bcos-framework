@@ -19,6 +19,7 @@
  * @date: 2021-03-16
  */
 #include "FakeTransactionReceipt.h"
+#include "libprotocol/Common.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 
 using namespace bcos;
@@ -76,7 +77,8 @@ BOOST_AUTO_TEST_CASE(testNormalPBTransactionRecept)
         "a1937aca95ac16e68f0f5fe3c4c3e2079879a0dba1937aca95ac16e68f0f5fe3c4c3e2079879a0dba1937aca95"
         "ac16e68f0f5fe3c4c3e2079879a0dba1937aca95ac16e68f0f5fe3c4c3e2079879a0dba1937aca95ac16e68f0f"
         "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
-    BOOST_CHECK(receipt->contractAddress().hex() == "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
+    BOOST_CHECK(
+        *toHexString(receipt->contractAddress()) == "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
     BOOST_CHECK(receipt->status() == (int32_t)TransactionStatus::BadJumpDestination);
     BOOST_CHECK(receipt->hash().hex() ==
                 "55237f2daa7721c03d0f014961ef3e85b45774ffc44a363d1c695e044d744934");
@@ -91,14 +93,14 @@ BOOST_AUTO_TEST_CASE(testNormalPBTransactionRecept)
     auto logEntry = (*(receipt->logEntries()))[1];
     BOOST_CHECK((logEntry->topics()[0]).hex() ==
                 "c89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6");
-    BOOST_CHECK(logEntry->address().hex() == "82df0950f5a951637e0307cdcb4c672f298b8bc6");
+    BOOST_CHECK(*toHexString(logEntry->address()) == "82df0950f5a951637e0307cdcb4c672f298b8bc6");
     BOOST_CHECK(*toHexString(logEntry->data()) ==
                 "c89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6");
 
     // check exception case
     (*receiptData)[0] += 1;
     BOOST_CHECK_THROW(
-        std::make_shared<PBTransactionReceipt>(cryptoSuite, *receiptData), ReceiptDecodeException);
+        std::make_shared<PBTransactionReceipt>(cryptoSuite, *receiptData), PBObjectDecodeException);
 }
 
 BOOST_AUTO_TEST_CASE(testSMPBTransactionRecept)
@@ -134,7 +136,8 @@ BOOST_AUTO_TEST_CASE(testSMPBTransactionRecept)
         "a1937aca95ac16e68f0f5fe3c4c3e2079879a0dba1937aca95ac16e68f0f5fe3c4c3e2079879a0dba1937aca95"
         "ac16e68f0f5fe3c4c3e2079879a0dba1937aca95ac16e68f0f5fe3c4c3e2079879a0dba1937aca95ac16e68f0f"
         "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
-    BOOST_CHECK(receipt->contractAddress().hex() == "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
+    BOOST_CHECK(
+        *toHexString(receipt->contractAddress()) == "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
     BOOST_CHECK(receipt->status() == (int32_t)TransactionStatus::BadJumpDestination);
     BOOST_CHECK(receipt->hash().hex() ==
                 "32445e2828a4e081047cd70a3e9c2527f596d0ff2434d71fc48b131bef007567");
@@ -149,13 +152,13 @@ BOOST_AUTO_TEST_CASE(testSMPBTransactionRecept)
     auto logEntry = (*(receipt->logEntries()))[1];
     BOOST_CHECK((logEntry->topics()[0]).hex() ==
                 "cbdddb8e8421b23498480570d7d75330538a6882f5dfdc3b64115c647f3328c4");
-    BOOST_CHECK(logEntry->address().hex() == "d7d75330538a6882f5dfdc3b64115c647f3328c4");
+    BOOST_CHECK(*toHexString(logEntry->address()) == "d7d75330538a6882f5dfdc3b64115c647f3328c4");
     BOOST_CHECK(*toHexString(logEntry->data()) ==
                 "cbdddb8e8421b23498480570d7d75330538a6882f5dfdc3b64115c647f3328c4");
     // check exception case
     (*receiptData)[0] += 1;
     BOOST_CHECK_THROW(
-        std::make_shared<PBTransactionReceipt>(cryptoSuite, *receiptData), ReceiptDecodeException);
+        std::make_shared<PBTransactionReceipt>(cryptoSuite, *receiptData), PBObjectDecodeException);
 }
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test

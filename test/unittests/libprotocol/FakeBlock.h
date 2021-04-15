@@ -188,7 +188,8 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
 
     // exception test
     (*encodedData)[0] += 1;
-    BOOST_CHECK_THROW(_blockFactory->createBlock(*encodedData, true, true), BlockDecodeException);
+    BOOST_CHECK_THROW(
+        _blockFactory->createBlock(*encodedData, true, true), PBObjectDecodeException);
     return block;
 }
 

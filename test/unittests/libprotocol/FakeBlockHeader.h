@@ -18,6 +18,7 @@
  * @date: 2021-03-16
  */
 #pragma once
+#include "libprotocol/Common.h"
 #include "libprotocol/Exceptions.h"
 #include "libprotocol/protobuf/PBBlockHeaderFactory.h"
 #include "libutilities/Common.h"
@@ -116,7 +117,7 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
     // test encode exception
     (*encodedData)[0] += 1;
     BOOST_CHECK_THROW(
-        std::make_shared<PBBlockHeader>(_cryptoSuite, *encodedData), BlockHeaderEncodeException);
+        std::make_shared<PBBlockHeader>(_cryptoSuite, *encodedData), PBObjectDecodeException);
 
     // update the hash data field
     blockHeader->setNumber(_number + 1);

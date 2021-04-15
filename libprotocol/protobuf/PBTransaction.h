@@ -35,7 +35,7 @@ class PBTransaction : public Transaction
 public:
     using Ptr = std::shared_ptr<PBTransaction>;
     PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t const& _version,
-        Address const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
+        bytes const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
         std::string const& _chainId, std::string const& _groupId, int64_t const& _importTime);
 
     explicit PBTransaction(
@@ -62,15 +62,19 @@ public:
     std::string const& chainId() const override { return m_transactionHashFields->chainid(); }
     std::string const& groupId() const override { return m_transactionHashFields->groupid(); }
     int64_t blockLimit() const override { return m_transactionHashFields->blocklimit(); }
-    Address const& sender() const override { return m_sender; }
-    Address const& to() const override { return m_to; }
+    bytes const& sender() const override { return m_sender; }
+    bytesConstRef to() const override
+    {
+        auto const& _receiver = m_transactionHashFields->to();
+        return bytesConstRef((byte const*)_receiver.c_str(), _receiver.size());
+    }
     TransactionType const& type() const override { return m_type; }
     bytesConstRef input() const override;
     int64_t importTime() const override { return m_transaction->import_time(); }
-    void forceSender(Address const& _sender) override { m_sender = _sender; }
+    void forceSender(bytes const& _sender) override { m_sender = _sender; }
 
     // only for ut
-    void updateSignature(bytesConstRef _signatureData, Address const& _sender);
+    void updateSignature(bytesConstRef _signatureData, bytes const& _sender);
 
 protected:
     explicit PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
@@ -89,8 +93,7 @@ private:
     mutable bcos::crypto::HashType m_hash;
     mutable SharedMutex x_hash;
 
-    bcos::Address m_sender;
-    bcos::Address m_to;
+    bcos::bytes m_sender;
     u256 m_nonce;
     TransactionType m_type;
 };

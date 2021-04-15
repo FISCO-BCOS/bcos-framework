@@ -19,26 +19,27 @@
  * @date: 2021-03-16
  */
 #include "PBTransaction.h"
+#include "libprotocol/Common.h"
 #include "libprotocol/Exceptions.h"
 using namespace bcos;
 using namespace bcos::protocol;
 using namespace bcos::crypto;
 
 PBTransaction::PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t const& _version,
-    Address const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
+    bytes const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
     std::string const& _chainId, std::string const& _groupId, int64_t const& _importTime)
   : PBTransaction(_cryptoSuite)
 {
     m_transactionHashFields->set_version(_version);
     // set receiver address
-    m_to = _to;
-    if (_to != Address())
+    if (_to != bytes())
     {
         m_transactionHashFields->set_to(_to.data(), Address::size);
         m_type = TransactionType::MessageCall;
     }
     else
     {
+        // TODO: After the contract path feature is implemented, this logic needs to be adjusted
         m_type = TransactionType::ContractCreation;
     }
     // set input data
@@ -54,10 +55,7 @@ PBTransaction::PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_
     // set groupId
     m_transactionHashFields->set_groupid(_groupId);
     // encode hashFields
-    std::shared_ptr<bytes> encodedHashFieldsData = std::make_shared<bytes>();
-    encodedHashFieldsData->resize(m_transactionHashFields->ByteSizeLong());
-    m_transactionHashFields->SerializeToArray(
-        encodedHashFieldsData->data(), encodedHashFieldsData->size());
+    auto encodedHashFieldsData = encodePBObject(m_transactionHashFields);
     m_transaction->set_hashfieldsdata(encodedHashFieldsData->data(), encodedHashFieldsData->size());
     // set import time
     m_transaction->set_import_time(_importTime);
@@ -72,24 +70,13 @@ PBTransaction::PBTransaction(CryptoSuite::Ptr _cryptoSuite, bytesConstRef _txDat
 void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
 {
     // decode transaction
-    if (!m_transaction->ParseFromArray((const void*)_txData.data(), _txData.size()))
-    {
-        BOOST_THROW_EXCEPTION(TransactionDecodeException() << errinfo_comment(
-                                  "decode transaction failed, txData:" + *toHexString(_txData)));
-    }
+    decodePBObject(m_transaction, _txData);
     // decode transactionHashFields
     auto transactionHashFields = m_transaction->mutable_hashfieldsdata();
-    if (!m_transactionHashFields->ParseFromArray(
-            (const void*)transactionHashFields->data(), transactionHashFields->size()))
-    {
-        BOOST_THROW_EXCEPTION(
-            TransactionDecodeException() << errinfo_comment(
-                "decode transaction hash fields failed, txData:" + *toHexString(_txData)));
-    }
+    decodePBObject(m_transactionHashFields,
+        bytesConstRef((byte const*)transactionHashFields->c_str(), transactionHashFields->size()));
     if (m_transactionHashFields->mutable_to()->size() > 0)
     {
-        m_to = Address((byte const*)m_transactionHashFields->mutable_to()->data(),
-            Address::ConstructorType::FromPointer);
         m_type = TransactionType::MessageCall;
     }
     else
@@ -108,19 +95,13 @@ void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
     auto publicKey = m_cryptoSuite->signatureImpl()->recover(
         hash(), bytesConstRef((const byte*)signaturePtr->data(), signaturePtr->size()));
     // recover the sender
-    m_sender = m_cryptoSuite->calculateAddress(publicKey);
+    m_sender = m_cryptoSuite->calculateAddress(publicKey).asBytes();
 }
 
 void PBTransaction::encode(bytes& _txData) const
 {
-    auto txSize = m_transaction->ByteSizeLong();
-    _txData.resize(txSize);
-    auto success = m_transaction->SerializeToArray(_txData.data(), txSize);
-    if (!success)
-    {
-        BOOST_THROW_EXCEPTION(
-            TransactionEncodeException() << errinfo_comment("encode transaction failed"));
-    }
+    auto encodedData = encodePBObject(m_transaction);
+    _txData = *encodedData;
 }
 
 HashType const& PBTransaction::hash() const
@@ -135,7 +116,7 @@ HashType const& PBTransaction::hash() const
     return m_hash;
 }
 
-void PBTransaction::updateSignature(bytesConstRef _signatureData, Address const& _sender)
+void PBTransaction::updateSignature(bytesConstRef _signatureData, bytes const& _sender)
 {
     m_transaction->set_signaturedata(_signatureData.data(), _signatureData.size());
     m_sender = _sender;

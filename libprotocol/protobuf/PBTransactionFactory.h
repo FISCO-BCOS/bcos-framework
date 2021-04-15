@@ -48,7 +48,7 @@ public:
         return std::make_shared<PBTransaction>(m_cryptoSuite, _txData, _checkSig);
     }
 
-    Transaction::Ptr createTransaction(int32_t const& _version, Address const& _to,
+    Transaction::Ptr createTransaction(int32_t const& _version, bytes const& _to,
         bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
         std::string const& _chainId, std::string const& _groupId,
         int64_t const& _importTime) override

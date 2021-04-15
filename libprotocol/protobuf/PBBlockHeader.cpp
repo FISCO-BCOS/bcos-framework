@@ -20,6 +20,7 @@
  */
 #include "PBBlockHeader.h"
 #include "libcodec/scale/Scale.h"
+#include "libprotocol/Common.h"
 #include "libprotocol/Exceptions.h"
 #include <gsl/span>
 
@@ -29,12 +30,7 @@ using namespace bcos::codec::scale;
 
 void PBBlockHeader::decode(bytesConstRef _data)
 {
-    if (!m_blockHeader->ParseFromArray(_data.data(), _data.size()))
-    {
-        BOOST_THROW_EXCEPTION(
-            BlockHeaderEncodeException() << errinfo_comment(
-                "encode blockHeader exception, blockHeaderData:" + *toHexString(_data)));
-    }
+    decodePBObject(m_blockHeader, _data);
     // decode hashFields data
     auto hashFieldsPtr = m_blockHeader->mutable_hashfieldsdata();
     ScaleDecoderStream stream(
@@ -97,11 +93,8 @@ void PBBlockHeader::encode(bytes& _encodedData) const
     // encode the whole blockHeader
     auto blockHeaderLen = m_blockHeader->ByteSizeLong();
     _encodedData.resize(blockHeaderLen);
-    if (!m_blockHeader->SerializeToArray(_encodedData.data(), blockHeaderLen))
-    {
-        BOOST_THROW_EXCEPTION(
-            BlockHeaderEncodeException() << errinfo_comment("encode BlockHeader failed"));
-    }
+    auto data = encodePBObject(m_blockHeader);
+    _encodedData = *data;
 }
 
 bcos::crypto::HashType const& PBBlockHeader::hash() const

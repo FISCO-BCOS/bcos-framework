@@ -39,7 +39,7 @@ inline LogEntriesPtr fakeLogEntries(Hash::Ptr _hashImpl, size_t _size)
         auto topic = _hashImpl->hash(std::to_string(i));
         h256s topics;
         topics.push_back(topic);
-        auto address = right160(topic);
+        auto address = right160(topic).asBytes();
         bytes output = topic.asBytes();
         auto logEntry = std::make_shared<LogEntry>(address, topics, output);
         logEntries->push_back(logEntry);
@@ -65,7 +65,7 @@ inline void checkReceipts(
     auto logEntry = (*(decodedReceipt->logEntries()))[1];
     auto expectedTopic = hashImpl->hash(std::to_string(1));
     BOOST_CHECK(logEntry->topics()[0] == expectedTopic);
-    BOOST_CHECK(logEntry->address() == right160(expectedTopic));
+    BOOST_CHECK(logEntry->address() == right160(expectedTopic).asBytes());
     BOOST_CHECK(logEntry->data() == expectedTopic.asBytes());
 }
 inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite)
@@ -83,8 +83,8 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
         output += contractAddress.asBytes();
     }
     auto factory = std::make_shared<PBTransactionReceiptFactory>(_cryptoSuite);
-    auto receipt = factory->createReceipt(
-        version, stateRoot, gasUsed, contractAddress, logEntries, (int32_t)status, output);
+    auto receipt = factory->createReceipt(version, stateRoot, gasUsed, contractAddress.asBytes(),
+        logEntries, (int32_t)status, output);
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     auto start = utcTime();

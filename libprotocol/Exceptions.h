@@ -24,16 +24,8 @@ namespace bcos
 {
 namespace protocol
 {
-DERIVE_BCOS_EXCEPTION(TransactionEncodeException);
-DERIVE_BCOS_EXCEPTION(TransactionDecodeException);
-DERIVE_BCOS_EXCEPTION(ReceiptEncodeException);
-DERIVE_BCOS_EXCEPTION(ReceiptDecodeException);
-DERIVE_BCOS_EXCEPTION(BlockHeaderEncodeException);
-DERIVE_BCOS_EXCEPTION(BlockHeaderDecodeException);
 DERIVE_BCOS_EXCEPTION(InvalidBlockHeader);
 DERIVE_BCOS_EXCEPTION(InvalidSignatureList);
-DERIVE_BCOS_EXCEPTION(BlockDecodeException);
-DERIVE_BCOS_EXCEPTION(BlockEncodeException);
 // transaction exceptions
 DERIVE_BCOS_EXCEPTION(OutOfGasLimit);
 DERIVE_BCOS_EXCEPTION(NotEnoughCash);

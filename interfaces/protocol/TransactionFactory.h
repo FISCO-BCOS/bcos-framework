@@ -33,7 +33,7 @@ public:
     virtual ~TransactionFactory() {}
     virtual Transaction::Ptr createTransaction(bytesConstRef _txData, bool _checkSig = true) = 0;
     virtual Transaction::Ptr createTransaction(bytes const& _txData, bool _checkSig = true) = 0;
-    virtual Transaction::Ptr createTransaction(int32_t const& _version, Address const& _to,
+    virtual Transaction::Ptr createTransaction(int32_t const& _version, bytes const& _to,
         bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
         std::string const& _chainId, std::string const& _groupId, int64_t const& _importTime) = 0;
     virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() = 0;

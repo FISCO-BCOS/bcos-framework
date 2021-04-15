@@ -78,7 +78,7 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
         std::make_shared<TransactionSubmitResultImpl>(receipt, tx, 0, decodedBlock->blockHeader());
     BOOST_CHECK(onChainResult->transactionIndex() == 0);
     BOOST_CHECK(onChainResult->from() == tx->sender());
-    BOOST_CHECK(onChainResult->to() == tx->to());
+    BOOST_CHECK(onChainResult->to() == tx->to().toBytes());
     BOOST_CHECK(onChainResult->txHash() == tx->hash());
     BOOST_CHECK(onChainResult->blockHash() == decodedBlock->blockHeader()->hash());
     BOOST_CHECK(onChainResult->blockNumber() == decodedBlock->blockHeader()->number());

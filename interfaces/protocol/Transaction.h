@@ -45,12 +45,12 @@ public:
     virtual std::string const& groupId() const = 0;
     virtual int64_t blockLimit() const = 0;
     virtual u256 const& nonce() const = 0;
-    virtual Address const& to() const = 0;
-    virtual Address const& sender() const = 0;
+    virtual bytesConstRef to() const = 0;
+    virtual bytes const& sender() const = 0;
     virtual bytesConstRef input() const = 0;
     virtual int64_t importTime() const = 0;
     virtual TransactionType const& type() const = 0;
-    virtual void forceSender(Address const& _sender) = 0;
+    virtual void forceSender(bytes const& _sender) = 0;
 };
 using Transactions = std::vector<Transaction::Ptr>;
 using TransactionsPtr = std::shared_ptr<Transactions>;

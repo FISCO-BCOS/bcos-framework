@@ -39,7 +39,7 @@ public:
     virtual int32_t version() const = 0;
     virtual bcos::crypto::HashType const& stateRoot() const = 0;
     virtual u256 const& gasUsed() const = 0;
-    virtual Address const& contractAddress() const = 0;
+    virtual bytes const& contractAddress() const = 0;
     virtual LogBloom const& bloom() const = 0;
     virtual int32_t status() const = 0;
     virtual bytesConstRef output() const = 0;
