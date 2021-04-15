@@ -69,10 +69,10 @@ public:
 
     // getNonces of the current block
     NonceListPtr nonces() override;
-    Transaction::ConstPtr transaction(size_t _index) override;
-    bcos::crypto::HashType const& transactionHash(size_t _index) override;
-    TransactionReceipt::ConstPtr receipt(size_t _index) override;
-    bcos::crypto::HashType const& receiptHash(size_t _index) override;
+    Transaction::ConstPtr transaction(size_t _index) const override;
+    bcos::crypto::HashType const& transactionHash(size_t _index) const override;
+    TransactionReceipt::ConstPtr receipt(size_t _index) const override;
+    bcos::crypto::HashType const& receiptHash(size_t _index) const override;
 
     int32_t version() const override { return m_pbRawBlock->version(); }
 
@@ -80,15 +80,15 @@ public:
 
     BlockType blockType() const override { return (BlockType)m_pbRawBlock->type(); }
     // get blockHeader
-    BlockHeader::Ptr blockHeader() const override { return m_blockHeader; }
+    BlockHeader::Ptr blockHeader() override { return m_blockHeader; }
     // get transactions
-    TransactionsConstPtr transactions() override { return m_transactions; }
+    TransactionsConstPtr transactions() const override { return m_transactions; }
     // get receipts
-    ReceiptsConstPtr receipts() override { return m_receipts; }
+    ReceiptsConstPtr receipts() const override { return m_receipts; }
     // get transaction hash
-    HashListConstPtr transactionsHash() override { return m_transactionsHash; }
+    HashListConstPtr transactionsHash() const override { return m_transactionsHash; }
     // get receipt hash
-    HashListConstPtr receiptsHash() override { return m_receiptsHash; }
+    HashListConstPtr receiptsHash() const override { return m_receiptsHash; }
 
     void setBlockType(BlockType _blockType) override
     {

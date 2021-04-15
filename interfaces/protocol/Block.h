@@ -53,19 +53,19 @@ public:
     virtual void setVersion(int32_t _version) = 0;
     virtual BlockType blockType() const = 0;
     // get blockHeader
-    virtual BlockHeader::Ptr blockHeader() const = 0;
+    virtual BlockHeader::Ptr blockHeader() = 0;
     // get transactions
-    virtual TransactionsConstPtr transactions() = 0;
-    virtual Transaction::ConstPtr transaction(size_t _index) = 0;
+    virtual TransactionsConstPtr transactions() const = 0;
+    virtual Transaction::ConstPtr transaction(size_t _index) const = 0;
     // get receipts
-    virtual ReceiptsConstPtr receipts() = 0;
-    virtual TransactionReceipt::ConstPtr receipt(size_t _index) = 0;
+    virtual ReceiptsConstPtr receipts() const = 0;
+    virtual TransactionReceipt::ConstPtr receipt(size_t _index) const = 0;
     // get transaction hash
-    virtual HashListConstPtr transactionsHash() = 0;
-    virtual bcos::crypto::HashType const& transactionHash(size_t _index) = 0;
+    virtual HashListConstPtr transactionsHash() const = 0;
+    virtual bcos::crypto::HashType const& transactionHash(size_t _index) const = 0;
     // get receipt hash
-    virtual HashListConstPtr receiptsHash() = 0;
-    virtual bcos::crypto::HashType const& receiptHash(size_t _index) = 0;
+    virtual HashListConstPtr receiptsHash() const = 0;
+    virtual bcos::crypto::HashType const& receiptHash(size_t _index) const = 0;
 
     virtual void setBlockType(BlockType _blockType) = 0;
     // set blockHeader
