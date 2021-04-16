@@ -293,7 +293,7 @@ NonceListPtr PBBlock::nonces()
     return nonceList;
 }
 
-Transaction::ConstPtr PBBlock::transaction(size_t _index)
+Transaction::ConstPtr PBBlock::transaction(size_t _index) const
 {
     if (m_transactions->size() < _index)
     {
@@ -302,12 +302,12 @@ Transaction::ConstPtr PBBlock::transaction(size_t _index)
     return (*m_transactions)[_index];
 }
 
-HashType const& PBBlock::transactionHash(size_t _index)
+HashType const& PBBlock::transactionHash(size_t _index) const
 {
     return (*m_transactionsHash)[_index];
 }
 
-TransactionReceipt::ConstPtr PBBlock::receipt(size_t _index)
+TransactionReceipt::ConstPtr PBBlock::receipt(size_t _index) const
 {
     if (m_receipts->size() < _index)
     {
@@ -316,7 +316,7 @@ TransactionReceipt::ConstPtr PBBlock::receipt(size_t _index)
     return (*m_receipts)[_index];
 }
 
-HashType const& PBBlock::receiptHash(size_t _index)
+HashType const& PBBlock::receiptHash(size_t _index) const
 {
     return (*m_receiptsHash)[_index];
 }

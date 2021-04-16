@@ -19,9 +19,17 @@
 cmake_minimum_required(VERSION 3.12)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 
+include(FetchContent)
+set(FETCH_URL_BASE "github.com")
+set(BCOS_CMAKE_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bcos-cmake-scripts)
+FetchContent_Declare(bcos-cmake-scripts
+    GIT_REPOSITORY https://${FETCH_URL_BASE}/FISCO-BCOS/bcos-cmake-scripts.git
+    GIT_TAG 6ff9b0c676ba02bb63c2ce1fca1a144684e6b0f5
+    SOURCE_DIR ${BCOS_CMAKE_SCRIPTS_DIR}
+)
+FetchContent_MakeAvailable(bcos-cmake-scripts)
+
 # cmake settings
-set(BCOS_CMAKE_SCRIPTS "bcos-cmake-scripts")
-set(BCOS_CMAKE_SCRIPTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${BCOS_CMAKE_SCRIPTS}" CACHE PATH "The path for the ${BCOS_CMAKE_SCRIPTS} subtree")
 set(BCOS_FRAMEWORK_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake" CACHE PATH "The cmake path for the library")
 list(APPEND CMAKE_MODULE_PATH ${BCOS_CMAKE_SCRIPTS_DIR})
 list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
@@ -63,7 +71,6 @@ hunter_add_package(tbb)
 
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_INSTALL_INCLUDEDIR})
-set(INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # set library target name
 set(UTILITIES_TARGET "utilities")
@@ -81,6 +88,13 @@ add_subdirectory(libprotocol/protobuf)
 
 # test releated
 if (TESTS)
+    set(BCOS_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test/bcos-test)
+    FetchContent_Declare(bcos-test
+    GIT_REPOSITORY https://${FETCH_URL_BASE}/FISCO-BCOS/bcos-test.git
+    GIT_TAG 8264cf426fbde27de1195690c88ef5e610699b1f
+    SOURCE_DIR ${BCOS_TEST_DIR})
+    FetchContent_MakeAvailable(bcos-test)
+
     enable_testing()
     set(CTEST_OUTPUT_ON_FAILURE TRUE)
     add_subdirectory(test)
