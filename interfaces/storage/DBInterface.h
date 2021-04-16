@@ -13,13 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief interface of DB
- * @file DB.h
+ * @brief interface of DBInterface
+ * @file DBInterface.h
  * @author: xingqiangbai
  * @date: 2021-04-07
  */
 #pragma once
-#include "interfaces/storage/Table.h"
+#include "interfaces/storage/TableInterface.h"
 #include "libutilities/Error.h"
 #include <functional>
 
@@ -31,32 +31,32 @@ struct Query : public std::enable_shared_from_this<Query>
 {
     using Ptr = std::shared_ptr<Query>;
     std::shared_ptr<TableInfo> tableInfo;
-    std::shared_ptr<Condition> condition;
+    std::shared_ptr<ConditionInterface> condition;
 };
 
-class DB : public std::enable_shared_from_this<DB>
+class DBInterface : public std::enable_shared_from_this<DBInterface>
 {
 public:
-    using Ptr = std::shared_ptr<DB>;
-    DB() = default;
-    virtual ~DB() {}
+    using Ptr = std::shared_ptr<DBInterface>;
+    DBInterface() = default;
+    virtual ~DBInterface() {}
     virtual std::vector<std::string> getPrimaryKeys(std::shared_ptr<Query>& _query) = 0;
-    virtual std::shared_ptr<Entry> getRow(
+    virtual std::shared_ptr<EntryInterface> getRow(
         std::shared_ptr<TableInfo>& _tableInfo, const std::string_view& _key) = 0;
-    virtual std::map<std::string, std::shared_ptr<Entry>> getRows(
+    virtual std::map<std::string, std::shared_ptr<EntryInterface>> getRows(
         std::shared_ptr<TableInfo>& _tableInfo, const std::vector<std::string_view>& _keys) = 0;
     virtual size_t commitTables(
-        const std::map<TableInfo, std::map<std::string, std::shared_ptr<Entry>>>& _data) = 0;
+        const std::map<TableInfo, std::map<std::string, std::shared_ptr<EntryInterface>>>& _data) = 0;
 
     virtual void asyncGetPrimaryKeys(std::shared_ptr<Query>& _query,
         std::function<void(Error, std::vector<std::string>)> _callback) = 0;
     virtual void asyncGetRow(std::shared_ptr<TableInfo>& _tableInfo, const std::string_view& _key,
-        std::function<void(Error, std::shared_ptr<Entry>)> _callback) = 0;
+        std::function<void(Error, std::shared_ptr<EntryInterface>)> _callback) = 0;
     virtual void asyncGetRows(std::shared_ptr<TableInfo>& _tableInfo,
         const std::vector<std::string>& _keys,
-        std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback) = 0;
+        std::function<void(Error, std::map<std::string, std::shared_ptr<EntryInterface>>)> _callback) = 0;
     virtual void asyncCommitTables(
-        const std::map<TableInfo, std::map<std::string, std::shared_ptr<Entry>>>& _data,
+        const std::map<TableInfo, std::map<std::string, std::shared_ptr<EntryInterface>>>& _data,
         std::function<void(Error)> _callback) = 0;
 };
 
