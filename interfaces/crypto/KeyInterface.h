@@ -43,5 +43,6 @@ using Secret = KeyInterface;
 using PublicPtr = KeyInterface::Ptr;
 using SecretPtr = KeyInterface::Ptr;
 using NodeID = KeyInterface::Ptr;
+using NodeIDs = std::vector<KeyInterface::Ptr>;
 }  // namespace crypto
 }  // namespace bcos
