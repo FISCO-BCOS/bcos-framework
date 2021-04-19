@@ -1,4 +1,4 @@
-/*
+/**
  *  Copyright (C) 2021 FISCO BCOS.
  *  SPDX-License-Identifier: Apache-2.0
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,15 +40,25 @@ public:
     virtual ~LedgerInterface() {}
 
     /**
-     * @brief commit a block
+     * @brief async commit a block
      *
-     * @param _blockNumber the number of block to commit
+     * @param _blockNumber the number of block to commit, txs had been stored in asyncPreStoreTxs()
+     * @param _signList the signature list of block header to commit,
+     *                  if _signList == nullptr, it means sync module call this interface or error happened
+     *                  if not, it means consensus call this
      * @param _onCommitBlock trigger this callback when commit block in storage
      */
     virtual void asyncCommitBlock(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr)> _onCommitBlock) = 0;
+                                  bcos::protocol::SignatureListPtr _signList,
+                                  std::function<void(Error::Ptr)> _onCommitBlock) = 0;
 
-    //    virtual bool checkAndBuildGenesisBlock(const std::shared_ptr<>) = 0;
+    /**
+     * @brief async pre-store txs in block when pbft backup
+     * @param _txsToStore only txs in blocks, without header info
+     * @param _onTxsStored callback
+     */
+    virtual void asyncPreStoreTxs(bcos::protocol::Blocks const& _txsToStore,
+                                  std::function<void(Error::Ptr)> _onTxsStored) = 0;
 
     /**
      * @brief async get a transaction by hash
@@ -58,6 +68,25 @@ public:
      */
     virtual void asyncGetTxByHash(h256 const& _txHash,
         std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
+
+    /**
+     * @brief async get transaction by block hash and index
+     * @param _blockHash hash of block
+     * @param _index index of tx in block txList
+     * @param _onGetTx
+     */
+    void asyncGetTransactionByBlockHashAndIndex(h256 const& _blockHash, int64_t _index,
+        std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
+
+    /**
+     * @brief async get transaction by block number and index
+     * @param _blockNumber number of block
+     * @param _index index of tx in block txList
+     * @param _onGetTx
+     */
+    void asyncGetTransactionByBlockNumberAndIndex(bcos::protocol::BlockNumber _blockNumber, int64_t _index,
+        std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
+
 
     /**
      * @brief async get a transaction receipt by hash
@@ -70,17 +99,10 @@ public:
 
     /**
      * @brief async get total transaction count and latest block number
-     * @param _callback callback a pair<txCount, latestBlockNumber>
+     * @param _callback callback a pair<totalTxCount, totalFailedTxCount>, and latest block number
      */
     virtual void asyncGetTotalTransactionCount(
-        std::function<void(Error::Ptr, std::shared_ptr<std::pair<int64_t, bcos::protocol::BlockNumber>>)> _callback) = 0;
-
-    /**
-     * @brief async get total failed transaction count and latest block number
-     * @param _callback callback a pair<failedTxCount, latestBlockNumber>
-     */
-    virtual void asyncGetTotalFailedTransactionCount(
-        std::function<void(Error::Ptr, std::shared_ptr<const std::pair<int64_t, bcos::protocol::BlockNumber>>)> _callback) = 0;
+        std::function<void(Error::Ptr, std::shared_ptr<const std::pair<int64_t, int64_t>>, bcos::protocol::BlockNumber)> _callback) = 0;
 
     /**
      * @brief async get transaction receipt merkle proof in block
@@ -88,25 +110,25 @@ public:
      * @param _index transaction index in block
      * @param _onGetProof
      */
-     virtual void asyncGetTransactionReceiptProof(const bcos::protocol::Block::Ptr _block, uint64_t const& _index,
-                                             std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
+    virtual void asyncGetTransactionReceiptProof(const bcos::protocol::Block::Ptr _block, uint64_t const& _index,
+        std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
 
-     /**
-      * @brief async get transaction merkle proof in block
-      * @param _block block ptr
-      * @param _index transaction index in block
-      * @param _onGetProof
-      */
-     virtual void getTransactionProof(const bcos::protocol::Block::Ptr _block, uint64_t const& _index,
-                                      std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
+    /**
+     * @brief async get transaction merkle proof in block
+     * @param _block block ptr
+     * @param _index transaction index in block
+     * @param _onGetProof
+     */
+    virtual void getTransactionProof(const bcos::protocol::Block::Ptr _block, uint64_t const& _index,
+        std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
 
-     /**
-      * @brief async get transaction proof by tx hash
-      * @param _txHash hash of transaction to get
-      * @param _onGetProof
-      */
-     virtual void asyncGetTransactionProofByHash(h256 const& _txHash,
-                                            std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
+    /**
+     * @brief async get transaction proof by tx hash
+     * @param _txHash hash of transaction to get
+     * @param _onGetProof
+     */
+    virtual void asyncGetTransactionProofByHash(h256 const& _txHash,
+        std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
 
 
     /**
