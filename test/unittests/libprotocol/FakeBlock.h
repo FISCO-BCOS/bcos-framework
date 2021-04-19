@@ -24,7 +24,7 @@
 #include "FakeTransactionReceipt.h"
 #include "libprotocol/protobuf/PBBlock.h"
 #include "libprotocol/protobuf/PBBlockFactory.h"
-#include <unittests/common/HashImpl.h>
+#include <bcos-test/libutils/HashImpl.h>
 #include <boost/test/unit_test.hpp>
 using namespace bcos;
 using namespace bcos::protocol;

@@ -17,7 +17,7 @@
  * @file Base64.cpp
  */
 
-#include "interfaces/storage/Storage.h"
+#include "interfaces/storage/StorageInterface.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
@@ -29,13 +29,13 @@ namespace bcos
 {
 namespace test
 {
-BOOST_FIXTURE_TEST_SUITE(StorageInterface, TestPromptFixture)
+BOOST_FIXTURE_TEST_SUITE(StorageInterfaces, TestPromptFixture)
 
 BOOST_AUTO_TEST_CASE(testStorageInterface)
 {
-    Storage::Ptr s = nullptr;
-    DB::Ptr d = nullptr;
-    Table::Ptr t = nullptr;
+    StorageInterface::Ptr s = nullptr;
+    DBInterface::Ptr d = nullptr;
+    TableInterface::Ptr t = nullptr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

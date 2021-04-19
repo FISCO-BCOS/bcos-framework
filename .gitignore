@@ -35,3 +35,6 @@ build/**
 # pb files
 *.pb.cc
 *.pb.h
+
+# other files
+.vscode/**

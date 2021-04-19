@@ -13,8 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief interface of Table
- * @file Table.h
+ * @brief interface of TableInterface
+ * @file TableInterface.h
  * @author: xingqiangbai
  * @date: 2021-04-07
  */
@@ -30,13 +30,13 @@ namespace bcos
 {
 namespace storage
 {
-class Entry
+class EntryInterface
 {
 public:
-    using Ptr = std::shared_ptr<Entry>;
-    using ConstPtr = std::shared_ptr<const Entry>;
-    Entry() = default;
-    virtual ~Entry() {}
+    using Ptr = std::shared_ptr<EntryInterface>;
+    using ConstPtr = std::shared_ptr<const EntryInterface>;
+    EntryInterface() = default;
+    virtual ~EntryInterface() {}
 
     virtual std::string getField(const std::string_view& key) const = 0;
     virtual std::string_view getFieldConst(const std::string_view& key) const = 0;
@@ -53,7 +53,7 @@ public:
     virtual int64_t num() const = 0;
     virtual void setNum(int64_t num) = 0;
 
-    virtual void copyFrom(Entry::ConstPtr entry);
+    virtual void copyFrom(EntryInterface::ConstPtr entry);
 
     // TODO: check if we still need these methods
     virtual int64_t getID() const = 0;
@@ -65,10 +65,10 @@ public:
     virtual ssize_t refCount() const = 0;  // for test?
 };
 
-class Condition : public std::enable_shared_from_this<Condition>
+class ConditionInterface : public std::enable_shared_from_this<ConditionInterface>
 {
 public:
-    using Ptr = std::shared_ptr<Condition>;
+    using Ptr = std::shared_ptr<ConditionInterface>;
     virtual void EQ(const std::string& key, const std::string& value) = 0;
     virtual void NE(const std::string& key, const std::string& value) = 0;
 
@@ -81,7 +81,7 @@ public:
     virtual bool isValid(const std::string_view& key) const = 0;
 };
 
-class Table;
+class TableInterface;
 struct Change
 {
     enum Kind : int
@@ -89,7 +89,7 @@ struct Change
         Set,
         Remove,
     };
-    std::shared_ptr<Table> table;
+    std::shared_ptr<TableInterface> table;
     Kind kind;  ///< The kind of the change.
     std::string key;
     struct Record
@@ -104,7 +104,7 @@ struct Change
         {}
     };
     std::vector<Record> value;
-    Change(std::shared_ptr<Table> _table, Kind _kind, std::string const& _key,
+    Change(std::shared_ptr<TableInterface> _table, Kind _kind, std::string const& _key,
         std::vector<Record>& _value)
       : table(_table), kind(_kind), key(_key), value(std::move(_value))
     {}
@@ -123,27 +123,27 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
     bool enableCache = true;
 };
 
-class Storage;
-class Table : public std::enable_shared_from_this<Table>
+class StorageInterface;
+class TableInterface : public std::enable_shared_from_this<TableInterface>
 {
 public:
-    using Ptr = std::shared_ptr<Table>;
-    Table() = default;
-    virtual ~Table() {}
-    virtual std::shared_ptr<Entry> getRow(const std::string_view& _key) = 0;
-    virtual std::map<std::string, std::shared_ptr<Entry>> getRows(
+    using Ptr = std::shared_ptr<TableInterface>;
+    TableInterface() = default;
+    virtual ~TableInterface() {}
+    virtual std::shared_ptr<EntryInterface> getRow(const std::string_view& _key) = 0;
+    virtual std::map<std::string, std::shared_ptr<EntryInterface>> getRows(
         const std::vector<std::string>& _keys) = 0;
-    virtual std::vector<std::string> getPrimaryKeys(std::shared_ptr<Condition> _condition) = 0;
-    virtual bool setRow(const std::string_view& _key, std::shared_ptr<Entry> _entry) = 0;
+    virtual std::vector<std::string> getPrimaryKeys(std::shared_ptr<ConditionInterface> _condition) = 0;
+    virtual bool setRow(const std::string_view& _key, std::shared_ptr<EntryInterface> _entry) = 0;
     virtual bool remove(const std::string_view& _key) = 0;
     virtual crypto::HashType hash() = 0;
     virtual TableInfo::Ptr tableInfo() = 0;
 
     virtual bool checkAuthority(Address const& _origin) const = 0;
-    virtual std::map<std::string, std::shared_ptr<Entry>> dump() = 0;
+    virtual std::map<std::string, std::shared_ptr<EntryInterface>> dump() = 0;
 
     virtual void rollback(const Change& _change) = 0;
-    virtual void setStateStorage(std::shared_ptr<Storage> _db) = 0;
+    virtual void setStateStorage(std::shared_ptr<StorageInterface> _db) = 0;
 };
 
 class TableFactory : public std::enable_shared_from_this<TableFactory>
@@ -154,7 +154,7 @@ public:
     virtual ~TableFactory() {}
     virtual void init() = 0;
 
-    virtual std::shared_ptr<Table> openTable(const std::string& _tableName, bool _authority = true) = 0;
+    virtual std::shared_ptr<TableInterface> openTable(const std::string& _tableName, bool _authority = true) = 0;
     virtual bool createTable(const std::string& _tableName, const std::string& _keyField,
         const std::string& _valueFields) = 0;
 
