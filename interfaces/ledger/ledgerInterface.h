@@ -94,32 +94,32 @@ public:
      * @param _txHash hash of transaction
      * @param _onGetTx
      */
-    virtual void asyncGetTransactionReceiptByHash(
-        h256 const& _txHash, std::function<void(Error::Ptr, bcos::protocol::TransactionReceipt::ConstPtr)> _onGetTx) = 0;
+    virtual void asyncGetTransactionReceiptByHash(h256 const& _txHash,
+        std::function<void(Error::Ptr, bcos::protocol::TransactionReceipt::ConstPtr)> _onGetTx) = 0;
 
     /**
      * @brief async get total transaction count and latest block number
-     * @param _callback callback a pair<totalTxCount, totalFailedTxCount>, and latest block number
+     * @param _callback callback totalTxCount, totalFailedTxCount, and latest block number
      */
     virtual void asyncGetTotalTransactionCount(
-        std::function<void(Error::Ptr, std::shared_ptr<const std::pair<int64_t, int64_t>>, bcos::protocol::BlockNumber)> _callback) = 0;
+        std::function<void(Error::Ptr, int64_t _totalTxCount, int64_t _failedTxCount, bcos::protocol::BlockNumber _latestBlockNumber)> _callback) = 0;
 
     /**
-     * @brief async get transaction receipt merkle proof in block
-     * @param _block block ptr
+     * @brief async get transaction receipt merkle proof by blockHash and index
+     * @param _blockHash hash of block
      * @param _index transaction index in block
      * @param _onGetProof
      */
-    virtual void asyncGetTransactionReceiptProof(const bcos::protocol::Block::Ptr _block, uint64_t const& _index,
+    virtual void asyncGetTransactionReceiptProof(h256 const & _blockHash, int64_t const& _index,
         std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
 
     /**
-     * @brief async get transaction merkle proof in block
-     * @param _block block ptr
+     * @brief async get transaction merkle proof by blockHash and index
+     * @param _blockHash hash of block
      * @param _index transaction index in block
      * @param _onGetProof
      */
-    virtual void getTransactionProof(const bcos::protocol::Block::Ptr _block, uint64_t const& _index,
+    virtual void getTransactionProof(h256 const & _blockHash, int64_t const& _index,
         std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
 
     /**
