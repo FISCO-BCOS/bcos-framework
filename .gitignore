@@ -37,4 +37,7 @@ build/**
 *.pb.h
 
 # other files
+cmake/scripts/**
+cmake/deps/**
+build*/**
 .vscode/**
