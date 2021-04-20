@@ -70,6 +70,7 @@ find_package(Microsoft.GSL CONFIG REQUIRED)
 hunter_add_package(tbb)
 
 include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_INSTALL_INCLUDEDIR})
 
 # set library target name
@@ -78,7 +79,7 @@ set(CODEC_TARGET "codec")
 set(PROTOCOL_TARGET "protocol")
 set(PBPROTOCOL_TARGET "protocol-pb")
 # define the generated proto file path
-set(PROTO_GENERATE_DIR ${CMAKE_SOURCE_DIR}/libprotocol/bcos-proto)
+set(PROTO_GENERATE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libprotocol/bcos-proto)
 
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)
@@ -91,7 +92,7 @@ if (TESTS)
     set(BCOS_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test/bcos-test)
     FetchContent_Declare(bcos-test
     GIT_REPOSITORY https://${FETCH_URL_BASE}/FISCO-BCOS/bcos-test.git
-    GIT_TAG 8264cf426fbde27de1195690c88ef5e610699b1f
+    GIT_TAG a17723395beaa7b4b75705172cab054054646254
     SOURCE_DIR ${BCOS_TEST_DIR})
     FetchContent_MakeAvailable(bcos-test)
 
