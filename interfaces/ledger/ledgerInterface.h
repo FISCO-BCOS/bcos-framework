@@ -57,7 +57,7 @@ public:
      * @param _txsToStore only txs in blocks, without header info
      * @param _onTxsStored callback
      */
-    virtual void asyncPreStoreTxs(bcos::protocol::Blocks const& _txsToStore,
+    virtual void asyncPreStoreTransactions(bcos::protocol::Blocks const& _txsToStore,
                                   std::function<void(Error::Ptr)> _onTxsStored) = 0;
 
     /**
@@ -66,7 +66,7 @@ public:
      * @param _txHash hash of transaction
      * @param _onGetTx
      */
-    virtual void asyncGetTxByHash(bcos::crypto::HashType const& _txHash,
+    virtual void asyncGetTransactionByHash(bcos::crypto::HashType const& _txHash,
         std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
 
     /**
@@ -75,7 +75,7 @@ public:
      * @param _index index of tx in block txList
      * @param _onGetTx
      */
-    void asyncGetTransactionByBlockHashAndIndex(bcos::crypto::HashType const& _blockHash, int64_t _index,
+    virtual void asyncGetTransactionByBlockHashAndIndex(bcos::crypto::HashType const& _blockHash, int64_t _index,
         std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
 
     /**
@@ -84,7 +84,7 @@ public:
      * @param _index index of tx in block txList
      * @param _onGetTx
      */
-    void asyncGetTransactionByBlockNumberAndIndex(bcos::protocol::BlockNumber _blockNumber, int64_t _index,
+    virtual void asyncGetTransactionByBlockNumberAndIndex(bcos::protocol::BlockNumber _blockNumber, int64_t _index,
         std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
 
 
