@@ -69,7 +69,7 @@ find_package(Microsoft.GSL CONFIG REQUIRED)
 # install tbb dependency
 hunter_add_package(tbb)
 
-include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_INSTALL_INCLUDEDIR})
 
