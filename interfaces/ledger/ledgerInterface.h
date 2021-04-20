@@ -66,7 +66,7 @@ public:
      * @param _txHash hash of transaction
      * @param _onGetTx
      */
-    virtual void asyncGetTxByHash(h256 const& _txHash,
+    virtual void asyncGetTxByHash(bcos::crypto::HashType const& _txHash,
         std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
 
     /**
@@ -75,7 +75,7 @@ public:
      * @param _index index of tx in block txList
      * @param _onGetTx
      */
-    void asyncGetTransactionByBlockHashAndIndex(h256 const& _blockHash, int64_t _index,
+    void asyncGetTransactionByBlockHashAndIndex(bcos::crypto::HashType const& _blockHash, int64_t _index,
         std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
 
     /**
@@ -94,7 +94,7 @@ public:
      * @param _txHash hash of transaction
      * @param _onGetTx
      */
-    virtual void asyncGetTransactionReceiptByHash(h256 const& _txHash,
+    virtual void asyncGetTransactionReceiptByHash(bcos::crypto::HashType const& _txHash,
         std::function<void(Error::Ptr, bcos::protocol::TransactionReceipt::ConstPtr)> _onGetTx) = 0;
 
     /**
@@ -110,7 +110,7 @@ public:
      * @param _index transaction index in block
      * @param _onGetProof
      */
-    virtual void asyncGetTransactionReceiptProof(h256 const & _blockHash, int64_t const& _index,
+    virtual void asyncGetTransactionReceiptProof(bcos::crypto::HashType const & _blockHash, int64_t const& _index,
         std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
 
     /**
@@ -119,7 +119,7 @@ public:
      * @param _index transaction index in block
      * @param _onGetProof
      */
-    virtual void getTransactionProof(h256 const & _blockHash, int64_t const& _index,
+    virtual void getTransactionProof(bcos::crypto::HashType const & _blockHash, int64_t const& _index,
         std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
 
     /**
@@ -127,7 +127,7 @@ public:
      * @param _txHash hash of transaction to get
      * @param _onGetProof
      */
-    virtual void asyncGetTransactionProofByHash(h256 const& _txHash,
+    virtual void asyncGetTransactionProofByHash(bcos::crypto::HashType const& _txHash,
         std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
 
 
@@ -144,7 +144,7 @@ public:
      * @param _onGetBlock
      */
     virtual void asyncGetBlockHashByNumber(bcos::protocol::BlockNumber,
-        std::function<void(Error::Ptr, std::shared_ptr<const h256>)> _onGetBlock) = 0;
+        std::function<void(Error::Ptr, std::shared_ptr<const bcos::crypto::HashType>)> _onGetBlock) = 0;
 
     /**
      * @brief async get a block by hash
@@ -152,7 +152,7 @@ public:
      * @param _blockHash hash of block to get
      * @param _onGetBlock
      */
-    virtual void asyncGetBlockByHash(h256 const& _blockHash,
+    virtual void asyncGetBlockByHash(bcos::crypto::HashType const& _blockHash,
         std::function<void(Error::Ptr, bcos::protocol::Block::Ptr)> _onGetBlock) = 0;
 
     /**
@@ -185,7 +185,7 @@ public:
      * @param _blockHash hash of block
      * @param _onGetBlock callback when get a block, (error, pair<blockHeader, signatureList>)
      */
-    virtual void asyncGetBlockHeaderByHash(h256 const& _blockHash,
+    virtual void asyncGetBlockHeaderByHash(bcos::crypto::HashType const& _blockHash,
         std::function<void(Error::Ptr, std::shared_ptr<const std::pair<bcos::protocol::BlockHeader::Ptr, bcos::protocol::SignatureListPtr>>)> _onGetBlock) = 0;
 
     /**
