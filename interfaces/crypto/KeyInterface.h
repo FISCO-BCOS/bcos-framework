@@ -37,6 +37,9 @@ public:
     virtual std::shared_ptr<bytes> encode() const = 0;
     virtual void decode(bytesConstRef _data) = 0;
     virtual void decode(bytes&& _data) = 0;
+
+    virtual std::string shortHex() = 0;
+    virtual std::string hex() = 0;
 };
 using Public = KeyInterface;
 using Secret = KeyInterface;

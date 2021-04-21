@@ -45,11 +45,6 @@ public:
 
     // check the node is the sealer or not
     virtual void isLeader(std::function<void(bool)> _callback) = 0;
-
-    // receive message from the P2P module
-    // TODO: define the interface that need register to the P2P module when receiving P2P message
-    virtual void onReceivePBFTMessage(Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
-        bytesConstRef _data, std::function<void(bytesConstRef _respData)> _respFunc) = 0;
 };
 }  // namespace consensus
 }  // namespace bcos
