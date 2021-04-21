@@ -41,7 +41,7 @@ public:
      * @return void
      */
     virtual void asyncGetNodeIDs(
-        std::function<void(Error::Ptr _error, const std::shared_ptr<const std::vector<NodeID>>&)>)
+        std::function<void(Error::Ptr _error, const std::shared_ptr<const std::vector<NodeID> >&)>)
         const;
 
     /**

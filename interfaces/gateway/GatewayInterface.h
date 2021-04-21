@@ -31,7 +31,7 @@ using NodeID = bcos::crypto::NodeID;
 using NodeIDs = bcos::crypto::NodeIDs;
 using CallbackFunc = std::function<void(Error::Ptr, bytesConstRef)>;
 /**
- * @brief: A list of interfaces provided by the gateway to which the caller is the front service.
+ * @brief: A list of interfaces provided by the gateway which are called by the front service.
  */
 class GatewayInterface
 {
@@ -61,12 +61,11 @@ public:
      * @return void
      */
     virtual void asyncGetNodeIDs(
-        std::function<void(Error::Ptr _error, const std::shared_ptr<const std::vector<NodeID>>&)>)
+        std::function<void(Error::Ptr _error, const std::shared_ptr<const std::vector<NodeID> >&)>)
         const;
 
-public:
     /**
-     * @brief: send message to single nodeID
+     * @brief: send message to a single node
      * @param _groupID: groupID
      * @param _nodeID: the receiver nodeID
      * @param _payload: message content
@@ -78,7 +77,7 @@ public:
         bytesConstRef _payload, uint32_t _timeout, CallbackFunc _callback);
 
     /**
-     * @brief: send message to multi nodeIDs
+     * @brief: send message to multiple nodes
      * @param _groupID: groupID
      * @param _nodeIDs: the receiver nodeIDs
      * @param _payload: message content
@@ -88,9 +87,9 @@ public:
         const std::string& _groupID, const NodeIDs& _nodeIDs, bytesConstRef _payload);
 
     /**
-     * @brief: send broadcast message interface
+     * @brief: send message to all nodes
      * @param _groupID: groupID
-     * @param _payload:  broadcast message content
+     * @param _payload: message content
      * @return void
      */
     virtual void asyncMulticastMessage(const std::string& _groupID, bytesConstRef _payload);

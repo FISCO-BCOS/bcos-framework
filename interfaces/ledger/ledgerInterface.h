@@ -34,7 +34,7 @@ namespace ledger
 class LedgerInterface
 {
 public:
-    using MerkleProof = std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>;
+    using MerkleProof = std::vector<std::pair<std::vector<std::string>, std::vector<std::string> > >;
     using MerkleProofPtr = std::shared_ptr<const MerkleProof>;
     LedgerInterface() = default;
     virtual ~LedgerInterface() {}
@@ -178,7 +178,7 @@ public:
      * @param _onGetBlock callback when get a block, (error, pair<blockHeader, signatureList>)
      */
     virtual void asyncGetBlockHeaderByNumber(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, std::shared_ptr<const std::pair<bcos::protocol::BlockHeader::Ptr, bcos::protocol::SignatureListPtr>>)> _onGetBlock) = 0;
+        std::function<void(Error::Ptr, std::shared_ptr<const std::pair<bcos::protocol::BlockHeader::Ptr, bcos::protocol::SignatureListPtr> >)> _onGetBlock) = 0;
 
     /**
      * @brief async get block header by block hash
@@ -186,7 +186,7 @@ public:
      * @param _onGetBlock callback when get a block, (error, pair<blockHeader, signatureList>)
      */
     virtual void asyncGetBlockHeaderByHash(bcos::crypto::HashType const& _blockHash,
-        std::function<void(Error::Ptr, std::shared_ptr<const std::pair<bcos::protocol::BlockHeader::Ptr, bcos::protocol::SignatureListPtr>>)> _onGetBlock) = 0;
+        std::function<void(Error::Ptr, std::shared_ptr<const std::pair<bcos::protocol::BlockHeader::Ptr, bcos::protocol::SignatureListPtr> >)> _onGetBlock) = 0;
 
     /**
      * @brief async get contract code by tableID and codeName
@@ -203,7 +203,7 @@ public:
      * @param _onGetConfig callback when get config, <value, latest block number>
      */
     virtual void asyncGetSystemConfigByKey(std::string const& _key,
-        std::function<void(Error::Ptr, std::shared_ptr<const std::pair<std::string, bcos::protocol::BlockNumber>>)> _onGetConfig) = 0;
+        std::function<void(Error::Ptr, std::shared_ptr<const std::pair<std::string, bcos::protocol::BlockNumber> >)> _onGetConfig) = 0;
 
     /**
      * @brief async get nonce list in specific block

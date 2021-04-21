@@ -34,6 +34,7 @@ public:
     using Ptr = std::shared_ptr<StorageInterface>;
     StorageInterface() = default;
     virtual ~StorageInterface() {}
+    
     virtual std::vector<std::string> getPrimaryKeys(std::shared_ptr<Query>& _query) = 0;
     virtual std::shared_ptr<EntryInterface> getRow(
         std::shared_ptr<TableInfo>& _tableInfo, const std::string_view& _key) = 0;

@@ -31,18 +31,18 @@ public:
     EndPointInterface() = default;
     virtual ~EndPointInterface() {}
 
-    // ID of the node that sent the message
+    // fromID returns ID of the node that sent the message
     virtual bcos::crypto::PublicPtr fromID() const = 0;
-    // ID of the node receiving the message
+    // toID returns ID of the node receiving the message
     virtual bcos::crypto::PublicPtr toID() const = 0;
 
-    // The ID of the gateway that sent the message
+    // fromZone returns ID of the gateway that sent the message
     virtual std::string const& fromZone() const = 0;
-    // The ID of the gateway receiving the message
+    // toZone returns ID of the gateway receiving the message
     virtual std::string const& toZone() const = 0;
 
-    // the groupID
-    virtual std::string const& groupID() const& = 0;
+    // groupID returns the group ID
+    virtual std::string const & groupID() const = 0;
 
     virtual void setFromID(bcos::crypto::PublicPtr _fromID) = 0;
     virtual void setToID(bcos::crypto::PublicPtr _toID) = 0;
