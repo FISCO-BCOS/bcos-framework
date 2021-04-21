@@ -19,12 +19,15 @@
 cmake_minimum_required(VERSION 3.12)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 
+if (NOT DEFINED URL_BASE)
+    set(URL_BASE "github.com")
+    # set(URL_BASE "github.com.cnpmjs.org")
+endif()
 include(FetchContent)
-set(FETCH_URL_BASE "github.com")
 # fetch bcos-cmake-scripts
 set(BCOS_CMAKE_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bcos-cmake-scripts)
 FetchContent_Declare(bcos-cmake-scripts
-    GIT_REPOSITORY https://${FETCH_URL_BASE}/FISCO-BCOS/bcos-cmake-scripts.git
+    GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-cmake-scripts.git
     GIT_TAG 6ff9b0c676ba02bb63c2ce1fca1a144684e6b0f5
     SOURCE_DIR ${BCOS_CMAKE_SCRIPTS_DIR}
 )
@@ -33,7 +36,7 @@ FetchContent_Declare(bcos-cmake-scripts
 set(BCOS_PROTO_NAME bcos-proto)
 set(BCOS_PROTO_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libprotocol/${BCOS_PROTO_NAME})
 FetchContent_Declare(${BCOS_PROTO_NAME}
-    GIT_REPOSITORY https://${FETCH_URL_BASE}/FISCO-BCOS/bcos-proto.git
+    GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-proto.git
     GIT_TAG f02f22929fea9a5c5be87842320342ce9a991869
     SOURCE_DIR ${BCOS_PROTO_PATH}
 )
@@ -102,7 +105,7 @@ add_subdirectory(libprotocol/protobuf)
 if (TESTS)
     set(BCOS_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test/bcos-test)
     FetchContent_Declare(bcos-test
-    GIT_REPOSITORY https://${FETCH_URL_BASE}/FISCO-BCOS/bcos-test.git
+    GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-test.git
     GIT_TAG a17723395beaa7b4b75705172cab054054646254
     SOURCE_DIR ${BCOS_TEST_DIR})
     FetchContent_MakeAvailable(bcos-test)
