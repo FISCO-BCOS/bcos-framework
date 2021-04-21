@@ -36,6 +36,9 @@ using CallbackFunc = std::function<void(Error::Ptr, bytesConstRef)>;
 class GatewayInterface
 {
 public:
+    using Ptr = std::shared_ptr<GatewayInterface>;
+
+public:
     /**
      * @brief:
      * @param _groupID : groupID
@@ -44,7 +47,7 @@ public:
      * @return void
      */
     virtual void registerFrontMessageCallback(
-        const std::string& _groupID, const NodeID& _nodeID, CallbackFunc _messageCallback);
+        const std::string& _groupID, const NodeID& _nodeID, CallbackFunc _messageCallback) = 0;
 
     /**
      * @brief:
@@ -54,7 +57,7 @@ public:
      * @return void
      */
     virtual void registerNodeStatusNotifier(const std::string& _groupID, const NodeID& _nodeID,
-        std::function<void(Error::Ptr _error)> _nodeStatusCallback);
+        std::function<void(Error::Ptr _error)> _nodeStatusCallback) = 0;
 
     /**
      * @brief: get nodeID list
@@ -62,7 +65,7 @@ public:
      */
     virtual void asyncGetNodeIDs(
         std::function<void(Error::Ptr _error, const std::shared_ptr<const std::vector<NodeID>>&)>)
-        const;
+        const = 0;
 
 public:
     /**
@@ -75,7 +78,7 @@ public:
      * @return void
      */
     virtual void asyncSendMessageByNodeID(const std::string& _groupID, const NodeID& _nodeID,
-        bytesConstRef _payload, uint32_t _timeout, CallbackFunc _callback);
+        bytesConstRef _payload, uint32_t _timeout, CallbackFunc _callback) = 0;
 
     /**
      * @brief: send message to multi nodeIDs
@@ -85,7 +88,7 @@ public:
      * @return void
      */
     virtual void asyncSendMessageByNodeIDs(
-        const std::string& _groupID, const NodeIDs& _nodeIDs, bytesConstRef _payload);
+        const std::string& _groupID, const NodeIDs& _nodeIDs, bytesConstRef _payload) = 0;
 
     /**
      * @brief: send broadcast message interface
@@ -93,7 +96,7 @@ public:
      * @param _payload:  broadcast message content
      * @return void
      */
-    virtual void asyncMulticastMessage(const std::string& _groupID, bytesConstRef _payload);
+    virtual void asyncMulticastMessage(const std::string& _groupID, bytesConstRef _payload) = 0;
 };
 
 }  // namespace gateway
