@@ -7,7 +7,7 @@ file(GLOB HEADERS "*.h")
 file(MAKE_DIRECTORY ${PROTO_GENERATE_DIR})
 
 foreach(proto_file ${MESSAGES_PROTOS})
-  get_filename_component(bcos_proto_abs "../bcos-proto" ABSOLUTE)
+  get_filename_component(bcos_proto_abs "../${BCOS_PROTO_NAME}" ABSOLUTE)
   set(proto_file_abs ${bcos_proto_abs}/${proto_file})
   get_filename_component(basename ${proto_file} NAME_WE)
   set(generated_files ${PROTO_GENERATE_DIR}/${basename}.pb.cc ${PROTO_GENERATE_DIR}/${basename}.pb.h)

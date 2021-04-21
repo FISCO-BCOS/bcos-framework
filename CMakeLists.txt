@@ -21,13 +21,23 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment ve
 
 include(FetchContent)
 set(FETCH_URL_BASE "github.com")
+# fetch bcos-cmake-scripts
 set(BCOS_CMAKE_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bcos-cmake-scripts)
 FetchContent_Declare(bcos-cmake-scripts
     GIT_REPOSITORY https://${FETCH_URL_BASE}/FISCO-BCOS/bcos-cmake-scripts.git
     GIT_TAG 6ff9b0c676ba02bb63c2ce1fca1a144684e6b0f5
     SOURCE_DIR ${BCOS_CMAKE_SCRIPTS_DIR}
 )
-FetchContent_MakeAvailable(bcos-cmake-scripts)
+
+# fetch bcos-proto
+set(BCOS_PROTO_NAME bcos-proto)
+set(BCOS_PROTO_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libprotocol/${BCOS_PROTO_NAME})
+FetchContent_Declare(${BCOS_PROTO_NAME}
+    GIT_REPOSITORY https://${FETCH_URL_BASE}/FISCO-BCOS/bcos-proto.git
+    GIT_TAG f02f22929fea9a5c5be87842320342ce9a991869
+    SOURCE_DIR ${BCOS_PROTO_PATH}
+)
+FetchContent_MakeAvailable(bcos-cmake-scripts ${BCOS_PROTO_NAME})
 
 # cmake settings
 set(BCOS_FRAMEWORK_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake" CACHE PATH "The cmake path for the library")
@@ -72,6 +82,7 @@ hunter_add_package(tbb)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_INSTALL_INCLUDEDIR})
+include_directories(${CMAKE_INSTALL_INCLUDEDIR}/include)
 
 # set library target name
 set(UTILITIES_TARGET "utilities")
@@ -79,7 +90,7 @@ set(CODEC_TARGET "codec")
 set(PROTOCOL_TARGET "protocol")
 set(PBPROTOCOL_TARGET "protocol-pb")
 # define the generated proto file path
-set(PROTO_GENERATE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libprotocol/bcos-proto)
+set(PROTO_GENERATE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libprotocol/${BCOS_PROTO_NAME})
 
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)
@@ -145,5 +156,5 @@ include(BuildDocs)
 # for code coverage
 if (COVERAGE)
     include(Coverage)
-    config_coverage("'/usr*' '${CMAKE_SOURCE_DIR}/bcos-cmake-scripts*' '${CMAKE_SOURCE_DIR}/test/bcos-test*'")
+    config_coverage("'/usr*' '${CMAKE_CURRENT_SOURCE_DIR}/bcos-cmake-scripts*' '${CMAKE_CURRENT_SOURCE_DIR}/test/bcos-test*'")
 endif ()
