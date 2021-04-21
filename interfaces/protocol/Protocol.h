@@ -13,23 +13,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief interface for p2p
- * @file P2PInterface.h
+ * @brief Protocol for all the modules
+ * @file Protocol.h
  * @author: yujiechen
- * @date 2021-04-08
+ * @date 2021-04-21
  */
 #pragma once
-
 namespace bcos
 {
-namespace p2p
+namespace protocol
 {
-using PacketType = uint32_t;
-class P2PInterface
+enum ModuleID
 {
-public:
-    P2PInterface() = default;
-    virtual ~P2PInterface() {}
+
+    PBFT = 1000,
+    Raft = 1001,
+    BlockSync = 2000,
+    TxsSync = 2001,
+    AMOP = 3000,
 };
-}  // namespace p2p
+}
 }  // namespace bcos
