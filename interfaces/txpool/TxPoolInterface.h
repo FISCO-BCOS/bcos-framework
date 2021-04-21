@@ -18,6 +18,7 @@
  * @date: 2021-04-07
  */
 #pragma once
+#include "interfaces/crypto/KeyInterface.h"
 #include "interfaces/protocol/Block.h"
 #include "interfaces/protocol/Transaction.h"
 #include "interfaces/protocol/TransactionSubmitResult.h"
@@ -66,7 +67,7 @@ public:
      * @param _block the block to be verified
      * @param _onVerifyFinished callback to be called after the block verification is over
      */
-    virtual void asyncVerifyBlock(bytesPointer _leaderNodeId, bcos::protocol::Blocks const& _blocks,
+    virtual void asyncVerifyBlock(bcos::crypto::PublicPtr _generatedNodeID, bytesConstRef _blocks,
         std::function<void(Error::Ptr, bool)> _onVerifyFinished) = 0;
 
     /**
