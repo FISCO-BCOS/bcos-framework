@@ -24,12 +24,17 @@ if (NOT DEFINED URL_BASE)
     # set(URL_BASE "github.com.cnpmjs.org")
 endif()
 include(FetchContent)
+
 # fetch bcos-cmake-scripts
-set(BCOS_CMAKE_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bcos-cmake-scripts)
+set(BCOS_CMAKE_SCRIPTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts")
 FetchContent_Declare(bcos-cmake-scripts
+    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/cmake/deps
     GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-cmake-scripts.git
-    GIT_TAG 6ff9b0c676ba02bb63c2ce1fca1a144684e6b0f5
+    GIT_TAG 8727db50f2b505a178bdf138acb99e78ab680531
     SOURCE_DIR ${BCOS_CMAKE_SCRIPTS_DIR}
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
 )
 
 # fetch bcos-proto
@@ -51,6 +56,7 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 set(HUNTER_PACKAGE_LOG_BUILD ON CACHE STRING "Hunter output build info to log")
 set(HUNTER_PACKAGE_LOG_INSTALL ON CACHE STRING "Hunter output install info to log")
 set(HUNTER_STATUS_DEBUG OFF CACHE STRING "Hunter debug output")
+# set(HUNTER_STATUS_PRINT OFF CACHE STRING "Hunter status output")
 # set(HUNTER_CONFIGURATION_TYPES Release CACHE STRING "Build type of Hunter packages")
 include(HunterGate)
 HunterGate(
@@ -89,6 +95,7 @@ include_directories(${CMAKE_INSTALL_INCLUDEDIR}/include)
 
 # set library target name
 set(UTILITIES_TARGET "utilities")
+set(TABLE_TARGET "table")
 set(CODEC_TARGET "codec")
 set(PROTOCOL_TARGET "protocol")
 set(PBPROTOCOL_TARGET "protocol-pb")
@@ -98,6 +105,7 @@ set(PROTO_GENERATE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libprotocol/${BCOS_PROTO_NAME
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)
 add_subdirectory(libcodec)
+add_subdirectory(libtable)
 add_subdirectory(libprotocol)
 add_subdirectory(libprotocol/protobuf)
 
@@ -145,6 +153,15 @@ install(
 
 install(
     TARGETS ${PBPROTOCOL_TARGET}
+    EXPORT "${TARGETS_EXPORT_NAME}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+install(
+    TARGETS ${TABLE_TARGET}
     EXPORT "${TARGETS_EXPORT_NAME}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"

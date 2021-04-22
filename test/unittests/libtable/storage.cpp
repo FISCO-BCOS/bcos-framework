@@ -17,7 +17,9 @@
  * @file Base64.cpp
  */
 
-#include "interfaces/storage/StorageInterface.h"
+#include "interfaces/storage/TableInterface.h"
+#include "libtable/Table.h"
+#include "libtable/TableFactory.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
@@ -33,9 +35,12 @@ BOOST_FIXTURE_TEST_SUITE(StorageInterfaces, TestPromptFixture)
 
 BOOST_AUTO_TEST_CASE(testStorageInterface)
 {
-    StorageInterface::Ptr s = nullptr;
-    DBInterface::Ptr d = nullptr;
-    TableInterface::Ptr t = nullptr;
+    StorageInterface::Ptr storage = nullptr;
+    TableInterface::Ptr tableI = nullptr;
+    Table::Ptr table = nullptr;
+    TableFactoryInterface::Ptr tableFactoryI = nullptr;
+    TableFactory::Ptr tableFactory = nullptr;
+    Entry::Ptr entry = nullptr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

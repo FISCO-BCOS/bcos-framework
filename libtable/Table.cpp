@@ -1,0 +1,223 @@
+/*
+ *  Copyright (C) 2021 FISCO BCOS.
+ *  SPDX-License-Identifier: Apache-2.0
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ * @brief interface of Table
+ * @file Table.h
+ * @author: xingqiangbai
+ * @date: 2021-04-07
+ */
+#include "Table.h"
+#include "interfaces/storage/StorageInterface.h"
+#include "tbb/concurrent_vector.h"
+#include "tbb/enumerable_thread_specific.h"
+#include "tbb/parallel_for.h"
+
+namespace bcos
+{
+namespace storage
+{
+
+std::shared_ptr<Entry> Table::getRow(const std::string& _key)
+{
+    auto entryIt = m_dirty.find(_key);
+    if (entryIt != m_dirty.end())
+    {
+        if (!entryIt->second->rollbacked() &&
+            entryIt->second->getStatus() != Entry::Status::DELETED)
+        {  // TODO: if need copy from
+            auto entry = std::make_shared<Entry>();
+            entry->copyFrom(entryIt->second);
+            return entry;
+        }
+        return nullptr;
+    }
+    return m_DB->getRow(m_tableInfo, _key);
+}
+std::map<std::string, std::shared_ptr<Entry>> Table::getRows(const std::vector<std::string>& _keys)
+{
+    std::map<std::string, std::shared_ptr<Entry>> ret;
+    std::vector<std::string> queryKeys;
+    for (auto& key : _keys)
+    {
+        auto entryIt = m_dirty.find(key);
+        if (entryIt != m_dirty.end())
+        {
+            if (!entryIt->second->rollbacked() &&
+                entryIt->second->getStatus() != Entry::Status::DELETED)
+            {  // TODO: if need copy from
+                auto entry = std::make_shared<Entry>();
+                entry->copyFrom(entryIt->second);
+                ret[key] = entry;
+            }
+            ret[key] = nullptr;
+        }
+        else
+        {
+            queryKeys.push_back(key);
+        }
+    }
+    auto querydEntries = m_DB->getRows(m_tableInfo, queryKeys);
+    ret.merge(querydEntries);
+    return ret;
+}
+std::vector<std::string> Table::getPrimaryKeys(std::shared_ptr<Condition> _condition) const
+{
+    return m_DB->getPrimaryKeys(m_tableInfo, _condition);
+}
+bool Table::setRow(const std::string& _key, std::shared_ptr<Entry> _entry)
+{  // For concurrent_unordered_map, insert and emplace methods may create a temporary item that
+    // is destroyed if another thread inserts an item with the same key concurrently.
+    // So, parallel insert same key is not permitted
+    // FIXME: check entry fields
+    // get the old value
+    auto entry = getRow(_key);
+    auto ret = m_dirty.insert(std::make_pair(_key, _entry));
+    if (ret.second)
+    {
+        m_hashDirty = true;
+        m_dataDirty = true;
+        m_recorder(shared_from_this(), Change::Set, _key, entry);
+    }
+    return ret.second;
+}
+bool Table::remove(const std::string& _key)
+{
+    auto entryIt = m_dirty.find(_key);
+    if (entryIt != m_dirty.end())
+    {
+        // find in dirty, rollbacked means not exist in DB, Status::DELETED means it is deleted,
+        // others mean the entry was modified
+        if (!entryIt->second->rollbacked() &&
+            entryIt->second->getStatus() != Entry::Status::DELETED)
+        {
+            auto oldEntry = std::make_shared<Entry>();
+            oldEntry->copyFrom(entryIt->second);
+            entryIt->second->setStatus(Entry::Status::DELETED);
+            m_hashDirty = true;
+            m_dataDirty = true;
+            m_recorder(shared_from_this(), Change::Remove, _key, oldEntry);
+        }
+        return true;
+    }
+    auto entry = getRow(_key);
+    if (!entry)
+    {  // delete not existing entry, do nothing
+        return true;
+    }
+    auto ret = m_dirty.insert(std::make_pair(_key, entry));
+    if (ret.second)
+    {
+        auto oldEntry = std::make_shared<Entry>();
+        oldEntry->copyFrom(entry);
+        entry->setStatus(Entry::Status::DELETED);
+        m_hashDirty = true;
+        m_dataDirty = true;
+        m_recorder(shared_from_this(), Change::Remove, _key, oldEntry);
+    }
+    return ret.second;
+}
+
+crypto::HashType Table::hash()
+{
+    if (m_hashDirty && m_tableInfo->enableConsensus)
+    {
+        size_t totalBytes = 0;
+        tbb::concurrent_vector<Entry::Ptr> entryVec;
+        bytes allData;
+        auto data = dump();
+        if (data->size() != 0)
+        {
+            std::vector<size_t> entriesOffset;
+            entriesOffset.reserve(data->size());
+            for (auto& it : *data)
+            {
+                entryVec.push_back(it.second);
+                auto entrySize = it.second->capacityOfHashField() + 1;  // 1 for status field
+                totalBytes += entrySize;
+                entriesOffset.push_back(entrySize);
+            }
+            auto startT = utcTime();
+            allData.resize(totalBytes);
+            // Parallel processing entries
+            tbb::parallel_for(tbb::blocked_range<uint64_t>(0, entriesOffset.size() - 1),
+                [&](const tbb::blocked_range<uint64_t>& range) {
+                    for (uint64_t i = range.begin(); i < range.end(); i++)
+                    {
+                        auto entry = entryVec[i];
+                        auto startOffSet = entriesOffset[i];
+
+                        for (auto& fieldIt : *(entry))
+                        {
+                            if (isHashField(fieldIt.first))
+                            {
+                                memcpy(
+                                    &allData[startOffSet], &fieldIt.first[0], fieldIt.first.size());
+                                startOffSet += fieldIt.first.size();
+                                memcpy(&allData[startOffSet], &fieldIt.second[0],
+                                    fieldIt.second.size());
+                                startOffSet += fieldIt.second.size();
+                            }
+                        }
+                        char status = (char)entry->getStatus();
+                        memcpy(&allData[startOffSet], &status, sizeof(status));
+                    }
+                });
+
+            auto writeDataT = utcTime() - startT;
+            startT = utcTime();
+            bytesConstRef bR(allData.data(), allData.size());
+            auto transDataT = utcTime() - startT;
+            startT = utcTime();
+            m_hash = m_hashImpl->hash(bR);
+            auto getHashT = utcTime() - startT;
+            STORAGE_LOG(DEBUG) << LOG_BADGE("Table hash") << LOG_KV("writeDataT", writeDataT)
+                               << LOG_KV("transDataT", transDataT) << LOG_KV("getHashT", getHashT)
+                               << LOG_KV("hash", m_hash.abridged());
+        }
+    }
+    m_hashDirty = false;
+    return m_hash;
+}
+
+void Table::rollback(const Change& _change)
+{
+    switch (_change.kind)
+    {
+    case Change::Set:
+    {
+        if (_change.entry)
+        {
+            m_dirty[_change.key] = _change.entry;
+        }
+        else
+        {  // nullptr means the key is not exist in DB
+            auto oldEntry = std::make_shared<Entry>();
+            oldEntry->setRollbacked(true);
+            m_dirty[_change.key] = oldEntry;
+        }
+        break;
+    }
+    case Change::Remove:
+    {
+        m_dirty[_change.key] = _change.entry;
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+}  // namespace storage
+}  // namespace bcos
