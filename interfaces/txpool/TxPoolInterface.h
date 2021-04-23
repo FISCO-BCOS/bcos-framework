@@ -62,13 +62,15 @@ public:
     /**
      * @brief verify transactions in Block for the consensus module
      *
-     * @param _leaderNodeId the NodeID of the leader(When missing transactions, need to obtain the
-     * missing transactions from Leader)
-     * @param _block the block to be verified
+     * @param _generatedNodeID the NodeID of the leader(When missing transactions, need to obtain
+     * the missing transactions from Leader)
+     * @param _blocks the block to be verified
      * @param _onVerifyFinished callback to be called after the block verification is over
      */
-    virtual void asyncVerifyBlock(bcos::crypto::PublicPtr _generatedNodeID, bytesConstRef _blocks,
+    virtual void asyncVerifyBlocks(bcos::crypto::PublicPtr _generatedNodeID,
+        std::vector<bytesConstRef> const& _blocks,
         std::function<void(Error::Ptr, bool)> _onVerifyFinished) = 0;
+
 
     /**
      * @brief Persistent transaction list
@@ -78,7 +80,7 @@ public:
      * @param _onTxsStored callback to be called after the given txs have been stored
      */
     virtual void asyncStoreTxs(bcos::crypto::HashType const& _proposalHash,
-        bcos::protocol::Blocks const& _txsToStore,
+        std::vector<bytesConstRef> const& _txsToStore,
         std::function<void(Error::Ptr)> _onTxsStored) = 0;
 
     /**
