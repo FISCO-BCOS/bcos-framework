@@ -34,7 +34,7 @@ BOOST_FIXTURE_TEST_SUITE(PBBlockTest, TestPromptFixture)
 // void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
 void testBlock(CryptoSuite::Ptr, BlockFactory::Ptr)
 {
-    #if 0
+#if 0
     auto block1 = fakeAndCheckBlock(cryptoSuite, blockFactory, true, 10, 3, 7, 6);
     // without blockHeader
     auto block2 = fakeAndCheckBlock(cryptoSuite, blockFactory, false, 10, 4, 8, 6);
@@ -84,7 +84,7 @@ void testBlock(CryptoSuite::Ptr, BlockFactory::Ptr)
     BOOST_CHECK(onChainResult->txHash() == tx->hash());
     BOOST_CHECK(onChainResult->blockHash() == decodedBlock->blockHeader()->hash());
     BOOST_CHECK(onChainResult->blockNumber() == decodedBlock->blockHeader()->number());
-    #endif
+#endif
 }
 BOOST_AUTO_TEST_CASE(testNormalBlock)
 {

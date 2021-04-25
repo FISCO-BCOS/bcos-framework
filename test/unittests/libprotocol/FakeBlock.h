@@ -66,7 +66,8 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
     }
     // check transactions
     BOOST_CHECK(decodedBlock->transactionsSize() == block->transactionsSize());
-    for(size_t i = 0; i < block->transactionsSize(); ++i) {
+    for (size_t i = 0; i < block->transactionsSize(); ++i)
+    {
         checkTransction(block->transaction(i), decodedBlock->transaction(i));
     }
     /*
