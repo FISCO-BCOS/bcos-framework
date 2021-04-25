@@ -27,11 +27,14 @@ namespace bcos
 {
 namespace protocol
 {
+
 using HashList = std::vector<bcos::crypto::HashType>;
 using HashListPtr = std::shared_ptr<HashList>;
 using HashListConstPtr = std::shared_ptr<const HashList>;
+
 using NonceList = std::vector<u256>;
 using NonceListPtr = std::shared_ptr<NonceList>;
+
 enum BlockType : int32_t
 {
     CompleteBlock = 1,
@@ -55,35 +58,27 @@ public:
     // get blockHeader
     virtual BlockHeader::Ptr blockHeader() = 0;
     // get transactions
-    virtual TransactionsConstPtr transactions() const = 0;
     virtual Transaction::ConstPtr transaction(size_t _index) const = 0;
     // get receipts
-    virtual ReceiptsConstPtr receipts() const = 0;
     virtual TransactionReceipt::ConstPtr receipt(size_t _index) const = 0;
     // get transaction hash
-    virtual HashListConstPtr transactionsHash() const = 0;
     virtual bcos::crypto::HashType const& transactionHash(size_t _index) const = 0;
     // get receipt hash
-    virtual HashListConstPtr receiptsHash() const = 0;
     virtual bcos::crypto::HashType const& receiptHash(size_t _index) const = 0;
 
     virtual void setBlockType(BlockType _blockType) = 0;
     // set blockHeader
     virtual void setBlockHeader(BlockHeader::Ptr _blockHeader) = 0;
     // set transactions
-    virtual void setTransactions(TransactionsPtr _transactions) = 0;
     virtual void setTransaction(size_t _index, Transaction::Ptr _transaction) = 0;
     virtual void appendTransaction(Transaction::Ptr _transaction) = 0;
     // set receipts
-    virtual void setReceipts(ReceiptsPtr _receipts) = 0;
     virtual void setReceipt(size_t _index, TransactionReceipt::Ptr _receipt) = 0;
     virtual void appendReceipt(TransactionReceipt::Ptr _receipt) = 0;
     // set transaction hash
-    virtual void setTransactionsHash(HashListPtr _transactionsHash) = 0;
     virtual void setTransactionHash(size_t _index, bcos::crypto::HashType const& _txHash) = 0;
     virtual void appendTransactionHash(bcos::crypto::HashType const& _txHash) = 0;
     // set receipt hash
-    virtual void setReceiptsHash(HashListPtr _receiptsHash) = 0;
     virtual void setReceiptHash(size_t _index, bcos::crypto::HashType const& _receptHash) = 0;
     virtual void appendReceiptHash(bcos::crypto::HashType const& _receiptHash) = 0;
     // getNonces of the current block
