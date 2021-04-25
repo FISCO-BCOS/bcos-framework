@@ -46,7 +46,7 @@ inline PBTransaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite,
     return pbTransaction;
 }
 
-inline void checkTransction(Transaction::Ptr pbTransaction, Transaction::Ptr decodedTransaction)
+inline void checkTransction(Transaction::ConstPtr pbTransaction, Transaction::ConstPtr decodedTransaction)
 {
     // check the fields
     BOOST_CHECK(decodedTransaction->hash() == pbTransaction->hash());
