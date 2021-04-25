@@ -63,7 +63,7 @@ public:
      * @return void
      */
     virtual void asyncGetNodeIDs(std::function<void(Error::Ptr _error,
-            const std::shared_ptr<const std::vector<bcos::crypto::NodeIDPtr>>&)>) const = 0;
+            std::shared_ptr<const std::vector<bcos::crypto::NodeIDPtr>>&)>) const = 0;
 
     /**
      * @brief: send message to a single node
@@ -85,8 +85,8 @@ public:
      * @param _payload: message content
      * @return void
      */
-    virtual void asyncSendMessageByNodeIDs(
-        const std::string& _groupID, const NodeIDs& _nodeIDs, bytesConstRef _payload) = 0;
+    virtual void asyncSendMessageByNodeIDs(const std::string& _groupID,
+        const bcos::crypto::NodeIDs& _nodeIDs, bytesConstRef _payload) = 0;
 
     /**
      * @brief: send message to all nodes
