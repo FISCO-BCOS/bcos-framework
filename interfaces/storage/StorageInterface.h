@@ -19,9 +19,9 @@
  * @date: 2021-04-07
  */
 #pragma once
-#include "interfaces/storage/Common.h"
-#include "libutilities/Error.h"
-#include "interfaces/protocol/Block.h"
+#include "Common.h"
+#include "../../libutilities/Error.h"
+#include "../../interfaces/protocol/Block.h"
 #include <map>
 #include <memory>
 #include <string>
