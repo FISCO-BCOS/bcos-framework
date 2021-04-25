@@ -19,7 +19,7 @@
  * @date: 2021-03-23
  */
 #pragma once
-#include "interfaces/protocol/BlockHeader.h"
+#include "BlockHeader.h"
 namespace bcos
 {
 namespace protocol
