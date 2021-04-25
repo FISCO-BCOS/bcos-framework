@@ -26,7 +26,7 @@ namespace bcos
 {
 namespace consensus
 {
-// ConsensusInterface is the interface of concensus exposed to other modules
+// ConsensusInterface is the interface of consensus exposed to other modules
 class ConsensusInterface
 {
 public:
