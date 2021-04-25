@@ -28,6 +28,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #define STORAGE_LOG(LEVEL) LOG(LEVEL) << "[STORAGE]"
@@ -121,6 +122,9 @@ private:
 struct TableInfo : public std::enable_shared_from_this<TableInfo>
 {
     using Ptr = std::shared_ptr<TableInfo>;
+    explicit TableInfo(const std::string& _tableName, const std::string& _key = "")
+      : name(_tableName), key(_key)
+    {}
     std::string name;
     std::string key;
     std::vector<std::string> fields;
@@ -129,6 +133,7 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
 
     bool enableConsensus = true;
     bool enableCache = true;
+    bool newTable = false;
 };
 
 
@@ -177,7 +182,12 @@ public:
                            << LOG_KV("key", key);
         return "";
     }
-    virtual void setField(const std::string& key, const std::string_view& value)
+    virtual void setField(const std::string& key, const std::string& value)
+    {
+        setField(std::string(key), std::string(value));
+    }
+
+    virtual void setField(std::string&& key, std::string&& value)
     {
         auto lock = checkRef();
 
@@ -190,12 +200,14 @@ public:
         }
         else
         {
-            m_data->m_fields.insert(std::make_pair(key, value));
             updatedCapacity = key.size() + value.size();
+            m_data->m_fields.insert(
+                std::make_pair(std::forward<std::string>(key), std::forward<std::string>(value)));
         }
         m_capacityOfHashField += updatedCapacity;
         m_dirty = true;
     }
+
     virtual std::map<std::string, std::string>::const_iterator find(const std::string& key) const
     {
         return m_data->m_fields.find(key);
@@ -295,7 +307,11 @@ public:
         m_data->m_refCount += 1;
     }
     virtual bool dirty() const { return m_dirty; }
-
+    virtual void setDirty(bool dirty)
+    {
+        RWMutexScoped lock(m_data->m_mutex, true);
+        m_dirty = dirty;
+    }
     virtual ssize_t capacityOfHashField() const
     {  // the capacity is used to calculate gas, must return the same value in different DB
         RWMutexScoped lock(m_data->m_mutex, false);

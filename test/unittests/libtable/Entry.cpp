@@ -25,6 +25,7 @@
 #include <iostream>
 #include <string>
 
+using namespace std;
 using namespace bcos;
 using namespace bcos::storage;
 namespace bcos
@@ -65,19 +66,31 @@ BOOST_AUTO_TEST_CASE(copyFrom)
     BOOST_TEST(entry1->getFieldConst("key") == "value");
     BOOST_TEST(entry1->getFieldConst("key2") == "");
     BOOST_TEST(entry1->getField("key2") == "");
-    if(entry1->find("key2") != entry1->end())
+    if (entry1->find("key2") != entry1->end())
     {
         BOOST_TEST(false);
     }
-    if(entry1->find("key") != entry1->begin())
+    if (entry1->find("key") != entry1->begin())
     {
         BOOST_TEST(false);
     }
     entry2->setField("key", "value3");
+    BOOST_TEST(entry2->capacityOfHashField() == 9);
     BOOST_TEST(entry2->getFieldConst("key") == "value3");
     BOOST_TEST(entry1->refCount() == 1);
     BOOST_TEST(entry2->refCount() == 1);
     entry2->copyFrom(entry2);
+    BOOST_TEST(entry2->dirty() == true);
+    entry2->setDirty(false);
+    BOOST_TEST(entry2->dirty() == false);
+    auto key2 = "key2";
+    // test setField lValue and rValue
+    entry2->setField(key2, string("value2"));
+    BOOST_TEST(entry2->dirty() == true);
+    BOOST_TEST(entry2->refCount() == 1);
+    BOOST_TEST(entry2->capacityOfHashField() == 19);
+    auto value2 = "value2";
+    entry2->setField(key2, value2);
 }
 
 BOOST_AUTO_TEST_CASE(functions)
