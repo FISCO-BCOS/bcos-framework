@@ -35,8 +35,7 @@ const char* const STATUS = "_status_";
 
 inline TableInfo::Ptr getSysTableInfo(const std::string& tableName)
 {
-    auto tableInfo = std::make_shared<TableInfo>();
-    tableInfo->name = tableName;
+    auto tableInfo = std::make_shared<TableInfo>(tableName);
     if (tableName == SYS_TABLES)
     {
         tableInfo->key = "table_name";

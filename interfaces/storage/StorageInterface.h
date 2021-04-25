@@ -37,23 +37,26 @@ public:
     using Ptr = std::shared_ptr<StorageInterface>;
     StorageInterface() = default;
     virtual ~StorageInterface() {}
-    virtual std::vector<std::string> getPrimaryKeys(std::shared_ptr<TableInfo> _tableInfo, std::shared_ptr<Condition> _condition) const = 0;
+    virtual std::vector<std::string> getPrimaryKeys(
+        std::shared_ptr<TableInfo> _tableInfo, std::shared_ptr<Condition> _condition) const = 0;
     virtual std::shared_ptr<Entry> getRow(
         std::shared_ptr<TableInfo>& _tableInfo, const std::string_view& _key) = 0;
     virtual std::map<std::string, std::shared_ptr<Entry>> getRows(
         std::shared_ptr<TableInfo>& _tableInfo, const std::vector<std::string>& _keys) = 0;
-    virtual size_t commitTables(
-        const std::map<std::shared_ptr<TableInfo>, std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>>& _data) = 0;
+    virtual size_t commitTables(const std::vector<std::shared_ptr<TableInfo>> _tableInfos,
+        std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>>&
+            _tableDatas) = 0;
 
-    virtual void asyncGetPrimaryKeys(std::shared_ptr<TableInfo>& _tableInfo, std::shared_ptr<Condition> _condition,
+    virtual void asyncGetPrimaryKeys(std::shared_ptr<TableInfo>& _tableInfo,
+        std::shared_ptr<Condition> _condition,
         std::function<void(Error, std::vector<std::string>)> _callback) const = 0;
     virtual void asyncGetRow(std::shared_ptr<TableInfo>& _tableInfo, const std::string_view& _key,
         std::function<void(Error, std::shared_ptr<Entry>)> _callback) = 0;
     virtual void asyncGetRows(std::shared_ptr<TableInfo>& _tableInfo,
         const std::vector<std::string>& _keys,
         std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback) = 0;
-    virtual void asyncCommitTables(
-        const std::map<std::shared_ptr<TableInfo>, std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>>& _data,
+    virtual void asyncCommitTables(const std::vector<std::shared_ptr<TableInfo>> _tableInfos,
+        std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>>& _tableDatas,
         std::function<void(Error)> _callback) = 0;
 
     // cache TableFactory
