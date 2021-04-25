@@ -20,8 +20,8 @@
  */
 #pragma once
 
-#include "interfaces/protocol/ProtocolTypeDef.h"
-#include "libutilities/Log.h"
+#include "../../interfaces/protocol/ProtocolTypeDef.h"
+#include "../../libutilities/Log.h"
 #include "tbb/spin_mutex.h"
 #include "tbb/spin_rw_mutex.h"
 #include "tbb/tbb_thread.h"
