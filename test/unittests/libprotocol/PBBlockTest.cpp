@@ -22,6 +22,7 @@
 #include "libprotocol/TransactionSubmitResultImpl.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
+#include <memory>
 using namespace bcos;
 using namespace bcos::protocol;
 using namespace bcos::crypto;
@@ -33,9 +34,9 @@ namespace test
 BOOST_FIXTURE_TEST_SUITE(PBBlockTest, TestPromptFixture)
 void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
 {
-    auto block1 = fakeAndCheckBlock(cryptoSuite, blockFactory, true, 10, 3, 7, 6);
+    auto block1 = std::dynamic_pointer_cast<PBBlock>(fakeAndCheckBlock(cryptoSuite, blockFactory, true, 10, 3, 7, 6));
     // without blockHeader
-    auto block2 = fakeAndCheckBlock(cryptoSuite, blockFactory, false, 10, 4, 8, 6);
+    auto block2 = std::dynamic_pointer_cast<PBBlock>(fakeAndCheckBlock(cryptoSuite, blockFactory, false, 10, 4, 8, 6));
     // update transactions
     TransactionsPtr txs1 = std::make_shared<Transactions>();
     for (int i = 0; i < 5; i++)
@@ -48,7 +49,7 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     auto encodedData = std::make_shared<bytes>();
     block2->encode(*encodedData);
     // decode and check
-    auto decodedBlock = blockFactory->createBlock(*encodedData);
+    auto decodedBlock = std::dynamic_pointer_cast<PBBlock>(blockFactory->createBlock(*encodedData));
     checkBlock(cryptoSuite, block2, decodedBlock);
 
     // update transactions to empty
@@ -65,7 +66,7 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     BOOST_CHECK(block2->receipts()->size() == 2);
     block2->encode(*encodedData);
     // decode and check the block
-    decodedBlock = blockFactory->createBlock(*encodedData);
+    decodedBlock = std::dynamic_pointer_cast<PBBlock>(blockFactory->createBlock(*encodedData));
     checkBlock(cryptoSuite, block2, decodedBlock);
     BOOST_CHECK(decodedBlock->transactions()->size() == 0);
     BOOST_CHECK(decodedBlock->receipts()->size() == 2);

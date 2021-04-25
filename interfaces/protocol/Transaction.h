@@ -52,8 +52,10 @@ public:
     virtual TransactionType const& type() const = 0;
     virtual void forceSender(bytes const& _sender) = 0;
 };
+
 using Transactions = std::vector<Transaction::Ptr>;
 using TransactionsPtr = std::shared_ptr<Transactions>;
 using TransactionsConstPtr = std::shared_ptr<const Transactions>;
+
 }  // namespace protocol
 }  // namespace bcos

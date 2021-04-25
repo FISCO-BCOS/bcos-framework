@@ -82,13 +82,13 @@ public:
     // get blockHeader
     BlockHeader::Ptr blockHeader() override { return m_blockHeader; }
     // get transactions
-    TransactionsConstPtr transactions() const override { return m_transactions; }
+    TransactionsConstPtr transactions() const { return m_transactions; } // removed
     // get receipts
-    ReceiptsConstPtr receipts() const override { return m_receipts; }
+    ReceiptsConstPtr receipts() const { return m_receipts; } // removed
     // get transaction hash
-    HashListConstPtr transactionsHash() const override { return m_transactionsHash; }
+    HashListConstPtr transactionsHash() const { return m_transactionsHash; } // removed
     // get receipt hash
-    HashListConstPtr receiptsHash() const override { return m_receiptsHash; }
+    HashListConstPtr receiptsHash() const { return m_receiptsHash; } // removed
 
     void setBlockType(BlockType _blockType) override
     {
@@ -97,7 +97,7 @@ public:
     // set blockHeader
     void setBlockHeader(BlockHeader::Ptr _blockHeader) override { m_blockHeader = _blockHeader; }
     // set transactions
-    void setTransactions(TransactionsPtr _transactions) override
+    void setTransactions(TransactionsPtr _transactions) // removed
     {
         m_transactions = _transactions;
         clearTransactionsCache();
@@ -114,7 +114,7 @@ public:
         clearTransactionsCache();
     }
     // set receipts
-    void setReceipts(ReceiptsPtr _receipts) override
+    void setReceipts(ReceiptsPtr _receipts) // removed
     {
         m_receipts = _receipts;
         // clear the cache
@@ -131,7 +131,7 @@ public:
         m_receipts->push_back(_receipt);
     }
     // set transaction hash
-    void setTransactionsHash(HashListPtr _transactionsHash) override
+    void setTransactionsHash(HashListPtr _transactionsHash) // removed
     {
         m_transactionsHash = _transactionsHash;
         clearTransactionsHashCache();
@@ -146,7 +146,7 @@ public:
         m_transactionsHash->push_back(_txHash);
     }
     // set receipt hash
-    void setReceiptsHash(HashListPtr _receiptsHash) override
+    void setReceiptsHash(HashListPtr _receiptsHash) // removed
     {
         m_receiptsHash = _receiptsHash;
         clearReceiptsHashCache();

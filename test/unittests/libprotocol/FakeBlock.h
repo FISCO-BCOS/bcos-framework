@@ -65,27 +65,37 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
         checkBlockHeader(block->blockHeader(), decodedBlock->blockHeader());
     }
     // check transactions
-    BOOST_CHECK(decodedBlock->transactions()->size() == block->transactions()->size());
-    size_t index = 0;
+    BOOST_CHECK(decodedBlock->transactionsSize() == block->transactionsSize());
+    for (size_t i = 0; i < block->transactionsSize(); ++i)
+    {
+        checkTransction(block->transaction(i), decodedBlock->transaction(i));
+    }
+    /*
     for (auto transaction : *(block->transactions()))
     {
         checkTransction(transaction, (*(decodedBlock->transactions()))[index++]);
     }
+    */
     // check receipts
-    BOOST_CHECK(decodedBlock->receipts()->size() == block->receipts()->size());
-    index = 0;
+    BOOST_CHECK(decodedBlock->receiptsSize() == block->receiptsSize());
+    for (size_t i = 0; i < block->receiptsSize(); ++i)
+    {
+        checkReceipts(_cryptoSuite->hashImpl(), block->receipt(i), decodedBlock->receipt(i));
+    }
+    /*
     for (auto receipt : *(block->receipts()))
     {
         checkReceipts(_cryptoSuite->hashImpl(), receipt, (*(decodedBlock->receipts()))[index++]);
     }
+    */
     // checkHash
-    for (size_t i = 0; i < decodedBlock->receiptsHash()->size(); i++)
+    for (size_t i = 0; i < decodedBlock->receiptsHashSize(); i++)
     {
-        BOOST_CHECK((*(decodedBlock->receiptsHash()))[i] == (*(block->receiptsHash()))[i]);
+        BOOST_CHECK(decodedBlock->receiptHash(i) == block->receiptHash(i));
     }
-    for (size_t i = 0; i < decodedBlock->transactionsHash()->size(); i++)
+    for (size_t i = 0; i < decodedBlock->transactionsHashSize(); i++)
     {
-        BOOST_CHECK((*(decodedBlock->transactionsHash()))[i] == (*(block->transactionsHash()))[i]);
+        BOOST_CHECK(decodedBlock->transactionHash(i) == block->transactionHash(i));
     }
     // check receiptsRoot
     h256 originHash = h256();
@@ -170,20 +180,20 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
     BOOST_CHECK(CompleteBlock == decodedBlock->blockType());
     checkBlock(_cryptoSuite, block, decodedBlock);
     // check txsHash
-    BOOST_CHECK(decodedBlock->transactionsHash()->size() == _txsHashNum);
+    BOOST_CHECK(decodedBlock->transactionsHashSize() == _txsHashNum);
     for (size_t i = 0; i < _txsHashNum; i++)
     {
         auto content = "transaction: " + std::to_string(i);
         auto hash = _cryptoSuite->hashImpl()->hash(content);
-        BOOST_CHECK((*(decodedBlock->transactionsHash()))[i] == hash);
+        BOOST_CHECK(decodedBlock->transactionHash(i) == hash);
     }
     // check receiptHash
-    BOOST_CHECK(decodedBlock->receiptsHash()->size() == _receiptsHashNum);
+    BOOST_CHECK(decodedBlock->receiptsHashSize() == _receiptsHashNum);
     for (size_t i = 0; i < _receiptsHashNum; i++)
     {
         auto content = "receipt: " + std::to_string(i);
         auto hash = _cryptoSuite->hashImpl()->hash(content);
-        BOOST_CHECK((*(decodedBlock->receiptsHash()))[i] == hash);
+        BOOST_CHECK(decodedBlock->receiptHash(i) == hash);
     }
 
     // exception test
