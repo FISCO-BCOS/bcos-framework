@@ -21,9 +21,9 @@
 #pragma once
 
 #include "Table.h"
+#include "boost/algorithm/string.hpp"
 #include "tbb/concurrent_unordered_map.h"
 #include "tbb/enumerable_thread_specific.h"
-#include "boost/algorithm/string.hpp"
 #include "tbb/parallel_for.h"
 #include "tbb/parallel_sort.h"
 
@@ -31,7 +31,6 @@ namespace bcos
 {
 namespace storage
 {
-
 class TableFactory : TableFactoryInterface
 {
 public:
@@ -48,6 +47,7 @@ public:
     bool createTable(const std::string& _tableName, const std::string& _keyField,
         const std::string& _valueFields) override
     {
+        // TODO: check tablename and column name characters are permitted
         auto sysTable = openTable(SYS_TABLES);
         // To make sure the table exists
         {
@@ -73,6 +73,21 @@ public:
                     << LOG_KV("table name", _tableName);
                 return false;
             }
+            // insert new table to m_name2Table
+            auto tableInfo = std::make_shared<storage::TableInfo>(_tableName, _keyField);
+            boost::split(tableInfo->fields, _valueFields, boost::is_any_of(","));
+            tableInfo->fields.emplace_back(STATUS);
+            tableInfo->fields.emplace_back(tableInfo->key);
+            tableInfo->fields.emplace_back(NUM_FIELD);
+            tableInfo->newTable = true;
+            auto table = std::make_shared<Table>(m_DB, tableInfo, m_hashImpl, m_blockNumber);
+            table->setRecorder([&](TableInterface::Ptr _table, TableInterface::Change::Kind _kind,
+                                   std::string const& _key, std::shared_ptr<Entry> _entry) {
+                auto& changeLog = getChangeLog();
+                changeLog.emplace_back(_table, _kind, _key, _entry);
+            });
+
+            m_name2Table.insert({_tableName, table});
             // FIXME: write permission info of table
             STORAGE_LOG(INFO) << LOG_BADGE("TableFactory") << LOG_DESC("createTable")
                               << LOG_KV("table name", _tableName) << LOG_KV("keyField", _keyField)
@@ -142,8 +157,9 @@ public:
     {
         auto start_time = utcTime();
         auto record_time = utcTime();
-        std::map<TableInfo::Ptr, std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>>
-            datas;
+        std::vector<TableInfo::Ptr> infos;
+        std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>> datas;
+
         for (auto& dbIt : m_name2Table)
         {
             auto table = dbIt.second;
@@ -151,7 +167,8 @@ public:
             {
                 STORAGE_LOG(TRACE) << "Dumping table: " << dbIt.first;
                 auto tableData = table->dump();
-                datas[table->tableInfo()] = tableData;
+                datas.push_back(tableData);
+                infos.push_back(table->tableInfo());
             }
         }
         auto getData_time_cost = utcTime() - record_time;
@@ -159,7 +176,7 @@ public:
 
         if (!datas.empty())
         {
-            m_DB->commitTables(datas);
+            m_DB->commitTables(infos, datas);
         }
         auto commit_time_cost = utcTime() - record_time;
         record_time = utcTime();
@@ -196,7 +213,7 @@ private:
             return it->second;
         }
 
-        auto tableInfo = std::make_shared<storage::TableInfo>();
+        auto tableInfo = std::make_shared<storage::TableInfo>(tableName);
         if (m_sysTables.end() != find(m_sysTables.begin(), m_sysTables.end(), tableName))
         {
             tableInfo = getSysTableInfo(tableName);
@@ -209,7 +226,6 @@ private:
             {
                 return nullptr;
             }
-            tableInfo->name = tableName;
             tableInfo->key = entry->getField("key_field");
             std::string valueFields = entry->getField("value_field");
             boost::split(tableInfo->fields, valueFields, boost::is_any_of(","));
