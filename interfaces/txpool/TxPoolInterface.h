@@ -80,8 +80,7 @@ public:
      * @param _onTxsStored callback to be called after the given txs have been stored
      */
     virtual void asyncStoreTxs(bcos::crypto::HashType const& _proposalHash,
-        std::vector<bytesConstRef> const& _txsToStore,
-        std::function<void(Error::Ptr)> _onTxsStored) = 0;
+        bytesConstRef _txsToStore, std::function<void(Error::Ptr)> _onTxsStored) = 0;
 
     /**
      * @brief The dispatcher obtains the transaction list corresponding to the block from the
