@@ -18,6 +18,7 @@
  * @date: 2021-04-07
  */
 #pragma once
+#include "interfaces/crypto/KeyInterface.h"
 #include "interfaces/protocol/Block.h"
 #include "interfaces/protocol/Transaction.h"
 #include "interfaces/protocol/TransactionSubmitResult.h"
@@ -61,13 +62,15 @@ public:
     /**
      * @brief verify transactions in Block for the consensus module
      *
-     * @param _leaderNodeId the NodeID of the leader(When missing transactions, need to obtain the
-     * missing transactions from Leader)
-     * @param _block the block to be verified
+     * @param _generatedNodeID the NodeID of the leader(When missing transactions, need to obtain
+     * the missing transactions from Leader)
+     * @param _blocks the block to be verified
      * @param _onVerifyFinished callback to be called after the block verification is over
      */
-    virtual void asyncVerifyBlock(bytesPointer _leaderNodeId, bcos::protocol::Blocks const& _blocks,
+    virtual void asyncVerifyBlocks(bcos::crypto::PublicPtr _generatedNodeID,
+        std::vector<bytesConstRef> const& _blocks,
         std::function<void(Error::Ptr, bool)> _onVerifyFinished) = 0;
+
 
     /**
      * @brief Persistent transaction list
@@ -77,8 +80,7 @@ public:
      * @param _onTxsStored callback to be called after the given txs have been stored
      */
     virtual void asyncStoreTxs(bcos::crypto::HashType const& _proposalHash,
-        bcos::protocol::Blocks const& _txsToStore,
-        std::function<void(Error::Ptr)> _onTxsStored) = 0;
+        bytesConstRef _txsToStore, std::function<void(Error::Ptr)> _onTxsStored) = 0;
 
     /**
      * @brief The dispatcher obtains the transaction list corresponding to the block from the

@@ -13,23 +13,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief interface for p2p
- * @file P2PInterface.h
+ * @brief define common error for all the modules
+ * @file CommonError.h
  * @author: yujiechen
- * @date 2021-04-08
+ * @date 2021-04-22
  */
 #pragma once
-
 namespace bcos
 {
-namespace p2p
+namespace protocol
 {
-using PacketType = uint32_t;
-class P2PInterface
+enum CommonError : int32_t
 {
-public:
-    P2PInterface() = default;
-    virtual ~P2PInterface() {}
+    SUCCESS = 0,
 };
-}  // namespace p2p
+}
 }  // namespace bcos

@@ -14,18 +14,20 @@
  *  limitations under the License.
  *
  * @brief interface for Ledger
- * @file Ledger.h
+ * @file LedgerInterface.h
  * @author: kyonRay
  * @date: 2021-04-07
  */
 
 #pragma once
-#include "interfaces/crypto/CommonType.h"
-#include "interfaces/protocol/Transaction.h"
-#include "interfaces/protocol/TransactionReceipt.h"
-#include "interfaces/protocol/Block.h"
-#include "interfaces/protocol/BlockHeader.h"
-#include "libutilities/Error.h"
+
+#include "../../interfaces/crypto/CommonType.h"
+#include "../../interfaces/protocol/Transaction.h"
+#include "../../interfaces/protocol/TransactionReceipt.h"
+#include "../../interfaces/protocol/Block.h"
+#include "../../interfaces/protocol/BlockHeader.h"
+#include "../../libutilities/Error.h"
+
 
 namespace bcos
 {
@@ -61,7 +63,15 @@ public:
                                   std::function<void(Error::Ptr)> _onTxsStored) = 0;
 
     /**
-     * @brief async get a transaction by hash
+     * @brief async get txs in block by block number
+     * @param _blockNumber the number of block to get
+     * @param _onGetTx
+     */
+    virtual void asyncGetTransactionsByBlockNumber(bcos::protocol::BlockNumber _blockNumber,
+        std::function<void(Error::Ptr, bcos::protocol::TransactionsConstPtr)> _onGetTx) =0;
+
+    /**
+     * @brief async get a transaction by transaction hash
      *
      * @param _txHash hash of transaction
      * @param _onGetTx
@@ -89,13 +99,21 @@ public:
 
 
     /**
-     * @brief async get a transaction receipt by hash
+     * @brief async get a transaction receipt by tx hash
      *
      * @param _txHash hash of transaction
      * @param _onGetTx
      */
     virtual void asyncGetTransactionReceiptByHash(bcos::crypto::HashType const& _txHash,
         std::function<void(Error::Ptr, bcos::protocol::TransactionReceipt::ConstPtr)> _onGetTx) = 0;
+
+    /**
+     * @brief async get receipts in block by block number
+     * @param _blockNumber number of block
+     * @param _onGetReceipt
+     */
+    virtual void asyncGetReceiptsByBlockNumber(bcos::protocol::BlockNumber _blockNumber,
+        std::function<void(Error::Ptr, bcos::protocol::ReceiptsConstPtr)> _onGetReceipt) = 0;
 
     /**
      * @brief async get total transaction count and latest block number
@@ -119,7 +137,7 @@ public:
      * @param _index transaction index in block
      * @param _onGetProof
      */
-    virtual void getTransactionProof(bcos::crypto::HashType const & _blockHash, int64_t const& _index,
+    virtual void asyncGetTransactionProof(bcos::crypto::HashType const & _blockHash, int64_t const& _index,
         std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
 
     /**
@@ -140,11 +158,19 @@ public:
 
     /**
      * @brief async get block hash by block number
-     *
+     * @param _blockNumber the number of block to get
      * @param _onGetBlock
      */
-    virtual void asyncGetBlockHashByNumber(bcos::protocol::BlockNumber,
+    virtual void asyncGetBlockHashByNumber(bcos::protocol::BlockNumber _blockNumber,
         std::function<void(Error::Ptr, std::shared_ptr<const bcos::crypto::HashType>)> _onGetBlock) = 0;
+
+    /**
+     * @brief async get block number by block hash
+     * @param _blockHash the hash of block to get
+     * @param _onGetBlock
+     */
+    virtual void asyncGetBlockNumberByHash(const bcos::crypto::HashType & _blockHash,
+                                           std::function<void(Error::Ptr, std::shared_ptr<const bcos::crypto::HashType>)> _onGetBlock) = 0;
 
     /**
      * @brief async get a block by hash
@@ -165,12 +191,12 @@ public:
         std::function<void(Error::Ptr, bcos::protocol::Block::Ptr)> _onGetBlock) = 0;
 
     /**
-     * @brief async get a encoded block by number
+     * @brief async get an encoded block by number
      * @param _blockNumber number of block
      * @param _onGetBlock
      */
     virtual void asyncGetBlockEncodedByNumber(bcos::protocol::BlockNumber _blockNumber,
-                                              std::function<void(Error::Ptr, std::shared_ptr<const bytes>)> _onGetBlock) = 0;
+                                              std::function<void(Error::Ptr, bytesPointer)> _onGetBlock) = 0;
 
     /**
      * @brief async get a block header by number

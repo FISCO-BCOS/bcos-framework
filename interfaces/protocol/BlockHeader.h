@@ -19,7 +19,7 @@
  * @date: 2021-03-22
  */
 #pragma once
-#include "interfaces/protocol/ProtocolTypeDef.h"
+#include "ProtocolTypeDef.h"
 namespace bcos
 {
 namespace protocol

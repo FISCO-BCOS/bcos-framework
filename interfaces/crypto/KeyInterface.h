@@ -37,12 +37,15 @@ public:
     virtual std::shared_ptr<bytes> encode() const = 0;
     virtual void decode(bytesConstRef _data) = 0;
     virtual void decode(bytes&& _data) = 0;
+
+    virtual std::string shortHex() = 0;
+    virtual std::string hex() = 0;
 };
 using Public = KeyInterface;
 using Secret = KeyInterface;
 using PublicPtr = KeyInterface::Ptr;
 using SecretPtr = KeyInterface::Ptr;
-using NodeID = KeyInterface::Ptr;
-using NodeIDs = std::vector<KeyInterface::Ptr>;
+using NodeIDPtr = KeyInterface::Ptr;
+using NodeIDs = std::vector<NodeIDPtr>;
 }  // namespace crypto
 }  // namespace bcos

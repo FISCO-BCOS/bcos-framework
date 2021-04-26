@@ -20,6 +20,7 @@
  */
 #pragma once
 #include "interfaces/consensus/ConsensusTypeDef.h"
+#include "interfaces/crypto/KeyInterface.h"
 #include "libutilities/Error.h"
 
 namespace bcos
@@ -44,9 +45,6 @@ public:
 
     // isLeader checks whether the node is the sealer or not
     virtual void isLeader(std::function<void(bool)> _callback) = 0;
-
-    // receive message from the P2P module
-    // TODO: define the interface that need register to the P2P module when receiving P2P message
 };
 }  // namespace consensus
 }  // namespace bcos

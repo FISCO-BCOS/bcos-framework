@@ -13,31 +13,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief Unit tests for the Base64
- * @file Base64.cpp
+ * @brief Protocol for all the modules
+ * @file Protocol.h
+ * @author: yujiechen
+ * @date 2021-04-21
  */
-
-#include "interfaces/storage/StorageInterface.h"
-#include <bcos-test/libutils/TestPromptFixture.h>
-#include <boost/test/unit_test.hpp>
-#include <iostream>
-#include <string>
-
-using namespace bcos;
-using namespace bcos::storage;
+#pragma once
 namespace bcos
 {
-namespace test
+namespace protocol
 {
-BOOST_FIXTURE_TEST_SUITE(StorageInterfaces, TestPromptFixture)
+enum ModuleID
+{
 
-BOOST_AUTO_TEST_CASE(testStorageInterface)
-{
-    StorageInterface::Ptr s = nullptr;
-    DBInterface::Ptr d = nullptr;
-    TableInterface::Ptr t = nullptr;
+    PBFT = 1000,
+    Raft = 1001,
+    BlockSync = 2000,
+    TxsSync = 2001,
+    AMOP = 3000,
+};
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-}  // namespace test
 }  // namespace bcos

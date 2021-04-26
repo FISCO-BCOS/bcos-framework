@@ -27,14 +27,15 @@ namespace bcos
 {
 namespace gateway
 {
-using NodeID = bcos::crypto::NodeID;
-using NodeIDs = bcos::crypto::NodeIDs;
 using CallbackFunc = std::function<void(Error::Ptr, bytesConstRef)>;
 /**
  * @brief: A list of interfaces provided by the gateway which are called by the front service.
  */
 class GatewayInterface
 {
+public:
+    using Ptr = std::shared_ptr<GatewayInterface>;
+
 public:
     /**
      * @brief:
@@ -43,8 +44,8 @@ public:
      * @param _messageCallback: callback
      * @return void
      */
-    virtual void registerFrontMessageCallback(
-        const std::string& _groupID, const NodeID& _nodeID, CallbackFunc _messageCallback);
+    virtual void registerFrontMessageCallback(const std::string& _groupID,
+        bcos::crypto::NodeIDPtr _nodeID, CallbackFunc _messageCallback) = 0;
 
     /**
      * @brief:
@@ -53,16 +54,16 @@ public:
      * @param _nodeStatusCallback: callback
      * @return void
      */
-    virtual void registerNodeStatusNotifier(const std::string& _groupID, const NodeID& _nodeID,
-        std::function<void(Error::Ptr _error)> _nodeStatusCallback);
+    virtual void registerNodeStatusNotifier(const std::string& _groupID,
+        bcos::crypto::NodeIDPtr _nodeID,
+        std::function<void(Error::Ptr _error)> _nodeStatusCallback) = 0;
 
     /**
      * @brief: get nodeID list
      * @return void
      */
-    virtual void asyncGetNodeIDs(
-        std::function<void(Error::Ptr _error, const std::shared_ptr<const std::vector<NodeID> >&)>)
-        const;
+    virtual void asyncGetNodeIDs(std::function<void(Error::Ptr _error,
+            const std::shared_ptr<const std::vector<bcos::crypto::NodeIDPtr>>&)>) const = 0;
 
     /**
      * @brief: send message to a single node
@@ -73,8 +74,9 @@ public:
      * @param _callback: callback
      * @return void
      */
-    virtual void asyncSendMessageByNodeID(const std::string& _groupID, const NodeID& _nodeID,
-        bytesConstRef _payload, uint32_t _timeout, CallbackFunc _callback);
+    virtual void asyncSendMessageByNodeID(const std::string& _groupID,
+        bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _payload, uint32_t _timeout,
+        CallbackFunc _callback) = 0;
 
     /**
      * @brief: send message to multiple nodes
@@ -84,7 +86,7 @@ public:
      * @return void
      */
     virtual void asyncSendMessageByNodeIDs(
-        const std::string& _groupID, const NodeIDs& _nodeIDs, bytesConstRef _payload);
+        const std::string& _groupID, const NodeIDs& _nodeIDs, bytesConstRef _payload) = 0;
 
     /**
      * @brief: send message to all nodes
@@ -92,7 +94,7 @@ public:
      * @param _payload: message content
      * @return void
      */
-    virtual void asyncMulticastMessage(const std::string& _groupID, bytesConstRef _payload);
+    virtual void asyncMulticastMessage(const std::string& _groupID, bytesConstRef _payload) = 0;
 };
 
 }  // namespace gateway

@@ -28,7 +28,7 @@ namespace protocol
 DERIVE_BCOS_EXCEPTION(PBObjectEncodeException);
 DERIVE_BCOS_EXCEPTION(PBObjectDecodeException);
 template <typename T>
-bytesPointer encodePBObject(std::shared_ptr<T> _pbObject)
+bytesPointer encodePBObject(T _pbObject)
 {
     auto encodedData = std::make_shared<bytes>();
     encodedData->resize(_pbObject->ByteSizeLong());
@@ -41,7 +41,7 @@ bytesPointer encodePBObject(std::shared_ptr<T> _pbObject)
 }
 
 template <typename T>
-void decodePBObject(std::shared_ptr<T> _pbObject, bytesConstRef _data)
+void decodePBObject(T _pbObject, bytesConstRef _data)
 {
     if (!_pbObject->ParseFromArray(_data.data(), _data.size()))
     {

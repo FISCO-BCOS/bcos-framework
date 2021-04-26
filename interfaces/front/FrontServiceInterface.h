@@ -27,7 +27,6 @@ namespace bcos
 {
 namespace front
 {
-using NodeID = bcos::crypto::NodeID;
 using CallbackFunc = std::function<void(Error::Ptr, bytesConstRef)>;
 
 /**
@@ -36,13 +35,15 @@ using CallbackFunc = std::function<void(Error::Ptr, bytesConstRef)>;
 class FrontServiceInterface
 {
 public:
+    using Ptr = std::shared_ptr<FrontServiceInterface>;
+
+public:
     /**
      * @brief: get nodeID list
      * @return void
      */
-    virtual void asyncGetNodeIDs(
-        std::function<void(Error::Ptr _error, const std::shared_ptr<const std::vector<NodeID> >&)>)
-        const;
+    virtual void asyncGetNodeIDs(std::function<void(Error::Ptr _error,
+            const std::shared_ptr<const std::vector<bcos::crypto::NodeIDPtr>>&)>) const = 0;
 
     /**
      * @brief: send message to node
@@ -53,8 +54,8 @@ public:
      * @param _callback: callback
      * @return void
      */
-    virtual void asyncSendMessageByNodeID(int _moduleID, NodeID _nodeID, bytesConstRef _data,
-        uint32_t _timeout, CallbackFunc _callback);
+    virtual void asyncSendMessageByNodeID(int _moduleID, bcos::crypto::NodeIDPtr _nodeID,
+        bytesConstRef _data, uint32_t _timeout, CallbackFunc _callback) = 0;
 
     /**
      * @brief: send messages to multiple nodes
@@ -63,8 +64,8 @@ public:
      * @param _data: message
      * @return void
      */
-    virtual void asyncSendMessageByNodeIDs(
-        int _moduleID, const std::vector<NodeID>& _nodeIDs, bytesConstRef _data);
+    virtual void asyncSendMessageByNodeIDs(int _moduleID,
+        const std::vector<bcos::crypto::NodeIDPtr>& _nodeIDs, bytesConstRef _data) = 0;
 
     /**
      * @brief: send broadcast message
@@ -72,7 +73,7 @@ public:
      * @param _data:  message
      * @return void
      */
-    virtual void asyncMulticastMessage(int _moduleID, bytesConstRef _data);
+    virtual void asyncMulticastMessage(int _moduleID, bytesConstRef _data) = 0;
 
     /**
      * @brief: register the node change callback
@@ -81,7 +82,7 @@ public:
      * @return void
      */
     virtual void registerNodeStatusNotifier(
-        int _moduleID, std::function<void(Error::Ptr _error)> _callback);
+        int _moduleID, std::function<void(Error::Ptr _error)> _callback) = 0;
 
     /**
      * @brief: register the callback for module message
@@ -90,9 +91,9 @@ public:
      * @return void
      */
     virtual void registerMessageDispatcher(int _moduleID,
-        std::function<void(Error::Ptr _error, const NodeID& _nodeID, bytesConstRef _data,
+        std::function<void(Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data,
             std::function<void(bytesConstRef _respData)> _respFunc)>
-            _callback);
+            _callback) = 0;
 };
 
 }  // namespace front
