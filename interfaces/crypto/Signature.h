@@ -33,21 +33,23 @@ public:
     using Ptr = std::shared_ptr<SignatureCrypto>;
     SignatureCrypto() = default;
     virtual ~SignatureCrypto() {}
-    // sign
+
+    // sign returns a signature of a given hash
     virtual std::shared_ptr<bytes> sign(
         KeyPairInterface::Ptr _keyPair, const HashType& _hash, bool _signatureWithPub = false) = 0;
 
-    // verify
+    // verify checks whether a signature is caculated from a given hash
     virtual bool verify(PublicPtr _pubKey, const HashType& _hash, bytesConstRef _signatureData) = 0;
     virtual bool verify(std::shared_ptr<bytes> _pubKeyBytes, const HashType& _hash,
         bytesConstRef _signatureData) = 0;
-    // recover the public key from the given signature
+    
+    // recover recovers the public key from the given signature
     virtual PublicPtr recover(const HashType& _hash, bytesConstRef _signatureData) = 0;
 
-    // generate keyPair
+    // generateKeyPair generates keyPair
     virtual KeyPairInterface::Ptr generateKeyPair() = 0;
 
-    // recoverAddress(for precompiled)
+    // recoverAddress recovers address from a signature(for precompiled)
     virtual std::pair<bool, bytes> recoverAddress(Hash::Ptr _hashImpl, bytesConstRef _in) = 0;
 };
 }  // namespace crypto

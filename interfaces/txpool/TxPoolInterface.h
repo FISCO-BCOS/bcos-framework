@@ -39,7 +39,7 @@ public:
     virtual ~TxPoolInterface() {}
 
     /**
-     * @brief submit transaction
+     * @brief submit a transaction
      *
      * @param _tx the transaction to be submitted
      * @param _onChainCallback trigger this callback when receive the notification of transaction
