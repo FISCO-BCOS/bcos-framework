@@ -31,7 +31,7 @@ namespace bcos
 {
 namespace storage
 {
-class TableFactory : TableFactoryInterface
+class TableFactory : public TableFactoryInterface
 {
 public:
     typedef std::shared_ptr<TableFactory> Ptr;
