@@ -35,7 +35,12 @@ class TableFactory : public TableFactoryInterface
 {
 public:
     typedef std::shared_ptr<TableFactory> Ptr;
-    TableFactory() { m_sysTables.push_back(SYS_TABLES); }
+    TableFactory(std::shared_ptr<StorageInterface> _db, std::shared_ptr<crypto::Hash> _hashImpl,
+        protocol::BlockNumber _blockNum)
+      : m_DB(_db), m_hashImpl(_hashImpl), m_blockNumber(_blockNum)
+    {
+        m_sysTables.push_back(SYS_TABLES);
+    }
     virtual ~TableFactory() {}
     // virtual void init();
 
@@ -251,9 +256,9 @@ private:
     tbb::enumerable_thread_specific<std::vector<Table::Change>> s_changeLog;
     crypto::HashType m_hash;
     std::vector<std::string> m_sysTables;
+    std::shared_ptr<StorageInterface> m_DB;
     std::shared_ptr<crypto::Hash> m_hashImpl;
     protocol::BlockNumber m_blockNumber = 0;
-    std::shared_ptr<StorageInterface> m_DB;
     // mutex
     mutable tbb::spin_mutex x_name2Table;
 };

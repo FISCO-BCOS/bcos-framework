@@ -34,6 +34,10 @@ class TableFactory;
 class StorageInterface : public std::enable_shared_from_this<StorageInterface>
 {
 public:
+    enum ErrorCode
+    {
+        DataBase_Unavailable = -50000,
+    };
     using Ptr = std::shared_ptr<StorageInterface>;
     StorageInterface() = default;
     virtual ~StorageInterface() {}
@@ -57,25 +61,26 @@ public:
         std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback) = 0;
     virtual void asyncCommitTables(const std::vector<std::shared_ptr<TableInfo>> _tableInfos,
         std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>>& _tableDatas,
-        std::function<void(Error)> _callback) = 0;
+        std::function<void(Error, size_t)> _callback) = 0;
 
     // cache TableFactory
-    virtual void asyncAddStateCache(int64_t _blockNumber, protocol::Block::Ptr _block,
+    virtual void asyncAddStateCache(protocol::BlockNumber _blockNumber, protocol::Block::Ptr _block,
         std::shared_ptr<TableFactory> _tablefactory, std::function<void(Error)> _callback) = 0;
     virtual bool asyncDropStateCache(
-        int64_t _blockNumber, std::function<void(Error)> _callback) = 0;
-    virtual void asyncGetBlock(
-        int64_t _blockNumber, std::function<void(Error, protocol::Block::Ptr)> _callback) = 0;
-    virtual void asyncGetStateCache(int64_t _blockNumber,
+        protocol::BlockNumber _blockNumber, std::function<void(Error)> _callback) = 0;
+    virtual void asyncGetBlock(protocol::BlockNumber _blockNumber,
+        std::function<void(Error, protocol::Block::Ptr)> _callback) = 0;
+    virtual void asyncGetStateCache(protocol::BlockNumber _blockNumber,
         std::function<void(Error, std::shared_ptr<TableFactory>)> _callback) = 0;
-    virtual protocol::Block::Ptr getBlock(int64_t _blockNumber) = 0;
-    virtual std::shared_ptr<TableFactory> getStateCache(int64_t _blockNumber) = 0;
+    virtual protocol::Block::Ptr getBlock(protocol::BlockNumber _blockNumber) = 0;
+    virtual std::shared_ptr<TableFactory> getStateCache(protocol::BlockNumber _blockNumber) = 0;
 
     // KV store in split database, used to store data off-chain
-    virtual void put(
-        const std::string_view& columnFamily, const std::string_view& key, const std::string_view& value) = 0;
+    virtual bool put(const std::string_view& columnFamily, const std::string_view& key,
+        const std::string_view& value) = 0;
     virtual std::string get(const std::string_view& columnFamily, const std::string_view& key) = 0;
-    virtual void asyncGetBatch(const std::string_view& columnFamily, std::shared_ptr<std::vector<std::string_view>> keys,
+    virtual void asyncGetBatch(const std::string_view& columnFamily,
+        std::shared_ptr<std::vector<std::string_view>> keys,
         std::function<void(Error, std::shared_ptr<std::vector<std::string>>)> callback) = 0;
 };
 

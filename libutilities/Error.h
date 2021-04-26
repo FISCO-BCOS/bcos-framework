@@ -43,7 +43,7 @@ public:
     }
 
 private:
-    int64_t m_errorCode;
+    int64_t m_errorCode = 0;
     std::string m_errorMessage;
 };
 }  // namespace bcos
