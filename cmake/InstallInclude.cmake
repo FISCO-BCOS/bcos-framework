@@ -32,3 +32,10 @@ install(
     DESTINATION "${DESTINATION_INCLUDE_DIR}/libprotocol"
     FILES_MATCHING PATTERN "*.h"
 )
+
+# table
+install(
+    DIRECTORY "libtable"
+    DESTINATION "${DESTINATION_INCLUDE_DIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
