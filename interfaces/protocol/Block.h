@@ -57,23 +57,6 @@ public:
     virtual BlockType blockType() const = 0;
     // blockHeader gets blockHeader
     virtual BlockHeader::Ptr blockHeader() = 0;
-<<<<<<< HEAD
-    // transactions get all transactions
-    virtual TransactionsConstPtr transactions() const = 0;
-    // transaction gets a transaction
-    virtual Transaction::ConstPtr transaction(size_t _index) const = 0;
-    // receipts get all receipts
-    virtual ReceiptsConstPtr receipts() const = 0;
-    // receipt gets a receipt
-    virtual TransactionReceipt::ConstPtr receipt(size_t _index) const = 0;
-    // transactionsHash get all transactions' hash
-    virtual HashListConstPtr transactionsHash() const = 0;
-    // transactionHash gets a transaction's hash
-    virtual bcos::crypto::HashType const& transactionHash(size_t _index) const = 0;
-    // receiptsHash get all receipts' hash
-    virtual HashListConstPtr receiptsHash() const = 0;
-    // receiptHash gets a receipt's hash
-=======
     // get transactions
     virtual Transaction::ConstPtr transaction(size_t _index) const = 0;
     // get receipts
@@ -81,7 +64,6 @@ public:
     // get transaction hash
     virtual bcos::crypto::HashType const& transactionHash(size_t _index) const = 0;
     // get receipt hash
->>>>>>> 042360c885be987cedeecadf90bf33ddd695e195
     virtual bcos::crypto::HashType const& receiptHash(size_t _index) const = 0;
 
     virtual void setBlockType(BlockType _blockType) = 0;
