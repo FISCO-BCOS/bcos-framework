@@ -32,8 +32,7 @@ namespace bcos
 namespace test
 {
 BOOST_FIXTURE_TEST_SUITE(PBBlockTest, TestPromptFixture)
-// void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
-void testBlock(CryptoSuite::Ptr, BlockFactory::Ptr)
+void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
 {
     auto block1 = std::dynamic_pointer_cast<PBBlock>(fakeAndCheckBlock(cryptoSuite, blockFactory, true, 10, 3, 7, 6));
     // without blockHeader
@@ -79,8 +78,8 @@ void testBlock(CryptoSuite::Ptr, BlockFactory::Ptr)
     TransactionSubmitResult::Ptr onChainResult =
         std::make_shared<TransactionSubmitResultImpl>(receipt, tx, 0, decodedBlock->blockHeader());
     BOOST_CHECK(onChainResult->transactionIndex() == 0);
-    BOOST_CHECK(onChainResult->from() == tx->sender());
-    BOOST_CHECK(onChainResult->to() == tx->to().toBytes());
+    BOOST_CHECK(onChainResult->from().toBytes() == tx->sender().toBytes());
+    BOOST_CHECK(onChainResult->to().toBytes() == tx->to().toBytes());
     BOOST_CHECK(onChainResult->txHash() == tx->hash());
     BOOST_CHECK(onChainResult->blockHash() == decodedBlock->blockHeader()->hash());
     BOOST_CHECK(onChainResult->blockNumber() == decodedBlock->blockHeader()->number());

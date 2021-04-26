@@ -57,18 +57,18 @@ public:
     void encode(bytes& _txData) const override;
     bcos::crypto::HashType const& hash() const override;
 
-    u256 const& nonce() const override { return m_nonce; }
+    u256 nonce() const override { return m_nonce; }
     int32_t version() const override { return m_transactionHashFields->version(); }
-    std::string const& chainId() const override { return m_transactionHashFields->chainid(); }
-    std::string const& groupId() const override { return m_transactionHashFields->groupid(); }
+    std::string_view chainId() const override { return m_transactionHashFields->chainid(); }
+    std::string_view groupId() const override { return m_transactionHashFields->groupid(); }
     int64_t blockLimit() const override { return m_transactionHashFields->blocklimit(); }
-    bytes const& sender() const override { return m_sender; }
+    bytesConstRef sender() const override { return bytesConstRef(m_sender.data(), m_sender.size()); }
     bytesConstRef to() const override
     {
         auto const& _receiver = m_transactionHashFields->to();
         return bytesConstRef((byte const*)_receiver.c_str(), _receiver.size());
     }
-    TransactionType const& type() const override { return m_type; }
+    TransactionType type() const override { return m_type; }
     bytesConstRef input() const override;
     int64_t importTime() const override { return m_transaction->import_time(); }
     void forceSender(bytes const& _sender) override { m_sender = _sender; }
