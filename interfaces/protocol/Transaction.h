@@ -41,15 +41,15 @@ public:
     virtual bcos::crypto::HashType const& hash() const = 0;
 
     virtual int32_t version() const = 0;
-    virtual std::string const& chainId() const = 0;
-    virtual std::string const& groupId() const = 0;
+    virtual std::string_view chainId() const = 0;
+    virtual std::string_view groupId() const = 0;
     virtual int64_t blockLimit() const = 0;
-    virtual u256 const& nonce() const = 0;
+    virtual u256 nonce() const = 0;
     virtual bytesConstRef to() const = 0;
-    virtual bytes const& sender() const = 0;
+    virtual bytesConstRef sender() const = 0;
     virtual bytesConstRef input() const = 0;
     virtual int64_t importTime() const = 0;
-    virtual TransactionType const& type() const = 0;
+    virtual TransactionType type() const = 0;
     virtual void forceSender(bytes const& _sender) = 0;
 };
 

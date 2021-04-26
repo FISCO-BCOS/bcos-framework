@@ -42,11 +42,10 @@ public:
     virtual bcos::crypto::HashType const& blockHash() const = 0;
     // blockNumber gets blockNumber
     virtual BlockNumber blockNumber() const = 0;
-    // from returns the sender's address
-    virtual bytes const& from() const = 0;
-    // to returns the receiver's address
-    virtual bytes const& to() const = 0;
-    // transactionIndex returns transaction index in the block
+    virtual bytesConstRef from() const = 0;
+    // to
+    virtual bytesConstRef to() const = 0;
+    // txIndex
     virtual int64_t transactionIndex() const = 0;
 };
 

@@ -113,7 +113,7 @@ public:
         m_gasUsed = _gasUsed;
         noteDirty();
     }
-    void setTimestamp(int64_t const& _timestamp) override
+    void setTimestamp(int64_t _timestamp) override
     {
         m_timestamp = _timestamp;
         noteDirty();

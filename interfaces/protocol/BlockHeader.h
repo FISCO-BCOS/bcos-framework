@@ -72,7 +72,7 @@ public:
     virtual void setStateRoot(bcos::crypto::HashType const& _stateRoot) = 0;
     virtual void setNumber(BlockNumber _blockNumber) = 0;
     virtual void setGasUsed(u256 const& _gasUsed) = 0;
-    virtual void setTimestamp(int64_t const& _timestamp) = 0;
+    virtual void setTimestamp(int64_t _timestamp) = 0;
     virtual void setSealer(int64_t _sealerId) = 0;
     virtual void setSealerList(BytesList const& _sealerList) = 0;
 
