@@ -43,7 +43,7 @@ public:
 
         for (size_t i = 0; i < size; ++i)
         {
-            _workers.create_thread([this, fields] {
+            _workers.create_thread([this] {
                 bcos::pthread_setThreadName(_threadName);
                 _ioService.run();
             });

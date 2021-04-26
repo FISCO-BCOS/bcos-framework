@@ -20,6 +20,7 @@
 #include "libtable/Table.h"
 #include "interfaces/storage/TableInterface.h"
 #include "libtable/TableFactory.h"
+#include "libutilities/ThreadPool.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
@@ -42,6 +43,7 @@ BOOST_FIXTURE_TEST_SUITE(TableTest, TableFixture)
 
 BOOST_AUTO_TEST_CASE(constructor)
 {
+    auto threadPool = ThreadPool("a", 1);
     auto table = std::make_shared<Table>(nullptr, nullptr, nullptr, 0);
     auto tableFactory = std::make_shared<TableFactory>(nullptr, nullptr, 0);
 }
