@@ -34,16 +34,18 @@ public:
     SymmetricEncryption() = default;
     virtual ~SymmetricEncryption() {}
 
-    // symmetricEncrypt/symmetricDecrypt with default ivData
+    // symmetricEncrypt encrypts plain data with default ivData
     virtual bytesPointer symmetricEncrypt(const unsigned char* _plainData, size_t _plainDataSize,
         const unsigned char* _key, size_t _keySize) = 0;
+    // symmetricDecrypt encrypts plain data with default ivData
     virtual bytesPointer symmetricDecrypt(const unsigned char* _cipherData, size_t _cipherDataSize,
         const unsigned char* _key, size_t _keySize) = 0;
 
-    // symmetricEncrypt/symmetricDecrypt with given ivData
+    // symmetricEncrypt encrypts plain data with given ivData
     virtual bytesPointer symmetricEncrypt(const unsigned char* _plainData, size_t _plainDataSize,
         const unsigned char* _key, size_t _keySize, const unsigned char* _ivData,
         size_t _ivDataSize) = 0;
+    // symmetricDecrypt encrypts plain data with given ivData
     virtual bytesPointer symmetricDecrypt(const unsigned char* _cipherData, size_t _cipherDataSize,
         const unsigned char* _key, size_t _keySize, const unsigned char* _ivData,
         size_t _ivDataSize) = 0;

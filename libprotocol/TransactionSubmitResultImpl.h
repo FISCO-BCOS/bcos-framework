@@ -29,7 +29,7 @@ public:
     using Ptr = std::shared_ptr<TransactionSubmitResultImpl>;
     TransactionSubmitResultImpl(TransactionReceipt::Ptr _receipt, bcos::crypto::HashType _txHash,
         int64_t _transactionIndex, bcos::crypto::HashType _blockHash, BlockNumber _blockNumber,
-        bytes const& _sender, bytes const& _to)
+        bytesConstRef _sender, bytesConstRef _to)
       : m_receipt(_receipt),
         m_txHash(_txHash),
         m_transactionIndex(_transactionIndex),
@@ -42,7 +42,7 @@ public:
     TransactionSubmitResultImpl(TransactionReceipt::Ptr _receipt, Transaction::Ptr _tx,
         int64_t _transactionIndex, BlockHeader::Ptr _blockHeader)
       : TransactionSubmitResultImpl(_receipt, _tx->hash(), _transactionIndex, _blockHeader->hash(),
-            _blockHeader->number(), _tx->sender(), _tx->to().toBytes())
+            _blockHeader->number(), _tx->sender(), _tx->to())
     {}
 
     explicit TransactionSubmitResultImpl(TransactionStatus _status) : m_status((uint32_t)_status) {}
@@ -59,9 +59,9 @@ public:
     // get blockNumber
     BlockNumber blockNumber() const override { return m_blockNumber; }
     // the sender
-    bytes const& from() const override { return m_sender; }
+    bytesConstRef from() const override { return m_sender; }
     // to
-    bytes const& to() const override { return m_to; }
+    bytesConstRef to() const override { return m_to; }
     // txIndex
     int64_t transactionIndex() const override { return m_transactionIndex; }
 
@@ -72,8 +72,8 @@ private:
     int64_t m_transactionIndex;
     bcos::crypto::HashType m_blockHash;
     BlockNumber m_blockNumber;
-    bytes m_sender;
-    bytes m_to;
+    bytesConstRef m_sender;
+    bytesConstRef m_to;
 };
 }  // namespace protocol
 }  // namespace bcos

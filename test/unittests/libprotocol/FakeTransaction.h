@@ -50,7 +50,7 @@ inline void checkTransction(Transaction::ConstPtr pbTransaction, Transaction::Co
 {
     // check the fields
     BOOST_CHECK(decodedTransaction->hash() == pbTransaction->hash());
-    BOOST_CHECK(decodedTransaction->sender() == pbTransaction->sender());
+    BOOST_CHECK(decodedTransaction->sender().toBytes() == pbTransaction->sender().toBytes());
     BOOST_CHECK(decodedTransaction->type() == pbTransaction->type());
     BOOST_CHECK(decodedTransaction->to().toBytes() == pbTransaction->to().toBytes());
     // check the transaction hash fields
@@ -77,7 +77,7 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
         BOOST_CHECK(pbTransaction->type() == TransactionType::MessageCall);
     }
 
-    BOOST_CHECK(pbTransaction->sender() == _keyPair->address(_cryptoSuite->hashImpl()).asBytes());
+    BOOST_CHECK(pbTransaction->sender().toBytes() == _keyPair->address(_cryptoSuite->hashImpl()).asBytes());
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     pbTransaction->encode(*encodedData);

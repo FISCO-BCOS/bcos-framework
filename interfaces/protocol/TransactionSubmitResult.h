@@ -32,20 +32,19 @@ public:
     TransactionSubmitResult() = default;
     virtual ~TransactionSubmitResult() {}
 
-    // get transaction status
+    // status gets transaction status
     virtual uint32_t status() const = 0;
-    // get transaction receipt
+    // receipt gets transaction receipt
     virtual TransactionReceipt::Ptr receipt() const = 0;
-    // get transactionHash
+    // txHash gets transactionHash
     virtual bcos::crypto::HashType const& txHash() const = 0;
-    // get blockHash
+    // blockHash gets blockHash
     virtual bcos::crypto::HashType const& blockHash() const = 0;
-    // get blockNumber
+    // blockNumber gets blockNumber
     virtual BlockNumber blockNumber() const = 0;
-    // the sender
-    virtual bytes const& from() const = 0;
+    virtual bytesConstRef from() const = 0;
     // to
-    virtual bytes const& to() const = 0;
+    virtual bytesConstRef to() const = 0;
     // txIndex
     virtual int64_t transactionIndex() const = 0;
 };
