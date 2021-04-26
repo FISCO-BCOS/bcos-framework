@@ -33,7 +33,17 @@
 
 #define STORAGE_LOG(LEVEL) LOG(LEVEL) << "[STORAGE]"
 
-
+namespace std
+{
+inline bool operator<(const std::string_view& ls, const std::string& rs)
+{
+    return ls < std::string_view(rs);
+}
+inline bool operator<(const std::string& ls, const std::string_view& rs)
+{
+    return std::string_view(ls) < rs;
+}
+}  // namespace std
 namespace bcos
 {
 namespace storage
@@ -157,7 +167,7 @@ public:
         }
     }
 
-    virtual std::string getField(const std::string& key) const
+    virtual std::string getField(const std::string_view& key) const
     {
         RWMutexScoped lock(m_data->m_mutex, false);
         auto it = m_data->m_fields.find(key);
@@ -169,7 +179,7 @@ public:
                            << LOG_KV("key", key);
         return "";
     }
-    virtual std::string_view getFieldConst(const std::string& key) const
+    virtual std::string_view getFieldConst(const std::string_view& key) const
     {
         RWMutexScoped lock(m_data->m_mutex, false);
         auto it = m_data->m_fields.find(key);
@@ -208,7 +218,8 @@ public:
         m_dirty = true;
     }
 
-    virtual std::map<std::string, std::string>::const_iterator find(const std::string& key) const
+    virtual std::map<std::string, std::string>::const_iterator find(
+        const std::string_view& key) const
     {
         return m_data->m_fields.find(key);
     }
@@ -246,7 +257,7 @@ public:
         m_dirty = true;
     }
 
-    virtual bool count(const std::string& key)
+    virtual bool count(const std::string_view& key)
     {
         if (m_data->m_fields.find(key) == m_data->m_fields.end())
         {
@@ -335,7 +346,7 @@ private:
         EntryData(){};
 
         ssize_t m_refCount = 0;
-        std::map<std::string, std::string> m_fields;
+        std::map<std::string, std::string, std::less<>> m_fields;
         RWMutex m_mutex;
     };
     std::shared_ptr<RWMutexScoped> checkRef()
