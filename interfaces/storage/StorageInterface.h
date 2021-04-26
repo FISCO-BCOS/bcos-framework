@@ -19,9 +19,9 @@
  * @date: 2021-04-07
  */
 #pragma once
-#include "Common.h"
-#include "../../libutilities/Error.h"
 #include "../../interfaces/protocol/Block.h"
+#include "../../libutilities/Error.h"
+#include "Common.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -70,6 +70,13 @@ public:
         std::function<void(Error, std::shared_ptr<TableFactory>)> _callback) = 0;
     virtual protocol::Block::Ptr getBlock(int64_t _blockNumber) = 0;
     virtual std::shared_ptr<TableFactory> getStateCache(int64_t _blockNumber) = 0;
+
+    // KV store in split database, used to store data off-chain
+    virtual void put(
+        const std::string_view& columnFamily, const std::string_view& key, const std::string_view& value) = 0;
+    virtual std::string get(const std::string_view& columnFamily, const std::string_view& key) = 0;
+    virtual void asyncGetBatch(const std::string_view& columnFamily, std::shared_ptr<std::vector<std::string_view>> keys,
+        std::function<void(Error, std::shared_ptr<std::vector<std::string>>)> callback) = 0;
 };
 
 }  // namespace storage
