@@ -27,23 +27,23 @@ namespace bcos
 {
 namespace consensus
 {
-// Interface exposed to other modules
+// ConsensusInterface is the interface of consensus exposed to other modules
 class ConsensusInterface
 {
 public:
     ConsensusInterface() = default;
     virtual ~ConsensusInterface() {}
 
-    // get NodeID
+    // asyncGetNodeID gets NodeID
     virtual void asyncGetNodeID(
         std::function<void(Error::Ptr, bcos::crypto::PublicPtr)> _onGetNodeID) = 0;
-    // get node index
+    // asyncGetNodeIndex gets node index
     virtual void asyncGetNodeIndex(std::function<void(Error::Ptr, IndexType)> _onGetNodeIndex) = 0;
 
-    // get the type of the consensus node
+    // asyncGetNodeType gets the type of the consensus node
     virtual void asyncGetNodeType(std::function<void(NodeType const&)> _onGetNodeType) = 0;
 
-    // check the node is the sealer or not
+    // isLeader checks whether the node is the sealer or not
     virtual void isLeader(std::function<void(bool)> _callback) = 0;
 };
 }  // namespace consensus

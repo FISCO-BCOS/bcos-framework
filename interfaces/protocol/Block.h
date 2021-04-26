@@ -55,7 +55,7 @@ public:
     virtual int32_t version() const = 0;
     virtual void setVersion(int32_t _version) = 0;
     virtual BlockType blockType() const = 0;
-    // get blockHeader
+    // blockHeader gets blockHeader
     virtual BlockHeader::Ptr blockHeader() = 0;
     // get transactions
     virtual Transaction::ConstPtr transaction(size_t _index) const = 0;
@@ -67,7 +67,7 @@ public:
     virtual bcos::crypto::HashType const& receiptHash(size_t _index) const = 0;
 
     virtual void setBlockType(BlockType _blockType) = 0;
-    // set blockHeader
+    // setBlockHeader sets blockHeader
     virtual void setBlockHeader(BlockHeader::Ptr _blockHeader) = 0;
     // set transactions
     virtual void setTransaction(size_t _index, Transaction::Ptr _transaction) = 0;

@@ -29,7 +29,7 @@ class BlockHeader
 public:
     using Ptr = std::shared_ptr<BlockHeader>;
     using ConstPtr = std::shared_ptr<const BlockHeader>;
-    using BlockHeadersPtr = std::shared_ptr<std::vector<BlockHeader::Ptr>>;
+    using BlockHeadersPtr = std::shared_ptr<std::vector<BlockHeader::Ptr> >;
     BlockHeader() = default;
     virtual ~BlockHeader() {}
 
@@ -38,27 +38,27 @@ public:
     virtual bcos::crypto::HashType const& hash() const = 0;
     virtual void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number) = 0;
     virtual void clear() = 0;
-    // verify the signatureList
+    // verifySignatureList verifys the signatureList
     virtual void verifySignatureList() const = 0;
     virtual void populateEmptyBlock(int64_t _timestamp) = 0;
 
-    // the version of the blockHeader
+    // version returns the version of the blockHeader
     virtual int32_t version() const = 0;
-    // the parent information, including (parentBlockNumber, parentHash)
+    // parentInfo returns the parent information, including (parentBlockNumber, parentHash)
     virtual ParentInfoListPtr parentInfo() const = 0;
-    // the txsRoot of the current block
+    // txsRoot returns the txsRoot of the current block
     virtual bcos::crypto::HashType const& txsRoot() const = 0;
-    // the receiptRoot of the current block
+    // receiptRoot returns the receiptRoot of the current block
     virtual bcos::crypto::HashType const& receiptRoot() const = 0;
-    // the stateRoot of the current block
+    // stateRoot returns the stateRoot of the current block
     virtual bcos::crypto::HashType const& stateRoot() const = 0;
-    // the number of the current block
+    // number returns the number of the current block
     virtual BlockNumber number() const = 0;
     virtual u256 const& gasUsed() = 0;
     virtual int64_t timestamp() = 0;
-    // the sealer that generate this block
+    // sealer returns the sealer that generate this block
     virtual int64_t sealer() = 0;
-    // the current sealer list
+    // sealerList returns the current sealer list
     virtual BytesListPtr sealerList() const = 0;
     virtual bytes const& extraData() const = 0;
     virtual SignatureListPtr signatureList() const = 0;

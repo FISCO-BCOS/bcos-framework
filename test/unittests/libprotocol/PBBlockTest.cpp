@@ -32,7 +32,8 @@ namespace bcos
 namespace test
 {
 BOOST_FIXTURE_TEST_SUITE(PBBlockTest, TestPromptFixture)
-void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
+// void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
+void testBlock(CryptoSuite::Ptr, BlockFactory::Ptr)
 {
     auto block1 = std::dynamic_pointer_cast<PBBlock>(fakeAndCheckBlock(cryptoSuite, blockFactory, true, 10, 3, 7, 6));
     // without blockHeader
