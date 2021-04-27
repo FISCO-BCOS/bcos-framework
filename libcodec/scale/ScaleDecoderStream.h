@@ -20,6 +20,7 @@
 #include "Common.h"
 #include "FixedWidthIntegerCodec.h"
 #include "libutilities/Common.h"
+#include "../../interfaces/crypto/CommonType.h"
 #include "libutilities/FixedBytes.h"
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/optional.hpp>
@@ -323,6 +324,17 @@ public:
     ScaleDecoderStream& operator>>(std::string& v);
 
     /**
+     * @brief decodes string from stream
+     * @param v value to decode
+     * @return reference to stream
+     */
+    template <typename T, typename = typename std::enable_if<std::is_base_of<bcos::Serializable, T>::value>::type>
+    ScaleDecoderStream& operator>>(T &t) {
+        decodeClass(t);
+        return *this;
+    }
+
+    /**
      * @brief hasMore Checks whether n more bytes are available
      * @param n Number of bytes to check
      * @return True if n more bytes are available and false otherwise
@@ -384,6 +396,12 @@ private:
         {
             tryDecodeAsOneOfVariant<I + 1>(v, i);
         }
+    }
+
+    template <typename T>
+    ScaleDecoderStream& decodeClass(T &t) {
+        t.decode(*this);
+        return *this;
     }
 
 private:

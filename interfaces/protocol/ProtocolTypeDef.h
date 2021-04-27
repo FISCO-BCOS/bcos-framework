@@ -24,12 +24,47 @@ namespace bcos
 {
 namespace protocol
 {
+
 using BlockNumber = int64_t;
 using BytesList = std::vector<std::shared_ptr<bytes>>;
 using BytesListPtr = std::shared_ptr<BytesList>;
-using ParentInfoList = std::vector<std::pair<BlockNumber, bcos::crypto::HashType>>;
+
+struct ParentInfo: public bcos::Serializable {
+    BlockNumber blockNumber;
+    bcos::crypto::HashType blockHash;
+
+    template<class T>
+    void encode(T t) const {
+        t << blockNumber;
+        t << blockHash;
+    }
+
+    template<class T>
+    void decode(T t) {
+        t >> blockNumber;
+        t >> blockHash;
+    }
+};
+using ParentInfoList = std::vector<ParentInfo>;
 using ParentInfoListPtr = std::shared_ptr<ParentInfoList>;
-using SignatureList = std::vector<std::pair<int64_t, std::shared_ptr<bytes>>>;
+
+struct Signature: public bcos::Serializable {
+    int64_t index;
+    bytes signature;
+
+    template<class T>
+    void encode(T t) const {
+        t << index;
+        t << signature;
+    }
+
+    template<class T>
+    void decode(T t) {
+        t >> index;
+        t >> signature;
+    }
+};
+using SignatureList = std::vector<Signature>;
 using SignatureListPtr = std::shared_ptr<SignatureList>;
 
 // the weight list

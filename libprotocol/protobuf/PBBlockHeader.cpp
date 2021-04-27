@@ -43,7 +43,7 @@ void PBBlockHeader::decode(bytesConstRef _data)
     {
         auto signatureInfo = m_blockHeader->mutable_signaturelist(i);
         auto const& signatureData = signatureInfo->signaturedata();
-        m_signatureList->emplace_back(std::make_pair(
+        m_signatureList.emplace_back(std::make_pair(
             signatureInfo->sealerindex(), std::make_shared<bytes>(signatureData.data(),
                                               signatureData.data() + signatureData.size())));
     }
@@ -71,18 +71,18 @@ void PBBlockHeader::encodeSignatureList() const
         return;
     }
     // extend signature list field
-    for (size_t i = m_blockHeader->signaturelist_size(); i < (size_t)m_signatureList->size(); i++)
+    for (size_t i = m_blockHeader->signaturelist_size(); i < (size_t)m_signatureList.size(); i++)
     {
         m_blockHeader->add_signaturelist();
     }
     // encode signatureList
     int index = 0;
-    for (auto const& signatureInfo : *m_signatureList)
+    for (auto const& signatureInfo : m_signatureList)
     {
         auto pbSignatureInfo = m_blockHeader->mutable_signaturelist(index++);
-        pbSignatureInfo->set_sealerindex(signatureInfo.first);
+        pbSignatureInfo->set_sealerindex(signatureInfo.index);
         pbSignatureInfo->set_signaturedata(
-            signatureInfo.second->data(), signatureInfo.second->size());
+            signatureInfo.signature.data(), signatureInfo.signature.size());
     }
 }
 
@@ -97,7 +97,7 @@ void PBBlockHeader::encode(bytes& _encodedData) const
     _encodedData = *data;
 }
 
-bcos::crypto::HashType const& PBBlockHeader::hash() const
+bcos::crypto::HashType PBBlockHeader::hash() const
 {
     UpgradableGuard l(x_hash);
     if (m_hash != bcos::crypto::HashType())
@@ -118,7 +118,10 @@ void PBBlockHeader::populateFromParents(BlockHeadersPtr _parents, BlockNumber _n
     // set parentInfo
     for (auto parentHeader : *_parents)
     {
-        m_parentInfo->push_back(std::make_pair(parentHeader->number(), parentHeader->hash()));
+        m_parentInfo.emplace_back(ParentInfo {
+            .blockNumber =  parentHeader->number(),
+            .blockHash = parentHeader->hash()
+        });
     }
     m_number = _number;
 }
@@ -127,36 +130,36 @@ void PBBlockHeader::clear()
 {
     m_blockHeader->clear_hashfieldsdata();
     m_blockHeader->clear_signaturelist();
-    m_parentInfo->clear();
+    m_parentInfo.clear();
     m_txsRoot = bcos::crypto::HashType();
     m_receiptRoot = bcos::crypto::HashType();
     m_stateRoot = bcos::crypto::HashType();
     m_number = 0;
     m_gasUsed = u256(0);
     m_sealer = InvalidSealerIndex;
-    m_sealerList->clear();
+    m_sealerList.clear();
     m_extraData.clear();
     m_hash = bcos::crypto::HashType();
 }
 
 void PBBlockHeader::verifySignatureList() const
 {
-    if (m_sealerList->size() < m_signatureList->size())
+    if (m_sealerList.size() < m_signatureList.size())
     {
         BOOST_THROW_EXCEPTION(InvalidBlockHeader()
                               << errinfo_comment("Invalid blockHeader for the size of sealerList "
                                                  "is smaller than the size of signatureList"));
     }
-    for (auto signature : *m_signatureList)
+    for (auto signature : m_signatureList)
     {
-        auto sealerIndex = signature.first;
-        auto signatureData = signature.second;
+        auto sealerIndex = signature.index;
+        auto signatureData = signature.signature;
         if (!m_cryptoSuite->signatureImpl()->verify(
-                (*m_sealerList)[sealerIndex], hash(), ref(*signatureData)))
+                std::shared_ptr<const bytes>(&((m_sealerList)[sealerIndex]), [](const bytes*) {}), hash(), bytesConstRef(signatureData.data(), signatureData.size())))
         {
             BOOST_THROW_EXCEPTION(InvalidSignatureList() << errinfo_comment(
                                       "Invalid signatureList for verify failed, signatureData:" +
-                                      *toHexString(*signatureData)));
+                                      *toHexString(signatureData)));
         }
     }
 }
