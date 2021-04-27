@@ -18,8 +18,8 @@
  * @date: 2021-04-07
  */
 #pragma once
-#include <string>
 #include <memory>
+#include <string>
 namespace bcos
 {
 class Error
@@ -27,7 +27,7 @@ class Error
 public:
     using Ptr = std::shared_ptr<Error>;
     Error() = default;
-    Error(int64_t _errorCode, std::string const& _errorMessage)
+    Error(int32_t _errorCode, std::string const& _errorMessage)
       : m_errorCode(_errorCode), m_errorMessage(_errorMessage)
     {}
 
@@ -43,7 +43,7 @@ public:
     }
 
 private:
-    int64_t m_errorCode = 0;
+    int32_t m_errorCode = 0;
     std::string m_errorMessage;
 };
 }  // namespace bcos
