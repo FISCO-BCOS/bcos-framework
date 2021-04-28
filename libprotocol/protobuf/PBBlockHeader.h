@@ -59,14 +59,14 @@ public:
     // the parent information, including (parentBlockNumber, parentHash)
     gsl::span<const ParentInfo> parentInfo() const override { return m_parentInfo; }
     // the txsRoot of the current block
-    bcos::crypto::HashType txsRoot() const override { return m_txsRoot; }
+    bcos::crypto::HashType const& txsRoot() const override { return m_txsRoot; }
     // the receiptRoot of the current block
-    bcos::crypto::HashType receiptRoot() const override { return m_receiptRoot; }
+    bcos::crypto::HashType const& receiptRoot() const override { return m_receiptRoot; }
     // the stateRoot of the current block
-    bcos::crypto::HashType stateRoot() const override { return m_stateRoot; }
+    bcos::crypto::HashType const& stateRoot() const override { return m_stateRoot; }
     // the number of the current block
     BlockNumber number() const override { return m_number; }
-    u256 gasUsed() override { return m_gasUsed; }
+    u256 const& gasUsed() override { return m_gasUsed; }
     int64_t timestamp() override { return m_timestamp; }
     // the sealer that generate this block
     int64_t sealer() override { return m_sealer; }

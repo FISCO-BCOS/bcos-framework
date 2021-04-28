@@ -49,14 +49,14 @@ public:
     // parentInfo returns the parent information, including (parentBlockNumber, parentHash)
     virtual gsl::span<const ParentInfo> parentInfo() const = 0;
     // txsRoot returns the txsRoot of the current block
-    virtual bcos::crypto::HashType txsRoot() const = 0;
+    virtual bcos::crypto::HashType const& txsRoot() const = 0;
     // receiptRoot returns the receiptRoot of the current block
-    virtual bcos::crypto::HashType receiptRoot() const = 0;
+    virtual bcos::crypto::HashType const& receiptRoot() const = 0;
     // stateRoot returns the stateRoot of the current block
-    virtual bcos::crypto::HashType stateRoot() const = 0;
+    virtual bcos::crypto::HashType const& stateRoot() const = 0;
     // number returns the number of the current block
     virtual BlockNumber number() const = 0;
-    virtual u256 gasUsed() = 0;
+    virtual u256 const& gasUsed() = 0;
     virtual int64_t timestamp() = 0;
     // sealer returns the sealer that generate this block
     virtual int64_t sealer() = 0;

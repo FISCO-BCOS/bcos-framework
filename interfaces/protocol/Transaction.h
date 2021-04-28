@@ -44,7 +44,7 @@ public:
     virtual std::string_view chainId() const = 0;
     virtual std::string_view groupId() const = 0;
     virtual int64_t blockLimit() const = 0;
-    virtual u256 nonce() const = 0;
+    virtual u256 const& nonce() const = 0;
     virtual bytesConstRef to() const = 0;
     virtual bytesConstRef sender() const = 0;
     virtual bytesConstRef input() const = 0;
