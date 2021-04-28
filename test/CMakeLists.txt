@@ -24,7 +24,7 @@ set(TEST_BINARY_NAME test-bcos-framework)
 config_test_cases("" "${SOURCES}" bin/${TEST_BINARY_NAME} "")
 
 add_executable(${TEST_BINARY_NAME} ${SOURCES})
-target_include_directories(${TEST_BINARY_NAME} PRIVATE . ${CMAKE_SOURCE_DIR})
+target_include_directories(${TEST_BINARY_NAME} PRIVATE . ${CMAKE_SOURCE_DIR} ${BCOS_TEST_DIR})
 
 hunter_add_package(wedpr-crypto)
 find_package(wedpr-crypto CONFIG QUIET REQUIRED)
