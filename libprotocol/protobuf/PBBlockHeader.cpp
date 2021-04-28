@@ -43,9 +43,15 @@ void PBBlockHeader::decode(bytesConstRef _data)
     {
         auto signatureInfo = m_blockHeader->mutable_signaturelist(i);
         auto const& signatureData = signatureInfo->signaturedata();
+        /*
         m_signatureList.emplace_back(std::make_pair(
             signatureInfo->sealerindex(), std::make_shared<bytes>(signatureData.data(),
                                               signatureData.data() + signatureData.size())));
+                                              */
+        Signature sig;
+        sig.index = signatureInfo->sealerindex();
+        sig.signature = bytes(signatureData.begin(), signatureData.end());
+        m_signatureList.emplace_back(sig);
     }
 }
 
@@ -118,10 +124,10 @@ void PBBlockHeader::populateFromParents(BlockHeadersPtr _parents, BlockNumber _n
     // set parentInfo
     for (auto parentHeader : *_parents)
     {
-        m_parentInfo.emplace_back(ParentInfo {
-            .blockNumber =  parentHeader->number(),
-            .blockHash = parentHeader->hash()
-        });
+        ParentInfo parentInfo;
+        parentInfo.blockNumber = parentHeader->number();
+        parentInfo.blockHash = parentHeader->hash();
+        m_parentInfo.emplace_back(parentInfo);
     }
     m_number = _number;
 }
@@ -155,7 +161,8 @@ void PBBlockHeader::verifySignatureList() const
         auto sealerIndex = signature.index;
         auto signatureData = signature.signature;
         if (!m_cryptoSuite->signatureImpl()->verify(
-                std::shared_ptr<const bytes>(&((m_sealerList)[sealerIndex]), [](const bytes*) {}), hash(), bytesConstRef(signatureData.data(), signatureData.size())))
+                std::shared_ptr<const bytes>(&((m_sealerList)[sealerIndex]), [](const bytes*) {}),
+                hash(), bytesConstRef(signatureData.data(), signatureData.size())))
         {
             BOOST_THROW_EXCEPTION(InvalidSignatureList() << errinfo_comment(
                                       "Invalid signatureList for verify failed, signatureData:" +

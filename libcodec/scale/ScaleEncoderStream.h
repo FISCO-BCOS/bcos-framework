@@ -18,7 +18,7 @@
  */
 #pragma once
 #include "FixedWidthIntegerCodec.h"
-#include "../../interfaces/crypto/CommonType.h"
+#include "../../interfaces/protocol/Protocol.h"
 #include "libutilities/FixedBytes.h"
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
@@ -46,7 +46,7 @@ public:
      * @param t the object
      * @return reference to stream
      */
-    template <typename T, typename = typename std::enable_if<std::is_base_of<bcos::Serializable, T>::value>::type>
+    template <typename T, typename = typename std::enable_if<std::is_base_of<bcos::protocol::Serializable, T>::value>::type>
     ScaleEncoderStream& operator<<(T const& t)
     {
         return encodeClass(t);

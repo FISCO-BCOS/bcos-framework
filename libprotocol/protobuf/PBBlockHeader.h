@@ -148,6 +148,11 @@ public:
         m_signatureList.assign(_signatureList.begin(), _signatureList.end());
         noteSignatureDirty();
     }
+    void setSignatureList(SignatureList&&  _signatureList) override
+    {
+        m_signatureList = std::move(_signatureList);
+        noteSignatureDirty();
+    }
 
     void populateEmptyBlock(int64_t _timestamp) override
     {

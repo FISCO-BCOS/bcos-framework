@@ -22,9 +22,7 @@
 #include "../../libutilities/FixedBytes.h"
 namespace bcos
 {
-struct Serializable
-{
-};
+
 namespace crypto
 {
 using HashType = h256;

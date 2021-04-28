@@ -19,7 +19,8 @@
  * @date: 2021-04-9
  */
 #pragma once
-#include "../../interfaces/crypto/CommonType.h"
+#include "Protocol.h"
+#include "../crypto/CommonType.h"
 namespace bcos
 {
 namespace protocol
@@ -29,18 +30,22 @@ using BlockNumber = int64_t;
 using BytesList = std::vector<std::shared_ptr<bytes>>;
 using BytesListPtr = std::shared_ptr<BytesList>;
 
-struct ParentInfo: public bcos::Serializable {
+struct ParentInfo: public bcos::protocol::Serializable {
     BlockNumber blockNumber;
     bcos::crypto::HashType blockHash;
 
+    bool operator==(const ParentInfo &rhs) const {
+        return this->blockNumber == rhs.blockNumber && this->blockHash == rhs.blockHash;
+    }
+
     template<class T>
-    void encode(T t) const {
+    void encode(T &t) const {
         t << blockNumber;
         t << blockHash;
     }
 
     template<class T>
-    void decode(T t) {
+    void decode(T &t) {
         t >> blockNumber;
         t >> blockHash;
     }
@@ -48,18 +53,18 @@ struct ParentInfo: public bcos::Serializable {
 using ParentInfoList = std::vector<ParentInfo>;
 using ParentInfoListPtr = std::shared_ptr<ParentInfoList>;
 
-struct Signature: public bcos::Serializable {
+struct Signature: public bcos::protocol::Serializable {
     int64_t index;
     bytes signature;
 
     template<class T>
-    void encode(T t) const {
+    void encode(T &t) const {
         t << index;
         t << signature;
     }
 
     template<class T>
-    void decode(T t) {
+    void decode(T &t) {
         t >> index;
         t >> signature;
     }

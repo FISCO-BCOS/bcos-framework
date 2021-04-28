@@ -35,7 +35,7 @@ namespace test
 inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr decodedBlockHeader)
 {
     BOOST_CHECK(decodedBlockHeader->version() == blockHeader->version());
-    BOOST_CHECK(*(decodedBlockHeader->parentInfo()) == *(blockHeader->parentInfo()));
+    BOOST_CHECK(decodedBlockHeader->parentInfo() == blockHeader->parentInfo());
     BOOST_CHECK(decodedBlockHeader->txsRoot() == blockHeader->txsRoot());
     BOOST_CHECK(decodedBlockHeader->receiptRoot() == blockHeader->receiptRoot());
     BOOST_CHECK(decodedBlockHeader->stateRoot() == blockHeader->stateRoot());
@@ -43,24 +43,24 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     BOOST_CHECK(decodedBlockHeader->gasUsed() == blockHeader->gasUsed());
     BOOST_CHECK(decodedBlockHeader->timestamp() == blockHeader->timestamp());
     BOOST_CHECK(decodedBlockHeader->sealer() == blockHeader->sealer());
-    BOOST_CHECK(decodedBlockHeader->sealerList()->size() == blockHeader->sealerList()->size());
-    for (size_t i = 0; i < decodedBlockHeader->sealerList()->size(); i++)
+    BOOST_CHECK(decodedBlockHeader->sealerList().size() == blockHeader->sealerList().size());
+    for (auto i = 0; i < decodedBlockHeader->sealerList().size(); i++)
     {
-        BOOST_CHECK(*(*decodedBlockHeader->sealerList())[i] == *(*blockHeader->sealerList())[i]);
-        std::cout << "#### sealer " << i << ":" << *toHexString(*(*blockHeader->sealerList())[i])
+        BOOST_CHECK(decodedBlockHeader->sealerList()[i] == blockHeader->sealerList()[i]);
+        std::cout << "#### sealer " << i << ":" << *toHexString(blockHeader->sealerList()[i])
                   << std::endl;
     }
-    BOOST_CHECK(decodedBlockHeader->extraData() == blockHeader->extraData());
+    BOOST_CHECK(decodedBlockHeader->extraData().toBytes() == blockHeader->extraData().toBytes());
     BOOST_CHECK((decodedBlockHeader->consensusWeights()) == (blockHeader->consensusWeights()));
     // check signature
     BOOST_CHECK(
-        decodedBlockHeader->signatureList()->size() == blockHeader->signatureList()->size());
+        decodedBlockHeader->signatureList().size() == blockHeader->signatureList().size());
     size_t index = 0;
-    for (auto signature : *(decodedBlockHeader->signatureList()))
+    for (auto signature : decodedBlockHeader->signatureList())
     {
-        BOOST_CHECK(signature.first == (*(blockHeader->signatureList()))[index].first);
-        BOOST_CHECK(*(signature.second) == *(*(blockHeader->signatureList()))[index].second);
-        std::cout << "#### signatureData:" << *toHexString(*(signature.second)) << std::endl;
+        BOOST_CHECK(signature.index == blockHeader->signatureList()[index].index);
+        BOOST_CHECK(signature.signature == blockHeader->signatureList()[index].signature);
+        std::cout << "#### signatureData:" << *toHexString(signature.signature) << std::endl;
         index++;
     }
     std::cout << "### PBBlockHeaderTest: version:" << decodedBlockHeader->version() << std::endl;
@@ -78,14 +78,14 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     std::cout << "### PBBlockHeaderTest: sealer:" << *toHexString(decodedBlockHeader->extraData())
               << std::endl;
     std::cout << "#### hash:" << decodedBlockHeader->hash().hex() << std::endl;
-    std::cout << "### parentHash:" << (*(blockHeader->parentInfo()))[0].second.hex() << std::endl;
+    std::cout << "### parentHash:" << blockHeader->parentInfo()[0].blockHash.hex() << std::endl;
 }
 
 inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    ParentInfoListPtr _parentInfo, h256 const& _txsRoot, h256 const& _receiptRoot,
+    const ParentInfoList &_parentInfo, h256 const& _txsRoot, h256 const& _receiptRoot,
     h256 const& _stateRoot, int64_t _number, u256 const& _gasUsed, int64_t _timestamp,
-    int64_t _sealer, BytesListPtr _sealerList, bytes const& _extraData,
-    SignatureListPtr _signatureList)
+    int64_t _sealer, const std::vector<bytes> &_sealerList, bytes const& _extraData,
+    SignatureList _signatureList)
 {
     BlockHeaderFactory::Ptr blockHeaderFactory =
         std::make_shared<PBBlockHeaderFactory>(_cryptoSuite);
@@ -99,11 +99,11 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
     blockHeader->setGasUsed(_gasUsed);
     blockHeader->setTimestamp(_timestamp);
     blockHeader->setSealer(_sealer);
-    blockHeader->setSealerList(*_sealerList);
+    blockHeader->setSealerList(gsl::span<const bytes>(_sealerList));
     blockHeader->setExtraData(_extraData);
     blockHeader->setSignatureList(_signatureList);
-    WeightListPtr weights = std::make_shared<WeightList>();
-    weights->push_back(0);
+    WeightList weights;
+    weights.push_back(0);
     blockHeader->setConsensusWeights(weights);
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
@@ -131,38 +131,44 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
     return blockHeader;
 }
 
-inline ParentInfoListPtr fakeParentInfo(Hash::Ptr _hashImpl, size_t _size)
+inline ParentInfoList fakeParentInfo(Hash::Ptr _hashImpl, size_t _size)
 {
-    ParentInfoListPtr parentInfos = std::make_shared<ParentInfoList>();
+    ParentInfoList parentInfos;
     for (size_t i = 0; i < _size; i++)
     {
-        parentInfos->emplace_back(std::make_pair(i, _hashImpl->hash(std::to_string(i))));
+        ParentInfo parentInfo;
+        parentInfo.blockNumber = i;
+        parentInfo.blockHash = _hashImpl->hash(std::to_string(i));
+        parentInfos.emplace_back(parentInfo);
     }
     return parentInfos;
 }
 
-inline BytesListPtr fakeSealerList(
+inline std::vector<bytes> fakeSealerList(
     std::vector<KeyPairInterface::Ptr>& _keyPairVec, SignatureCrypto::Ptr _signImpl, size_t size)
 {
-    BytesListPtr sealerList = std::make_shared<BytesList>();
+    std::vector<bytes> sealerList;
     for (size_t i = 0; i < size; i++)
     {
         auto keyPair = _signImpl->generateKeyPair();
         _keyPairVec.emplace_back(keyPair);
-        sealerList->emplace_back(keyPair->publicKey()->encode());
+        sealerList.emplace_back(*(keyPair->publicKey()->encode()));
     }
     return sealerList;
 }
 
-inline SignatureListPtr fakeSignatureList(SignatureCrypto::Ptr _signImpl,
+inline SignatureList fakeSignatureList(SignatureCrypto::Ptr _signImpl,
     std::vector<KeyPairInterface::Ptr>& _keyPairVec, h256 const& _hash)
 {
     auto sealerIndex = 0;
-    auto signatureList = std::make_shared<SignatureList>();
+    SignatureList signatureList;
     for (auto keyPair : _keyPairVec)
     {
         auto signature = _signImpl->sign(keyPair, _hash);
-        signatureList->push_back(std::make_pair(sealerIndex++, signature));
+        Signature sig;
+        sig.index = sealerIndex++;
+        sig.signature = *signature;
+        signatureList.push_back(sig);
     }
     return signatureList;
 }
@@ -173,7 +179,7 @@ inline BlockHeader::Ptr testPBBlockHeader(CryptoSuite::Ptr _cryptoSuite)
     auto signImpl = _cryptoSuite->signatureImpl();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signImpl, nullptr);
     int version = 10;
-    ParentInfoListPtr parentInfo = fakeParentInfo(hashImpl, 3);
+    auto parentInfo = fakeParentInfo(hashImpl, 3);
     auto txsRoot = hashImpl->hash((std::string) "txsRoot");
     auto receiptRoot = hashImpl->hash((std::string) "receiptRoot");
     auto stateRoot = hashImpl->hash((std::string) "stateRoot");
