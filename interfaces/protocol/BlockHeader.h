@@ -20,6 +20,8 @@
  */
 #pragma once
 #include "ProtocolTypeDef.h"
+#include <gsl/span>
+
 namespace bcos
 {
 namespace protocol
@@ -35,7 +37,7 @@ public:
 
     virtual void decode(bytesConstRef _data) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
-    virtual bcos::crypto::HashType const& hash() const = 0;
+    virtual bcos::crypto::HashType hash() const = 0;
     virtual void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number) = 0;
     virtual void clear() = 0;
     // verifySignatureList verifys the signatureList
@@ -45,7 +47,7 @@ public:
     // version returns the version of the blockHeader
     virtual int32_t version() const = 0;
     // parentInfo returns the parent information, including (parentBlockNumber, parentHash)
-    virtual ParentInfoListPtr parentInfo() const = 0;
+    virtual gsl::span<const ParentInfo> parentInfo() const = 0;
     // txsRoot returns the txsRoot of the current block
     virtual bcos::crypto::HashType const& txsRoot() const = 0;
     // receiptRoot returns the receiptRoot of the current block
@@ -59,14 +61,15 @@ public:
     // sealer returns the sealer that generate this block
     virtual int64_t sealer() = 0;
     // sealerList returns the current sealer list
-    virtual BytesListPtr sealerList() const = 0;
-    virtual bytes const& extraData() const = 0;
-    virtual SignatureListPtr signatureList() const = 0;
-
-    virtual WeightList const& consensusWeights() const = 0;
+    virtual gsl::span<const bytes> sealerList() const = 0;
+    virtual bytesConstRef extraData() const = 0;
+    virtual gsl::span<const Signature> signatureList() const = 0;
+    virtual gsl::span<const uint64_t> consensusWeights() const = 0;
 
     virtual void setVersion(int32_t _version) = 0;
-    virtual void setParentInfo(ParentInfoListPtr _parentInfo) = 0;
+    virtual void setParentInfo(gsl::span<const ParentInfo> const& _parentInfo) = 0;
+    virtual void setParentInfo(ParentInfoList &&_parentInfo) = 0;
+
     virtual void setTxsRoot(bcos::crypto::HashType const& _txsRoot) = 0;
     virtual void setReceiptRoot(bcos::crypto::HashType const& _receiptRoot) = 0;
     virtual void setStateRoot(bcos::crypto::HashType const& _stateRoot) = 0;
@@ -74,13 +77,18 @@ public:
     virtual void setGasUsed(u256 const& _gasUsed) = 0;
     virtual void setTimestamp(int64_t _timestamp) = 0;
     virtual void setSealer(int64_t _sealerId) = 0;
-    virtual void setSealerList(BytesList const& _sealerList) = 0;
 
-    virtual void setConsensusWeights(WeightListPtr _weightList) = 0;
+    virtual void setSealerList(gsl::span<const bytes> const& _sealerList) = 0;
+    virtual void setSealerList(std::vector<bytes>&& _sealerList) = 0;
+
+    virtual void setConsensusWeights(gsl::span<const uint64_t> const& _weightList) = 0;
+    virtual void setConsensusWeights(std::vector<uint64_t>&& _weightList) = 0;
 
     virtual void setExtraData(bytes const& _extraData) = 0;
     virtual void setExtraData(bytes&& _extraData) = 0;
-    virtual void setSignatureList(SignatureListPtr _signatureList) = 0;
+
+    virtual void setSignatureList(gsl::span<const Signature> const& _signatureList) = 0;
+    virtual void setSignatureList(SignatureList&& _signatureList) = 0;
 };
 }  // namespace protocol
 }  // namespace bcos

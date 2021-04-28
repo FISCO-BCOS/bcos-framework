@@ -29,6 +29,7 @@ namespace bcos
 {
 namespace test
 {
+
 BOOST_FIXTURE_TEST_SUITE(PBBlockHeaderTest, TestPromptFixture)
 BOOST_AUTO_TEST_CASE(testNormalPBBlockHeader)
 {
@@ -87,34 +88,34 @@ BOOST_AUTO_TEST_CASE(testRawPBBlockHeader)
     BOOST_CHECK(*toHexString(decodedBlockHeader->extraData()) ==
                 "8ea407c24ec9663ee0e7a5f2d0e9afffec28087c25f296e68585bb292ed6c5e5");
     // check signature
-    BOOST_CHECK(decodedBlockHeader->signatureList()->size() == 4);
+    BOOST_CHECK(decodedBlockHeader->signatureList().size() == 4);
     BOOST_CHECK(decodedBlockHeader->hash().hex() ==
                 "da717c040800a6dd6eaf93380f922e21575db5c55898935297691292576ac893");
-    BOOST_CHECK((*decodedBlockHeader->parentInfo())[0].second.hex() ==
+    BOOST_CHECK(decodedBlockHeader->parentInfo()[0].blockHash.hex() ==
                 "044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[0]) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->sealerList()[0]) ==
                 "d7fdd8c32486b984304b4c254b48255c564030a83b89b7e7b9ad2358dedc48afd8eab69f90a3e305d2"
                 "325fc6034bd9b0d8d004872e10c98078279d322c56c7ce");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[1]) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->sealerList()[1]) ==
                 "a886ee251bd5799d9453e050413a16cdbc72a7a1f755a018f623843f435de2cc1ca49d6a0037e5f0aa"
                 "0253572d70e0218af07043facfbc5d1cb5bf7091c64dd1");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[2]) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->sealerList()[2]) ==
                 "a1039da8932ec26b2be14bfdd34ddb1fbf45a0adb10bfd2a25bc0d4204cf1f101eaf3ec90c30e9535e"
                 "0ab89227ceccb5804726515f981804556f4187e068ecb9");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[3]) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->sealerList()[3]) ==
                 "f7f2e5c1747316c57d77b8fa8ee53d5b03e04e001c7e9b5b961b1eacfc0bdba94e7985095d2b25305c"
                 "47a4e2d6fe615cc7b28955cb5d39525cb00c9e5f9f0d58");
 
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[0].second) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->signatureList()[0].signature) ==
                 "c1564b743653c3ee51155892fb1d53551ae065e3726473ed52391bcc7f6dc96719518537cc90891243"
                 "b3796bba578e5f33e76f115b6df91d4e588290dc79f94200");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[1].second) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->signatureList()[1].signature) ==
                 "141a3a0ec110bfa18c5d8983526fcb5ce185fe846a44708308fe2355ce6bebd94d9a57438895381cd3"
                 "915e124dd75c19f25188d22354b133a92df2ed88f802d300");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[2].second) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->signatureList()[2].signature) ==
                 "798169fce3f226cfc7016e11bb3a06c73dbc3721eb59a39fadb4f46e31e804fe3fa5bbe2093925bb95"
                 "219d03af7ee89553f3e0d172d305737c219f5a5d5178e300");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[3].second) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->signatureList()[3].signature) ==
                 "a34453eca746d38c348a0e9aab589eda5dcb6a5ee9759941a35778fe0cc40ee7769abb947355cbf3f9"
                 "aaafaa201c481d2712be605e604483ca41d09210e85ff901");
     BOOST_CHECK(decodedBlockHeader->consensusWeights().size() == 0);
@@ -160,34 +161,34 @@ BOOST_AUTO_TEST_CASE(testRawSMPBBlockHeader)
     BOOST_CHECK(*toHexString(decodedBlockHeader->extraData()) ==
                 "0f000c0d3cf849632ed9aa2925251c0a13ee4f09f991b30bf396c15bf7ae8097");
     // check signature
-    BOOST_CHECK(decodedBlockHeader->signatureList()->size() == 4);
+    BOOST_CHECK(decodedBlockHeader->signatureList().size() == 4);
     BOOST_CHECK(decodedBlockHeader->hash().hex() ==
                 "ce67da303b36a5ee46736fa75e1b47a65089637dd8294911dab54d57d4d4a7b1");
-    BOOST_CHECK((*decodedBlockHeader->parentInfo())[0].second.hex() ==
+    BOOST_CHECK(decodedBlockHeader->parentInfo()[0].blockHash.hex() ==
                 "06d47b6f2f121e85160d1d8072e58843de1eed164ed526c3b56b22c2b47324a0");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[0]) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->sealerList()[0]) ==
                 "f604d70d59bf3cf766a6cba8a3fca8f5837d20526062cc06d0bfe2d2624fedadd483518bc73eff22be"
                 "d25aa633b2cee4f2c7d7b90fefbf59a27806e403ef5aff");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[1]) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->sealerList()[1]) ==
                 "4a676e2641875b76c58c5bce3a8cbb6a1934c9267b51d982add373c38eb3c34af333ebad785b5b0cb7"
                 "df15e7358e764706705d9d2de6c5efe7c13001842273c2");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[2]) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->sealerList()[2]) ==
                 "fa4b61c4b5d50bfe270f3fc5d486a4e262f87dcea20157204374a026fe94c2f17d4e6248fd93c89938"
                 "5c0bce8029fcf1e2a8b8aa1faf083f2ae88f4d971bdd19");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->sealerList())[3]) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->sealerList()[3]) ==
                 "deeb46a1b389fa1e4b225df5c9ced5cffb4cb8c7ad2729eb78b5d99e59b4c64eaa654e7e955c612998"
                 "954f5463f25a8e7b6e26a61a100e0ac68b629fa4159282");
 
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[0].second) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->signatureList()[0].signature) ==
                 "9529fc4f0064656104f209706d4d20d86637c30c2ec35ed9248695ee453b06754251494fb0ff8f2e9f"
                 "779c884dbf17d9d97c4b126fb5c7c39c7b6adb44f8a79a");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[1].second) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->signatureList()[1].signature) ==
                 "f5af51722e4519709f430d20ea3cf1158dffd30fae01b7548d7c52733217587f31948d405d0792e9b4"
                 "b852757fcd92e876f645818dd493cce3fb6310a073dcbd");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[2].second) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->signatureList()[2].signature) ==
                 "1483270d9bd8bc98121035d537d84c8ee7a252b5cbd26004cfe8a35b31461df8b90de93453ee713cac"
                 "973a559039905a8009613d06941eab935bc017c8fdc1d2");
-    BOOST_CHECK(*toHexString(*(*decodedBlockHeader->signatureList())[3].second) ==
+    BOOST_CHECK(*toHexString(decodedBlockHeader->signatureList()[3].signature) ==
                 "d058eca499d70c0c751672f407c263488b28194ea970fe8ed09d03945ae84e75ec2fb395370d648655"
                 "2cef01208a4436f9f790ffa16f4d0c0538b08a29dd9c58");
     BOOST_CHECK(decodedBlockHeader->consensusWeights().size() == 0);

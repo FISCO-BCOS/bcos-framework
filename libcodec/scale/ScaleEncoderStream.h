@@ -18,11 +18,14 @@
  */
 #pragma once
 #include "FixedWidthIntegerCodec.h"
+#include "../../interfaces/protocol/Protocol.h"
 #include "libutilities/FixedBytes.h"
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include <deque>
 #include <gsl/span>
+#include <type_traits>
+
 namespace bcos
 {
 namespace codec
@@ -37,6 +40,17 @@ public:
 
     // get the encoded data
     bytes data() const;
+
+    /**
+     * @brief scale-encodes a string view
+     * @param t the object
+     * @return reference to stream
+     */
+    template <typename T, typename = typename std::enable_if<std::is_base_of<bcos::protocol::Serializable, T>::value>::type>
+    ScaleEncoderStream& operator<<(T const& t)
+    {
+        return encodeClass(t);
+    }
 
     /**
      * @brief scale-encodes pair of values
@@ -255,6 +269,7 @@ protected:
     template <size_t I, class... Ts>
     void encodeElementOfTuple(const std::tuple<Ts...>& v)
     {
+        
         *this << std::get<I>(v);
         if constexpr (sizeof...(Ts) > I + 1)
         {
@@ -295,6 +310,13 @@ protected:
         }
         return *this;
     }
+
+    template <typename T>
+    ScaleEncoderStream& encodeClass(T const& t) {
+        t.encode(*this);
+        return *this;
+    }
+
     /**
      * @brief puts a byte to buffer
      * @param v byte value
