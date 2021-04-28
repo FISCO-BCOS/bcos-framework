@@ -172,7 +172,7 @@ jobs:
       - name: configure and compile
         run: |
           source /opt/rh/devtoolset-7/enable
-          mkdir -p build && cd build
-          cmake3 .. -DTESTS=ON
+          # mkdir -p build && cd build
+          cmake3 . -DTESTS=ON
           make -j2
           CTEST_OUTPUT_ON_FAILURE=TRUE make test

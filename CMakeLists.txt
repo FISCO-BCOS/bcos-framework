@@ -121,7 +121,6 @@ if (TESTS)
     enable_testing()
     set(CTEST_OUTPUT_ON_FAILURE TRUE)
     add_subdirectory(test)
-    
 endif()
 
 include(InstallConfig)
