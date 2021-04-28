@@ -20,7 +20,7 @@
  */
 
 #pragma once
-#include "libutilities/Common.h"
+#include "../../libutilities/Common.h"
 #include <memory>
 
 namespace bcos
