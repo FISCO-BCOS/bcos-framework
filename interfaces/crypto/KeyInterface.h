@@ -34,7 +34,7 @@ public:
     virtual size_t size() const = 0;
     virtual char* mutableData() = 0;
     virtual const char* constData() const = 0;
-    virtual std::shared_ptr<const bytes> encode() const = 0;
+    virtual std::shared_ptr<bytes> encode() const = 0;
     virtual void decode(bytesConstRef _data) = 0;
     virtual void decode(bytes&& _data) = 0;
 

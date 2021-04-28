@@ -83,7 +83,7 @@ public:
         m_parentInfo.assign(_parentInfo.begin(), _parentInfo.end());
         noteDirty();
     }
-    virtual void setParentInfo(ParentInfoList &&_parentInfo) override {
+    void setParentInfo(ParentInfoList &&_parentInfo) override {
         m_parentInfo = std::move(_parentInfo);
         noteDirty();
     }
