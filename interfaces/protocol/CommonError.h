@@ -26,6 +26,7 @@ namespace protocol
 enum CommonError : int32_t
 {
     SUCCESS = 0,
+    TIMEOUT = 1000,
 };
 }
 }  // namespace bcos
