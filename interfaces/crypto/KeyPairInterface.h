@@ -19,8 +19,8 @@
  * @date 2021-04-02
  */
 #pragma once
-#include "interfaces/crypto/Hash.h"
-#include "interfaces/crypto/KeyInterface.h"
+#include "Hash.h"
+#include "KeyInterface.h"
 namespace bcos
 {
 namespace crypto
