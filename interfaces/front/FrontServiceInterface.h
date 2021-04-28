@@ -47,8 +47,9 @@ public:
      * @brief: get nodeID list
      * @return void
      */
-    virtual void asyncGetNodeIDs(std::function<void(Error::Ptr _error,
-            std::shared_ptr<const std::vector<bcos::crypto::NodeIDPtr>>&)>) const = 0;
+    virtual void asyncGetNodeIDs(std::function<void(
+            Error::Ptr _error, std::shared_ptr<const bcos::crypto::NodeIDs> _nodeIDs)>
+            _callback) const = 0;
 
     /**
      * @brief: send message to node
