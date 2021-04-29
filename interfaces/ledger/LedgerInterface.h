@@ -47,12 +47,12 @@ public:
      *
      * @param _blockNumber the number of block to commit, txs had been stored in asyncPreStoreTxs()
      * @param _signList the signature list of block header to commit,
-     *                  if _signList == nullptr, it means sync module call this interface or error happened
+     *                  if _signList.empty(), it means sync module call this interface or error happened
      *                  if not, it means consensus call this
      * @param _onCommitBlock trigger this callback when commit block in storage
      */
     virtual void asyncCommitBlock(bcos::protocol::BlockNumber _blockNumber,
-        const gsl::span<const Signature>& _signList,
+        const gsl::span<const protocol::Signature>& _signList,
         std::function<void(Error::Ptr)> _onCommitBlock) = 0;
 
     /**
@@ -120,8 +120,9 @@ public:
      * @brief async get total transaction count and latest block number
      * @param _callback callback totalTxCount, totalFailedTxCount, and latest block number
      */
-    virtual void asyncGetTotalTransactionCount(
-        std::function<void(Error::Ptr, int64_t _totalTxCount, int64_t _failedTxCount, bcos::protocol::BlockNumber _latestBlockNumber)> _callback) = 0;
+    virtual void asyncGetTotalTransactionCount(std::function<void(Error::Ptr, int64_t _totalTxCount,
+            int64_t _failedTxCount, bcos::protocol::BlockNumber _latestBlockNumber)>
+            _callback) = 0;
 
     /**
      * @brief async get transaction receipt merkle proof by blockNumber and index
@@ -213,7 +214,7 @@ public:
      * @param _onGetBlock callback when get a block, (error, blockHeader)
      */
     virtual void asyncGetBlockHeaderByNumber(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, bcos::protocol::BlockHeader::Ptr >)> _onGetBlock) = 0;
+        std::function<void(Error::Ptr, bcos::protocol::BlockHeader::Ptr)> _onGetBlock) = 0;
 
     /**
      * @brief async get block header by block hash
@@ -221,7 +222,7 @@ public:
      * @param _onGetBlock callback when get a block, (error, blockHeader)
      */
     virtual void asyncGetBlockHeaderByHash(bcos::crypto::HashType const& _blockHash,
-        std::function<void(Error::Ptr, bcos::protocol::BlockHeader::Ptr >)> _onGetBlock) = 0;
+        std::function<void(Error::Ptr, bcos::protocol::BlockHeader::Ptr)> _onGetBlock) = 0;
 
     /**
      * @brief async get system config by table key
@@ -229,7 +230,7 @@ public:
      * @param _onGetConfig callback when get config, <value, latest block number>
      */
     virtual void asyncGetSystemConfigByKey(std::string const& _key,
-        std::function<void(Error::Ptr, std::string, bcos::protocol::BlockNumber >)> _onGetConfig) = 0;
+        std::function<void(Error::Ptr, std::string, bcos::protocol::BlockNumber)> _onGetConfig) = 0;
 
     /**
      * @brief async get nonce list in specific block

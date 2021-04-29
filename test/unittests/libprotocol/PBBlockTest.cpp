@@ -83,6 +83,7 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     BOOST_CHECK(onChainResult->txHash() == tx->hash());
     BOOST_CHECK(onChainResult->blockHash() == decodedBlock->blockHeader()->hash());
     BOOST_CHECK(onChainResult->blockNumber() == decodedBlock->blockHeader()->number());
+    BOOST_CHECK(cryptoSuite->hash("123") == blockFactory->cryptoSuite()->hash("123"));
 }
 BOOST_AUTO_TEST_CASE(testNormalBlock)
 {
