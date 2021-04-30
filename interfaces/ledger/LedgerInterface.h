@@ -58,10 +58,11 @@ public:
     /**
      * @brief async pre-store txs in block when pbft backup
      * @param _txsToStore only txs in blocks, without header info
+     * @param _number pre-store block number
      * @param _onTxsStored callback
      */
-    virtual void asyncPreStoreTransactions(bcos::protocol::Blocks const& _txsToStore,
-        std::function<void(Error::Ptr)> _onTxsStored) = 0;
+    virtual void asyncPreStoreTransactions(bcos::protocol::Block::Ptr _txsToStore,
+        protocol::BlockNumber _number, std::function<void(Error::Ptr)> _onTxsStored) = 0;
 
     /**
      * @brief async get txs in block by block number
