@@ -62,7 +62,9 @@ public:
     {
         return *m_observerNodeList;
     }
-    bcos::crypto::HashType const& hash() const { return m_blockNumber; }
+    bcos::crypto::HashType const& hash() const { return m_hash; }
+    bcos::protocol::BlockNumber blockNumber() const { return m_blockNumber; }
+
     uint64_t consensusTimeout() const { return m_consensusTimeout; }
     uint64_t blockTxCountLimit() const { return m_blockTxCountLimit; }
 

@@ -60,8 +60,8 @@ set(HUNTER_STATUS_DEBUG OFF CACHE STRING "Hunter debug output")
 # set(HUNTER_CONFIGURATION_TYPES Release CACHE STRING "Build type of Hunter packages")
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/FISCO-BCOS/hunter/archive/d73ee00ba165b521f0e63161119fbf18a7eb6e60.tar.gz"
-    SHA1 "baeb7665f6755232e86bb1c86974b2000a1c4c8e"
+    URL "https://github.com/FISCO-BCOS/hunter/archive/8c81ea454c0c268b257da1fe3e3f2f69bd59a67d.tar.gz"
+    SHA1 "13292adf48c4c053ff2ceb7173631a296c08d1ac"
     FILEPATH "${BCOS_FRAMEWORK_CMAKE_DIR}/config.cmake"
 )
 # set CMP0074 to NEW to suppress warnning, https://cmake.org/cmake/help/latest/policy/CMP0074.html
