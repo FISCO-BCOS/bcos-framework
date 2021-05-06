@@ -22,11 +22,12 @@
 #pragma once
 
 #include "../../interfaces/crypto/CommonType.h"
-#include "../../interfaces/protocol/Transaction.h"
-#include "../../interfaces/protocol/TransactionReceipt.h"
 #include "../../interfaces/protocol/Block.h"
 #include "../../interfaces/protocol/BlockHeader.h"
+#include "../../interfaces/protocol/Transaction.h"
+#include "../../interfaces/protocol/TransactionReceipt.h"
 #include "../../libutilities/Error.h"
+#include "LedgerConfig.h"
 #include "LedgerTypeDef.h"
 #include <gsl/span>
 
@@ -46,13 +47,13 @@ public:
      *
      * @param _blockNumber the number of block to commit, txs had been stored in asyncPreStoreTxs()
      * @param _signList the signature list of block header to commit,
-     *                  if _signList.empty(), it means sync module call this interface or error happened
-     *                  if not, it means consensus call this
+     *                  if _signList.empty(), it means sync module call this interface or error
+     * happened if not, it means consensus call this
      * @param _onCommitBlock trigger this callback when commit block in storage
      */
     virtual void asyncCommitBlock(bcos::protocol::BlockNumber _blockNumber,
         const gsl::span<const protocol::Signature>& _signList,
-        std::function<void(Error::Ptr)> _onCommitBlock) = 0;
+        std::function<void(Error::Ptr, LedgerConfig::Ptr)> _onCommitBlock) = 0;
 
     /**
      * @brief async pre-store txs in block when pbft backup
@@ -73,8 +74,7 @@ public:
      * @example
      * asyncGetBlockDataByNumber(10, HEADER|TRANSACTIONS, [](error, block){ doSomething(); });
      */
-    virtual void asyncGetBlockDataByNumber(protocol::BlockNumber _blockNumber,
-        int32_t _blockFlag,
+    virtual void asyncGetBlockDataByNumber(protocol::BlockNumber _blockNumber, int32_t _blockFlag,
         std::function<void(Error::Ptr, protocol::Block::Ptr)> _onGetBlock) = 0;
 
     /**
@@ -119,10 +119,8 @@ public:
      *                   if false then MerkleProofPtr will be nullptr
      * @param _onGetTx
      */
-    virtual void asyncGetTransactionReceiptByHash(crypto::HashType const& _txHash,
-        bool _withProof,
-        std::function<void(
-            Error::Ptr, protocol::TransactionReceipt::ConstPtr, MerkleProofPtr)>
+    virtual void asyncGetTransactionReceiptByHash(crypto::HashType const& _txHash, bool _withProof,
+        std::function<void(Error::Ptr, protocol::TransactionReceipt::ConstPtr, MerkleProofPtr)>
             _onGetTx) = 0;
 
     /**
@@ -175,5 +173,5 @@ public:
     virtual void asyncGetNonceList(protocol::BlockNumber _blockNumber,
         std::function<void(Error::Ptr, protocol::NonceListPtr)> _onGetList) = 0;
 };
-} // namespace ledger
-} // namespace bcos
+}  // namespace ledger
+}  // namespace bcos

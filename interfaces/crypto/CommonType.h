@@ -22,7 +22,6 @@
 #include "../../libutilities/FixedBytes.h"
 namespace bcos
 {
-
 namespace crypto
 {
 using HashType = h256;

@@ -42,7 +42,7 @@ public:
     virtual bool verify(PublicPtr _pubKey, const HashType& _hash, bytesConstRef _signatureData) = 0;
     virtual bool verify(std::shared_ptr<const bytes> _pubKeyBytes, const HashType& _hash,
         bytesConstRef _signatureData) = 0;
-    
+
     // recover recovers the public key from the given signature
     virtual PublicPtr recover(const HashType& _hash, bytesConstRef _signatureData) = 0;
 
@@ -51,6 +51,8 @@ public:
 
     // recoverAddress recovers address from a signature(for precompiled)
     virtual std::pair<bool, bytes> recoverAddress(Hash::Ptr _hashImpl, bytesConstRef _in) = 0;
+
+    virtual KeyPairInterface::Ptr createKeyPair(SecretPtr _secretKey) = 0;
 };
 }  // namespace crypto
 }  // namespace bcos
