@@ -90,11 +90,11 @@ BOOST_AUTO_TEST_CASE(testNormalPBTransactionRecept)
         "000000000000000000000000000000000000000000000000000000800000000002000000000000000000000000"
         "000000000200000000000000000000080000000000000000000000000000000000000000000000000000000200"
         "00000008000000000000000000000000000000000000000000000000010000");
-    auto logEntry = (*(receipt->logEntries()))[1];
-    BOOST_CHECK((logEntry->topics()[0]).hex() ==
+    auto& logEntry = (receipt->logEntries())[1];
+    BOOST_CHECK((logEntry.topics()[0]).hex() ==
                 "c89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6");
-    BOOST_CHECK(*toHexString(logEntry->address()) == "82df0950f5a951637e0307cdcb4c672f298b8bc6");
-    BOOST_CHECK(*toHexString(logEntry->data()) ==
+    BOOST_CHECK(*toHexString(logEntry.address()) == "82df0950f5a951637e0307cdcb4c672f298b8bc6");
+    BOOST_CHECK(*toHexString(logEntry.data()) ==
                 "c89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6");
 
     // check exception case
@@ -149,11 +149,11 @@ BOOST_AUTO_TEST_CASE(testSMPBTransactionRecept)
         "000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000"
         "000000000000000000000010000000000000040000000000000000000020000000000000000000000000000000"
         "00000000000000000000000000000000000000000000000000040020000000");
-    auto logEntry = (*(receipt->logEntries()))[1];
-    BOOST_CHECK((logEntry->topics()[0]).hex() ==
+    auto& logEntry = (receipt->logEntries())[1];
+    BOOST_CHECK((logEntry.topics()[0]).hex() ==
                 "cbdddb8e8421b23498480570d7d75330538a6882f5dfdc3b64115c647f3328c4");
-    BOOST_CHECK(*toHexString(logEntry->address()) == "d7d75330538a6882f5dfdc3b64115c647f3328c4");
-    BOOST_CHECK(*toHexString(logEntry->data()) ==
+    BOOST_CHECK(*toHexString(logEntry.address()) == "d7d75330538a6882f5dfdc3b64115c647f3328c4");
+    BOOST_CHECK(*toHexString(logEntry.data()) ==
                 "cbdddb8e8421b23498480570d7d75330538a6882f5dfdc3b64115c647f3328c4");
     // check exception case
     (*receiptData)[0] += 1;

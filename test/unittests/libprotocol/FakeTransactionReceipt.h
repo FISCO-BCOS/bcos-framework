@@ -41,7 +41,7 @@ inline LogEntriesPtr fakeLogEntries(Hash::Ptr _hashImpl, size_t _size)
         topics.push_back(topic);
         auto address = right160(topic).asBytes();
         bytes output = topic.asBytes();
-        auto logEntry = std::make_shared<LogEntry>(address, topics, output);
+        LogEntry logEntry(address, topics, output);
         logEntries->push_back(logEntry);
     }
     return logEntries;
@@ -54,19 +54,19 @@ inline void checkReceipts(
     BOOST_CHECK(decodedReceipt->version() == receipt->version());
     BOOST_CHECK(decodedReceipt->stateRoot() == receipt->stateRoot());
     BOOST_CHECK(decodedReceipt->gasUsed() == receipt->gasUsed());
-    BOOST_CHECK(decodedReceipt->contractAddress() == receipt->contractAddress());
+    BOOST_CHECK(decodedReceipt->contractAddress().toBytes() == receipt->contractAddress().toBytes());
     BOOST_CHECK(decodedReceipt->status() == receipt->status());
     BOOST_CHECK(decodedReceipt->output().toBytes() == receipt->output().toBytes());
     // BOOST_CHECK(decodedReceipt->hash() == receipt->hash());
     BOOST_CHECK(decodedReceipt->bloom() == receipt->bloom());
     // check LogEntries
-    BOOST_CHECK(decodedReceipt->logEntries()->size() == 2);
-    BOOST_CHECK(decodedReceipt->logEntries()->size() == receipt->logEntries()->size());
-    auto logEntry = (*(decodedReceipt->logEntries()))[1];
+    BOOST_CHECK(decodedReceipt->logEntries().size() == 2);
+    BOOST_CHECK(decodedReceipt->logEntries().size() == receipt->logEntries().size());
+    auto& logEntry = (decodedReceipt->logEntries())[1];
     auto expectedTopic = hashImpl->hash(std::to_string(1));
-    BOOST_CHECK(logEntry->topics()[0] == expectedTopic);
-    BOOST_CHECK(logEntry->address() == right160(expectedTopic).asBytes());
-    BOOST_CHECK(logEntry->data() == expectedTopic.asBytes());
+    BOOST_CHECK(logEntry.topics()[0] == expectedTopic);
+    BOOST_CHECK(logEntry.address().toBytes() == right160(expectedTopic).asBytes());
+    BOOST_CHECK(logEntry.data().toBytes() == expectedTopic.asBytes());
 }
 inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite)
 {

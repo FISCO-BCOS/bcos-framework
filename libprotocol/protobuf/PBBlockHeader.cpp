@@ -103,7 +103,7 @@ void PBBlockHeader::encode(bytes& _encodedData) const
     _encodedData = *data;
 }
 
-bcos::crypto::HashType PBBlockHeader::hash() const
+bcos::crypto::HashType const& PBBlockHeader::hash() const
 {
     UpgradableGuard l(x_hash);
     if (m_hash != bcos::crypto::HashType())

@@ -13,25 +13,30 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief Protocol for all the modules
- * @file Protocol.h
+ * @brief the information of the consensus node
+ * @file ConsensusNodeInterface.h
  * @author: yujiechen
- * @date 2021-04-21
+ * @date 2021-04-09
  */
 #pragma once
+#include "../../interfaces/crypto/KeyInterface.h"
 namespace bcos
 {
-namespace protocol
+namespace consensus
 {
-
-enum ModuleID
+class ConsensusNodeInterface
 {
+public:
+    using Ptr = std::shared_ptr<ConsensusNodeInterface>;
+    ConsensusNodeInterface() = default;
+    virtual ~ConsensusNodeInterface() {}
 
-    PBFT = 1000,
-    Raft = 1001,
-    BlockSync = 2000,
-    TxsSync = 2001,
-    AMOP = 3000,
+    // the nodeID of the consensus node
+    virtual bcos::crypto::PublicPtr nodeID() const = 0;
+
+    virtual uint64_t weight() const { return 100; }
 };
-}
+using ConsensusNodeList = std::vector<ConsensusNodeInterface::Ptr>;
+using ConsensusNodeListPtr = std::shared_ptr<ConsensusNodeList>;
+}  // namespace consensus
 }  // namespace bcos

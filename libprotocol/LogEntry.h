@@ -18,9 +18,11 @@
  * @date: 2021-03-18
  */
 #pragma once
+#include <gsl/span>
 #include "interfaces/crypto/CryptoSuite.h"
 #include "libutilities/Common.h"
 #include "libutilities/FixedBytes.h"
+
 namespace bcos
 {
 namespace protocol
@@ -34,13 +36,13 @@ public:
       : m_address(_address), m_topics(std::move(_topics)), m_data(std::move(_data))
     {}
 
-    virtual ~LogEntry() {}
+    ~LogEntry() {}
 
-    virtual bytes const& address() const { return m_address; }
-    virtual h256s const& topics() const { return m_topics; }
-    virtual bytes const& data() const { return m_data; }
+    bytesConstRef address() const { return ref(m_address); }
+    gsl::span<const h256> topics() const { return gsl::span(m_topics.data(), m_topics.size()); }
+    bytesConstRef data() const { return ref(m_data); }
 
-    virtual LogBloom bloom(bcos::crypto::CryptoSuite::Ptr _cryptoSuite) const
+    LogBloom bloom(bcos::crypto::CryptoSuite::Ptr _cryptoSuite) const
     {
         LogBloom logBloom;
         logBloom.shiftBloom<3>(_cryptoSuite->hash(m_address));
@@ -62,7 +64,7 @@ public:
     template <class Stream, typename = std::enable_if_t<Stream::is_encoder_stream>>
     friend Stream& operator<<(Stream& _stream, LogEntry const& _logEntry)
     {
-        return _stream << _logEntry.address() << _logEntry.topics() << _logEntry.data();
+        return _stream << _logEntry.m_address << _logEntry.m_topics << _logEntry.m_data;
     }
 
 private:
@@ -71,8 +73,8 @@ private:
     bytes m_data;
 };
 
-using LogEntries = std::vector<LogEntry::Ptr>;
-using LogEntriesPtr = std::shared_ptr<std::vector<LogEntry::Ptr>>;
+using LogEntries = std::vector<LogEntry>;
+using LogEntriesPtr = std::shared_ptr<std::vector<LogEntry>>;
 
 inline LogBloom generateBloom(
     LogEntriesPtr _logEntries, bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
@@ -80,7 +82,7 @@ inline LogBloom generateBloom(
     LogBloom logBloom;
     for (auto const& logEntry : *_logEntries)
     {
-        logBloom |= logEntry->bloom(_cryptoSuite);
+        logBloom |= logEntry.bloom(_cryptoSuite);
     }
     return logBloom;
 }
