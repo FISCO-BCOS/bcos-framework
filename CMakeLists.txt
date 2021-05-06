@@ -114,7 +114,7 @@ if (TESTS)
     set(BCOS_TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/test/bcos-test)
     FetchContent_Declare(bcos-test
     GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-test.git
-    GIT_TAG 781be821307706a619bea76a79e6ddc437de8ec3
+    GIT_TAG 19d1ce1f3ee455e290179a1c835fee179dbdd0bc
     SOURCE_DIR ${BCOS_TEST_DIR})
     FetchContent_MakeAvailable(bcos-test)
 
