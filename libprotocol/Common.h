@@ -18,8 +18,8 @@
  * @date 2021-04-12
  */
 #pragma once
-#include "libutilities/DataConvertUtility.h"
-#include "libutilities/Exceptions.h"
+#include "../libutilities/DataConvertUtility.h"
+#include "../libutilities/Exceptions.h"
 
 namespace bcos
 {

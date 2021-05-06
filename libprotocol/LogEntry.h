@@ -19,9 +19,9 @@
  */
 #pragma once
 #include <gsl/span>
-#include "interfaces/crypto/CryptoSuite.h"
-#include "libutilities/Common.h"
-#include "libutilities/FixedBytes.h"
+#include "../interfaces/crypto/CryptoSuite.h"
+#include "../libutilities/Common.h"
+#include "../libutilities/FixedBytes.h"
 
 namespace bcos
 {
