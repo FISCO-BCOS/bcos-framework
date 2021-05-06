@@ -19,6 +19,8 @@
 #pragma once
 
 #include "../../libutilities/FixedBytes.h"
+#include <gsl/span>
+
 namespace bcos
 {
 namespace protocol
@@ -39,11 +41,11 @@ public:
     virtual int32_t version() const = 0;
     virtual bcos::crypto::HashType const& stateRoot() const = 0;
     virtual u256 const& gasUsed() const = 0;
-    virtual bytes const& contractAddress() const = 0;
+    virtual bytesConstRef contractAddress() const = 0;
     virtual LogBloom const& bloom() const = 0;
     virtual int32_t status() const = 0;
     virtual bytesConstRef output() const = 0;
-    virtual std::shared_ptr<std::vector<std::shared_ptr<LogEntry>>> logEntries() const = 0;
+    virtual gsl::span<const LogEntry> logEntries() const = 0;
 };
 using Receipts = std::vector<TransactionReceipt::Ptr>;
 using ReceiptsPtr = std::shared_ptr<Receipts>;

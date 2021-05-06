@@ -23,9 +23,6 @@ namespace bcos
 {
 namespace protocol
 {
-struct Serializable
-{
-};
 
 enum ModuleID
 {

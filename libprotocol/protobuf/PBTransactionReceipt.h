@@ -54,10 +54,10 @@ public:
     int32_t version() const override { return m_receipt->version(); }
     int32_t status() const override { return m_status; }
     bytesConstRef output() const override { return ref(m_output); }
-    bytes const& contractAddress() const override { return m_contractAddress; }
+    bytesConstRef contractAddress() const override { return ref(m_contractAddress); }
     bcos::crypto::HashType const& stateRoot() const override { return m_stateRoot; }
     u256 const& gasUsed() const override { return m_gasUsed; }
-    LogEntriesPtr logEntries() const override { return m_logEntries; }
+    gsl::span<const LogEntry> logEntries() const override { return gsl::span<const LogEntry>(m_logEntries->data(), m_logEntries->size()); }
     LogBloom const& bloom() const override { return m_bloom; }
 
 private:

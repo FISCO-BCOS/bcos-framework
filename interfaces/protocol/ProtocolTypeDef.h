@@ -30,7 +30,7 @@ using BlockNumber = int64_t;
 using BytesList = std::vector<std::shared_ptr<bytes>>;
 using BytesListPtr = std::shared_ptr<BytesList>;
 
-struct ParentInfo: public bcos::protocol::Serializable {
+struct ParentInfo {
     BlockNumber blockNumber;
     bcos::crypto::HashType blockHash;
 
@@ -38,35 +38,35 @@ struct ParentInfo: public bcos::protocol::Serializable {
         return this->blockNumber == rhs.blockNumber && this->blockHash == rhs.blockHash;
     }
 
-    template<class T>
-    void encode(T &t) const {
-        t << blockNumber;
-        t << blockHash;
+    template <class Stream, typename = std::enable_if_t<Stream::is_decoder_stream>>
+    friend Stream& operator>>(Stream& _stream, ParentInfo& parentInfo)
+    {
+        return _stream >> parentInfo.blockNumber >> parentInfo.blockHash;
     }
 
-    template<class T>
-    void decode(T &t) {
-        t >> blockNumber;
-        t >> blockHash;
+    template <class Stream, typename = std::enable_if_t<Stream::is_encoder_stream>>
+    friend Stream& operator<<(Stream& _stream, ParentInfo const& parentInfo)
+    {
+        return _stream << parentInfo.blockNumber << parentInfo.blockHash;
     }
 };
 using ParentInfoList = std::vector<ParentInfo>;
 using ParentInfoListPtr = std::shared_ptr<ParentInfoList>;
 
-struct Signature: public bcos::protocol::Serializable {
+struct Signature {
     int64_t index;
     bytes signature;
 
-    template<class T>
-    void encode(T &t) const {
-        t << index;
-        t << signature;
+    template <class Stream, typename = std::enable_if_t<Stream::is_decoder_stream>>
+    friend Stream& operator>>(Stream& _stream, Signature& signature)
+    {
+        return _stream >> signature.index >> signature.signature;
     }
 
-    template<class T>
-    void decode(T &t) {
-        t >> index;
-        t >> signature;
+    template <class Stream, typename = std::enable_if_t<Stream::is_encoder_stream>>
+    friend Stream& operator<<(Stream& _stream, Signature const& signature)
+    {
+        return _stream << signature.index << signature.signature;
     }
 };
 using SignatureList = std::vector<Signature>;
