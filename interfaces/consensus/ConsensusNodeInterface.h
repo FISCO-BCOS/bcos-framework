@@ -20,6 +20,7 @@
  */
 #pragma once
 #include "../../interfaces/crypto/KeyInterface.h"
+#include "../../libutilities/Log.h"
 namespace bcos
 {
 namespace consensus
@@ -38,5 +39,27 @@ public:
 };
 using ConsensusNodeList = std::vector<ConsensusNodeInterface::Ptr>;
 using ConsensusNodeListPtr = std::shared_ptr<ConsensusNodeList>;
+
+struct ConsensusNodeComparator
+{
+    inline bool operator()(ConsensusNodeInterface::Ptr _left, ConsensusNodeInterface::Ptr _right)
+    {
+        if (_left->nodeID() == _right->nodeID())
+        {
+            return _left->weight() <= _right->weight();
+        }
+        return (_left->nodeID() < _right->nodeID());
+    }
+};
+
+inline std::string decsConsensusNodeList(ConsensusNodeList const& _nodeList)
+{
+    std::ostringstream stringstream;
+    for (auto node : _nodeList)
+    {
+        stringstream << LOG_KV(node->nodeID()->shortHex(), std::to_string(node->weight()));
+    }
+    return stringstream.str();
+}
 }  // namespace consensus
 }  // namespace bcos
