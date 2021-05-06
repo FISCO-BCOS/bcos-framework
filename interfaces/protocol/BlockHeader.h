@@ -37,7 +37,7 @@ public:
 
     virtual void decode(bytesConstRef _data) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
-    virtual bcos::crypto::HashType hash() const = 0;
+    virtual bcos::crypto::HashType const& hash() const = 0;
     virtual void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number) = 0;
     virtual void clear() = 0;
     // verifySignatureList verifys the signatureList
