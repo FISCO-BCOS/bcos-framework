@@ -27,6 +27,7 @@
 #include "../../interfaces/protocol/Block.h"
 #include "../../interfaces/protocol/BlockHeader.h"
 #include "../../libutilities/Error.h"
+#include "LedgerTypeDef.h"
 #include <gsl/span>
 
 
@@ -37,8 +38,6 @@ namespace ledger
 class LedgerInterface
 {
 public:
-    using MerkleProof = std::vector<std::pair<std::vector<std::string>, std::vector<std::string> > >;
-    using MerkleProofPtr = std::shared_ptr<const MerkleProof>;
     LedgerInterface() = default;
     virtual ~LedgerInterface() {}
 
@@ -65,99 +64,18 @@ public:
         protocol::BlockNumber _number, std::function<void(Error::Ptr)> _onTxsStored) = 0;
 
     /**
-     * @brief async get txs in block by block number
-     * @param _blockNumber the number of block to get
-     * @param _onGetTx
-     */
-    virtual void asyncGetTransactionsByBlockNumber(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, bcos::protocol::TransactionsConstPtr)> _onGetTx) = 0;
-
-    /**
-     * @brief async get a transaction by transaction hash
+     * @brief async get block by blockNumber
+     * @param _blockNumber number of block
+     * @param _blockFlag flag bit of what the block be callback contains,
+     *                   you can checkout all flags in LedgerTypeDef.h
+     * @param _onGetBlock
      *
-     * @param _txHash hash of transaction
-     * @param _onGetTx
+     * @example
+     * asyncGetBlockDataByNumber(10, HEADER|TRANSACTIONS, [](error, block){ doSomething(); });
      */
-    virtual void asyncGetTransactionByHash(bcos::crypto::HashType const& _txHash,
-        std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
-
-    /**
-     * @brief async get transaction by block hash and index
-     * @param _blockHash hash of block
-     * @param _index index of tx in block txList
-     * @param _onGetTx
-     */
-    virtual void asyncGetTransactionByBlockHashAndIndex(bcos::crypto::HashType const& _blockHash, int64_t _index,
-        std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
-
-    /**
-     * @brief async get transaction by block number and index
-     * @param _blockNumber number of block
-     * @param _index index of tx in block txList
-     * @param _onGetTx
-     */
-    virtual void asyncGetTransactionByBlockNumberAndIndex(bcos::protocol::BlockNumber _blockNumber, int64_t _index,
-        std::function<void(Error::Ptr, bcos::protocol::Transaction::ConstPtr)> _onGetTx) = 0;
-
-
-    /**
-     * @brief async get a transaction receipt by tx hash
-     *
-     * @param _txHash hash of transaction
-     * @param _onGetTx
-     */
-    virtual void asyncGetTransactionReceiptByHash(bcos::crypto::HashType const& _txHash,
-        std::function<void(Error::Ptr, bcos::protocol::TransactionReceipt::ConstPtr)> _onGetTx) = 0;
-
-    /**
-     * @brief async get receipts in block by block number
-     * @param _blockNumber number of block
-     * @param _onGetReceipt
-     */
-    virtual void asyncGetReceiptsByBlockNumber(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, bcos::protocol::ReceiptsConstPtr)> _onGetReceipt) = 0;
-
-    /**
-     * @brief async get total transaction count and latest block number
-     * @param _callback callback totalTxCount, totalFailedTxCount, and latest block number
-     */
-    virtual void asyncGetTotalTransactionCount(std::function<void(Error::Ptr, int64_t _totalTxCount,
-            int64_t _failedTxCount, bcos::protocol::BlockNumber _latestBlockNumber)>
-            _callback) = 0;
-
-    /**
-     * @brief async get transaction receipt merkle proof by blockNumber and index
-     * @param _blockNumber number of block
-     * @param _index transaction index in block
-     * @param _onGetProof
-     */
-    virtual void asyncGetTransactionReceiptProof(bcos::protocol::BlockNumber _blockNumber, int64_t _index,
-        std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
-
-    /**
-     * @brief async get transaction merkle proof by blockNumber and index
-     * @param _blockNumber number of block
-     * @param _index transaction index in block
-     * @param _onGetProof
-     */
-    virtual void asyncGetTransactionProof(bcos::protocol::BlockNumber _blockNumber, int64_t _index,
-        std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
-
-    /**
-     * @brief async get transaction proof by tx hash
-     * @param _txHash hash of transaction to get
-     * @param _onGetProof
-     */
-    virtual void asyncGetTransactionProofByHash(bcos::crypto::HashType const& _txHash,
-        std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
-
-    /**
-     * @brief async get transaction receipt proof by tx hash
-     * @param _txHash hash of transaction to get
-     * @param _onGetProof
-     */
-    virtual void asyncGetTransactionReceiptProofByHash(bcos::crypto::HashType const& _txHash,
-        std::function<void(Error::Ptr, MerkleProofPtr)> _onGetProof) = 0;
+    virtual void asyncGetBlockDataByNumber(protocol::BlockNumber _blockNumber,
+        int32_t _blockFlag,
+        std::function<void(Error::Ptr, protocol::Block::Ptr)> _onGetBlock) = 0;
 
     /**
      * @brief async get latest block number
@@ -165,65 +83,81 @@ public:
      * @param _onGetBlock
      */
     virtual void asyncGetBlockNumber(
-        std::function<void(Error::Ptr, bcos::protocol::BlockNumber)> _onGetBlock) = 0;
+        std::function<void(Error::Ptr, protocol::BlockNumber)> _onGetBlock) = 0;
 
     /**
      * @brief async get block hash by block number
      * @param _blockNumber the number of block to get
      * @param _onGetBlock
      */
-    virtual void asyncGetBlockHashByNumber(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, const bcos::crypto::HashType)> _onGetBlock) = 0;
+    virtual void asyncGetBlockHashByNumber(protocol::BlockNumber _blockNumber,
+        std::function<void(Error::Ptr, const crypto::HashType)> _onGetBlock) = 0;
 
     /**
      * @brief async get block number by block hash
      * @param _blockHash the hash of block to get
      * @param _onGetBlock
      */
-    virtual void asyncGetBlockNumberByHash(const bcos::crypto::HashType& _blockHash,
-        std::function<void(Error::Ptr, bcos::protocol::BlockNumber)> _onGetBlock) = 0;
+    virtual void asyncGetBlockNumberByHash(const crypto::HashType& _blockHash,
+        std::function<void(Error::Ptr, protocol::BlockNumber)> _onGetBlock) = 0;
 
     /**
-     * @brief async get a block by hash
-     *
-     * @param _blockHash hash of block to get
-     * @param _onGetBlock
+     * @brief async get a transaction by transaction hash
+     * @param _txHash hash of transaction
+     * @param _withProof if true then it will callback MerkleProofPtr in _onGetTx
+     *                   if false then MerkleProofPtr will be nullptr
+     * @param _onGetTx
      */
-    virtual void asyncGetBlockByHash(bcos::crypto::HashType const& _blockHash,
-        std::function<void(Error::Ptr, bcos::protocol::Block::Ptr)> _onGetBlock) = 0;
+    virtual void asyncGetTransactionByHash(crypto::HashType const& _txHash, bool _withProof,
+        std::function<void(Error::Ptr, protocol::Transaction::ConstPtr, MerkleProofPtr)>
+            _onGetTx) = 0;
 
     /**
-     * @brief async get block by blockNumber
-     *
+     * @brief async get a transaction receipt by tx hash
+     * @param _txHash hash of transaction
+     * @param _withProof if true then it will callback MerkleProofPtr in _onGetTx
+     *                   if false then MerkleProofPtr will be nullptr
+     * @param _onGetTx
+     */
+    virtual void asyncGetTransactionReceiptByHash(crypto::HashType const& _txHash,
+        bool _withProof,
+        std::function<void(
+            Error::Ptr, protocol::TransactionReceipt::ConstPtr, MerkleProofPtr)>
+            _onGetTx) = 0;
+
+    /**
+     * @brief async get transaction by block number and index
      * @param _blockNumber number of block
-     * @param _onGetBlock
+     * @param _index index of tx in block txList
+     * @param _withProof if true then it will callback MerkleProofPtr in _onGetTx
+     *                   if false then MerkleProofPtr will be nullptr
+     * @param _onGetTx
      */
-    virtual void asyncGetBlockByNumber(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, bcos::protocol::Block::Ptr)> _onGetBlock) = 0;
+    virtual void asyncGetTransactionByBlockNumberAndIndex(protocol::BlockNumber _blockNumber,
+        int64_t _index, bool _withProof,
+        std::function<void(Error::Ptr, protocol::Transaction::ConstPtr, MerkleProofPtr)>
+            _onGetTx) = 0;
 
     /**
-     * @brief async get an encoded block by number
+     * @brief async get a tx receipt by block number and index
      * @param _blockNumber number of block
-     * @param _onGetBlock
+     * @param _index index of tx receipt in block receipt list
+     * @param _withProof if true then it will callback MerkleProofPtr in _onGetTx
+     *                   if false then MerkleProofPtr will be nullptr
+     * @param _onGetTx
      */
-    virtual void asyncGetBlockEncodedByNumber(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, bytesPointer)> _onGetBlock) = 0;
+    virtual void asyncGetReceiptByBlockNumberAndIndex(protocol::BlockNumber _blockNumber,
+        int64_t _index, bool _withProof,
+        std::function<void(Error::Ptr, protocol::TransactionReceipt::ConstPtr, MerkleProofPtr)>
+            _onGetTx) = 0;
 
     /**
-     * @brief async get a block header by number
-     * @param _blockNumber number of block
-     * @param _onGetBlock callback when get a block, (error, blockHeader)
+     * @brief async get total transaction count and latest block number
+     * @param _callback callback totalTxCount, totalFailedTxCount, and latest block number
      */
-    virtual void asyncGetBlockHeaderByNumber(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, bcos::protocol::BlockHeader::Ptr)> _onGetBlock) = 0;
-
-    /**
-     * @brief async get block header by block hash
-     * @param _blockHash hash of block
-     * @param _onGetBlock callback when get a block, (error, blockHeader)
-     */
-    virtual void asyncGetBlockHeaderByHash(bcos::crypto::HashType const& _blockHash,
-        std::function<void(Error::Ptr, bcos::protocol::BlockHeader::Ptr)> _onGetBlock) = 0;
+    virtual void asyncGetTotalTransactionCount(std::function<void(Error::Ptr, int64_t _totalTxCount,
+            int64_t _failedTxCount, protocol::BlockNumber _latestBlockNumber)>
+            _callback) = 0;
 
     /**
      * @brief async get system config by table key
@@ -231,15 +165,15 @@ public:
      * @param _onGetConfig callback when get config, <value, latest block number>
      */
     virtual void asyncGetSystemConfigByKey(std::string const& _key,
-        std::function<void(Error::Ptr, std::string, bcos::protocol::BlockNumber)> _onGetConfig) = 0;
+        std::function<void(Error::Ptr, std::string, protocol::BlockNumber)> _onGetConfig) = 0;
 
     /**
      * @brief async get nonce list in specific block
      * @param _blockNumber number of block to get
      * @param _onGetList
      */
-    virtual void asyncGetNonceList(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, bcos::protocol::NonceListPtr)> _onGetList) = 0;
+    virtual void asyncGetNonceList(protocol::BlockNumber _blockNumber,
+        std::function<void(Error::Ptr, protocol::NonceListPtr)> _onGetList) = 0;
 };
 } // namespace ledger
 } // namespace bcos
