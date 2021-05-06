@@ -50,7 +50,7 @@ public:
 
     void decode(bytesConstRef _data) override;
     void encode(bytes& _encodeData) const override;
-    bcos::crypto::HashType hash() const override;
+    bcos::crypto::HashType const& hash() const override;
     void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number) override;
     void clear() override;
 
