@@ -39,23 +39,23 @@ enum class TransactionStatus : uint32_t
     OutOfGas = 12,    ///< Ran out of gas executing code of the transaction.
     OutOfStack = 13,  ///< Ran out of stack executing code of the transaction.
     StackUnderflow = 14,
-    NonceCheckFail = 15,
-    BlockLimitCheckFail = 16,
-    PrecompiledError = 21,
-    RevertInstruction = 22,
-    ContractAddressAlreadyUsed = 24,
-    PermissionDenied = 25,
-    CallAddressError = 26,
-    GasOverflow = 27,
-    ContractFrozen = 30,
-    AccountFrozen = 31,
-    TxPoolIsFull = 10000,
-    TransactionRefused = 10001,
-    AlreadyInTxPool = 10002,  /// txPool related errors
-    TxAlreadyInChain = 10003,
-    InvalidChainId = 10004,
-    InvalidGroupId = 10005,
-    RequestNotBelongToTheGroup = 10006,
+    PrecompiledError = 15,
+    RevertInstruction = 16,
+    ContractAddressAlreadyUsed = 17,
+    PermissionDenied = 18,
+    CallAddressError = 19,
+    GasOverflow = 20,
+    ContractFrozen = 21,
+    AccountFrozen = 22,
+    NonceCheckFail = 10000,  /// txPool related errors
+    BlockLimitCheckFail = 10001,
+    TxPoolIsFull = 10002,
+    TransactionRefused = 10003,
+    AlreadyInTxPool = 10004,
+    TxAlreadyInChain = 10005,
+    InvalidChainId = 10006,
+    InvalidGroupId = 10007,
+    RequestNotBelongToTheGroup = 10008,
 };
 TransactionStatus toTransactionStatus(Exception const& _e);
 std::ostream& operator<<(std::ostream& _out, TransactionStatus const& _er);
