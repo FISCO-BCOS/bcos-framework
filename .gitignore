@@ -41,3 +41,4 @@ cmake/scripts/**
 cmake/deps/**
 build*/**
 .vscode/**
+.DS_Store

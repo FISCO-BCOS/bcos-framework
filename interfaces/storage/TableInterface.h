@@ -19,8 +19,8 @@
  * @date: 2021-04-07
  */
 #pragma once
-#include "interfaces/storage/Common.h"
 #include "interfaces/crypto/Hash.h"
+#include "interfaces/storage/Common.h"
 #include <functional>
 #include <map>
 #include <memory>
@@ -36,6 +36,7 @@ class TableInterface : public std::enable_shared_from_this<TableInterface>
 public:
     struct Change
     {
+        using Ptr = std::shared_ptr<Change>;
         enum Kind : int
         {
             Set,
@@ -45,14 +46,14 @@ public:
         Kind kind;  ///< The kind of the change.
         std::string key;
         Entry::Ptr entry;
+        bool tableDirty;
         Change(std::shared_ptr<TableInterface> _table, Kind _kind, std::string const& _key,
-            Entry::Ptr _entry)
-          : table(_table), kind(_kind), key(_key), entry(_entry)
+            Entry::Ptr _entry, bool _tableDirty)
+          : table(_table), kind(_kind), key(_key), entry(_entry), tableDirty(_tableDirty)
         {}
     };
     using Ptr = std::shared_ptr<TableInterface>;
-    using RecorderType = std::function<void(
-        TableInterface::Ptr, Change::Kind, std::string const&, std::shared_ptr<Entry>)>;
+    using RecorderType = std::function<void(Change::Ptr)>;
     TableInterface() = default;
     virtual ~TableInterface() {}
     virtual std::shared_ptr<Entry> getRow(const std::string& _key) = 0;
@@ -69,7 +70,7 @@ public:
 
     virtual std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>> dump() = 0;
 
-    virtual void rollback(const Change& _change) = 0;
+    virtual void rollback(Change::Ptr _change) = 0;
     virtual bool dirty() const = 0;
     virtual void setRecorder(RecorderType _recorder) = 0;
 };

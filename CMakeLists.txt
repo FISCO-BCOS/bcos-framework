@@ -37,6 +37,12 @@ FetchContent_Declare(bcos-cmake-scripts
     INSTALL_COMMAND ""
 )
 
+set(HUNTER_PACKAGE_LOG_BUILD ON CACHE STRING "Hunter output build info to log")
+set(HUNTER_PACKAGE_LOG_INSTALL ON CACHE STRING "Hunter output install info to log")
+set(HUNTER_STATUS_DEBUG OFF CACHE STRING "Hunter debug output")
+# set(HUNTER_STATUS_PRINT OFF CACHE STRING "Hunter status output")
+# set(HUNTER_CONFIGURATION_TYPES Release CACHE STRING "Build type of Hunter packages")
+
 # fetch bcos-proto
 set(BCOS_PROTO_NAME bcos-proto)
 set(BCOS_PROTO_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libprotocol/${BCOS_PROTO_NAME})
@@ -44,6 +50,9 @@ FetchContent_Declare(${BCOS_PROTO_NAME}
     GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-proto.git
     GIT_TAG f02f22929fea9a5c5be87842320342ce9a991869
     SOURCE_DIR ${BCOS_PROTO_PATH}
+    CMAKE_ARGS -DHUNTER_PACKAGE_LOG_BUILD=${HUNTER_PACKAGE_LOG_BUILD}
+               -DHUNTER_PACKAGE_LOG_INSTALL=${HUNTER_PACKAGE_LOG_INSTALL}
+               -DHUNTER_STATUS_DEBUG=${HUNTER_STATUS_DEBUG}
 )
 FetchContent_MakeAvailable(bcos-cmake-scripts ${BCOS_PROTO_NAME})
 
@@ -53,11 +62,6 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_CMAKE_SCRIPTS_DIR})
 list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 
 # init hunter
-set(HUNTER_PACKAGE_LOG_BUILD ON CACHE STRING "Hunter output build info to log")
-set(HUNTER_PACKAGE_LOG_INSTALL ON CACHE STRING "Hunter output install info to log")
-set(HUNTER_STATUS_DEBUG OFF CACHE STRING "Hunter debug output")
-# set(HUNTER_STATUS_PRINT OFF CACHE STRING "Hunter status output")
-# set(HUNTER_CONFIGURATION_TYPES Release CACHE STRING "Build type of Hunter packages")
 include(HunterGate)
 HunterGate(
     URL "https://github.com/FISCO-BCOS/hunter/archive/8c81ea454c0c268b257da1fe3e3f2f69bd59a67d.tar.gz"
@@ -115,11 +119,12 @@ if (TESTS)
     FetchContent_Declare(bcos-test
     GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-test.git
     GIT_TAG 19d1ce1f3ee455e290179a1c835fee179dbdd0bc
-    SOURCE_DIR ${BCOS_TEST_DIR})
+    SOURCE_DIR ${BCOS_TEST_DIR}
+    UPDATE_COMMAND git fetch)
     FetchContent_MakeAvailable(bcos-test)
 
     enable_testing()
-    set(CTEST_OUTPUT_ON_FAILURE TRUE)
+    set(CTEST_OUTPUT_ON_FAILURE True)
     add_subdirectory(test)
 endif()
 

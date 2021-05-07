@@ -142,7 +142,6 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
     std::vector<std::string> indices;
 
     bool enableConsensus = true;
-    bool enableCache = true;
     bool newTable = false;
 };
 
@@ -153,7 +152,7 @@ public:
     enum Status
     {
         NORMAL = 0,
-        DELETED
+        DELETED = 1
     };
     using Ptr = std::shared_ptr<Entry>;
     using ConstPtr = std::shared_ptr<const Entry>;
@@ -305,6 +304,7 @@ public:
         }
 
         m_num = entry->m_num;
+        m_status = entry->m_status;
         m_dirty = entry->m_dirty;
         m_rollbacked = entry->m_rollbacked;
         m_capacityOfHashField = entry->m_capacityOfHashField;
@@ -376,6 +376,7 @@ private:
 
     EntryData::Ptr m_data;
 };
+
 inline bool isHashField(const std::string_view& _key)
 {
     if (!_key.empty())

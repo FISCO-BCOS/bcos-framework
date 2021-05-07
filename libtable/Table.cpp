@@ -23,12 +23,14 @@
 #include "tbb/concurrent_vector.h"
 #include "tbb/enumerable_thread_specific.h"
 #include "tbb/parallel_for.h"
+#include <sstream>
+
+using namespace std;
 
 namespace bcos
 {
 namespace storage
 {
-
 std::shared_ptr<Entry> Table::getRow(const std::string& _key)
 {
     auto entryIt = m_dirty.find(_key);
@@ -86,9 +88,9 @@ bool Table::setRow(const std::string& _key, std::shared_ptr<Entry> _entry)
     auto ret = m_dirty.insert(std::make_pair(_key, _entry));
     if (ret.second)
     {
-        m_hashDirty = true;
+        m_recorder(make_shared<Change>(shared_from_this(), Change::Set, _key, entry, m_dataDirty));
         m_dataDirty = true;
-        m_recorder(shared_from_this(), Change::Set, _key, entry);
+        m_hashDirty = true;
     }
     return ret.second;
 }
@@ -105,9 +107,11 @@ bool Table::remove(const std::string& _key)
             auto oldEntry = std::make_shared<Entry>();
             oldEntry->copyFrom(entryIt->second);
             entryIt->second->setStatus(Entry::Status::DELETED);
+            m_recorder(make_shared<Change>(
+                shared_from_this(), Change::Remove, _key, oldEntry, m_dataDirty));
             m_hashDirty = true;
             m_dataDirty = true;
-            m_recorder(shared_from_this(), Change::Remove, _key, oldEntry);
+            STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove in memory") << LOG_KV("key", _key);
         }
         return true;
     }
@@ -119,12 +123,14 @@ bool Table::remove(const std::string& _key)
     auto ret = m_dirty.insert(std::make_pair(_key, entry));
     if (ret.second)
     {
+        STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove in db") << LOG_KV("key", _key);
         auto oldEntry = std::make_shared<Entry>();
         oldEntry->copyFrom(entry);
         entry->setStatus(Entry::Status::DELETED);
+        m_recorder(
+            make_shared<Change>(shared_from_this(), Change::Remove, _key, oldEntry, m_dataDirty));
         m_hashDirty = true;
         m_dataDirty = true;
-        m_recorder(shared_from_this(), Change::Remove, _key, oldEntry);
     }
     return ret.second;
 }
@@ -134,30 +140,29 @@ crypto::HashType Table::hash()
     if (m_hashDirty && m_tableInfo->enableConsensus)
     {
         size_t totalBytes = 0;
-        tbb::concurrent_vector<Entry::Ptr> entryVec;
+        vector<Entry::Ptr> entryVec;
         bytes allData;
         auto data = dump();
         if (data->size() != 0)
         {
             std::vector<size_t> entriesOffset;
             entriesOffset.reserve(data->size());
+            entriesOffset.push_back(totalBytes);
             for (auto& it : *data)
             {
                 entryVec.push_back(it.second);
-                auto entrySize = it.second->capacityOfHashField() + 1;  // 1 for status field
-                totalBytes += entrySize;
-                entriesOffset.push_back(entrySize);
+                totalBytes += it.second->capacityOfHashField() + 1;  // 1 for status field
+                entriesOffset.push_back(totalBytes);
             }
             auto startT = utcTime();
             allData.resize(totalBytes);
             // Parallel processing entries
-            tbb::parallel_for(tbb::blocked_range<uint64_t>(0, entriesOffset.size() - 1),
+            tbb::parallel_for(tbb::blocked_range<uint64_t>(0, entryVec.size()),
                 [&](const tbb::blocked_range<uint64_t>& range) {
                     for (uint64_t i = range.begin(); i < range.end(); i++)
                     {
                         auto entry = entryVec[i];
                         auto startOffSet = entriesOffset[i];
-
                         for (auto& fieldIt : *(entry))
                         {
                             if (isHashField(fieldIt.first))
@@ -182,36 +187,44 @@ crypto::HashType Table::hash()
             startT = utcTime();
             m_hash = m_hashImpl->hash(bR);
             auto getHashT = utcTime() - startT;
-            STORAGE_LOG(DEBUG) << LOG_BADGE("Table hash") << LOG_KV("writeDataT", writeDataT)
+            STORAGE_LOG(DEBUG) << LOG_BADGE("Table hash calculate")
+                               << LOG_KV("table", m_tableInfo->name)
+                               << LOG_KV("writeDataT", writeDataT)
                                << LOG_KV("transDataT", transDataT) << LOG_KV("getHashT", getHashT)
                                << LOG_KV("hash", m_hash.abridged());
         }
+        m_hashDirty = false;
+        return m_hash;
     }
-    m_hashDirty = false;
+    STORAGE_LOG(DEBUG) << LOG_BADGE("Table hash use cache") << LOG_KV("table", m_tableInfo->name);
     return m_hash;
 }
 
-void Table::rollback(const Change& _change)
+void Table::rollback(Change::Ptr _change)
 {
-    switch (_change.kind)
+    switch (_change->kind)
     {
     case Change::Set:
     {
-        if (_change.entry)
+        if (_change->entry)
         {
-            m_dirty[_change.key] = _change.entry;
+            m_dirty[_change->key] = _change->entry;
         }
         else
         {  // nullptr means the key is not exist in DB
             auto oldEntry = std::make_shared<Entry>();
             oldEntry->setRollbacked(true);
-            m_dirty[_change.key] = oldEntry;
+            m_dirty[_change->key] = oldEntry;
         }
+        m_hashDirty = true;
+        m_dataDirty = _change->tableDirty;
         break;
     }
     case Change::Remove:
     {
-        m_dirty[_change.key] = _change.entry;
+        m_dirty[_change->key] = _change->entry;
+        m_hashDirty = true;
+        m_dataDirty = _change->tableDirty;
         break;
     }
     default:
