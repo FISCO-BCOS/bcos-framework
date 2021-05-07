@@ -58,6 +58,12 @@ public:
     {
         return *m_consensusNodeList;
     }
+
+    virtual bcos::consensus::ConsensusNodeList& mutableConsensusNodeList()
+    {
+        return *m_consensusNodeList;
+    }
+
     virtual bcos::consensus::ConsensusNodeList const& observerNodeList() const
     {
         return *m_observerNodeList;
