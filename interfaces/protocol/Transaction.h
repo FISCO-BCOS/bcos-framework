@@ -61,9 +61,18 @@ public:
     {
         m_submitCallback = _submitCallback;
     }
+    virtual bool synced() const { return m_synced; }
+    virtual void setSynced(bool _synced) { m_synced = _synced; }
+
+    virtual void sealed() const { return m_sealed; }
+    virtual void setSealed(bool _sealed) { m_sealed = _sealed; }
 
 protected:
     TxSubmitCallback m_submitCallback;
+    // the tx has been synced or not
+    bool m_synced = false;
+    // the tx has been sealed by the leader of not
+    bool m_sealed = false;
 };
 
 using Transactions = std::vector<Transaction::Ptr>;
