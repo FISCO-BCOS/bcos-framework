@@ -23,7 +23,6 @@ namespace bcos
 {
 namespace protocol
 {
-
 enum ModuleID
 {
 

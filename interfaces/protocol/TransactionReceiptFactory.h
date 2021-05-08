@@ -37,15 +37,13 @@ public:
     virtual TransactionReceipt::Ptr createReceipt(bytes const& _receiptData) = 0;
     virtual TransactionReceipt::Ptr createReceipt(int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        bytes const& _contractAddress,
-        std::shared_ptr<std::vector<LogEntry>> _logEntries, int32_t _status,
-        bytes const& _output) = 0;
+        bytes const& _contractAddress, std::shared_ptr<std::vector<LogEntry>> _logEntries,
+        int32_t _status, bytes const& _output) = 0;
 
     virtual TransactionReceipt::Ptr createReceipt(int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        bytes const& _contractAddress,
-        std::shared_ptr<std::vector<LogEntry>> _logEntries, int32_t _status,
-        bytes&& _output) = 0;
+        bytes const& _contractAddress, std::shared_ptr<std::vector<LogEntry>> _logEntries,
+        int32_t _status, bytes&& _output) = 0;
     virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() = 0;
 };
 }  // namespace protocol

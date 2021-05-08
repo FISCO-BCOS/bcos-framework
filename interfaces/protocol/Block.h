@@ -27,7 +27,6 @@ namespace bcos
 {
 namespace protocol
 {
-
 using HashList = std::vector<bcos::crypto::HashType>;
 using HashListPtr = std::shared_ptr<HashList>;
 using HashListConstPtr = std::shared_ptr<const HashList>;

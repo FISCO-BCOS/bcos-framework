@@ -64,7 +64,7 @@ public:
     virtual bool synced() const { return m_synced; }
     virtual void setSynced(bool _synced) { m_synced = _synced; }
 
-    virtual void sealed() const { return m_sealed; }
+    virtual bool sealed() const { return m_sealed; }
     virtual void setSealed(bool _sealed) { m_sealed = _sealed; }
 
 protected:
