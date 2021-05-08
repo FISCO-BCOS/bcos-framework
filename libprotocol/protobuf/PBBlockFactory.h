@@ -53,7 +53,7 @@ public:
         return std::make_shared<PBBlock>(m_blockHeaderFactory, m_transactionFactory,
             m_receiptFactory, _data, _calculateHash, _checkSig);
     }
-    CryptoSuite::Ptr cryptoSuite() override { return m_transactionFactory->cryptoSuite(); }
+    bcos::crypto::CryptoSuite::Ptr cryptoSuite() override { return m_transactionFactory->cryptoSuite(); }
 
     BlockHeaderFactory::Ptr blockHeaderFactory() { return m_blockHeaderFactory; }
     TransactionFactory::Ptr transactionFactory() { return m_transactionFactory; }

@@ -27,10 +27,19 @@ namespace ledger
 using MerkleProof = std::vector<std::pair<std::vector<std::string>, std::vector<std::string> > >;
 using MerkleProofPtr = std::shared_ptr<const MerkleProof>;
 
-static const int32_t FULL_BLOCK = 0x0FFF;
-static const int32_t HEADER = 0x0F00;
-static const int32_t TRANSACTIONS = 0x00F0;
-static const int32_t RECEIPTS = 0x000F;
+// get block flag
+static const int32_t FULL_BLOCK = 0xFFFF;
+static const int32_t HEADER = 0x0008;
+static const int32_t TRANSACTIONS = 0x0004;
+static const int32_t RECEIPTS = 0x0002;
+
+// get system config key
+static const char* const SYSTEM_KEY_TX_COUNT_LIMIT = "tx_count_limit";
+static const char* const SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
+
+// get consensus node list type
+static const char* const CONSENSUS_SEALER = "consensus_sealer";
+static const char* const CONSENSUS_OBSERVER = "consensus_observer";
 
 } // namespace ledger
 } // namespace bcos
