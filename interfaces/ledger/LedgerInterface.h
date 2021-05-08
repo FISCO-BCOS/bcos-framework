@@ -166,11 +166,11 @@ public:
         std::function<void(Error::Ptr, std::string, protocol::BlockNumber)> _onGetConfig) = 0;
 
     /**
-     * @brief async get consensus node list by type
+     * @brief async get node list by type, can be sealer or observer
      * @param _type the type of node, CONSENSUS_SEALER or CONSENSUS_OBSERVER
      * @param _onGetConfig
      */
-    virtual void asyncGetConsensusNodeListByType(std::string const& _type,
+    virtual void asyncGetNodeListByType(std::string const& _type,
         std::function<void(Error::Ptr, consensus::ConsensusNodeListPtr)> _onGetConfig) = 0;
 
     /**

@@ -34,12 +34,12 @@ static const int32_t TRANSACTIONS = 0x0004;
 static const int32_t RECEIPTS = 0x0002;
 
 // get system config key
-static const std::string SYSTEM_KEY_TX_COUNT_LIMIT = "tx_count_limit";
-static const std::string SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
+static const char* const SYSTEM_KEY_TX_COUNT_LIMIT = "tx_count_limit";
+static const char* const SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
 
 // get consensus node list type
-static const std::string CONSENSUS_SEALER = "consensus_sealer";
-static const std::string CONSENSUS_OBSERVER = "consensus_observer";
+static const char* const CONSENSUS_SEALER = "consensus_sealer";
+static const char* const CONSENSUS_OBSERVER = "consensus_observer";
 
 } // namespace ledger
 } // namespace bcos
