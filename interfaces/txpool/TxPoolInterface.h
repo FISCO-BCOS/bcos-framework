@@ -18,18 +18,15 @@
  * @date: 2021-04-07
  */
 #pragma once
-#include "interfaces/crypto/KeyInterface.h"
-#include "interfaces/protocol/Block.h"
-#include "interfaces/protocol/Transaction.h"
-#include "interfaces/protocol/TransactionSubmitResult.h"
-#include "libutilities/Error.h"
+#include "../../interfaces/protocol/Block.h"
+#include "../../interfaces/protocol/Transaction.h"
+#include "../../interfaces/protocol/TransactionSubmitResult.h"
+#include "../../libutilities/Error.h"
+#include "TxPoolTypeDef.h"
 namespace bcos
 {
 namespace txpool
 {
-using TxsHashSet = std::set<bcos::crypto::HashType>;
-using TxsHashSetPtr = std::shared_ptr<TxsHashSet>;
-
 class TxPoolInterface
 {
 public:
@@ -46,8 +43,7 @@ public:
      * on-chain
      */
     virtual void asyncSubmit(bcos::protocol::Transaction::Ptr _tx,
-        std::function<void(Error::Ptr, bcos::protocol::TransactionSubmitResult::Ptr)>
-            _onChainCallback) = 0;
+        bcos::protocol::TxSubmitCallback _txSubmitCallback) = 0;
 
     /**
      * @brief fetch transactions from the txpool
@@ -88,8 +84,8 @@ public:
      * @param _block the block to be filled with transactions
      * @param _onBlockFilled callback to be called after the block has been filled
      */
-    virtual void asyncFillBlock(bcos::protocol::Block::Ptr _block,
-        std::function<void(Error, bcos::protocol::TransactionSubmitResults)> _onBlockFilled) = 0;
+    virtual void asyncFillBlock(
+        bcos::protocol::Block::Ptr _block, std::function<void(Error)> _onBlockFilled) = 0;
 
     /**
      * @brief After the blockchain is on-chain, the interface is called to notify the transaction
@@ -100,7 +96,8 @@ public:
      * @param _onChainCallback
      */
     virtual void asyncNotifyOnChainBlock(bcos::protocol::Block::Ptr _onChainBlock,
-        std::function<void(Error::Ptr, bcos::protocol::Block::Ptr)> _onChainCallback) = 0;
+        std::function<void(Error::Ptr, bcos::protocol::TransactionSubmitResultsPtr)>
+            _onChainCallback) = 0;
 
     /**
      * @brief the sync module calls this interface to obtain the new txs from the SDK

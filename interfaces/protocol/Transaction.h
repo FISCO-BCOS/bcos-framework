@@ -18,6 +18,8 @@
  */
 #pragma once
 #include "../../libutilities/Common.h"
+#include "../../libutilities/Error.h"
+#include "TransactionSubmitResult.h"
 namespace bcos
 {
 namespace protocol
@@ -28,6 +30,8 @@ enum TransactionType
     ContractCreation,
     MessageCall,
 };
+using TxSubmitCallback =
+    std::function<void(Error::Ptr, bcos::protocol::TransactionSubmitResult::Ptr)>;
 class Transaction
 {
 public:
@@ -51,6 +55,15 @@ public:
     virtual int64_t importTime() const = 0;
     virtual TransactionType type() const = 0;
     virtual void forceSender(bytes const& _sender) = 0;
+
+    virtual TxSubmitCallback submitCallback() const { return m_submitCallback; }
+    virtual void setSubmitCallback(TxSubmitCallback _submitCallback)
+    {
+        m_submitCallback = _submitCallback;
+    }
+
+protected:
+    TxSubmitCallback m_submitCallback;
 };
 
 using Transactions = std::vector<Transaction::Ptr>;
