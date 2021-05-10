@@ -24,7 +24,7 @@ namespace bcos
 {
 namespace consensus
 {
-class ConsensusNode : ConsensusNodeInterface
+class ConsensusNode : public ConsensusNodeInterface
 {
 public:
     using Ptr = std::shared_ptr<ConsensusNode>;
