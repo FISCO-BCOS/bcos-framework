@@ -109,6 +109,7 @@ BOOST_AUTO_TEST_CASE(rollback)
 
     auto savePoint1 = tableFactory->savepoint();
 
+    entry = table->newEntry();
     entry->setField("key", "balance");
     entry->setField("value", "500");
     table->setRow("balance", entry);
@@ -176,6 +177,10 @@ BOOST_AUTO_TEST_CASE(hash)
     entry = table->getRow("name");
     BOOST_TEST(entry != nullptr);
     BOOST_TEST(table->dirty() == true);
+    auto keys = table->getPrimaryKeys(nullptr);
+    BOOST_TEST(keys.size() == 2);
+    auto entries = table->getRows(keys);
+    BOOST_TEST(entries.size() == 2);
     auto dbHash1 = tableFactory->hash();
     BOOST_TEST(dbHash1 != dbHash0);
 
@@ -199,6 +204,32 @@ BOOST_AUTO_TEST_CASE(hash)
     auto dbHash3 = tableFactory->hash();
     cout << LOG_KV("dbHash3", dbHash3) << LOG_KV("dbHash1", dbHash1);
     BOOST_TEST(dbHash3 == dbHash1);
+    tableFactory->commit();
+    tableFactory = make_shared<TableFactory>(memoryStorage, hashImpl, 1);
+    table = tableFactory->openTable(testTableName);
+
+    // getPrimaryKeys and getRows
+    entry = table->newEntry();
+    entry->setField("key", "id");
+    entry->setField("value", "12345");
+    ret = table->setRow("id", entry);
+    entry = table->getRow("name");
+    entry->setField("value", "Wang");
+    ret = table->setRow("name", entry);
+    BOOST_TEST(ret == true);
+    BOOST_TEST(entry != nullptr);
+    BOOST_TEST(ret == true);
+    keys = table->getPrimaryKeys(nullptr);
+    entries = table->getRows(keys);
+    BOOST_TEST(entries.size() == 2);
+    entry = table->getRow("name");
+    BOOST_TEST(entry != nullptr);
+    entry = table->getRow("balance");
+    BOOST_TEST(entry == nullptr);
+    ret = table->remove("name");
+    BOOST_TEST(ret == true);
+    ret = table->remove("id");
+    BOOST_TEST(ret == true);
 }
 
 BOOST_AUTO_TEST_CASE(parallel_openTable)

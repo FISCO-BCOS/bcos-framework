@@ -78,7 +78,7 @@ public:
             tableEntry = sysTable->newEntry();
             tableEntry->setField("table_name", _tableName);
             tableEntry->setField("key_field", _keyField);
-            tableEntry->setField("value_field", _valueFields);
+            tableEntry->setField(SYS_TABLE_FIELDS, _valueFields);
             auto result = sysTable->setRow(_tableName, tableEntry);
             if (!result)
             {
@@ -242,7 +242,7 @@ private:
                 return nullptr;
             }
             tableInfo->key = entry->getField("key_field");
-            std::string valueFields = entry->getField("value_field");
+            std::string valueFields = entry->getField(SYS_TABLE_FIELDS);
             boost::split(tableInfo->fields, valueFields, boost::is_any_of(","));
         }
         tableInfo->fields.emplace_back(STATUS);

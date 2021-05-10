@@ -58,7 +58,7 @@ std::map<std::string, std::shared_ptr<Entry>> Table::getRows(const std::vector<s
         {
             if (!entryIt->second->rollbacked() &&
                 entryIt->second->getStatus() != Entry::Status::DELETED)
-            {  // TODO: if need copy from
+            {  // copy from
                 auto entry = std::make_shared<Entry>();
                 entry->copyFrom(entryIt->second);
                 ret[key] = entry;
@@ -74,15 +74,50 @@ std::map<std::string, std::shared_ptr<Entry>> Table::getRows(const std::vector<s
     ret.merge(querydEntries);
     return ret;
 }
+
 std::vector<std::string> Table::getPrimaryKeys(std::shared_ptr<Condition> _condition) const
 {
-    return m_DB->getPrimaryKeys(m_tableInfo, _condition);
+    std::vector<std::string> ret;
+    for (auto item : m_dirty)
+    {
+        if (!item.second->rollbacked() && item.second->getStatus() != Entry::Status::DELETED &&
+            (!_condition || _condition->isValid(item.first)))
+        {
+            ret.push_back(item.first);
+        }
+    }
+    auto temp = m_DB->getPrimaryKeys(m_tableInfo, _condition);
+    for (size_t i = 0; i < temp.size(); ++i)
+    {
+        if (find(ret.begin(), ret.end(), temp[i]) == ret.end())
+        {
+            ret.emplace_back(move(temp[i]));
+        }
+    }
+    return ret;
 }
+
 bool Table::setRow(const std::string& _key, std::shared_ptr<Entry> _entry)
 {  // For concurrent_unordered_map, insert and emplace methods may create a temporary item that
     // is destroyed if another thread inserts an item with the same key concurrently.
     // So, parallel insert same key is not permitted
-    // FIXME: check entry fields
+    if (!_entry)
+    {
+        STORAGE_LOG(ERROR) << LOG_BADGE("Table setRow empty entry") << LOG_KV("key", _key);
+        return false;
+    }
+    // check entry fields
+    for (auto& it : *_entry)
+    {
+        if (m_tableInfo->fields.end() ==
+            find(m_tableInfo->fields.begin(), m_tableInfo->fields.end(), it.first))
+        {
+            STORAGE_LOG(ERROR) << LOG_BADGE("Table") << LOG_DESC("invalid field")
+                               << LOG_KV("table name", m_tableInfo->name)
+                               << LOG_KV("field", it.first);
+            return false;
+        }
+    }
     // get the old value
     auto entry = getRow(_key);
     auto ret = m_dirty.insert(std::make_pair(_key, _entry));
