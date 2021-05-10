@@ -75,6 +75,23 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     BOOST_CHECK(decodedBlock->receipts()->size() == 2);
     decodedBlock->setTransactions(txs1);
     BOOST_CHECK(decodedBlock->transactions()->size() == 5);
+    // test nonces
+    NonceList nonceList;
+    for (int i = 0; i < 10; i++)
+    {
+        nonceList.push_back(u256(i + utcTime()));
+    }
+    block2->setNonceList(nonceList);
+    block2->encode(*encodedData);
+    decodedBlock = std::dynamic_pointer_cast<PBBlock>(blockFactory->createBlock(*encodedData));
+    BOOST_CHECK(decodedBlock->nonceList().size() == 10);
+    auto const& blockNonceList = decodedBlock->nonceList();
+    for (int i = 0; i < 10; i++)
+    {
+        std::cout << "#### blockNonceList[i]:" << blockNonceList[i] << std::endl;
+        std::cout << "#### nonceList[i]:" << nonceList[i] << std::endl;
+        BOOST_CHECK(blockNonceList[i] == nonceList[i]);
+    }
     // test TransactionSubmitResult
     auto tx = (*txs1)[0];
     auto receipt = (*receipts)[0];

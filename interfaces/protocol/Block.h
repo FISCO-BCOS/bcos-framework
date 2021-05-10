@@ -89,6 +89,10 @@ public:
     virtual size_t receiptsSize() = 0;
     virtual size_t receiptsHashSize() = 0;
 
+    // for nonceList
+    virtual void setNonceList(NonceList const& _nonceList) = 0;
+    virtual void setNonceList(NonceList&& _nonceList) = 0;
+    virtual NonceList const& nonceList() const = 0;
     // TODO: set DAG mutually exclusive parameters
 };
 using Blocks = std::vector<Block::Ptr>;
