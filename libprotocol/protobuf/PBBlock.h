@@ -44,7 +44,8 @@ public:
         m_transactions(std::make_shared<Transactions>()),
         m_receipts(std::make_shared<Receipts>()),
         m_transactionsHash(std::make_shared<HashList>()),
-        m_receiptsHash(std::make_shared<HashList>())
+        m_receiptsHash(std::make_shared<HashList>()),
+        m_nonceList(std::make_shared<NonceList>())
     {
         assert(m_blockHeaderFactory);
         assert(m_transactionFactory);
@@ -82,13 +83,13 @@ public:
     // get blockHeader
     BlockHeader::Ptr blockHeader() override { return m_blockHeader; }
     // get transactions
-    TransactionsConstPtr transactions() const { return m_transactions; } // removed
+    TransactionsConstPtr transactions() const { return m_transactions; }  // removed
     // get receipts
-    ReceiptsConstPtr receipts() const { return m_receipts; } // removed
+    ReceiptsConstPtr receipts() const { return m_receipts; }  // removed
     // get transaction hash
-    HashListConstPtr transactionsHash() const { return m_transactionsHash; } // removed
+    HashListConstPtr transactionsHash() const { return m_transactionsHash; }  // removed
     // get receipt hash
-    HashListConstPtr receiptsHash() const { return m_receiptsHash; } // removed
+    HashListConstPtr receiptsHash() const { return m_receiptsHash; }  // removed
 
     void setBlockType(BlockType _blockType) override
     {
@@ -97,7 +98,7 @@ public:
     // set blockHeader
     void setBlockHeader(BlockHeader::Ptr _blockHeader) override { m_blockHeader = _blockHeader; }
     // set transactions
-    void setTransactions(TransactionsPtr _transactions) // removed
+    void setTransactions(TransactionsPtr _transactions)  // removed
     {
         m_transactions = _transactions;
         clearTransactionsCache();
@@ -114,7 +115,7 @@ public:
         clearTransactionsCache();
     }
     // set receipts
-    void setReceipts(ReceiptsPtr _receipts) // removed
+    void setReceipts(ReceiptsPtr _receipts)  // removed
     {
         m_receipts = _receipts;
         // clear the cache
@@ -131,7 +132,7 @@ public:
         m_receipts->push_back(_receipt);
     }
     // set transaction hash
-    void setTransactionsHash(HashListPtr _transactionsHash) // removed
+    void setTransactionsHash(HashListPtr _transactionsHash)  // removed
     {
         m_transactionsHash = _transactionsHash;
         clearTransactionsHashCache();
@@ -146,7 +147,7 @@ public:
         m_transactionsHash->push_back(_txHash);
     }
     // set receipt hash
-    void setReceiptsHash(HashListPtr _receiptsHash) // removed
+    void setReceiptsHash(HashListPtr _receiptsHash)  // removed
     {
         m_receiptsHash = _receiptsHash;
         clearReceiptsHashCache();
@@ -169,16 +170,33 @@ public:
     size_t transactionsHashSize() override { return m_transactionsHash->size(); }
     size_t receiptsHashSize() override { return m_receiptsHash->size(); }
 
+    void setNonceList(NonceList const& _nonceList) override
+    {
+        *m_nonceList = _nonceList;
+        m_pbRawBlock->clear_noncelist();
+    }
+
+    void setNonceList(NonceList&& _nonceList) override
+    {
+        *m_nonceList = std::move(_nonceList);
+        m_pbRawBlock->clear_noncelist();
+    }
+
+    NonceList const& nonceList() const override { return *m_nonceList; }
+
 private:
     void decodeTransactions(bool _calculateHash, bool _checkSig);
     void decodeReceipts(bool _calculateHash);
     void decodeTxsHashList();
     void decodeReceiptsHashList();
+    void decodeNonceList();
 
     void encodeTransactions() const;
     void encodeReceipts() const;
     void encodeTransactionsHash() const;
     void encodeReceiptsHash() const;
+    void encodeNonceList() const;
+
     void clearTransactionsCache()
     {
         m_pbRawBlock->clear_transactions();
@@ -243,6 +261,7 @@ private:
     ReceiptsPtr m_receipts;
     HashListPtr m_transactionsHash;
     HashListPtr m_receiptsHash;
+    NonceListPtr m_nonceList;
 
     // caches
     mutable bcos::crypto::HashType m_txsRootCache;

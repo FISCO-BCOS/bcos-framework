@@ -56,7 +56,8 @@ void PBBlock::decode(bytesConstRef _data, bool _calculateHash, bool _checkSig)
         [this]() {
             // decode ReceiptHashList
             decodeReceiptsHashList();
-        });
+        },
+        [this]() { decodeNonceList(); });
 }
 
 void PBBlock::encode(bytes& _encodedData) const
@@ -87,6 +88,10 @@ void PBBlock::encode(bytes& _encodedData) const
         [this]() {
             // encode receipts hash
             encodeReceiptsHash();
+        },
+        [this]() {
+            // encode the nonceList
+            encodeNonceList();
         });
     auto data = encodePBObject(m_pbRawBlock);
     _encodedData = *data;
@@ -120,6 +125,24 @@ void PBBlock::decodeReceiptsHashList()
     {
         m_receiptsHash->push_back(HashType((byte const*)m_pbRawBlock->receiptshash(i).data(),
             HashType::ConstructorType::FromPointer));
+    }
+}
+
+void PBBlock::decodeNonceList()
+{
+    auto noncesNum = m_pbRawBlock->noncelist_size();
+    if (noncesNum == 0)
+    {
+        return;
+    }
+    // decode the transactionsHash
+    m_nonceList->clear();
+    for (auto i = 0; i < noncesNum; i++)
+    {
+        auto const& nonceData = m_pbRawBlock->noncelist(i);
+        auto nonceValue =
+            fromBigEndian<u256>(bytesConstRef((const byte*)nonceData.data(), nonceData.size()));
+        m_nonceList->push_back(nonceValue);
     }
 }
 
@@ -275,6 +298,29 @@ void PBBlock::encodeReceiptsHash() const
     for (auto const& receiptHash : *m_receiptsHash)
     {
         m_pbRawBlock->set_receiptshash(index++, receiptHash.data(), HashType::size);
+    }
+}
+
+void PBBlock::encodeNonceList() const
+{
+    auto nonceNum = m_nonceList->size();
+    if (nonceNum == 0)
+    {
+        return;
+    }
+    if (m_pbRawBlock->noncelist_size() > 0)
+    {
+        return;
+    }
+    for (size_t i = 0; i < nonceNum; i++)
+    {
+        m_pbRawBlock->add_noncelist();
+    }
+    int index = 0;
+    for (auto const& nonce : *m_nonceList)
+    {
+        auto nonceBytes = toBigEndian(nonce);
+        m_pbRawBlock->set_noncelist(index++, nonceBytes.data(), nonceBytes.size());
     }
 }
 
