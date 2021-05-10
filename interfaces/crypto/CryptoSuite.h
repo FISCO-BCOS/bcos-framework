@@ -21,6 +21,7 @@
 #pragma once
 #include "CommonType.h"
 #include "Hash.h"
+#include "KeyFactory.h"
 #include "Signature.h"
 #include "SymmetricEncryption.h"
 namespace bcos
@@ -53,10 +54,14 @@ public:
         return right160(m_hashImpl->hash(_public));
     }
 
+    virtual void setKeyFactory(KeyFactory::Ptr _keyFactory) { m_keyFactory = _keyFactory; }
+    virtual KeyFactory::Ptr keyFactory() { return m_keyFactory; }
+
 private:
     Hash::Ptr m_hashImpl;
     SignatureCrypto::Ptr m_signatureImpl;
     SymmetricEncryption::Ptr m_symmetricEncryptionHandler;
+    KeyFactory::Ptr m_keyFactory;
 };
 }  // namespace crypto
 }  // namespace bcos
