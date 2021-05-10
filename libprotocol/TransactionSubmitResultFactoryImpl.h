@@ -25,14 +25,15 @@ namespace bcos
 {
 namespace protocol
 {
-class TransactionSubmitResultFactoryImpl
+class TransactionSubmitResultFactoryImpl : public TransactionSubmitResultFactory
 {
 public:
     using Ptr = std::shared_ptr<TransactionSubmitResultFactoryImpl>;
     TransactionSubmitResultFactoryImpl() = default;
     ~TransactionSubmitResultFactoryImpl() override {}
 
-    TransactionSubmitResult::Ptr createTxSubmitResult(bcos::crypto::HashType const& _txHash, int32_t _status) override
+    TransactionSubmitResult::Ptr createTxSubmitResult(
+        bcos::crypto::HashType const& _txHash, int32_t _status) override
     {
         return std::make_shared<TransactionSubmitResultImpl>(_txHash, (TransactionStatus)_status);
     }

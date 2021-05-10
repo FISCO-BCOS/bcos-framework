@@ -32,7 +32,7 @@ class TransactionSubmitResultFactory
 public:
     using Ptr = std::shared_ptr<TransactionSubmitResultFactory>;
     TransactionSubmitResultFactory() = default;
-    virtual ~TransactionSubmitResultFactory {}
+    virtual ~TransactionSubmitResultFactory() {}
 
     virtual TransactionSubmitResult::Ptr createTxSubmitResult(
         bcos::crypto::HashType const& _txHash, int32_t _status) = 0;

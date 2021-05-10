@@ -19,6 +19,7 @@
  * @date: 2021-03-23
  */
 #include "FakeBlock.h"
+#include "libprotocol/TransactionSubmitResultFactoryImpl.h"
 #include "libprotocol/TransactionSubmitResultImpl.h"
 #include <bcos-test/libutils/TestPromptFixture.h>
 #include <boost/test/unit_test.hpp>
@@ -34,9 +35,11 @@ namespace test
 BOOST_FIXTURE_TEST_SUITE(PBBlockTest, TestPromptFixture)
 void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
 {
-    auto block1 = std::dynamic_pointer_cast<PBBlock>(fakeAndCheckBlock(cryptoSuite, blockFactory, true, 10, 3, 7, 6));
+    auto block1 = std::dynamic_pointer_cast<PBBlock>(
+        fakeAndCheckBlock(cryptoSuite, blockFactory, true, 10, 3, 7, 6));
     // without blockHeader
-    auto block2 = std::dynamic_pointer_cast<PBBlock>(fakeAndCheckBlock(cryptoSuite, blockFactory, false, 10, 4, 8, 6));
+    auto block2 = std::dynamic_pointer_cast<PBBlock>(
+        fakeAndCheckBlock(cryptoSuite, blockFactory, false, 10, 4, 8, 6));
     // update transactions
     TransactionsPtr txs1 = std::make_shared<Transactions>();
     for (int i = 0; i < 5; i++)
@@ -84,6 +87,15 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     BOOST_CHECK(onChainResult->blockHash() == decodedBlock->blockHeader()->hash());
     BOOST_CHECK(onChainResult->blockNumber() == decodedBlock->blockHeader()->number());
     BOOST_CHECK(cryptoSuite->hash("123") == blockFactory->cryptoSuite()->hash("123"));
+
+    auto factory = std::make_shared<TransactionSubmitResultFactoryImpl>();
+    auto result = factory->createTxSubmitResult(receipt, tx, 0, decodedBlock->blockHeader());
+    BOOST_CHECK(result->transactionIndex() == 0);
+    BOOST_CHECK(result->from().toBytes() == tx->sender().toBytes());
+    BOOST_CHECK(result->to().toBytes() == tx->to().toBytes());
+    BOOST_CHECK(result->txHash() == tx->hash());
+    BOOST_CHECK(result->blockHash() == decodedBlock->blockHeader()->hash());
+    BOOST_CHECK(result->blockNumber() == decodedBlock->blockHeader()->number());
 }
 BOOST_AUTO_TEST_CASE(testNormalBlock)
 {
