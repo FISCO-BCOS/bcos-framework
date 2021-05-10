@@ -45,7 +45,10 @@ public:
             _blockHeader->number(), _tx->sender(), _tx->to())
     {}
 
-    explicit TransactionSubmitResultImpl(TransactionStatus _status) : m_status((uint32_t)_status) {}
+    explicit TransactionSubmitResultImpl(
+        bcos::crypto::HashType const& _txHash, TransactionStatus _status)
+      : m_status((uint32_t)_status), m_txHash(_txHash)
+    {}
     virtual ~TransactionSubmitResultImpl() {}
 
     // get transaction status

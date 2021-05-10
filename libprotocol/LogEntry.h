@@ -18,10 +18,10 @@
  * @date: 2021-03-18
  */
 #pragma once
-#include <gsl/span>
 #include "../interfaces/crypto/CryptoSuite.h"
 #include "../libutilities/Common.h"
 #include "../libutilities/FixedBytes.h"
+#include <gsl/span>
 
 namespace bcos
 {

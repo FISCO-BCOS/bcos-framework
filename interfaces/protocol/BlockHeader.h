@@ -68,7 +68,7 @@ public:
 
     virtual void setVersion(int32_t _version) = 0;
     virtual void setParentInfo(gsl::span<const ParentInfo> const& _parentInfo) = 0;
-    virtual void setParentInfo(ParentInfoList &&_parentInfo) = 0;
+    virtual void setParentInfo(ParentInfoList&& _parentInfo) = 0;
 
     virtual void setTxsRoot(bcos::crypto::HashType const& _txsRoot) = 0;
     virtual void setReceiptRoot(bcos::crypto::HashType const& _receiptRoot) = 0;

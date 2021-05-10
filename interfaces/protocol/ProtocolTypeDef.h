@@ -19,22 +19,24 @@
  * @date: 2021-04-9
  */
 #pragma once
-#include "Protocol.h"
 #include "../crypto/CommonType.h"
+#include "Protocol.h"
 namespace bcos
 {
 namespace protocol
 {
-
 using BlockNumber = int64_t;
+using NonceType = u256;
 using BytesList = std::vector<std::shared_ptr<bytes>>;
 using BytesListPtr = std::shared_ptr<BytesList>;
 
-struct ParentInfo {
+struct ParentInfo
+{
     BlockNumber blockNumber;
     bcos::crypto::HashType blockHash;
 
-    bool operator==(const ParentInfo &rhs) const {
+    bool operator==(const ParentInfo& rhs) const
+    {
         return this->blockNumber == rhs.blockNumber && this->blockHash == rhs.blockHash;
     }
 
@@ -53,7 +55,8 @@ struct ParentInfo {
 using ParentInfoList = std::vector<ParentInfo>;
 using ParentInfoListPtr = std::shared_ptr<ParentInfoList>;
 
-struct Signature {
+struct Signature
+{
     int64_t index;
     bytes signature;
 
