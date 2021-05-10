@@ -42,7 +42,7 @@ public:
         {
             for (auto& kv : data.at(_tableInfo->name))
             {
-                if (_condition->isValid(kv.first))
+                if (!_condition || _condition->isValid(kv.first))
                 {
                     ret.emplace_back(kv.first);
                 }
