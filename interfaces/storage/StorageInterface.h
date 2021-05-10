@@ -40,7 +40,7 @@ public:
     };
     using Ptr = std::shared_ptr<StorageInterface>;
     StorageInterface() = default;
-    virtual ~StorageInterface() {}
+    virtual ~StorageInterface() = default;
     virtual std::vector<std::string> getPrimaryKeys(
         std::shared_ptr<TableInfo> _tableInfo, std::shared_ptr<Condition> _condition) const = 0;
     virtual std::shared_ptr<Entry> getRow(

@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------------
-file(GLOB_RECURSE SOURCES "*.cpp" "*.h" "*.sol" "${BCOS_TEST_DIR}/*.h" "${BCOS_TEST_DIR}/*.cpp")
+file(GLOB_RECURSE SOURCES "*.cpp" "*.h" "*.sol")
 
 # cmake settings
 include_directories(${PROJECT_SOURCE_DIR}/..)

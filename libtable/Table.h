@@ -29,17 +29,19 @@ namespace bcos
 {
 namespace storage
 {
-const char* const SYS_TABLES = "s_tables";
+const char* const SYS_TABLE = "s_tables";
+const char* const SYS_TABLE_KEY = "table_name";
+const char* const SYS_TABLE_FIELDS = "value_fields";
 const char* const NUM_FIELD = "_num_";
 const char* const STATUS = "_status_";
 
 inline TableInfo::Ptr getSysTableInfo(const std::string& tableName)
 {
     auto tableInfo = std::make_shared<TableInfo>(tableName);
-    if (tableName == SYS_TABLES)
+    if (tableName == SYS_TABLE)
     {
-        tableInfo->key = "table_name";
-        tableInfo->fields = std::vector<std::string>{"key_field", "value_field"};
+        tableInfo->key = SYS_TABLE_KEY;
+        tableInfo->fields = std::vector<std::string>{"key_field", SYS_TABLE_FIELDS};
     }
     return tableInfo;
 }
@@ -79,7 +81,7 @@ public:
         return ret;
     }
 
-    void rollback(const Change& _change) override;
+    void rollback(Change::Ptr) override;
     bool dirty() const override { return m_dataDirty; }
     void setRecorder(RecorderType _recorder) override { m_recorder = _recorder; }
 

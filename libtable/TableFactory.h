@@ -39,7 +39,16 @@ public:
         protocol::BlockNumber _blockNum)
       : m_DB(_db), m_hashImpl(_hashImpl), m_blockNumber(_blockNum)
     {
-        m_sysTables.push_back(SYS_TABLES);
+        m_sysTables.push_back(SYS_TABLE);
+        if (m_blockNumber == 0)
+        {  // create SYS_TABLE at block 0
+            auto sysTable = openTableWithoutLock(SYS_TABLE);
+            auto entry = sysTable->newEntry();
+            entry->setField(SYS_TABLE_KEY, SYS_TABLE);
+            entry->setField("key_field", SYS_TABLE_KEY);
+            entry->setField("value_fields", "value_fields");
+            sysTable->setRow(SYS_TABLE, entry);
+        }
     }
     virtual ~TableFactory() {}
     // virtual void init();
@@ -53,12 +62,12 @@ public:
         const std::string& _valueFields) override
     {
         // TODO: check tablename and column name characters are permitted
-        auto sysTable = openTable(SYS_TABLES);
+        auto sysTable = openTable(SYS_TABLE);
         // To make sure the table exists
         {
             tbb::spin_mutex::scoped_lock l(x_name2Table);
             auto tableEntry = sysTable->getRow(_tableName);
-            if (!tableEntry)
+            if (tableEntry)
             {
                 STORAGE_LOG(WARNING)
                     << LOG_BADGE("TableFactory") << LOG_DESC("table already exist in _sys_tables_")
@@ -86,10 +95,9 @@ public:
             tableInfo->fields.emplace_back(NUM_FIELD);
             tableInfo->newTable = true;
             auto table = std::make_shared<Table>(m_DB, tableInfo, m_hashImpl, m_blockNumber);
-            table->setRecorder([&](TableInterface::Ptr _table, TableInterface::Change::Kind _kind,
-                                   std::string const& _key, std::shared_ptr<Entry> _entry) {
+            table->setRecorder([&](TableInterface::Change::Ptr _change) {
                 auto& changeLog = getChangeLog();
-                changeLog.emplace_back(_table, _kind, _key, _entry);
+                changeLog.emplace_back(_change);
             });
 
             m_name2Table.insert({_tableName, table});
@@ -111,6 +119,7 @@ public:
                 tables.push_back(std::make_pair(it.first, it.second));
             }
         }
+        STORAGE_LOG(DEBUG) << LOG_BADGE("TableFactory hash") << LOG_KV("tables", tables.size());
 
         tbb::parallel_sort(tables.begin(), tables.end(),
             [](const std::pair<std::string, Table::Ptr>& lhs,
@@ -130,12 +139,14 @@ public:
                     }
 
                     bytes tableHash = hash.asBytes();
-                    memcpy(&data[it * 32], &tableHash[0], tableHash.size());
+                    memcpy(
+                        &data[it * crypto::HashType::size], &tableHash[0], crypto::HashType::size);
                 }
             });
 
         if (data.empty())
         {
+            STORAGE_LOG(DEBUG) << LOG_BADGE("TableFactory empty data");
             return crypto::HashType();
         }
         m_hash = m_hashImpl->hash(&data);
@@ -153,8 +164,7 @@ public:
         {
             auto change = changeLog.back();
             // Public Table API cannot be used here because it will add another change log entry.
-            change.table->rollback(change);
-
+            change->table->rollback(change);
             changeLog.pop_back();
         }
     }
@@ -225,7 +235,7 @@ private:
         }
         else
         {
-            auto tempSysTable = openTableWithoutLock(SYS_TABLES);
+            auto tempSysTable = openTableWithoutLock(SYS_TABLE);
             auto entry = tempSysTable->getRow(tableName);
             if (!entry)
             {
@@ -240,20 +250,19 @@ private:
         tableInfo->fields.emplace_back(NUM_FIELD);
 
         auto table = std::make_shared<Table>(m_DB, tableInfo, m_hashImpl, m_blockNumber);
-        table->setRecorder([&](TableInterface::Ptr _table, TableInterface::Change::Kind _kind,
-                               std::string const& _key, std::shared_ptr<Entry> _entry) {
+        table->setRecorder([&](Table::Change::Ptr _change) {
             auto& changeLog = getChangeLog();
-            changeLog.emplace_back(_table, _kind, _key, _entry);
+            changeLog.push_back(_change);
         });
 
         m_name2Table.insert({tableName, table});
         return table;
     }
 
-    std::vector<Table::Change>& getChangeLog() { return s_changeLog.local(); }
+    std::vector<Table::Change::Ptr>& getChangeLog() { return s_changeLog.local(); }
     // this map can't be changed, hash() need ordered data
     tbb::concurrent_unordered_map<std::string, Table::Ptr> m_name2Table;
-    tbb::enumerable_thread_specific<std::vector<Table::Change>> s_changeLog;
+    tbb::enumerable_thread_specific<std::vector<Table::Change::Ptr>> s_changeLog;
     crypto::HashType m_hash;
     std::vector<std::string> m_sysTables;
     std::shared_ptr<StorageInterface> m_DB;

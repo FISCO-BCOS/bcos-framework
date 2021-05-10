@@ -13,8 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief Unit tests for the Base64
- * @file Base64.cpp
+ * @brief Unit tests for the Storage interfaces
+ * @file Storage.cpp
  */
 
 #include "interfaces/storage/TableInterface.h"

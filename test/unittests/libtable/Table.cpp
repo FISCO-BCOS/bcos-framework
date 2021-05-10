@@ -13,11 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief Unit tests for the Base64
- * @file Base64.cpp
+ * @brief Unit tests for the Table
+ * @file Table.cpp
  */
 
 #include "libtable/Table.h"
+#include "Hash.h"
+#include "MemoryStorage.h"
 #include "interfaces/storage/TableInterface.h"
 #include "libtable/TableFactory.h"
 #include "libutilities/ThreadPool.h"
@@ -29,15 +31,25 @@
 using namespace std;
 using namespace bcos;
 using namespace bcos::storage;
+using namespace bcos::crypto;
 namespace bcos
 {
 namespace test
 {
 struct TableFixture
 {
-    TableFixture() {}
+    TableFixture()
+    {
+        hashImpl = make_shared<Header256Hash>();
+        memoryStorage = make_shared<MemoryStorage>();
+        tableFactory = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
+    }
 
     ~TableFixture() {}
+    std::shared_ptr<crypto::Hash> hashImpl = nullptr;
+    std::shared_ptr<StorageInterface> memoryStorage = nullptr;
+    protocol::BlockNumber m_blockNumber = 0;
+    std::shared_ptr<TableFactory> tableFactory = nullptr;
 };
 BOOST_FIXTURE_TEST_SUITE(TableTest, TableFixture)
 
@@ -45,7 +57,34 @@ BOOST_AUTO_TEST_CASE(constructor)
 {
     auto threadPool = ThreadPool("a", 1);
     auto table = std::make_shared<Table>(nullptr, nullptr, nullptr, 0);
-    auto tableFactory = std::make_shared<TableFactory>(nullptr, nullptr, 0);
+    auto tableFactory = std::make_shared<TableFactory>(memoryStorage, nullptr, 0);
+}
+
+BOOST_AUTO_TEST_CASE(dump_hash)
+{
+    std::string tableName("t_test");
+    std::string keyField("key");
+    std::string valueField("value");
+    tableFactory->createTable(tableName, keyField, valueField);
+    auto table = tableFactory->openTable("t_test");
+    BOOST_TEST(table->dirty() == false);
+    auto entry = table->newEntry();
+    entry->setField("key", "name");
+    entry->setField("value", "Lili");
+    table->setRow("name", entry);
+    auto tableinfo = table->tableInfo();
+    BOOST_TEST(tableinfo->name == tableName);
+    auto data = table->dump();
+    auto hash = table->hash();
+    BOOST_TEST(data->size() == 1);
+    entry = table->newEntry();
+    entry->setField("key", "name2");
+    entry->setField("value", "WW");
+    table->setRow("name2", entry);
+    data = table->dump();
+    BOOST_TEST(data->size() == 2);
+    hash = table->hash();
+    BOOST_TEST(table->dirty() == true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
