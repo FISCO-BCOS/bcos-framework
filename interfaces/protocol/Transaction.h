@@ -17,6 +17,7 @@
  * @file Transaction.h
  */
 #pragma once
+#include "../../interfaces/crypto/CryptoSuite.h"
 #include "../../libutilities/Common.h"
 #include "../../libutilities/Error.h"
 #include "TransactionSubmitResult.h"
@@ -43,7 +44,19 @@ public:
     virtual void decode(bytesConstRef _txData, bool _checkSig) = 0;
     virtual void encode(bytes& _txData) const = 0;
     virtual bcos::crypto::HashType const& hash() const = 0;
-    virtual void verify() const {}
+    virtual void verify() const
+    {
+        // The tx has already been verified
+        if (sender().size() > 0)
+        {
+            return;
+        }
+        // check the signatures
+        auto signature = signatureData();
+        auto publicKey = cryptoSuite()->signatureImpl()->recover(hash(), signature);
+        // recover the sender
+        forceSender(cryptoSuite()->calculateAddress(publicKey).asBytes());
+    }
 
     virtual int32_t version() const = 0;
     virtual std::string_view chainId() const = 0;
@@ -55,7 +68,10 @@ public:
     virtual bytesConstRef input() const = 0;
     virtual int64_t importTime() const = 0;
     virtual TransactionType type() const = 0;
-    virtual void forceSender(bytes const& _sender) = 0;
+    virtual void forceSender(bytes const& _sender) const = 0;
+
+    virtual bytesConstRef signatureData() const = 0;
+    virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() const = 0;
 
     virtual TxSubmitCallback submitCallback() const { return m_submitCallback; }
     virtual void setSubmitCallback(TxSubmitCallback _submitCallback)

@@ -120,8 +120,8 @@ std::ostream& bcos::protocol::operator<<(std::ostream& _out, TransactionStatus c
     case TransactionStatus::TxPoolIsFull:
         _out << "TxPoolIsFull";
         break;
-    case TransactionStatus::TransactionRefused:
-        _out << "TransactionRefused";
+    case TransactionStatus::Malform:
+        _out << "MalformTx";
         break;
     case TransactionStatus::AlreadyInTxPool:
         _out << "AlreadyInTxPool";
@@ -134,6 +134,9 @@ std::ostream& bcos::protocol::operator<<(std::ostream& _out, TransactionStatus c
         break;
     case TransactionStatus::InvalidGroupId:
         _out << "InvalidGroupId";
+        break;
+    case TransactionStatus::InvalidSignature:
+        _out << "InvalidSignature";
         break;
     case TransactionStatus::RequestNotBelongToTheGroup:
         _out << "RequestNotBelongToTheGroup";
