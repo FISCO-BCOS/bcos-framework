@@ -25,7 +25,8 @@ namespace bcos
 namespace crypto
 {
 using HashType = h256;
-
+using HashList = std::vector<HashType>;
+using HashListPtr = std::shared_ptr<HashList>;
 
 }  // namespace crypto
 }  // namespace bcos

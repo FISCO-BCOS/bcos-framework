@@ -98,6 +98,16 @@ void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
     m_sender = m_cryptoSuite->calculateAddress(publicKey).asBytes();
 }
 
+void PBTransaction::verify() const
+{
+    // check the signatures
+    auto signaturePtr = m_transaction->mutable_signaturedata();
+    auto publicKey = m_cryptoSuite->signatureImpl()->recover(
+        hash(), bytesConstRef((const byte*)signaturePtr->data(), signaturePtr->size()));
+    // recover the sender
+    m_sender = m_cryptoSuite->calculateAddress(publicKey).asBytes();
+}
+
 void PBTransaction::encode(bytes& _txData) const
 {
     auto encodedData = encodePBObject(m_transaction);

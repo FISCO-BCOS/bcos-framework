@@ -33,6 +33,9 @@ public:
     virtual Block::Ptr createBlock() = 0;
     virtual Block::Ptr createBlock(
         bytes const& _data, bool _calculateHash = true, bool _checkSig = true) = 0;
+    virtual Block::Ptr createBlock(
+        bytesConstRef _data, bool _calculateHash = true, bool _checkSig = true) = 0;
+
     virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() = 0;
 };
 }  // namespace protocol

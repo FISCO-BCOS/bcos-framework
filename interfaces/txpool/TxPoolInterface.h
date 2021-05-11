@@ -95,8 +95,8 @@ public:
      * header information
      * @param _onChainCallback
      */
-    virtual void asyncNotifyBlockResult(bcos::protocol::BlockNumber _blockNumber
-                                            bcos::protocol::TransactionSubmitResultsPtr _txsResult,
+    virtual void asyncNotifyBlockResult(bcos::protocol::BlockNumber _blockNumber,
+        bcos::protocol::TransactionSubmitResultsPtr _txsResult,
         std::function<void(Error::Ptr)> _onNotifyFinished) = 0;
 
     /**

@@ -54,6 +54,7 @@ public:
     }
 
     void decode(bytesConstRef _txData, bool _checkSig) override;
+    void verify() const override;
     void encode(bytes& _txData) const override;
     bcos::crypto::HashType const& hash() const override;
 
@@ -62,7 +63,10 @@ public:
     std::string_view chainId() const override { return m_transactionHashFields->chainid(); }
     std::string_view groupId() const override { return m_transactionHashFields->groupid(); }
     int64_t blockLimit() const override { return m_transactionHashFields->blocklimit(); }
-    bytesConstRef sender() const override { return bytesConstRef(m_sender.data(), m_sender.size()); }
+    bytesConstRef sender() const override
+    {
+        return bytesConstRef(m_sender.data(), m_sender.size());
+    }
     bytesConstRef to() const override
     {
         auto const& _receiver = m_transactionHashFields->to();
@@ -93,7 +97,7 @@ private:
     mutable bcos::crypto::HashType m_hash;
     mutable SharedMutex x_hash;
 
-    bcos::bytes m_sender;
+    mutable bcos::bytes m_sender;
     u256 m_nonce;
     TransactionType m_type;
 };
