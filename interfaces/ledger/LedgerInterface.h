@@ -30,6 +30,7 @@
 #include "LedgerConfig.h"
 #include "LedgerTypeDef.h"
 #include <gsl/span>
+#include <map>
 
 
 namespace bcos
@@ -174,12 +175,17 @@ public:
         std::function<void(Error::Ptr, consensus::ConsensusNodeListPtr)> _onGetConfig) = 0;
 
     /**
-     * @brief async get nonce list in specific block
-     * @param _blockNumber number of block to get
+     * @brief async get a batch of nonce lists in blocks
+     * @param _startNumber start block number
+     * @param _offset batch offset, if batch is 0, then callback nonce list in start block number;
+     * if (_startNumber + _offset) > latest block number, then callback nonce lists in
+     * [_startNumber, latest number]
      * @param _onGetList
      */
-    virtual void asyncGetNonceList(protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, protocol::NonceListPtr)> _onGetList) = 0;
+    virtual void asyncGetNonceList(protocol::BlockNumber _startNumber, int64_t _offset,
+        std::function<void(
+            Error::Ptr, std::map<protocol::BlockNumber, protocol::NonceListPtr>)>
+            _onGetList) = 0;
 };
 }  // namespace ledger
 }  // namespace bcos
