@@ -31,19 +31,17 @@ namespace storage
 {
 const char* const SYS_TABLE = "s_tables";
 const char* const SYS_TABLE_KEY = "table_name";
-const char* const SYS_TABLE_FIELDS = "value_fields";
-const char* const NUM_FIELD = "_num_";
-const char* const STATUS = "_status_";
+const char* const SYS_TABLE_VALUE_FIELDS = "value_fields";
+const char* const SYS_TABLE_KEY_FIELDS = "key_field";
 
 inline TableInfo::Ptr getSysTableInfo(const std::string& tableName)
 {
-    auto tableInfo = std::make_shared<TableInfo>(tableName);
     if (tableName == SYS_TABLE)
     {
-        tableInfo->key = SYS_TABLE_KEY;
-        tableInfo->fields = std::vector<std::string>{"key_field", SYS_TABLE_FIELDS};
+        return std::make_shared<TableInfo>(
+            tableName, SYS_TABLE_KEY, std::string(SYS_TABLE_KEY_FIELDS) + "," + SYS_TABLE_VALUE_FIELDS);
     }
-    return tableInfo;
+    return nullptr;
 }
 
 class Table : public TableInterface

@@ -21,7 +21,6 @@
 #pragma once
 
 #include "Table.h"
-#include "boost/algorithm/string.hpp"
 #include "tbb/concurrent_unordered_map.h"
 #include "tbb/enumerable_thread_specific.h"
 #include "tbb/parallel_for.h"
@@ -45,7 +44,7 @@ public:
             auto sysTable = openTableWithoutLock(SYS_TABLE);
             auto entry = sysTable->newEntry();
             entry->setField(SYS_TABLE_KEY, SYS_TABLE);
-            entry->setField("key_field", SYS_TABLE_KEY);
+            entry->setField(SYS_TABLE_KEY_FIELDS, SYS_TABLE_KEY);
             entry->setField("value_fields", "value_fields");
             sysTable->setRow(SYS_TABLE, entry);
         }
@@ -76,9 +75,9 @@ public:
             }
             // Write table entry
             tableEntry = sysTable->newEntry();
-            tableEntry->setField("table_name", _tableName);
-            tableEntry->setField("key_field", _keyField);
-            tableEntry->setField(SYS_TABLE_FIELDS, _valueFields);
+            tableEntry->setField(SYS_TABLE_KEY, _tableName);
+            tableEntry->setField(SYS_TABLE_KEY_FIELDS, _keyField);
+            tableEntry->setField(SYS_TABLE_VALUE_FIELDS, _valueFields);
             auto result = sysTable->setRow(_tableName, tableEntry);
             if (!result)
             {
@@ -88,11 +87,8 @@ public:
                 return false;
             }
             // insert new table to m_name2Table
-            auto tableInfo = std::make_shared<storage::TableInfo>(_tableName, _keyField);
-            boost::split(tableInfo->fields, _valueFields, boost::is_any_of(","));
-            tableInfo->fields.emplace_back(STATUS);
-            tableInfo->fields.emplace_back(tableInfo->key);
-            tableInfo->fields.emplace_back(NUM_FIELD);
+            auto tableInfo =
+                std::make_shared<storage::TableInfo>(_tableName, _keyField, _valueFields);
             tableInfo->newTable = true;
             auto table = std::make_shared<Table>(m_DB, tableInfo, m_hashImpl, m_blockNumber);
             table->setRecorder([&](TableInterface::Change::Ptr _change) {
@@ -228,7 +224,7 @@ private:
             return it->second;
         }
 
-        auto tableInfo = std::make_shared<storage::TableInfo>(tableName);
+        storage::TableInfo::Ptr tableInfo = nullptr;
         if (m_sysTables.end() != find(m_sysTables.begin(), m_sysTables.end(), tableName))
         {
             tableInfo = getSysTableInfo(tableName);
@@ -241,13 +237,9 @@ private:
             {
                 return nullptr;
             }
-            tableInfo->key = entry->getField("key_field");
-            std::string valueFields = entry->getField(SYS_TABLE_FIELDS);
-            boost::split(tableInfo->fields, valueFields, boost::is_any_of(","));
+            tableInfo = std::make_shared<storage::TableInfo>(tableName,
+                entry->getField(SYS_TABLE_KEY_FIELDS), entry->getField(SYS_TABLE_VALUE_FIELDS));
         }
-        tableInfo->fields.emplace_back(STATUS);
-        tableInfo->fields.emplace_back(tableInfo->key);
-        tableInfo->fields.emplace_back(NUM_FIELD);
 
         auto table = std::make_shared<Table>(m_DB, tableInfo, m_hashImpl, m_blockNumber);
         table->setRecorder([&](Table::Change::Ptr _change) {
