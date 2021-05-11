@@ -54,11 +54,18 @@ public:
 
     PBBlock(BlockHeaderFactory::Ptr _blockHeaderFactory,
         TransactionFactory::Ptr _transactionFactory, TransactionReceiptFactory::Ptr _receiptFactory,
-        bytes const& _data, bool _calculateHash, bool _checkSig)
+        bytesConstRef _data, bool _calculateHash, bool _checkSig)
       : PBBlock(_blockHeaderFactory, _transactionFactory, _receiptFactory)
     {
-        decode(ref(_data), _calculateHash, _checkSig);
+        decode(_data, _calculateHash, _checkSig);
     }
+
+    PBBlock(BlockHeaderFactory::Ptr _blockHeaderFactory,
+        TransactionFactory::Ptr _transactionFactory, TransactionReceiptFactory::Ptr _receiptFactory,
+        bytes const& _data, bool _calculateHash, bool _checkSig)
+      : PBBlock(_blockHeaderFactory, _transactionFactory, _receiptFactory, ref(_data),
+            _calculateHash, _checkSig)
+    {}
 
     ~PBBlock() override {}
 
