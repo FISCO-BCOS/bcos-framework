@@ -30,16 +30,17 @@ using namespace bcos::codec::scale;
 
 PBTransactionReceipt::PBTransactionReceipt(
     CryptoSuite::Ptr _cryptoSuite, bytesConstRef _receiptData)
-  : m_cryptoSuite(_cryptoSuite), m_receipt(std::make_shared<PBRawTransactionReceipt>())
+  : m_receipt(std::make_shared<PBRawTransactionReceipt>())
 {
+    m_dataCache = std::make_shared<bytes>();
+    m_cryptoSuite = _cryptoSuite;
     decode(_receiptData);
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
     HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
     LogEntriesPtr _logEntries, int32_t _status)
-  : m_cryptoSuite(_cryptoSuite),
-    m_receipt(std::make_shared<PBRawTransactionReceipt>()),
+  : m_receipt(std::make_shared<PBRawTransactionReceipt>()),
     m_stateRoot(_stateRoot),
     m_gasUsed(_gasUsed),
     m_contractAddress(_contractAddress),
@@ -47,6 +48,8 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
     m_status(_status),
     m_bloom(generateBloom(_logEntries, _cryptoSuite))
 {
+    m_dataCache = std::make_shared<bytes>();
+    m_cryptoSuite = _cryptoSuite;
     m_receipt->set_version(_version);
 }
 
@@ -70,6 +73,7 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
 
 void PBTransactionReceipt::decode(bytesConstRef _data)
 {
+    *m_dataCache = _data.toBytes();
     // decode receipt
     decodePBObject(m_receipt, _data);
     ScaleDecoderStream stream(gsl::span<const byte>(
@@ -81,10 +85,25 @@ void PBTransactionReceipt::decode(bytesConstRef _data)
 void PBTransactionReceipt::encode(bytes& _encodeReceiptData)
 {
     encodeHashFields();
-    auto receiptDataLen = m_receipt->ByteSizeLong();
-    _encodeReceiptData.resize(receiptDataLen);
-    auto data = encodePBObject(m_receipt);
-    _encodeReceiptData = *data;
+    encodePBObject(_encodeReceiptData, m_receipt);
+}
+
+bytesConstRef PBTransactionReceipt::encode(bool _onlyHashFieldData)
+{
+    if (_onlyHashFieldData)
+    {
+        if (m_receipt->hashfieldsdata().size() == 0)
+        {
+            encodeHashFields();
+        }
+        return bytesConstRef(
+            (byte const*)m_receipt->hashfieldsdata().data(), m_receipt->hashfieldsdata().size());
+    }
+    if (m_dataCache->size() == 0)
+    {
+        encode(*m_dataCache);
+    }
+    return bytesConstRef((byte const*)m_dataCache->data(), m_dataCache->size());
 }
 
 void PBTransactionReceipt::encodeHashFields()
@@ -101,22 +120,4 @@ void PBTransactionReceipt::encodeHashFields()
     auto hashFieldsData = stream.data();
     m_receipt->set_version(m_version);
     m_receipt->set_hashfieldsdata(hashFieldsData.data(), hashFieldsData.size());
-}
-
-HashType const& PBTransactionReceipt::hash()
-{
-    UpgradableGuard l(x_hash);
-    if (m_hash != HashType())
-    {
-        return m_hash;
-    }
-    if (m_receipt->hashfieldsdata().size() == 0)
-    {
-        encodeHashFields();
-    }
-    bytesConstRef hashFieldsData = bytesConstRef(
-        (byte const*)m_receipt->hashfieldsdata().data(), m_receipt->hashfieldsdata().size());
-    UpgradeGuard ul(l);
-    m_hash = m_cryptoSuite->hash(hashFieldsData);
-    return m_hash;
 }

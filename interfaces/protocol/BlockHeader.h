@@ -19,6 +19,9 @@
  * @date: 2021-03-22
  */
 #pragma once
+#include "../../interfaces/crypto/CryptoSuite.h"
+#include "../../libutilities/DataConvertUtility.h"
+#include "Exceptions.h"
 #include "ProtocolTypeDef.h"
 #include <gsl/span>
 
@@ -37,11 +40,64 @@ public:
 
     virtual void decode(bytesConstRef _data) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
-    virtual bcos::crypto::HashType const& hash() const = 0;
-    virtual void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number) = 0;
+    virtual bytesConstRef encode(bool _onlyHashFieldsData = false) const = 0;
+
+    virtual bcos::crypto::HashType const& hash() const
+    {
+        UpgradableGuard l(x_hash);
+        if (m_hash != bcos::crypto::HashType())
+        {
+            return m_hash;
+        }
+        auto hashFieldsData = encode(true);
+        UpgradeGuard ul(l);
+        m_hash = m_cryptoSuite->hash(hashFieldsData);
+        return m_hash;
+    }
+
+    virtual void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number)
+    {
+        // set parentInfo
+        ParentInfoList parentInfoList;
+        for (auto parentHeader : *_parents)
+        {
+            ParentInfo parentInfo;
+            parentInfo.blockNumber = parentHeader->number();
+            parentInfo.blockHash = parentHeader->hash();
+            parentInfoList.emplace_back(parentInfo);
+        }
+        setParentInfo(std::move(parentInfoList));
+        setNumber(_number);
+    }
+
     virtual void clear() = 0;
+
     // verifySignatureList verifys the signatureList
-    virtual void verifySignatureList() const = 0;
+    virtual void verifySignatureList() const
+    {
+        auto signatures = signatureList();
+        auto sealers = sealerList();
+        if (signatures.size() < sealers.size())
+        {
+            BOOST_THROW_EXCEPTION(InvalidBlockHeader() << errinfo_comment(
+                                      "Invalid blockHeader for the size of sealerList "
+                                      "is smaller than the size of signatureList"));
+        }
+        for (auto signature : signatures)
+        {
+            auto sealerIndex = signature.index;
+            auto signatureData = signature.signature;
+            if (!m_cryptoSuite->signatureImpl()->verify(
+                    std::shared_ptr<const bytes>(&((sealers)[sealerIndex]), [](const bytes*) {}),
+                    hash(), bytesConstRef(signatureData.data(), signatureData.size())))
+            {
+                BOOST_THROW_EXCEPTION(
+                    InvalidSignatureList()
+                    << errinfo_comment("Invalid signatureList for verify failed, signatureData:" +
+                                       *toHexString(signatureData)));
+            }
+        }
+    }
     virtual void populateEmptyBlock(int64_t _timestamp) = 0;
 
     // version returns the version of the blockHeader
@@ -89,6 +145,11 @@ public:
 
     virtual void setSignatureList(gsl::span<const Signature> const& _signatureList) = 0;
     virtual void setSignatureList(SignatureList&& _signatureList) = 0;
+
+protected:
+    bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
+    mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
+    mutable SharedMutex x_hash;
 };
 }  // namespace protocol
 }  // namespace bcos

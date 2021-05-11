@@ -47,14 +47,15 @@ inline LogEntriesPtr fakeLogEntries(Hash::Ptr _hashImpl, size_t _size)
     return logEntries;
 }
 
-inline void checkReceipts(
-    Hash::Ptr hashImpl, TransactionReceipt::ConstPtr receipt, TransactionReceipt::ConstPtr decodedReceipt)
+inline void checkReceipts(Hash::Ptr hashImpl, TransactionReceipt::ConstPtr receipt,
+    TransactionReceipt::ConstPtr decodedReceipt)
 {
     // check the decodedReceipt
     BOOST_CHECK(decodedReceipt->version() == receipt->version());
     BOOST_CHECK(decodedReceipt->stateRoot() == receipt->stateRoot());
     BOOST_CHECK(decodedReceipt->gasUsed() == receipt->gasUsed());
-    BOOST_CHECK(decodedReceipt->contractAddress().toBytes() == receipt->contractAddress().toBytes());
+    BOOST_CHECK(
+        decodedReceipt->contractAddress().toBytes() == receipt->contractAddress().toBytes());
     BOOST_CHECK(decodedReceipt->status() == receipt->status());
     BOOST_CHECK(decodedReceipt->output().toBytes() == receipt->output().toBytes());
     // BOOST_CHECK(decodedReceipt->hash() == receipt->hash());
@@ -94,6 +95,9 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
     }
     std::cout << "##### ScaleReceipt encodeT: " << (utcTime() - start)
               << ", encodedData size:" << encodedData->size() << std::endl;
+
+    auto encodedDataCache = receipt->encode();
+    BOOST_CHECK(*encodedData == encodedDataCache.toBytes());
 
     // decode
     std::shared_ptr<TransactionReceipt> decodedReceipt;

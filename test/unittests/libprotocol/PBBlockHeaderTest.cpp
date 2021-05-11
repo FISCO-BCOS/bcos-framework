@@ -29,7 +29,6 @@ namespace bcos
 {
 namespace test
 {
-
 BOOST_FIXTURE_TEST_SUITE(PBBlockHeaderTest, TestPromptFixture)
 BOOST_AUTO_TEST_CASE(testNormalPBBlockHeader)
 {

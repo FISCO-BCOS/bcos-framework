@@ -53,7 +53,7 @@ public:
      * @param _sealCallback after the  txpool responds to the sealed txs, the callback is triggered
      */
     virtual void asyncSealTxs(size_t _txsLimit, TxsHashSetPtr _avoidTxs,
-        std::function<void(Error::Ptr, bcos::protocol::TransactionsPtr)> _sealCallback) = 0;
+        std::function<void(Error::Ptr, bcos::protocol::ConstTransactionsPtr)> _sealCallback) = 0;
 
     /**
      * @brief verify transactions in Block for the consensus module
@@ -105,7 +105,7 @@ public:
      * @param _onReceiveNewTxs the callback to be called when receive new transaction list
      */
     virtual void asyncFetchNewTxs(size_t _txsLimit,
-        std::function<void(Error::Ptr, bcos::protocol::TransactionsPtr)> _onReceiveNewTxs) = 0;
+        std::function<void(Error::Ptr, bcos::protocol::ConstTransactionsPtr)> _onReceiveNewTxs) = 0;
 
     /**
      * @brief the sync module calls this interface to obtain new txs from the P2P
@@ -122,7 +122,10 @@ public:
      * @param _onRecvTxs called when get the missing txs
      */
     virtual void asyncFetchMissedTxs(TxsHashSetPtr _missedTxs,
-        std::function<void(Error::Ptr, bcos::protocol::TransactionsPtr)> _onRecvTxs) = 0;
+        std::function<void(Error::Ptr, bcos::protocol::ConstTransactionsPtr)> _onRecvTxs) = 0;
+
+    virtual void sendTxsSyncMessage(bcos::Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
+        bytesPointer _data, std::function<void(bytesPointer _respData)> _sendResponse);
 };
 }  // namespace txpool
 }  // namespace bcos

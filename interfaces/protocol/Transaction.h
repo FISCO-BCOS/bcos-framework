@@ -42,8 +42,21 @@ public:
     virtual ~Transaction() {}
 
     virtual void decode(bytesConstRef _txData, bool _checkSig) = 0;
-    virtual void encode(bytes& _txData) const = 0;
-    virtual bcos::crypto::HashType const& hash() const = 0;
+    virtual void encode(bytes& _encodedData) const = 0;
+    virtual bytesConstRef encode(bool _onlyHashFields = false) const = 0;
+    virtual bcos::crypto::HashType const& hash() const
+    {
+        UpgradableGuard l(x_hash);
+        if (m_hash != bcos::crypto::HashType())
+        {
+            return m_hash;
+        }
+        auto hashFields = encode(true);
+        UpgradeGuard ul(l);
+        m_hash = m_cryptoSuite->hash(hashFields);
+        return m_hash;
+    }
+
     virtual void verify() const
     {
         // The tx has already been verified
@@ -53,9 +66,9 @@ public:
         }
         // check the signatures
         auto signature = signatureData();
-        auto publicKey = cryptoSuite()->signatureImpl()->recover(hash(), signature);
+        auto publicKey = m_cryptoSuite->signatureImpl()->recover(hash(), signature);
         // recover the sender
-        forceSender(cryptoSuite()->calculateAddress(publicKey).asBytes());
+        forceSender(m_cryptoSuite->calculateAddress(publicKey).asBytes());
     }
 
     virtual int32_t version() const = 0;
@@ -64,14 +77,14 @@ public:
     virtual int64_t blockLimit() const = 0;
     virtual u256 const& nonce() const = 0;
     virtual bytesConstRef to() const = 0;
-    virtual bytesConstRef sender() const = 0;
+    virtual bytesConstRef sender() const { return bytesConstRef(m_sender.data(), m_sender.size()); }
+
     virtual bytesConstRef input() const = 0;
     virtual int64_t importTime() const = 0;
     virtual TransactionType type() const = 0;
-    virtual void forceSender(bytes const& _sender) const = 0;
+    virtual void forceSender(bytes const& _sender) const { m_sender = _sender; }
 
     virtual bytesConstRef signatureData() const = 0;
-    virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() const = 0;
 
     virtual TxSubmitCallback submitCallback() const { return m_submitCallback; }
     virtual void setSubmitCallback(TxSubmitCallback _submitCallback)
@@ -79,22 +92,29 @@ public:
         m_submitCallback = _submitCallback;
     }
     virtual bool synced() const { return m_synced; }
-    virtual void setSynced(bool _synced) { m_synced = _synced; }
+    virtual void setSynced(bool _synced) const { m_synced = _synced; }
 
     virtual bool sealed() const { return m_sealed; }
-    virtual void setSealed(bool _sealed) { m_sealed = _sealed; }
+    virtual void setSealed(bool _sealed) const { m_sealed = _sealed; }
 
 protected:
+    mutable bcos::bytes m_sender = bcos::bytes();
+    mutable bcos::crypto::HashType m_hash;
+    mutable SharedMutex x_hash;
+    bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
+
     TxSubmitCallback m_submitCallback;
     // the tx has been synced or not
-    bool m_synced = false;
+    mutable bool m_synced = false;
     // the tx has been sealed by the leader of not
-    bool m_sealed = false;
+    mutable bool m_sealed = false;
 };
 
 using Transactions = std::vector<Transaction::Ptr>;
 using TransactionsPtr = std::shared_ptr<Transactions>;
 using TransactionsConstPtr = std::shared_ptr<const Transactions>;
+using ConstTransactions = std::vector<Transaction::ConstPtr>;
+using ConstTransactionsPtr = std::shared_ptr<ConstTransactions>;
 
 }  // namespace protocol
 }  // namespace bcos

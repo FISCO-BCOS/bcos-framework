@@ -18,8 +18,8 @@
  * @date: 2021-03-16
  */
 #pragma once
+#include "interfaces/protocol/Exceptions.h"
 #include "libprotocol/Common.h"
-#include "libprotocol/Exceptions.h"
 #include "libprotocol/protobuf/PBBlockHeaderFactory.h"
 #include "libutilities/Common.h"
 #include <bcos-test/libutils/HashImpl.h>
@@ -53,8 +53,7 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     BOOST_CHECK(decodedBlockHeader->extraData().toBytes() == blockHeader->extraData().toBytes());
     BOOST_CHECK((decodedBlockHeader->consensusWeights()) == (blockHeader->consensusWeights()));
     // check signature
-    BOOST_CHECK(
-        decodedBlockHeader->signatureList().size() == blockHeader->signatureList().size());
+    BOOST_CHECK(decodedBlockHeader->signatureList().size() == blockHeader->signatureList().size());
     size_t index = 0;
     for (auto signature : decodedBlockHeader->signatureList())
     {
@@ -82,9 +81,9 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
 }
 
 inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    const ParentInfoList &_parentInfo, h256 const& _txsRoot, h256 const& _receiptRoot,
+    const ParentInfoList& _parentInfo, h256 const& _txsRoot, h256 const& _receiptRoot,
     h256 const& _stateRoot, int64_t _number, u256 const& _gasUsed, int64_t _timestamp,
-    int64_t _sealer, const std::vector<bytes> &_sealerList, bytes const& _extraData,
+    int64_t _sealer, const std::vector<bytes>& _sealerList, bytes const& _extraData,
     SignatureList _signatureList)
 {
     BlockHeaderFactory::Ptr blockHeaderFactory =
@@ -108,6 +107,9 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     blockHeader->encode(*encodedData);
+
+    auto encodedDataCache = blockHeader->encode();
+    BOOST_CHECK(*encodedData == encodedDataCache.toBytes());
 
     // decode
     auto decodedBlockHeader = blockHeaderFactory->createBlockHeader(*encodedData);

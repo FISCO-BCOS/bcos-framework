@@ -41,6 +41,18 @@ bytesPointer encodePBObject(T _pbObject)
 }
 
 template <typename T>
+void encodePBObject(bytes& _encodedData, T _pbObject)
+{
+    auto encodedData = std::make_shared<bytes>();
+    _encodedData.resize(_pbObject->ByteSizeLong());
+    if (!_pbObject->SerializeToArray(_encodedData.data(), _encodedData.size()))
+    {
+        BOOST_THROW_EXCEPTION(
+            PBObjectEncodeException() << errinfo_comment("encode PBObject into bytes data failed"));
+    }
+}
+
+template <typename T>
 void decodePBObject(T _pbObject, bytesConstRef _data)
 {
     if (!_pbObject->ParseFromArray(_data.data(), _data.size()))

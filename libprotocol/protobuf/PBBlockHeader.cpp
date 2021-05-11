@@ -21,7 +21,6 @@
 #include "PBBlockHeader.h"
 #include "libcodec/scale/Scale.h"
 #include "libprotocol/Common.h"
-#include "libprotocol/Exceptions.h"
 #include <gsl/span>
 
 using namespace bcos;
@@ -30,6 +29,7 @@ using namespace bcos::codec::scale;
 
 void PBBlockHeader::decode(bytesConstRef _data)
 {
+    *m_dataCache = _data.toBytes();
     decodePBObject(m_blockHeader, _data);
     // decode hashFields data
     auto hashFieldsPtr = m_blockHeader->mutable_hashfieldsdata();
@@ -43,11 +43,6 @@ void PBBlockHeader::decode(bytesConstRef _data)
     {
         auto signatureInfo = m_blockHeader->mutable_signaturelist(i);
         auto const& signatureData = signatureInfo->signaturedata();
-        /*
-        m_signatureList.emplace_back(std::make_pair(
-            signatureInfo->sealerindex(), std::make_shared<bytes>(signatureData.data(),
-                                              signatureData.data() + signatureData.size())));
-                                              */
         Signature sig;
         sig.index = signatureInfo->sealerindex();
         sig.signature = bytes(signatureData.begin(), signatureData.end());
@@ -97,39 +92,22 @@ void PBBlockHeader::encode(bytes& _encodedData) const
     encodeHashFields();
     encodeSignatureList();
     // encode the whole blockHeader
-    auto blockHeaderLen = m_blockHeader->ByteSizeLong();
-    _encodedData.resize(blockHeaderLen);
-    auto data = encodePBObject(m_blockHeader);
-    _encodedData = *data;
+    encodePBObject(_encodedData, m_blockHeader);
 }
 
-bcos::crypto::HashType const& PBBlockHeader::hash() const
+bytesConstRef PBBlockHeader::encode(bool _onlyHashFieldsData) const
 {
-    UpgradableGuard l(x_hash);
-    if (m_hash != bcos::crypto::HashType())
+    if (_onlyHashFieldsData)
     {
-        return m_hash;
-    }
-    encodeHashFields();
-    bytesConstRef hashFieldsData =
-        bytesConstRef((byte const*)m_blockHeader->hashfieldsdata().data(),
+        encodeHashFields();
+        return bytesConstRef((byte const*)m_blockHeader->hashfieldsdata().data(),
             m_blockHeader->hashfieldsdata().size());
-    UpgradeGuard ul(l);
-    m_hash = m_cryptoSuite->hash(hashFieldsData);
-    return m_hash;
-}
-
-void PBBlockHeader::populateFromParents(BlockHeadersPtr _parents, BlockNumber _number)
-{
-    // set parentInfo
-    for (auto parentHeader : *_parents)
-    {
-        ParentInfo parentInfo;
-        parentInfo.blockNumber = parentHeader->number();
-        parentInfo.blockHash = parentHeader->hash();
-        m_parentInfo.emplace_back(parentInfo);
     }
-    m_number = _number;
+    if (m_dataCache->size() == 0)
+    {
+        encode(*m_dataCache);
+    }
+    return bytesConstRef((byte const*)m_dataCache->data(), m_dataCache->size());
 }
 
 void PBBlockHeader::clear()
@@ -146,27 +124,4 @@ void PBBlockHeader::clear()
     m_sealerList.clear();
     m_extraData.clear();
     m_hash = bcos::crypto::HashType();
-}
-
-void PBBlockHeader::verifySignatureList() const
-{
-    if (m_sealerList.size() < m_signatureList.size())
-    {
-        BOOST_THROW_EXCEPTION(InvalidBlockHeader()
-                              << errinfo_comment("Invalid blockHeader for the size of sealerList "
-                                                 "is smaller than the size of signatureList"));
-    }
-    for (auto signature : m_signatureList)
-    {
-        auto sealerIndex = signature.index;
-        auto signatureData = signature.signature;
-        if (!m_cryptoSuite->signatureImpl()->verify(
-                std::shared_ptr<const bytes>(&((m_sealerList)[sealerIndex]), [](const bytes*) {}),
-                hash(), bytesConstRef(signatureData.data(), signatureData.size())))
-        {
-            BOOST_THROW_EXCEPTION(InvalidSignatureList() << errinfo_comment(
-                                      "Invalid signatureList for verify failed, signatureData:" +
-                                      *toHexString(signatureData)));
-        }
-    }
 }

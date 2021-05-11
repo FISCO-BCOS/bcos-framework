@@ -19,7 +19,6 @@
  * @date: 2021-03-22
  */
 #pragma once
-#include "interfaces/crypto/CryptoSuite.h"
 #include "interfaces/protocol/BlockHeader.h"
 #include "libprotocol/bcos-proto/BlockHeader.pb.h"
 #include "libutilities/FixedBytes.h"
@@ -33,9 +32,10 @@ class PBBlockHeader : public BlockHeader
 public:
     using Ptr = std::shared_ptr<PBBlockHeader>;
     explicit PBBlockHeader(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
-      : m_cryptoSuite(_cryptoSuite),
-        m_blockHeader(std::make_shared<PBRawBlockHeader>())
-    {}
+      : m_dataCache(std::make_shared<bytes>()), m_blockHeader(std::make_shared<PBRawBlockHeader>())
+    {
+        m_cryptoSuite = _cryptoSuite;
+    }
     PBBlockHeader(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytesConstRef _data)
       : PBBlockHeader(_cryptoSuite)
     {
@@ -50,8 +50,7 @@ public:
 
     void decode(bytesConstRef _data) override;
     void encode(bytes& _encodeData) const override;
-    bcos::crypto::HashType const& hash() const override;
-    void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number) override;
+    bytesConstRef encode(bool _onlyHashFieldsData = false) const override;
     void clear() override;
 
     // the version of the blockHeader
@@ -72,18 +71,19 @@ public:
     int64_t sealer() override { return m_sealer; }
     // the current sealer list
     gsl::span<const bytes> sealerList() const override { return m_sealerList; }
-    bytesConstRef extraData() const override { return bytesConstRef(m_extraData.data(), m_extraData.size()); }
+    bytesConstRef extraData() const override
+    {
+        return bytesConstRef(m_extraData.data(), m_extraData.size());
+    }
     gsl::span<const Signature> signatureList() const override { return m_signatureList; }
-
-    void verifySignatureList() const override;
-
     void setVersion(int32_t _version) override { m_blockHeader->set_version(_version); }
     void setParentInfo(gsl::span<const ParentInfo> const& _parentInfo) override
     {
         m_parentInfo.assign(_parentInfo.begin(), _parentInfo.end());
         noteDirty();
     }
-    void setParentInfo(ParentInfoList &&_parentInfo) override {
+    void setParentInfo(ParentInfoList&& _parentInfo) override
+    {
         m_parentInfo = std::move(_parentInfo);
         noteDirty();
     }
@@ -129,7 +129,8 @@ public:
         m_sealerList.assign(_sealerList.begin(), _sealerList.end());
         noteDirty();
     }
-    void setSealerList(std::vector<bytes>&& _sealerList) override {
+    void setSealerList(std::vector<bytes>&& _sealerList) override
+    {
         m_sealerList = std::move(_sealerList);
         noteDirty();
     }
@@ -148,7 +149,7 @@ public:
         m_signatureList.assign(_signatureList.begin(), _signatureList.end());
         noteSignatureDirty();
     }
-    void setSignatureList(SignatureList&&  _signatureList) override
+    void setSignatureList(SignatureList&& _signatureList) override
     {
         m_signatureList = std::move(_signatureList);
         noteSignatureDirty();
@@ -171,7 +172,8 @@ public:
         noteDirty();
     }
 
-    void setConsensusWeights(std::vector<uint64_t>&& _weightList) override {
+    void setConsensusWeights(std::vector<uint64_t>&& _weightList) override
+    {
         m_consensusWeights = std::move(_weightList);
         noteDirty();
     }
@@ -185,12 +187,14 @@ private:
         m_blockHeader->clear_hashfieldsdata();
         WriteGuard l(x_hash);
         m_hash = bcos::crypto::HashType();
+        m_dataCache->clear();
     }
 
     void noteSignatureDirty() { m_blockHeader->clear_signaturelist(); }
 
 private:
-    bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
+    bytesPointer m_dataCache;
+
     mutable std::shared_ptr<PBRawBlockHeader> m_blockHeader;
     ParentInfoList m_parentInfo;
     bcos::crypto::HashType m_txsRoot;
@@ -204,9 +208,6 @@ private:
     bytes m_extraData;
 
     SignatureList m_signatureList;
-    mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
-    mutable SharedMutex x_hash;
-
     WeightList m_consensusWeights;
 };
 }  // namespace protocol

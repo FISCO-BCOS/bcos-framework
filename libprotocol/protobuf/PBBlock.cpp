@@ -19,8 +19,8 @@
  * @date: 2021-03-23
  */
 #include "PBBlock.h"
+#include "interfaces/protocol/Exceptions.h"
 #include "libprotocol/Common.h"
-#include "libprotocol/Exceptions.h"
 #include "libprotocol/ParallelMerkleProof.h"
 #include <tbb/parallel_invoke.h>
 

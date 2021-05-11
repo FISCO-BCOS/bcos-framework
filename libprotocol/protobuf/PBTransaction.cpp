@@ -19,8 +19,8 @@
  * @date: 2021-03-16
  */
 #include "PBTransaction.h"
+#include "interfaces/protocol/Exceptions.h"
 #include "libprotocol/Common.h"
-#include "libprotocol/Exceptions.h"
 using namespace bcos;
 using namespace bcos::protocol;
 using namespace bcos::crypto;
@@ -69,6 +69,8 @@ PBTransaction::PBTransaction(CryptoSuite::Ptr _cryptoSuite, bytesConstRef _txDat
 
 void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
 {
+    // cache data into dataCache
+    *m_dataCache = _txData.toBytes();
     // decode transaction
     decodePBObject(m_transaction, _txData);
     // decode transactionHashFields
@@ -93,22 +95,23 @@ void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
     verify();
 }
 
-void PBTransaction::encode(bytes& _txData) const
+void PBTransaction::encode(bytes& _encodedData) const
 {
-    auto encodedData = encodePBObject(m_transaction);
-    _txData = *encodedData;
+    encodePBObject(_encodedData, m_transaction);
 }
 
-HashType const& PBTransaction::hash() const
+bytesConstRef PBTransaction::encode(bool _onlyHashFields) const
 {
-    UpgradableGuard l(x_hash);
-    if (m_hash != HashType())
+    if (_onlyHashFields)
     {
-        return m_hash;
+        auto const& hashFieldData = m_transaction->hashfieldsdata();
+        return bytesConstRef((byte const*)hashFieldData.data(), hashFieldData.size());
     }
-    UpgradeGuard ul(l);
-    m_hash = m_cryptoSuite->hash(m_transaction->hashfieldsdata());
-    return m_hash;
+    if (m_dataCache->size() == 0)
+    {
+        encode(*m_dataCache);
+    }
+    return bytesConstRef((byte const*)m_dataCache->data(), m_dataCache->size());
 }
 
 void PBTransaction::updateSignature(bytesConstRef _signatureData, bytes const& _sender)
