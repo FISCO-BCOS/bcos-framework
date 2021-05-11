@@ -50,12 +50,13 @@ enum class TransactionStatus : uint32_t
     NonceCheckFail = 10000,  /// txPool related errors
     BlockLimitCheckFail = 10001,
     TxPoolIsFull = 10002,
-    TransactionRefused = 10003,
+    Malform = 10003,
     AlreadyInTxPool = 10004,
     TxAlreadyInChain = 10005,
     InvalidChainId = 10006,
     InvalidGroupId = 10007,
-    RequestNotBelongToTheGroup = 10008,
+    InvalidSignature = 10008,
+    RequestNotBelongToTheGroup = 10009,
 };
 TransactionStatus toTransactionStatus(Exception const& _e);
 std::ostream& operator<<(std::ostream& _out, TransactionStatus const& _er);

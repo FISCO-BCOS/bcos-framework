@@ -90,22 +90,7 @@ void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
     {
         return;
     }
-    // check the signatures
-    auto signaturePtr = m_transaction->mutable_signaturedata();
-    auto publicKey = m_cryptoSuite->signatureImpl()->recover(
-        hash(), bytesConstRef((const byte*)signaturePtr->data(), signaturePtr->size()));
-    // recover the sender
-    m_sender = m_cryptoSuite->calculateAddress(publicKey).asBytes();
-}
-
-void PBTransaction::verify() const
-{
-    // check the signatures
-    auto signaturePtr = m_transaction->mutable_signaturedata();
-    auto publicKey = m_cryptoSuite->signatureImpl()->recover(
-        hash(), bytesConstRef((const byte*)signaturePtr->data(), signaturePtr->size()));
-    // recover the sender
-    m_sender = m_cryptoSuite->calculateAddress(publicKey).asBytes();
+    verify();
 }
 
 void PBTransaction::encode(bytes& _txData) const

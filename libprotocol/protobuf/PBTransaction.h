@@ -54,7 +54,6 @@ public:
     }
 
     void decode(bytesConstRef _txData, bool _checkSig) override;
-    void verify() const override;
     void encode(bytes& _txData) const override;
     bcos::crypto::HashType const& hash() const override;
 
@@ -75,7 +74,14 @@ public:
     TransactionType type() const override { return m_type; }
     bytesConstRef input() const override;
     int64_t importTime() const override { return m_transaction->import_time(); }
-    void forceSender(bytes const& _sender) override { m_sender = _sender; }
+    void forceSender(bytes const& _sender) const override { m_sender = _sender; }
+    bytesConstRef signatureData() const override
+    {
+        return bytesConstRef((const byte*)m_transaction->signaturedata().data(),
+            m_transaction->signaturedata().size());
+    }
+
+    bcos::crypto::CryptoSuite::Ptr cryptoSuite() const override { return m_cryptoSuite; }
 
     // only for ut
     void updateSignature(bytesConstRef _signatureData, bytes const& _sender);
@@ -97,7 +103,7 @@ private:
     mutable bcos::crypto::HashType m_hash;
     mutable SharedMutex x_hash;
 
-    mutable bcos::bytes m_sender;
+    mutable bcos::bytes m_sender = bcos::bytes();
     u256 m_nonce;
     TransactionType m_type;
 };
