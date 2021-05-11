@@ -119,6 +119,7 @@ bool Table::setRow(const std::string& _key, std::shared_ptr<Entry> _entry)
             return false;
         }
     }
+    _entry->setNum(m_blockNumber);
     // get the old value
     auto entry = getRow(_key);
     auto ret = m_dirty.insert(std::make_pair(_key, _entry));

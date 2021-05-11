@@ -97,11 +97,9 @@ BOOST_AUTO_TEST_CASE(setRow)
     auto table = tableFactory->openTable("t_test");
     BOOST_TEST(table != nullptr);
     // check fields order of t_test
-    BOOST_TEST(table->tableInfo()->fields.size() == 4);
+    BOOST_TEST(table->tableInfo()->fields.size() == 2);
     BOOST_TEST(table->tableInfo()->fields[0] == "value1");
     BOOST_TEST(table->tableInfo()->fields[1] == "value2");
-    BOOST_TEST(table->tableInfo()->fields[2] == STATUS);
-    BOOST_TEST(table->tableInfo()->fields[3] == NUM_FIELD);
     BOOST_TEST(table->tableInfo()->key == keyField);
     auto entry = table->newEntry();
     entry->setField("key", "name");
@@ -113,11 +111,9 @@ BOOST_AUTO_TEST_CASE(setRow)
     // check fields order of SYS_TABLE
     table = tableFactory->openTable(SYS_TABLE);
     BOOST_TEST(table != nullptr);
-    BOOST_TEST(table->tableInfo()->fields.size() == 4);
+    BOOST_TEST(table->tableInfo()->fields.size() == 2);
     BOOST_TEST(table->tableInfo()->fields[0] == SYS_TABLE_KEY_FIELDS);
     BOOST_TEST(table->tableInfo()->fields[1] == SYS_TABLE_VALUE_FIELDS);
-    BOOST_TEST(table->tableInfo()->fields[2] == STATUS);
-    BOOST_TEST(table->tableInfo()->fields[3] == NUM_FIELD);
     BOOST_TEST(table->tableInfo()->key == SYS_TABLE_KEY);
 }
 BOOST_AUTO_TEST_SUITE_END()
