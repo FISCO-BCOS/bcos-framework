@@ -95,16 +95,16 @@ public:
      * header information
      * @param _onChainCallback
      */
-    virtual void asyncNotifyOnChainBlock(bcos::protocol::Block::Ptr _onChainBlock,
-        std::function<void(Error::Ptr, bcos::protocol::TransactionSubmitResultsPtr)>
-            _onChainCallback) = 0;
+    virtual void asyncNotifyBlockResult(bcos::protocol::BlockNumber _blockNumber,
+        bcos::protocol::TransactionSubmitResultsPtr _txsResult,
+        std::function<void(Error::Ptr)> _onNotifyFinished) = 0;
 
     /**
      * @brief the sync module calls this interface to obtain the new txs from the SDK
      *
      * @param _onReceiveNewTxs the callback to be called when receive new transaction list
      */
-    virtual void asyncGetNewTxs(
+    virtual void asyncFetchNewTxs(size_t _txsLimit,
         std::function<void(Error::Ptr, bcos::protocol::TransactionsPtr)> _onReceiveNewTxs) = 0;
 
     /**
