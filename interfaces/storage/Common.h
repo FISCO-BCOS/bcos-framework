@@ -22,6 +22,7 @@
 
 #include "../../interfaces/protocol/ProtocolTypeDef.h"
 #include "../../libutilities/Log.h"
+#include "boost/algorithm/string.hpp"
 #include "tbb/spin_mutex.h"
 #include "tbb/spin_rw_mutex.h"
 #include "tbb/tbb_thread.h"
@@ -129,12 +130,20 @@ private:
     std::pair<size_t, size_t> m_limit;
 };
 
+const char* const NUM_FIELD = "_num_";
+const char* const STATUS = "_status_";
+
 struct TableInfo : public std::enable_shared_from_this<TableInfo>
 {
     using Ptr = std::shared_ptr<TableInfo>;
-    explicit TableInfo(const std::string& _tableName, const std::string& _key = "")
+    explicit TableInfo(
+        const std::string& _tableName, const std::string& _key, const std::string& _fields)
       : name(_tableName), key(_key)
-    {}
+    {  // the fields must ordered in key value_fields status num_field
+        boost::split(fields, _fields, boost::is_any_of(","));
+        fields.emplace_back(STATUS);
+        fields.emplace_back(NUM_FIELD);
+    }
     std::string name;
     std::string key;
     std::vector<std::string> fields;

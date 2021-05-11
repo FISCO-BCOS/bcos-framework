@@ -109,8 +109,9 @@ bool Table::setRow(const std::string& _key, std::shared_ptr<Entry> _entry)
     // check entry fields
     for (auto& it : *_entry)
     {
-        if (m_tableInfo->fields.end() ==
-            find(m_tableInfo->fields.begin(), m_tableInfo->fields.end(), it.first))
+        if (it.first != m_tableInfo->key &&
+            m_tableInfo->fields.end() ==
+                find(m_tableInfo->fields.begin(), m_tableInfo->fields.end(), it.first))
         {
             STORAGE_LOG(ERROR) << LOG_BADGE("Table") << LOG_DESC("invalid field")
                                << LOG_KV("table name", m_tableInfo->name)
