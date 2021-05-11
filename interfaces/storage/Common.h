@@ -141,8 +141,6 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
       : name(_tableName), key(_key)
     {  // the fields must ordered in key value_fields status num_field
         boost::split(fields, _fields, boost::is_any_of(","));
-        fields.emplace_back(STATUS);
-        fields.emplace_back(NUM_FIELD);
     }
     std::string name;
     std::string key;
@@ -165,7 +163,11 @@ public:
     };
     using Ptr = std::shared_ptr<Entry>;
     using ConstPtr = std::shared_ptr<const Entry>;
-    Entry() : m_data(std::make_shared<EntryData>()) { m_data->m_refCount = 1; }
+    explicit Entry(protocol::BlockNumber _num = 0)
+      : m_num(_num), m_data(std::make_shared<EntryData>())
+    {
+        m_data->m_refCount = 1;
+    }
     virtual ~Entry()
     {
         RWMutexScoped lock(m_data->m_mutex, true);

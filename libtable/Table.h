@@ -38,8 +38,8 @@ inline TableInfo::Ptr getSysTableInfo(const std::string& tableName)
 {
     if (tableName == SYS_TABLE)
     {
-        return std::make_shared<TableInfo>(
-            tableName, SYS_TABLE_KEY, std::string(SYS_TABLE_KEY_FIELDS) + "," + SYS_TABLE_VALUE_FIELDS);
+        return std::make_shared<TableInfo>(tableName, SYS_TABLE_KEY,
+            std::string(SYS_TABLE_KEY_FIELDS) + "," + SYS_TABLE_VALUE_FIELDS);
     }
     return nullptr;
 }
@@ -60,7 +60,7 @@ public:
     bool setRow(const std::string& _key, std::shared_ptr<Entry> _entry) override;
     bool remove(const std::string& _key) override;
     TableInfo::Ptr tableInfo() const override { return m_tableInfo; }
-    Entry::Ptr newEntry() override { return std::make_shared<Entry>(); }
+    Entry::Ptr newEntry() override { return std::make_shared<Entry>(m_blockNumber); }
     crypto::HashType hash() override;
 
     std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>> dump() override
