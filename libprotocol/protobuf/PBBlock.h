@@ -22,11 +22,7 @@
 #include "interfaces/crypto/CryptoSuite.h"
 #include "interfaces/protocol/Block.h"
 #include "interfaces/protocol/BlockHeaderFactory.h"
-#include "interfaces/protocol/TransactionFactory.h"
-#include "interfaces/protocol/TransactionReceiptFactory.h"
-#include "libcodec/scale/ScaleEncoderStream.h"
 #include "libprotocol/bcos-proto/Block.pb.h"
-#include <tbb/parallel_for.h>
 namespace bcos
 {
 namespace protocol
@@ -37,9 +33,8 @@ public:
     using Ptr = std::shared_ptr<PBBlock>;
     PBBlock(BlockHeaderFactory::Ptr _blockHeaderFactory,
         TransactionFactory::Ptr _transactionFactory, TransactionReceiptFactory::Ptr _receiptFactory)
-      : m_blockHeaderFactory(_blockHeaderFactory),
-        m_transactionFactory(_transactionFactory),
-        m_receiptFactory(_receiptFactory),
+      : Block(_transactionFactory, _receiptFactory),
+        m_blockHeaderFactory(_blockHeaderFactory),
         m_pbRawBlock(std::make_shared<PBRawBlock>()),
         m_transactions(std::make_shared<Transactions>()),
         m_receipts(std::make_shared<Receipts>()),
@@ -71,9 +66,6 @@ public:
 
     void decode(bytesConstRef _data, bool _calculateHash, bool _checkSig) override;
     void encode(bytes& _encodeData) const override;
-
-    bcos::crypto::HashType calculateTransactionRoot(bool _updateHeader) const override;
-    bcos::crypto::HashType calculateReceiptRoot(bool _updateHeader) const override;
 
     // getNonces of the current block
     NonceListPtr nonces() override;
@@ -188,7 +180,6 @@ public:
         *m_nonceList = std::move(_nonceList);
         m_pbRawBlock->clear_noncelist();
     }
-
     NonceList const& nonceList() const override { return *m_nonceList; }
 
 private:
@@ -220,48 +211,9 @@ private:
     void clearTransactionsHashCache() { m_pbRawBlock->clear_transactionshash(); }
 
     void clearReceiptsHashCache() { m_pbRawBlock->clear_receiptshash(); }
-    void updateTxsRootForHeader(bool _updateHeader, bcos::crypto::HashType const& _txsRoot) const
-    {
-        if (!_updateHeader || !m_blockHeader)
-        {
-            return;
-        }
-        m_blockHeader->setTxsRoot(_txsRoot);
-    }
-
-    void updateReceiptRootForHeader(
-        bool _updateHeader, bcos::crypto::HashType const& _receiptsRoot) const
-    {
-        if (!_updateHeader || !m_blockHeader)
-        {
-            return;
-        }
-        m_blockHeader->setReceiptRoot(_receiptsRoot);
-    }
-
-    template <typename T>
-    void encodeToCalculateRoot(std::vector<bytes>& _encodedList, T _protocolDataList) const
-    {
-        auto protocolDataSize = _protocolDataList->size();
-        _encodedList.resize(protocolDataSize);
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, protocolDataSize),
-            [&](const tbb::blocked_range<size_t>& _r) {
-                for (auto i = _r.begin(); i < _r.end(); ++i)
-                {
-                    bcos::codec::scale::ScaleEncoderStream stream;
-                    stream << i;
-                    bytes encodedData = stream.data();
-                    auto hash = ((*_protocolDataList)[i])->hash();
-                    encodedData.insert(encodedData.end(), hash.begin(), hash.end());
-                    _encodedList[i] = std::move(encodedData);
-                }
-            });
-    }
 
 private:
     BlockHeaderFactory::Ptr m_blockHeaderFactory;
-    TransactionFactory::Ptr m_transactionFactory;
-    TransactionReceiptFactory::Ptr m_receiptFactory;
     std::shared_ptr<PBRawBlock> m_pbRawBlock;
     BlockHeader::Ptr m_blockHeader;
     TransactionsPtr m_transactions;
@@ -269,13 +221,6 @@ private:
     HashListPtr m_transactionsHash;
     HashListPtr m_receiptsHash;
     NonceListPtr m_nonceList;
-
-    // caches
-    mutable bcos::crypto::HashType m_txsRootCache;
-    mutable SharedMutex x_txsRootCache;
-
-    mutable bcos::crypto::HashType m_receiptRootCache;
-    mutable SharedMutex x_receiptRootCache;
 };
 }  // namespace protocol
 }  // namespace bcos

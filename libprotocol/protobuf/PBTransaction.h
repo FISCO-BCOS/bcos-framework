@@ -81,11 +81,11 @@ public:
 
 protected:
     explicit PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
-      : m_transaction(std::make_shared<PBRawTransaction>()),
+      : Transaction(_cryptoSuite),
+        m_transaction(std::make_shared<PBRawTransaction>()),
         m_transactionHashFields(std::make_shared<PBRawTransactionHashFields>()),
         m_dataCache(std::make_shared<bytes>())
     {
-        m_cryptoSuite = _cryptoSuite;
         GOOGLE_PROTOBUF_VERIFY_VERSION;
     }
 

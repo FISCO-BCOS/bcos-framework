@@ -35,7 +35,9 @@ public:
     using Ptr = std::shared_ptr<BlockHeader>;
     using ConstPtr = std::shared_ptr<const BlockHeader>;
     using BlockHeadersPtr = std::shared_ptr<std::vector<BlockHeader::Ptr> >;
-    BlockHeader() = default;
+    explicit BlockHeader(bcos::crypto::CryptoSuite::Ptr _cryptoSuite) : m_cryptoSuite(_cryptoSuite)
+    {}
+
     virtual ~BlockHeader() {}
 
     virtual void decode(bytesConstRef _data) = 0;
@@ -145,6 +147,7 @@ public:
 
     virtual void setSignatureList(gsl::span<const Signature> const& _signatureList) = 0;
     virtual void setSignatureList(SignatureList&& _signatureList) = 0;
+    virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() { return m_cryptoSuite; }
 
 protected:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
