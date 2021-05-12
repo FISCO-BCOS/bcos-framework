@@ -19,8 +19,7 @@
  */
 
 #pragma once
-
-#include "Exceptions.h"
+#include "interfaces/protocol/Exceptions.h"
 #include <iostream>
 namespace bcos
 {

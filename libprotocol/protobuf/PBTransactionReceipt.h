@@ -49,7 +49,6 @@ public:
 
     void decode(bytesConstRef _receiptData) override;
     void encode(bytes& _encodeReceiptData) override;
-    bcos::crypto::HashType const& hash() override;
 
     int32_t version() const override { return m_receipt->version(); }
     int32_t status() const override { return m_status; }
@@ -57,18 +56,23 @@ public:
     bytesConstRef contractAddress() const override { return ref(m_contractAddress); }
     bcos::crypto::HashType const& stateRoot() const override { return m_stateRoot; }
     u256 const& gasUsed() const override { return m_gasUsed; }
-    gsl::span<const LogEntry> logEntries() const override { return gsl::span<const LogEntry>(m_logEntries->data(), m_logEntries->size()); }
+    gsl::span<const LogEntry> logEntries() const override
+    {
+        return gsl::span<const LogEntry>(m_logEntries->data(), m_logEntries->size());
+    }
     LogBloom const& bloom() const override { return m_bloom; }
+
+    bytesConstRef encode(bool _onlyHashFieldData = false) override;
 
 private:
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
         bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status);
-    void encodeHashFields();
+    virtual void encodeHashFields();
 
 private:
-    bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
     std::shared_ptr<PBRawTransactionReceipt> m_receipt;
+    bytesPointer m_dataCache;
 
     int32_t m_version;
     bcos::crypto::HashType m_stateRoot;
@@ -78,9 +82,6 @@ private:
     int32_t m_status;
     bytes m_output;
     LogBloom m_bloom;
-
-    bcos::crypto::HashType m_hash;
-    SharedMutex x_hash;
 };
 }  // namespace protocol
 }  // namespace bcos

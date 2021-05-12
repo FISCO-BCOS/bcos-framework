@@ -41,5 +41,5 @@ static const char* const SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
 static const char* const CONSENSUS_SEALER = "consensus_sealer";
 static const char* const CONSENSUS_OBSERVER = "consensus_observer";
 
-} // namespace ledger
-} // namespace bcos
+}  // namespace ledger
+}  // namespace bcos

@@ -36,7 +36,20 @@ public:
 
     virtual void decode(bytesConstRef _receiptData) = 0;
     virtual void encode(bytes& _encodedData) = 0;
-    virtual bcos::crypto::HashType const& hash() = 0;
+    virtual bytesConstRef encode(bool _onlyHashFieldData = false) = 0;
+
+    virtual bcos::crypto::HashType const& hash()
+    {
+        UpgradableGuard l(x_hash);
+        if (m_hash != bcos::crypto::HashType())
+        {
+            return m_hash;
+        }
+        auto hashFields = encode(true);
+        UpgradeGuard ul(l);
+        m_hash = m_cryptoSuite->hash(hashFields);
+        return m_hash;
+    }
 
     virtual int32_t version() const = 0;
     virtual bcos::crypto::HashType const& stateRoot() const = 0;
@@ -46,6 +59,11 @@ public:
     virtual int32_t status() const = 0;
     virtual bytesConstRef output() const = 0;
     virtual gsl::span<const LogEntry> logEntries() const = 0;
+
+protected:
+    bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
+    bcos::crypto::HashType m_hash;
+    SharedMutex x_hash;
 };
 using Receipts = std::vector<TransactionReceipt::Ptr>;
 using ReceiptsPtr = std::shared_ptr<Receipts>;

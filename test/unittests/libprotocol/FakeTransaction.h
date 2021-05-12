@@ -18,7 +18,7 @@
  * @date: 2021-03-16
  */
 #pragma once
-#include "libprotocol/Exceptions.h"
+#include "interfaces/protocol/Exceptions.h"
 #include "libprotocol/protobuf/PBTransactionFactory.h"
 #include "libutilities/Common.h"
 #include <bcos-test/libutils/HashImpl.h>
@@ -46,7 +46,8 @@ inline PBTransaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite,
     return pbTransaction;
 }
 
-inline void checkTransction(Transaction::ConstPtr pbTransaction, Transaction::ConstPtr decodedTransaction)
+inline void checkTransction(
+    Transaction::ConstPtr pbTransaction, Transaction::ConstPtr decodedTransaction)
 {
     // check the fields
     BOOST_CHECK(decodedTransaction->hash() == pbTransaction->hash());
@@ -77,10 +78,13 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
         BOOST_CHECK(pbTransaction->type() == TransactionType::MessageCall);
     }
 
-    BOOST_CHECK(pbTransaction->sender().toBytes() == _keyPair->address(_cryptoSuite->hashImpl()).asBytes());
+    BOOST_CHECK(
+        pbTransaction->sender().toBytes() == _keyPair->address(_cryptoSuite->hashImpl()).asBytes());
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     pbTransaction->encode(*encodedData);
+    auto encodedDataCache = pbTransaction->encode();
+    BOOST_CHECK(*encodedData == encodedDataCache.toBytes());
     std::cout << "#### encodedData is:" << *toHexString(*encodedData) << std::endl;
     std::cout << "### hash:" << pbTransaction->hash().hex() << std::endl;
     std::cout << "### sender:" << *toHexString(pbTransaction->sender()) << std::endl;

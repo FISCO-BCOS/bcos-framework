@@ -183,8 +183,7 @@ public:
      * @param _onGetList
      */
     virtual void asyncGetNonceList(protocol::BlockNumber _startNumber, int64_t _offset,
-        std::function<void(
-            Error::Ptr, std::map<protocol::BlockNumber, protocol::NonceListPtr>)>
+        std::function<void(Error::Ptr, std::map<protocol::BlockNumber, protocol::NonceListPtr>)>
             _onGetList) = 0;
 };
 }  // namespace ledger

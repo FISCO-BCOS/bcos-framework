@@ -54,18 +54,14 @@ public:
     }
 
     void decode(bytesConstRef _txData, bool _checkSig) override;
-    void encode(bytes& _txData) const override;
-    bcos::crypto::HashType const& hash() const override;
+    void encode(bytes& _encodedData) const override;
+    bytesConstRef encode(bool _onlyHashFields = false) const override;
 
     u256 const& nonce() const override { return m_nonce; }
     int32_t version() const override { return m_transactionHashFields->version(); }
     std::string_view chainId() const override { return m_transactionHashFields->chainid(); }
     std::string_view groupId() const override { return m_transactionHashFields->groupid(); }
     int64_t blockLimit() const override { return m_transactionHashFields->blocklimit(); }
-    bytesConstRef sender() const override
-    {
-        return bytesConstRef(m_sender.data(), m_sender.size());
-    }
     bytesConstRef to() const override
     {
         auto const& _receiver = m_transactionHashFields->to();
@@ -74,14 +70,11 @@ public:
     TransactionType type() const override { return m_type; }
     bytesConstRef input() const override;
     int64_t importTime() const override { return m_transaction->import_time(); }
-    void forceSender(bytes const& _sender) const override { m_sender = _sender; }
     bytesConstRef signatureData() const override
     {
         return bytesConstRef((const byte*)m_transaction->signaturedata().data(),
             m_transaction->signaturedata().size());
     }
-
-    bcos::crypto::CryptoSuite::Ptr cryptoSuite() const override { return m_cryptoSuite; }
 
     // only for ut
     void updateSignature(bytesConstRef _signatureData, bytes const& _sender);
@@ -90,20 +83,17 @@ protected:
     explicit PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
       : m_transaction(std::make_shared<PBRawTransaction>()),
         m_transactionHashFields(std::make_shared<PBRawTransactionHashFields>()),
-        m_cryptoSuite(_cryptoSuite)
+        m_dataCache(std::make_shared<bytes>())
     {
+        m_cryptoSuite = _cryptoSuite;
         GOOGLE_PROTOBUF_VERIFY_VERSION;
     }
 
 private:
     std::shared_ptr<PBRawTransaction> m_transaction;
     std::shared_ptr<PBRawTransactionHashFields> m_transactionHashFields;
-    bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
+    bytesPointer m_dataCache;
 
-    mutable bcos::crypto::HashType m_hash;
-    mutable SharedMutex x_hash;
-
-    mutable bcos::bytes m_sender = bcos::bytes();
     u256 m_nonce;
     TransactionType m_type;
 };
