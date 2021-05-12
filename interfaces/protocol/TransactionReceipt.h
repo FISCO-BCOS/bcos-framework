@@ -31,14 +31,17 @@ class TransactionReceipt
 public:
     using Ptr = std::shared_ptr<TransactionReceipt>;
     using ConstPtr = std::shared_ptr<const TransactionReceipt>;
-    TransactionReceipt() = default;
+    explicit TransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
+      : m_cryptoSuite(_cryptoSuite)
+    {}
+
     virtual ~TransactionReceipt() {}
 
     virtual void decode(bytesConstRef _receiptData) = 0;
-    virtual void encode(bytes& _encodedData) = 0;
-    virtual bytesConstRef encode(bool _onlyHashFieldData = false) = 0;
+    virtual void encode(bytes& _encodedData) const = 0;
+    virtual bytesConstRef encode(bool _onlyHashFieldData = false) const = 0;
 
-    virtual bcos::crypto::HashType const& hash()
+    virtual bcos::crypto::HashType const& hash() const
     {
         UpgradableGuard l(x_hash);
         if (m_hash != bcos::crypto::HashType())
@@ -59,11 +62,12 @@ public:
     virtual int32_t status() const = 0;
     virtual bytesConstRef output() const = 0;
     virtual gsl::span<const LogEntry> logEntries() const = 0;
+    virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() { return m_cryptoSuite; }
 
 protected:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
-    bcos::crypto::HashType m_hash;
-    SharedMutex x_hash;
+    mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
+    mutable SharedMutex x_hash;
 };
 using Receipts = std::vector<TransactionReceipt::Ptr>;
 using ReceiptsPtr = std::shared_ptr<Receipts>;

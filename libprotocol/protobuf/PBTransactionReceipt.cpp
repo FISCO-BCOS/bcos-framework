@@ -30,17 +30,17 @@ using namespace bcos::codec::scale;
 
 PBTransactionReceipt::PBTransactionReceipt(
     CryptoSuite::Ptr _cryptoSuite, bytesConstRef _receiptData)
-  : m_receipt(std::make_shared<PBRawTransactionReceipt>())
+  : TransactionReceipt(_cryptoSuite), m_receipt(std::make_shared<PBRawTransactionReceipt>())
 {
     m_dataCache = std::make_shared<bytes>();
-    m_cryptoSuite = _cryptoSuite;
     decode(_receiptData);
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
     HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
     LogEntriesPtr _logEntries, int32_t _status)
-  : m_receipt(std::make_shared<PBRawTransactionReceipt>()),
+  : TransactionReceipt(_cryptoSuite),
+    m_receipt(std::make_shared<PBRawTransactionReceipt>()),
     m_stateRoot(_stateRoot),
     m_gasUsed(_gasUsed),
     m_contractAddress(_contractAddress),
@@ -49,7 +49,6 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
     m_bloom(generateBloom(_logEntries, _cryptoSuite))
 {
     m_dataCache = std::make_shared<bytes>();
-    m_cryptoSuite = _cryptoSuite;
     m_receipt->set_version(_version);
 }
 
@@ -82,13 +81,13 @@ void PBTransactionReceipt::decode(bytesConstRef _data)
         m_logEntries;
 }
 
-void PBTransactionReceipt::encode(bytes& _encodeReceiptData)
+void PBTransactionReceipt::encode(bytes& _encodeReceiptData) const
 {
     encodeHashFields();
     encodePBObject(_encodeReceiptData, m_receipt);
 }
 
-bytesConstRef PBTransactionReceipt::encode(bool _onlyHashFieldData)
+bytesConstRef PBTransactionReceipt::encode(bool _onlyHashFieldData) const
 {
     if (_onlyHashFieldData)
     {
@@ -106,7 +105,7 @@ bytesConstRef PBTransactionReceipt::encode(bool _onlyHashFieldData)
     return bytesConstRef((byte const*)m_dataCache->data(), m_dataCache->size());
 }
 
-void PBTransactionReceipt::encodeHashFields()
+void PBTransactionReceipt::encodeHashFields() const
 {
     // the hash field has already been encoded
     if (m_receipt->hashfieldsdata().size() > 0)

@@ -48,7 +48,8 @@ public:
     ~PBTransactionReceipt() {}
 
     void decode(bytesConstRef _receiptData) override;
-    void encode(bytes& _encodeReceiptData) override;
+    void encode(bytes& _encodeReceiptData) const override;
+    bytesConstRef encode(bool _onlyHashFieldData = false) const override;
 
     int32_t version() const override { return m_receipt->version(); }
     int32_t status() const override { return m_status; }
@@ -62,13 +63,11 @@ public:
     }
     LogBloom const& bloom() const override { return m_bloom; }
 
-    bytesConstRef encode(bool _onlyHashFieldData = false) override;
-
 private:
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
         bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status);
-    virtual void encodeHashFields();
+    virtual void encodeHashFields() const;
 
 private:
     std::shared_ptr<PBRawTransactionReceipt> m_receipt;

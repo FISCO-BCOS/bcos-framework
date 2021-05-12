@@ -32,10 +32,11 @@ class PBBlockHeader : public BlockHeader
 public:
     using Ptr = std::shared_ptr<PBBlockHeader>;
     explicit PBBlockHeader(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
-      : m_dataCache(std::make_shared<bytes>()), m_blockHeader(std::make_shared<PBRawBlockHeader>())
-    {
-        m_cryptoSuite = _cryptoSuite;
-    }
+      : BlockHeader(_cryptoSuite),
+        m_dataCache(std::make_shared<bytes>()),
+        m_blockHeader(std::make_shared<PBRawBlockHeader>())
+    {}
+
     PBBlockHeader(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytesConstRef _data)
       : PBBlockHeader(_cryptoSuite)
     {

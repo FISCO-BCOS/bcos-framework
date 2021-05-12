@@ -38,7 +38,9 @@ class Transaction
 public:
     using Ptr = std::shared_ptr<Transaction>;
     using ConstPtr = std::shared_ptr<const Transaction>;
-    Transaction() = default;
+    explicit Transaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite) : m_cryptoSuite(_cryptoSuite)
+    {}
+
     virtual ~Transaction() {}
 
     virtual void decode(bytesConstRef _txData, bool _checkSig) = 0;
@@ -97,9 +99,14 @@ public:
     virtual bool sealed() const { return m_sealed; }
     virtual void setSealed(bool _sealed) const { m_sealed = _sealed; }
 
+    virtual bool invalid() const { return m_invalid; }
+    virtual void setInvalid(bool _invalid) const { m_invalid = _invalid; }
+
+    virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() { return m_cryptoSuite; }
+
 protected:
     mutable bcos::bytes m_sender = bcos::bytes();
-    mutable bcos::crypto::HashType m_hash;
+    mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
     mutable SharedMutex x_hash;
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
 
@@ -108,6 +115,8 @@ protected:
     mutable bool m_synced = false;
     // the tx has been sealed by the leader of not
     mutable bool m_sealed = false;
+    // the tx is invalid for verify failed
+    mutable bool m_invalid = false;
 };
 
 using Transactions = std::vector<Transaction::Ptr>;

@@ -21,7 +21,6 @@
 #include "PBBlock.h"
 #include "interfaces/protocol/Exceptions.h"
 #include "libprotocol/Common.h"
-#include "libprotocol/ParallelMerkleProof.h"
 #include <tbb/parallel_invoke.h>
 
 using namespace bcos;
@@ -365,56 +364,4 @@ TransactionReceipt::ConstPtr PBBlock::receipt(size_t _index) const
 HashType const& PBBlock::receiptHash(size_t _index) const
 {
     return (*m_receiptsHash)[_index];
-}
-
-HashType PBBlock::calculateTransactionRoot(bool _updateHeader) const
-{
-    auto txsRoot = HashType();
-    // with no transactions
-    if (m_transactions->size() == 0)
-    {
-        updateTxsRootForHeader(_updateHeader, txsRoot);
-        return txsRoot;
-    }
-    // hit the cache
-    UpgradableGuard l(x_txsRootCache);
-    if (m_txsRootCache != HashType())
-    {
-        updateTxsRootForHeader(_updateHeader, m_txsRootCache);
-        return m_txsRootCache;
-    }
-    // miss the cache or the cache has been cleared
-    std::vector<bytes> transactionsList;
-    encodeToCalculateRoot(transactionsList, m_transactions);
-    txsRoot = calculateMerkleProofRoot(m_transactionFactory->cryptoSuite(), transactionsList);
-    UpgradeGuard ul(l);
-    m_txsRootCache = txsRoot;
-    updateTxsRootForHeader(_updateHeader, txsRoot);
-    return txsRoot;
-}
-
-HashType PBBlock::calculateReceiptRoot(bool _updateHeader) const
-{
-    auto receiptsRoot = HashType();
-    // with no receipts
-    if (m_receipts->size() == 0)
-    {
-        updateReceiptRootForHeader(_updateHeader, receiptsRoot);
-        return receiptsRoot;
-    }
-    // hit the cache
-    UpgradableGuard l(x_receiptRootCache);
-    if (m_receiptRootCache != HashType())
-    {
-        updateReceiptRootForHeader(_updateHeader, m_receiptRootCache);
-        return m_receiptRootCache;
-    }
-    // miss the cache or the cache has been cleared
-    std::vector<bytes> receiptsList;
-    encodeToCalculateRoot(receiptsList, m_receipts);
-    receiptsRoot = calculateMerkleProofRoot(m_receiptFactory->cryptoSuite(), receiptsList);
-    UpgradeGuard ul(l);
-    m_receiptRootCache = receiptsRoot;
-    updateReceiptRootForHeader(_updateHeader, receiptsRoot);
-    return receiptsRoot;
 }
