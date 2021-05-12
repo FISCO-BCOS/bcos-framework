@@ -53,10 +53,13 @@ class Condition : public std::enable_shared_from_this<Condition>
 {
 public:
     using Ptr = std::shared_ptr<Condition>;
-    //
+    Condition() = default;
+    virtual ~Condition() = default;
     virtual void NE(const std::string& value) { m_conditions.emplace_back(Comparator::NE, value); }
+    // string compare, "2" > "12"
     virtual void GT(const std::string& value) { m_conditions.emplace_back(Comparator::GT, value); }
     virtual void GE(const std::string& value) { m_conditions.emplace_back(Comparator::GE, value); }
+    // string compare, "12" < "2"
     virtual void LT(const std::string& value) { m_conditions.emplace_back(Comparator::LT, value); }
     virtual void LE(const std::string& value) { m_conditions.emplace_back(Comparator::LE, value); }
     virtual void limit(size_t start, size_t end)
