@@ -21,7 +21,7 @@
 #include "libutilities/DataConvertUtility.h"
 #include "libutilities/FixedBytes.h"
 #include "libutilities/JsonDataConvertUtility.h"
-#include "../libutils/TestPromptFixture.h"
+#include "../../../testutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 #include <string>
 

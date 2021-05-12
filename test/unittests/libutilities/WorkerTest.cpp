@@ -20,7 +20,7 @@
  */
 
 #include "libutilities/Worker.h"
-#include "../libutils/TestPromptFixture.h"
+#include "../../../testutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace bcos;

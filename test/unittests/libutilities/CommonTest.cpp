@@ -24,7 +24,7 @@
 #include "libutilities/Common.h"
 #include "libutilities/Error.h"
 #include "libutilities/Exceptions.h"
-#include "../libutils/TestPromptFixture.h"
+#include "../../../testutils/TestPromptFixture.h"
 #include <unistd.h>
 #include <boost/test/unit_test.hpp>
 #include <thread>

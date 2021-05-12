@@ -19,8 +19,8 @@
  */
 #include "libcodec/abi/ContractABICodec.h"
 #include "libcodec/abi/ContractABIType.h"
-#include "../libutils/HashImpl.h"
-#include "../libutils/TestPromptFixture.h"
+#include "../../../testutils/HashImpl.h"
+#include "../../../testutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace std;

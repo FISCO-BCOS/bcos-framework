@@ -18,7 +18,7 @@
  * @date: 2021-04-06
  */
 #pragma once
-#include "../../../interfaces/crypto/Hash.h"
+#include "../interfaces/crypto/Hash.h"
 #include <wedpr-crypto/WedprCrypto.h>
 using namespace bcos;
 using namespace bcos::crypto;

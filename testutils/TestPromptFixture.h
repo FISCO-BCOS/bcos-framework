@@ -18,8 +18,9 @@
  */
 
 #pragma once
-#include "../../../libutilities/Common.h"
+#include "../libutilities/Common.h"
 #include <boost/filesystem.hpp>
+#include <boost/test/unit_test.hpp>
 
 namespace bcos
 {
@@ -39,12 +40,28 @@ public:
      * @brief : init every test-suite by printting the name of cases
      * @param _maxTests
      */
-    void initTest(size_t _maxTests = 1);
+    void initTest(size_t _maxTests = 1)
+    {
+        m_currentTestName = "unknown";
+        m_currentTestFileName = std::string();
+        m_startTime = utcTime();
+        m_currentTestCaseName = boost::unit_test::framework::current_test_case().p_name;
+        std::cout << "===== BCOS Test Case : " + m_currentTestCaseName << "=====" << std::endl;
+        m_maxTests = _maxTests;
+        m_currTest = 0;
+    };
 
     /**
      * @brief : release resources when test-suite finished
      */
-    void finishTest();
+    void finishTest()
+    {
+        execTimeName res;
+        res.first = (double)(utcTime() - m_startTime);
+        res.second = caseName();
+        std::cout << "#### Run " << res.second << " time elapsed: " << res.first << std::endl;
+        m_execTimeResults.push_back(res);
+    }
 
     void setCurrentTestFile(boost::filesystem::path const& _name) { m_currentTestFileName = _name; }
     void setCurrentTestName(std::string const& _name) { m_currentTestName = _name; }

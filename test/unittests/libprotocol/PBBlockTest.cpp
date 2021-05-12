@@ -21,7 +21,7 @@
 #include "FakeBlock.h"
 #include "libprotocol/TransactionSubmitResultFactoryImpl.h"
 #include "libprotocol/TransactionSubmitResultImpl.h"
-#include "../libutils/TestPromptFixture.h"
+#include "../../../testutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 #include <memory>
 using namespace bcos;

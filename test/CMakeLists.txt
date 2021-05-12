@@ -18,8 +18,6 @@
 file(GLOB_RECURSE SOURCES "*.cpp" "*.h" "*.sol")
 
 # cmake settings
-# include_directories(${PROJECT_SOURCE_DIR}/..)
-#include_directories(${CMAKE_CURRENT_BINARY_DIR}/)
 include(SearchTestCases)
 set(TEST_BINARY_NAME test-bcos-framework)
 config_test_cases("" "${SOURCES}" bin/${TEST_BINARY_NAME} "")
@@ -31,4 +29,4 @@ hunter_add_package(wedpr-crypto)
 find_package(wedpr-crypto CONFIG QUIET REQUIRED)
 find_package(Boost CONFIG QUIET REQUIRED unit_test_framework)
 
-target_link_libraries(${TEST_BINARY_NAME} Boost::unit_test_framework ${UTILITIES_TARGET} ${CODEC_TARGET} ${PROTOCOL_TARGET} ${PBPROTOCOL_TARGET} ${TABLE_TARGET} wedpr-crypto::crypto)
+target_link_libraries(${TEST_BINARY_NAME} ${UTILITIES_TARGET} ${CODEC_TARGET} ${PROTOCOL_TARGET} ${PBPROTOCOL_TARGET} ${TABLE_TARGET} wedpr-crypto::crypto Boost::unit_test_framework)

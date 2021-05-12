@@ -20,7 +20,7 @@
 #pragma once
 #include "libprotocol/protobuf/PBTransactionReceiptFactory.h"
 #include "libutilities/Common.h"
-#include "../libutils/HashImpl.h"
+#include "../../../testutils/HashImpl.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace bcos;
