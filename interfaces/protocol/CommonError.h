@@ -27,6 +27,10 @@ enum CommonError : int32_t
 {
     SUCCESS = 0,
     TIMEOUT = 1000,
+    TransactionsMissing = 2000,  // for transaction sync
+    InconsistentTransactions = 2001,
+    TxsSignatureVerifyFailed = 2002,
+    FetchTransactionsFailed = 2003,
 };
 }
 }  // namespace bcos

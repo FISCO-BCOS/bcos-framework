@@ -107,25 +107,8 @@ public:
     virtual void asyncFetchNewTxs(size_t _txsLimit,
         std::function<void(Error::Ptr, bcos::protocol::ConstTransactionsPtr)> _onReceiveNewTxs) = 0;
 
-    /**
-     * @brief the sync module calls this interface to obtain new txs from the P2P
-     *
-     * @param _onRecvForwardTxs the callback to be called when receive the new txs information
-     */
-    virtual void asyncGetForwardTxsInfo(
-        std::function<void(Error::Ptr, TxsHashSetPtr)> _onRecvForwardTxs) = 0;
-
-    /**
-     * @brief the txs-sync module fetch missed transactions from the txpool
-     *
-     * @param _missedTxs list of missing transactions
-     * @param _onRecvTxs called when get the missing txs
-     */
-    virtual void asyncFetchMissedTxs(TxsHashSetPtr _missedTxs,
-        std::function<void(Error::Ptr, bcos::protocol::ConstTransactionsPtr)> _onRecvTxs) = 0;
-
     virtual void sendTxsSyncMessage(bcos::Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
-        bytesPointer _data, std::function<void(bytesPointer _respData)> _sendResponse);
+        bytesPointer _data, std::function<void(bytesConstRef _respData)> _sendResponse);
 };
 }  // namespace txpool
 }  // namespace bcos
