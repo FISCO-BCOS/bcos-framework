@@ -18,7 +18,7 @@
 #include "libcodec/scale/ScaleEncoderStream.h"
 #include "libutilities/Common.h"
 #include "libutilities/DataConvertUtility.h"
-#include <bcos-test/libutils/TestPromptFixture.h>
+#include "../../../testutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace bcos;

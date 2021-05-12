@@ -115,14 +115,6 @@ add_subdirectory(libprotocol/protobuf)
 
 # test releated
 if (TESTS)
-    set(BCOS_TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/test/bcos-test)
-    FetchContent_Declare(bcos-test
-    GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-test.git
-    GIT_TAG 19d1ce1f3ee455e290179a1c835fee179dbdd0bc
-    SOURCE_DIR ${BCOS_TEST_DIR}
-    UPDATE_COMMAND git fetch)
-    FetchContent_MakeAvailable(bcos-test)
-
     enable_testing()
     set(CTEST_OUTPUT_ON_FAILURE True)
     add_subdirectory(test)

@@ -20,7 +20,7 @@
  */
 #include "FakeTransaction.h"
 #include "libprotocol/Common.h"
-#include <bcos-test/libutils/TestPromptFixture.h>
+#include "../../../testutils/TestPromptFixture.h"
 
 using namespace bcos;
 using namespace bcos::crypto;
