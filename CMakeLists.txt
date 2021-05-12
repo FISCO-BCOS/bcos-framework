@@ -30,7 +30,7 @@ set(BCOS_CMAKE_SCRIPTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts")
 FetchContent_Declare(bcos-cmake-scripts
     PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/cmake/deps
     GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-cmake-scripts.git
-    GIT_TAG 8727db50f2b505a178bdf138acb99e78ab680531
+    GIT_TAG 23f6cde7b00ba32b4ad3fb72de7b0323a12a1190
     SOURCE_DIR ${BCOS_CMAKE_SCRIPTS_DIR}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -103,8 +103,12 @@ set(TABLE_TARGET "table")
 set(CODEC_TARGET "codec")
 set(PROTOCOL_TARGET "protocol")
 set(PBPROTOCOL_TARGET "protocol-pb")
+set(SYNC_TARGET "sync")
+
 # define the generated proto file path
 set(PROTO_GENERATE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libprotocol/${BCOS_PROTO_NAME})
+set(PROTO_PATH ${PROJECT_SOURCE_DIR})
+set(SYNC_PROTO_GENERATE_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)
@@ -112,6 +116,7 @@ add_subdirectory(libcodec)
 add_subdirectory(libtable)
 add_subdirectory(libprotocol)
 add_subdirectory(libprotocol/protobuf)
+add_subdirectory(libsync)
 
 # test releated
 if (TESTS)
@@ -159,6 +164,15 @@ install(
 
 install(
     TARGETS ${TABLE_TARGET}
+    EXPORT "${TARGETS_EXPORT_NAME}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+install(
+    TARGETS ${SYNC_TARGET}
     EXPORT "${TARGETS_EXPORT_NAME}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
