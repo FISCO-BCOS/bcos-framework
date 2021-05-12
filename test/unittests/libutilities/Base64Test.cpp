@@ -18,7 +18,7 @@
  */
 #include "libutilities/Base64.h"
 #include "libutilities/DataConvertUtility.h"
-#include <bcos-test/libutils/TestPromptFixture.h>
+#include "../libutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>

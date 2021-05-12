@@ -22,8 +22,8 @@
 #include "libprotocol/Common.h"
 #include "libprotocol/protobuf/PBBlockHeaderFactory.h"
 #include "libutilities/Common.h"
-#include <bcos-test/libutils/HashImpl.h>
-#include <bcos-test/libutils/SignatureImpl.h>
+#include "../libutils/HashImpl.h"
+#include "../libutils/SignatureImpl.h"
 #include <boost/test/unit_test.hpp>
 using namespace bcos;
 using namespace bcos::protocol;

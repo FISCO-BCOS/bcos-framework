@@ -15,10 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------------
-file(GLOB_RECURSE SOURCES "*.cpp" "*.h" "*.sol" "${BCOS_TEST_DIR}/*.h" "${BCOS_TEST_DIR}/*.cpp")
+file(GLOB_RECURSE SOURCES "*.cpp" "*.h" "*.sol")
 
 # cmake settings
-include_directories(${PROJECT_SOURCE_DIR}/..)
+# include_directories(${PROJECT_SOURCE_DIR}/..)
+#include_directories(${CMAKE_CURRENT_BINARY_DIR}/)
 include(SearchTestCases)
 set(TEST_BINARY_NAME test-bcos-framework)
 config_test_cases("" "${SOURCES}" bin/${TEST_BINARY_NAME} "")
@@ -29,4 +30,5 @@ target_include_directories(${TEST_BINARY_NAME} PRIVATE . ${CMAKE_SOURCE_DIR} ${B
 hunter_add_package(wedpr-crypto)
 find_package(wedpr-crypto CONFIG QUIET REQUIRED)
 find_package(Boost CONFIG QUIET REQUIRED unit_test_framework)
+
 target_link_libraries(${TEST_BINARY_NAME} Boost::unit_test_framework ${UTILITIES_TARGET} ${CODEC_TARGET} ${PROTOCOL_TARGET} ${PBPROTOCOL_TARGET} ${TABLE_TARGET} wedpr-crypto::crypto)

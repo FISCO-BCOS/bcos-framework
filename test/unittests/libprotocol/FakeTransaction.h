@@ -21,8 +21,8 @@
 #include "interfaces/protocol/Exceptions.h"
 #include "libprotocol/protobuf/PBTransactionFactory.h"
 #include "libutilities/Common.h"
-#include <bcos-test/libutils/HashImpl.h>
-#include <bcos-test/libutils/SignatureImpl.h>
+#include "../libutils/HashImpl.h"
+#include "../libutils/SignatureImpl.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace bcos;

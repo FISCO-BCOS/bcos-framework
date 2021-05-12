@@ -19,7 +19,7 @@
 
 #include "libutilities/Common.h"
 #include "libutilities/RefDataContainer.h"
-#include <bcos-test/libutils/TestPromptFixture.h>
+#include "../libutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <vector>

@@ -23,7 +23,7 @@
 #include "interfaces/storage/TableInterface.h"
 #include "libtable/TableFactory.h"
 #include "libutilities/ThreadPool.h"
-#include <bcos-test/libutils/TestPromptFixture.h>
+#include "../libutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
