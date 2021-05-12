@@ -39,3 +39,16 @@ install(
     DESTINATION "${DESTINATION_INCLUDE_DIR}"
     FILES_MATCHING PATTERN "*.h"
 )
+
+#sync
+install(
+    DIRECTORY "libsync"
+    DESTINATION "${DESTINATION_INCLUDE_DIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
+#testutils
+install(
+    DIRECTORY "testutils"
+    DESTINATION "${DESTINATION_INCLUDE_DIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
