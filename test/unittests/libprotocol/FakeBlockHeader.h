@@ -18,12 +18,13 @@
  * @date: 2021-03-16
  */
 #pragma once
+#include "../../../testutils/HashImpl.h"
+#include "../../../testutils/SignatureImpl.h"
 #include "interfaces/protocol/Exceptions.h"
 #include "libprotocol/Common.h"
 #include "libprotocol/protobuf/PBBlockHeaderFactory.h"
 #include "libutilities/Common.h"
-#include "../../../testutils/HashImpl.h"
-#include "../../../testutils/SignatureImpl.h"
+#include <tbb/parallel_invoke.h>
 #include <boost/test/unit_test.hpp>
 using namespace bcos;
 using namespace bcos::protocol;
@@ -104,6 +105,9 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
     WeightList weights;
     weights.push_back(0);
     blockHeader->setConsensusWeights(weights);
+    tbb::parallel_invoke([blockHeader]() { blockHeader->hash(); },
+        [blockHeader]() { blockHeader->hash(); }, [blockHeader]() { blockHeader->hash(); },
+        [blockHeader]() { blockHeader->hash(); });
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     blockHeader->encode(*encodedData);

@@ -51,8 +51,8 @@ public:
         {
             return m_hash;
         }
-        auto hashFieldsData = encode(true);
         UpgradeGuard ul(l);
+        auto hashFieldsData = encode(true);
         m_hash = m_cryptoSuite->hash(hashFieldsData);
         return m_hash;
     }
