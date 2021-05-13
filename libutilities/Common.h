@@ -39,15 +39,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
-// catch exceptions
-#define DEV_IGNORE_EXCEPTIONS(X) \
-    try                          \
-    {                            \
-        X;                       \
-    }                            \
-    catch (...)                  \
-    {                            \
-    }
+
 namespace bcos
 {
 using namespace boost::multiprecision::literals;
