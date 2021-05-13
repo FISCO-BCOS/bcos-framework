@@ -16,7 +16,7 @@
  * @brief the StorageInterface implement in memory
  * @file MemoryStorage.h
  */
-
+#pragma once
 #include "interfaces/storage/StorageInterface.h"
 #include "libtable/Table.h"
 #include "libtable/TableFactory.h"
