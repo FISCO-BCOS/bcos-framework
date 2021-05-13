@@ -18,6 +18,7 @@
  */
 #pragma once
 #include "../../interfaces/crypto/CryptoSuite.h"
+#include "../../interfaces/crypto/KeyInterface.h"
 #include "../../libutilities/Common.h"
 #include "../../libutilities/Error.h"
 #include "TransactionSubmitResult.h"
@@ -104,6 +105,18 @@ public:
 
     virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() { return m_cryptoSuite; }
 
+    virtual void appendKnownNode(bcos::crypto::NodeIDPtr _node) const
+    {
+        WriteGuard l(x_knownNodeList);
+        m_knownNodeList.insert(_node);
+    }
+
+    virtual bool isKnownBy(bcos::crypto::NodeIDPtr _node) const
+    {
+        ReadGuard l(x_knownNodeList);
+        return m_knownNodeList.count(_node);
+    }
+
 protected:
     mutable bcos::bytes m_sender = bcos::bytes();
     mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
@@ -117,6 +130,11 @@ protected:
     mutable bool m_sealed = false;
     // the tx is invalid for verify failed
     mutable bool m_invalid = false;
+
+    // Record the list of nodes containing the transaction and provide related query interfaces.
+    mutable bcos::SharedMutex x_knownNodeList;
+    // Record the node where the transaction exists
+    mutable bcos::crypto::NodeIDSet m_knownNodeList;
 };
 
 using Transactions = std::vector<Transaction::Ptr>;

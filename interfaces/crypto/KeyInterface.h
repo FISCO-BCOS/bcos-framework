@@ -47,5 +47,15 @@ using PublicPtr = KeyInterface::Ptr;
 using SecretPtr = KeyInterface::Ptr;
 using NodeIDPtr = KeyInterface::Ptr;
 using NodeIDs = std::vector<NodeIDPtr>;
+using NodeIDListPtr = std::shared_ptr<NodeIDs>;
+struct KeyCompare
+{
+    bool operator()(NodeIDPtr _first, NodeIDPtr _second) const
+    {
+        return _first->data() <= _second->data();
+    }
+};
+using NodeIDSet = std::set<bcos::crypto::NodeIDPtr, KeyCompare>;
+using NodeIDSetPtr = std::shared_ptr<NodeIDSet>;
 }  // namespace crypto
 }  // namespace bcos
