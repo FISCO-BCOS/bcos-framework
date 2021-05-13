@@ -120,8 +120,15 @@ bool Table::setRow(const std::string& _key, std::shared_ptr<Entry> _entry)
         }
     }
     _entry->setNum(m_blockNumber);
-    // get the old value
-    auto entry = getRow(_key);
+    _entry->setField(m_tableInfo->key, _key);
+    // get the old value FIXME: if the entry is not in m_dirty, dont query db
+    Entry::Ptr entry = nullptr;
+    auto entryIt = m_dirty.find(_key);
+    if (entryIt != m_dirty.end())
+    {
+        entry = entryIt->second;
+    }
+
     auto ret = m_dirty.insert(std::make_pair(_key, _entry));
     if (ret.second)
     {
@@ -248,7 +255,7 @@ void Table::rollback(Change::Ptr _change)
             m_dirty[_change->key] = _change->entry;
         }
         else
-        {  // nullptr means the key is not exist in DB
+        {  // nullptr means the key is not exist in m_dirty
             auto oldEntry = std::make_shared<Entry>();
             oldEntry->setRollbacked(true);
             m_dirty[_change->key] = oldEntry;

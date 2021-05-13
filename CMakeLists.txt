@@ -28,7 +28,6 @@ include(FetchContent)
 # fetch bcos-cmake-scripts
 set(BCOS_CMAKE_SCRIPTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts")
 FetchContent_Declare(bcos-cmake-scripts
-    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/cmake/deps
     GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-cmake-scripts.git
     GIT_TAG 23f6cde7b00ba32b4ad3fb72de7b0323a12a1190
     SOURCE_DIR ${BCOS_CMAKE_SCRIPTS_DIR}

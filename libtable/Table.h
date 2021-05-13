@@ -30,16 +30,6 @@ namespace bcos
 namespace storage
 {
 
-inline TableInfo::Ptr getSysTableInfo(const std::string& tableName)
-{
-    if (tableName == SYS_TABLE)
-    {
-        return std::make_shared<TableInfo>(tableName, SYS_TABLE_KEY,
-            std::string(SYS_TABLE_KEY_FIELDS) + "," + SYS_TABLE_VALUE_FIELDS);
-    }
-    return nullptr;
-}
-
 class Table : public TableInterface
 {
 public:
