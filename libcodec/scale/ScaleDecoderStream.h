@@ -210,6 +210,13 @@ public:
     {
         bytes decodedData;
         *this >> decodedData;
+        if (decodedData.size() < FixedBytes<N>::size)
+        {
+            BOOST_THROW_EXCEPTION(ScaleDecodeException() << errinfo_comment(
+                                      "exception for invalid FixedBytes, expected size:" +
+                                      std::to_string(FixedBytes<N>::size) +
+                                      ", decoded data size:" + std::to_string(decodedData.size())));
+        }
         fixedData = FixedBytes<N>(decodedData.data(), FixedBytes<N>::ConstructorType::FromPointer);
         return *this;
     }

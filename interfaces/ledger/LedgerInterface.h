@@ -40,6 +40,7 @@ namespace ledger
 class LedgerInterface
 {
 public:
+    using Ptr = std::shared_ptr<LedgerInterface>;
     LedgerInterface() = default;
     virtual ~LedgerInterface() {}
 
