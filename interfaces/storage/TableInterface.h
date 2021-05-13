@@ -31,6 +31,10 @@ namespace bcos
 {
 namespace storage
 {
+const char* const SYS_TABLE = "s_tables";
+const char* const SYS_TABLE_KEY = "table_name";
+const char* const SYS_TABLE_VALUE_FIELDS = "value_fields";
+const char* const SYS_TABLE_KEY_FIELDS = "key_field";
 class TableInterface : public std::enable_shared_from_this<TableInterface>
 {
 public:
