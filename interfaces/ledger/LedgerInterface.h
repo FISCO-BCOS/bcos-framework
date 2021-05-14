@@ -63,7 +63,7 @@ public:
      * @param _number pre-store block number
      * @param _onTxsStored callback
      */
-    virtual void asyncPreStoreTransaction(bytesPointer _txToStore,
+    virtual void asyncPreStoreTransaction(bytesConstRef _txToStore,
         const crypto::HashType& _txHash, std::function<void(Error::Ptr)> _onTxStored) = 0;
 
     /**
@@ -104,14 +104,15 @@ public:
         std::function<void(Error::Ptr, protocol::BlockNumber)> _onGetBlock) = 0;
 
     /**
-     * @brief async get a transaction by transaction hash
-     * @param _txHash hash of transaction
-     * @param _withProof if true then it will callback MerkleProofPtr in _onGetTx
-     *                   if false then MerkleProofPtr will be nullptr
-     * @param _onGetTx
+     * @brief async get a batch of transaction by transaction hash list
+     * @param _txHashList transaction hash list, hash should be hex
+     * @param _withProof if true then it will callback MerkleProofPtr map in _onGetTx
+     *                   if false then MerkleProofPtr map will be nullptr
+     * @param _onGetTx return <error, [tx data in bytes], map<txHash, merkleProof>
      */
-    virtual void asyncGetTransactionByHash(crypto::HashType const& _txHash, bool _withProof,
-        std::function<void(Error::Ptr, protocol::Transaction::ConstPtr, MerkleProofPtr)>
+    virtual void asyncGetBatchTxsByHashList(crypto::HashListPtr _txHashList, bool _withProof,
+        std::function<void(Error::Ptr, std::shared_ptr<std::vector<bytesPointer>>,
+            std::map<std::string, MerkleProofPtr>)>
             _onGetTx) = 0;
 
     /**

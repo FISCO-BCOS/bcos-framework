@@ -23,6 +23,7 @@
 #include "tbb/concurrent_vector.h"
 #include "tbb/enumerable_thread_specific.h"
 #include "tbb/parallel_for.h"
+#include "tbb/parallel_invoke.h"
 #include <sstream>
 
 using namespace std;
@@ -34,11 +35,10 @@ namespace storage
 std::shared_ptr<Entry> Table::getRow(const std::string& _key)
 {
     auto entryIt = m_dirty.find(_key);
-    if (entryIt != m_dirty.end())
+    if (entryIt != m_dirty.end() && !entryIt->second->rollbacked())
     {
-        if (!entryIt->second->rollbacked() &&
-            entryIt->second->getStatus() != Entry::Status::DELETED)
-        {  // TODO: if need copy from
+        if (entryIt->second->getStatus() != Entry::Status::DELETED)
+        {
             auto entry = std::make_shared<Entry>();
             entry->copyFrom(entryIt->second);
             return entry;
@@ -50,46 +50,54 @@ std::shared_ptr<Entry> Table::getRow(const std::string& _key)
 std::map<std::string, std::shared_ptr<Entry>> Table::getRows(const std::vector<std::string>& _keys)
 {
     std::map<std::string, std::shared_ptr<Entry>> ret;
-    std::vector<std::string> queryKeys;
-    for (auto& key : _keys)
-    {
-        auto entryIt = m_dirty.find(key);
-        if (entryIt != m_dirty.end())
-        {
-            if (!entryIt->second->rollbacked() &&
-                entryIt->second->getStatus() != Entry::Status::DELETED)
-            {  // copy from
-                auto entry = std::make_shared<Entry>();
-                entry->copyFrom(entryIt->second);
-                ret[key] = entry;
+    std::map<std::string, std::shared_ptr<Entry>> queryRet;
+    tbb::parallel_invoke(
+        [&]() {
+            for (auto& key : _keys)
+            {
+                auto entryIt = m_dirty.find(key);
+                if (entryIt != m_dirty.end())
+                {
+                    if (!entryIt->second->rollbacked() &&
+                        entryIt->second->getStatus() != Entry::Status::DELETED)
+                    {  // copy from
+                        auto entry = std::make_shared<Entry>();
+                        entry->copyFrom(entryIt->second);
+                        ret[key] = entry;
+                    }
+                }
             }
-            ret[key] = nullptr;
-        }
-        else
-        {
-            queryKeys.push_back(key);
-        }
-    }
-    auto querydEntries = m_DB->getRows(m_tableInfo, queryKeys);
-    ret.merge(querydEntries);
+        },
+        [&]() { queryRet = m_DB->getRows(m_tableInfo, _keys); });
+
+    ret.merge(queryRet);
     return ret;
 }
 
 std::vector<std::string> Table::getPrimaryKeys(std::shared_ptr<Condition> _condition) const
 {
     std::vector<std::string> ret;
+    std::set<std::string> deleted;
     for (auto item : m_dirty)
     {
-        if (!item.second->rollbacked() && item.second->getStatus() != Entry::Status::DELETED &&
-            (!_condition || _condition->isValid(item.first)))
+        if (!item.second->rollbacked() && (!_condition || _condition->isValid(item.first)))
         {
-            ret.push_back(item.first);
+            if (item.second->getStatus() != Entry::Status::DELETED)
+            {
+                ret.push_back(item.first);
+            }
+            else
+            {
+                deleted.insert(item.first);
+            }
         }
     }
+    auto len = ret.size();
     auto temp = m_DB->getPrimaryKeys(m_tableInfo, _condition);
     for (size_t i = 0; i < temp.size(); ++i)
     {
-        if (find(ret.begin(), ret.end(), temp[i]) == ret.end())
+        if (!deleted.count(temp[i]) &&
+            find(ret.begin(), ret.begin() + len, temp[i]) == ret.begin() + len)
         {
             ret.emplace_back(move(temp[i]));
         }
@@ -121,25 +129,29 @@ bool Table::setRow(const std::string& _key, std::shared_ptr<Entry> _entry)
     }
     _entry->setNum(m_blockNumber);
     _entry->setField(m_tableInfo->key, _key);
-    // get the old value FIXME: if the entry is not in m_dirty, dont query db
+    // get the old value, if the entry is not in m_dirty, dont query db
     Entry::Ptr entry = nullptr;
     auto entryIt = m_dirty.find(_key);
     if (entryIt != m_dirty.end())
     {
         entry = entryIt->second;
+        entryIt->second = _entry;
+    }
+    else
+    {
+        m_dirty.insert(std::make_pair(_key, _entry));
     }
 
-    auto ret = m_dirty.insert(std::make_pair(_key, _entry));
-    if (ret.second)
-    {
-        m_recorder(make_shared<Change>(shared_from_this(), Change::Set, _key, entry, m_dataDirty));
-        m_dataDirty = true;
-        m_hashDirty = true;
-    }
-    return ret.second;
+    m_recorder(make_shared<Change>(shared_from_this(), Change::Set, _key, entry, m_dataDirty));
+    m_dataDirty = true;
+    m_hashDirty = true;
+    return true;
 }
+
 bool Table::remove(const std::string& _key)
 {
+    Entry::Ptr oldEntry = nullptr;
+
     auto entryIt = m_dirty.find(_key);
     if (entryIt != m_dirty.end())
     {
@@ -148,35 +160,41 @@ bool Table::remove(const std::string& _key)
         if (!entryIt->second->rollbacked() &&
             entryIt->second->getStatus() != Entry::Status::DELETED)
         {
-            auto oldEntry = std::make_shared<Entry>();
-            oldEntry->copyFrom(entryIt->second);
             entryIt->second->setStatus(Entry::Status::DELETED);
-            m_recorder(make_shared<Change>(
-                shared_from_this(), Change::Remove, _key, oldEntry, m_dataDirty));
-            m_hashDirty = true;
-            m_dataDirty = true;
-            STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove in memory") << LOG_KV("key", _key);
+            oldEntry = entryIt->second;
+            STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove in dirty") << LOG_KV("key", _key);
         }
-        return true;
     }
-    auto entry = getRow(_key);
-    if (!entry)
-    {  // delete not existing entry, do nothing
-        return true;
-    }
-    auto ret = m_dirty.insert(std::make_pair(_key, entry));
-    if (ret.second)
+    else
     {
-        STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove in db") << LOG_KV("key", _key);
-        auto oldEntry = std::make_shared<Entry>();
-        oldEntry->copyFrom(entry);
+        STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove") << LOG_KV("key", _key);
+        auto entry = std::make_shared<Entry>();
         entry->setStatus(Entry::Status::DELETED);
-        m_recorder(
-            make_shared<Change>(shared_from_this(), Change::Remove, _key, oldEntry, m_dataDirty));
-        m_hashDirty = true;
-        m_dataDirty = true;
+        m_dirty.insert(std::make_pair(_key, entry));
     }
-    return ret.second;
+
+    m_recorder(
+        make_shared<Change>(shared_from_this(), Change::Remove, _key, oldEntry, m_dataDirty));
+    m_hashDirty = true;
+    m_dataDirty = true;
+
+    return true;
+}
+
+void Table::asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
+    std::function<void(Error, std::vector<std::string>)> _callback)
+{
+    m_DB->asyncGetPrimaryKeys(m_tableInfo, _condition, _callback);
+}
+void Table::asyncGetRow(
+    std::shared_ptr<std::string> _key, std::function<void(Error, std::shared_ptr<Entry>)> _callback)
+{
+    m_DB->asyncGetRow(m_tableInfo, _key, _callback);
+}
+void Table::asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
+    std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback)
+{
+    m_DB->asyncGetRows(m_tableInfo, _keys, _callback);
 }
 
 crypto::HashType Table::hash()
@@ -266,7 +284,15 @@ void Table::rollback(Change::Ptr _change)
     }
     case Change::Remove:
     {
-        m_dirty[_change->key] = _change->entry;
+        m_dirty[_change->key]->setStatus(Entry::Status::NORMAL);
+        if (_change->entry)
+        {
+            m_dirty[_change->key] = _change->entry;
+        }
+        else
+        {
+            m_dirty[_change->key]->setRollbacked(true);
+        }
         m_hashDirty = true;
         m_dataDirty = _change->tableDirty;
         break;

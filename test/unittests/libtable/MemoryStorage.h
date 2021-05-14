@@ -59,7 +59,10 @@ public:
         {
             if (data[_tableInfo->name].count(std::string(_key)))
             {
-                return data[_tableInfo->name][std::string(_key)];
+                if (data[_tableInfo->name][std::string(_key)]->getStatus() == Entry::Status::NORMAL)
+                {
+                    return data[_tableInfo->name][std::string(_key)];
+                }
             }
         }
         return ret;
@@ -75,7 +78,10 @@ public:
             {
                 if (data[_tableInfo->name].count(std::string(key)))
                 {
-                    ret[key] = data[_tableInfo->name][key];
+                    if (data[_tableInfo->name][key]->getStatus() == Entry::Status::NORMAL)
+                    { // this if is unnecessary
+                        ret[key] = data[_tableInfo->name][key];
+                    }
                 }
             }
         }
@@ -85,6 +91,7 @@ public:
         std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>>& _tableDatas)
         override
     {
+        size_t total = 0;
         if (_tableInfos.size() != _tableDatas.size())
         {
             return 0;
@@ -92,10 +99,18 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
         for (size_t i = 0; i < _tableInfos.size(); ++i)
         {
-            data[_tableInfos[i]->name] = *_tableDatas[i];
+            for (auto& item : *_tableDatas[i])
+            {
+                if (item.second->getStatus() == Entry::Status::NORMAL)
+                {
+                    data[_tableInfos[i]->name][item.first] = item.second;
+                    ++total;
+                }
+            }
         }
-        return _tableInfos.size();
+        return total;
     }
+
     void asyncGetPrimaryKeys(std::shared_ptr<TableInfo>, std::shared_ptr<Condition>,
         std::function<void(Error, std::vector<std::string>)>) override
     {}

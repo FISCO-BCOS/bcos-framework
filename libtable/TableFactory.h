@@ -59,9 +59,8 @@ public:
             auto tableEntry = sysTable->getRow(_tableName);
             if (tableEntry)
             {
-                STORAGE_LOG(WARNING)
-                    << LOG_BADGE("TableFactory") << LOG_DESC("table already exist")
-                    << LOG_KV("table name", _tableName);
+                STORAGE_LOG(WARNING) << LOG_BADGE("TableFactory") << LOG_DESC("table already exist")
+                                     << LOG_KV("table name", _tableName);
                 return false;
             }
             // Write table entry
@@ -192,6 +191,44 @@ public:
                            << LOG_KV("totalTimeCost", utcTime() - start_time);
         return ret;
     }
+
+    void asyncCommit(std::function<void(Error, size_t)> _callback) override
+    {
+        auto start_time = utcTime();
+        auto record_time = utcTime();
+        auto infos = std::make_shared<std::vector<TableInfo::Ptr>>();
+        auto datas = std::make_shared<
+            std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>();
+
+        for (auto& dbIt : m_name2Table)
+        {  // TODO: maybe parallel_for
+            auto table = dbIt.second;
+            if (table->dirty())
+            {
+                STORAGE_LOG(TRACE) << "Dumping table: " << dbIt.first;
+                auto tableData = table->dump();
+                datas->push_back(tableData);
+                infos->push_back(table->tableInfo());
+            }
+        }
+        auto getData_time_cost = utcTime() - record_time;
+        record_time = utcTime();
+        if (!datas->empty())
+        {
+            m_DB->asyncCommitTables(infos, datas, _callback);
+        }
+        auto commit_time_cost = utcTime() - record_time;
+        record_time = utcTime();
+        m_name2Table.clear();
+        auto clear_time_cost = utcTime() - record_time;
+        getChangeLog().clear();
+        STORAGE_LOG(DEBUG) << LOG_BADGE("Commit") << LOG_DESC("Commit db time record")
+                           << LOG_KV("getDataTimeCost", getData_time_cost)
+                           << LOG_KV("commitTimeCost", commit_time_cost)
+                           << LOG_KV("clearTimeCost", clear_time_cost)
+                           << LOG_KV("totalTimeCost", utcTime() - start_time);
+    }
+
     virtual bool checkAuthority(const std::string& _tableName, Address const& _user) const
     {
         // FIXME: implement when we get permission control
