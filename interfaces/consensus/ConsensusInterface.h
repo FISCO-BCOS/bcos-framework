@@ -45,6 +45,10 @@ public:
 
     // isLeader checks whether the node is the sealer or not
     virtual void isLeader(std::function<void(bool)> _callback) = 0;
+
+    virtual void asyncSubmitProposal(bytesConstRef _proposalData,
+        bcos::protocol::BlockNumber _proposalIndex, bcos::crypto::HashType const& _proposalHash,
+        std::function<void(Error::Ptr)> _onProposalSubmitted)
 };
 }  // namespace consensus
 }  // namespace bcos

@@ -63,8 +63,8 @@ public:
      * @param _number pre-store block number
      * @param _onTxsStored callback
      */
-    virtual void asyncPreStoreTransaction(bytesConstRef _txToStore,
-        const crypto::HashType& _txHash, std::function<void(Error::Ptr)> _onTxStored) = 0;
+    virtual void asyncPreStoreTransaction(bytesConstRef _txToStore, const crypto::HashType& _txHash,
+        std::function<void(Error::Ptr)> _onTxStored) = 0;
 
     /**
      * @brief async get block by blockNumber
@@ -111,8 +111,8 @@ public:
      * @param _onGetTx return <error, [tx data in bytes], map<txHash, merkleProof>
      */
     virtual void asyncGetBatchTxsByHashList(crypto::HashListPtr _txHashList, bool _withProof,
-        std::function<void(Error::Ptr, std::shared_ptr<std::vector<bytesPointer>>,
-        std::shared_ptr<std::map<std::string, MerkleProofPtr> >) >
+        std::function<void(Error::Ptr, bcos::protocol::TransactionsPtr,
+            std::shared_ptr<std::map<std::string, MerkleProofPtr>>)>
             _onGetTx) = 0;
 
     /**

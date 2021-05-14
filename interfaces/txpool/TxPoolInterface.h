@@ -18,6 +18,7 @@
  * @date: 2021-04-07
  */
 #pragma once
+#include "../../interfaces/consensus/ConsensusNodeInterface.h"
 #include "../../interfaces/protocol/Block.h"
 #include "../../interfaces/protocol/Transaction.h"
 #include "../../interfaces/protocol/TransactionSubmitResult.h"
@@ -57,7 +58,6 @@ public:
 
     virtual void asyncMarkTxs(bcos::crypto::HashListPtr _txsHash, bool _sealedFlag,
         std::function<void(Error::Ptr)> _onRecvResponse) = 0;
-
     /**
      * @brief verify transactions in Block for the consensus module
      *

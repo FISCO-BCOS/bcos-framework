@@ -71,6 +71,10 @@ public:
     TransactionType type() const override { return m_type; }
     bytesConstRef input() const override;
     int64_t importTime() const override { return m_transaction->import_time(); }
+    void setImportTime(int64_t _importTime) override
+    {
+        m_transaction->set_import_time(_importTime);
+    }
     bytesConstRef signatureData() const override
     {
         return bytesConstRef((const byte*)m_transaction->signaturedata().data(),

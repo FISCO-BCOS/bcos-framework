@@ -20,6 +20,8 @@
 #pragma once
 #include "../../interfaces/crypto/CryptoSuite.h"
 #include "Block.h"
+#include "BlockHeaderFactory.h"
+#include "TransactionFactory.h"
 namespace bcos
 {
 namespace protocol
@@ -37,6 +39,8 @@ public:
         bytesConstRef _data, bool _calculateHash = true, bool _checkSig = true) = 0;
 
     virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() = 0;
+    virtual BlockHeaderFactory::Ptr blockHeaderFactory() = 0;
+    virtual TransactionFactory::Ptr transactionFactory() = 0;
 };
 }  // namespace protocol
 }  // namespace bcos

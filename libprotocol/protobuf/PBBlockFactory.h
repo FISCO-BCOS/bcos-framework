@@ -66,8 +66,8 @@ public:
         return m_transactionFactory->cryptoSuite();
     }
 
-    BlockHeaderFactory::Ptr blockHeaderFactory() { return m_blockHeaderFactory; }
-    TransactionFactory::Ptr transactionFactory() { return m_transactionFactory; }
+    BlockHeaderFactory::Ptr blockHeaderFactory() override { return m_blockHeaderFactory; }
+    TransactionFactory::Ptr transactionFactory() override { return m_transactionFactory; }
     TransactionReceiptFactory::Ptr receiptFactory() { return m_receiptFactory; }
 
 private:

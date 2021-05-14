@@ -154,7 +154,6 @@ public:
     virtual void setNonceList(NonceList const& _nonceList) = 0;
     virtual void setNonceList(NonceList&& _nonceList) = 0;
     virtual NonceList const& nonceList() const = 0;
-    // TODO: set DAG mutually exclusive parameters
 
 private:
     void updateTxsRootForHeader(bool _updateHeader, bcos::crypto::HashType const& _txsRoot)
