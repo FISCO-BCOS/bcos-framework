@@ -18,12 +18,12 @@
  */
 
 #include "libtable/TableFactory.h"
+#include "../../../testutils/TestPromptFixture.h"
 #include "Hash.h"
 #include "MemoryStorage.h"
 #include "interfaces/storage/TableInterface.h"
 #include "libtable/Table.h"
 #include "libutilities/ThreadPool.h"
-#include "../../../testutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
@@ -94,6 +94,8 @@ BOOST_AUTO_TEST_CASE(rollback)
     entry = table->getRow("name");
     BOOST_TEST(entry != nullptr);
     BOOST_TEST(table->dirty() == true);
+    BOOST_TEST(entry->dirty() == true);
+    BOOST_TEST(entry->getField("value") == "Lili");
 
     auto savePoint = tableFactory->savepoint();
 
@@ -150,6 +152,7 @@ BOOST_AUTO_TEST_CASE(rollback)
     BOOST_TEST(table->dirty() == true);
 
     tableFactory->commit();
+    // TODO: add some ut, setRow remove rollback getRow setRow, setRow setRow remove rollback getRow
 }
 
 BOOST_AUTO_TEST_CASE(hash)
@@ -213,23 +216,43 @@ BOOST_AUTO_TEST_CASE(hash)
     entry->setField("key", "id");
     entry->setField("value", "12345");
     ret = table->setRow("id", entry);
+    BOOST_TEST(ret == true);
     entry = table->getRow("name");
     entry->setField("value", "Wang");
     ret = table->setRow("name", entry);
     BOOST_TEST(ret == true);
-    BOOST_TEST(entry != nullptr);
+    entry = table->newEntry();
+    entry->setField("key", "balance");
+    entry->setField("value", "12345");
+    ret = table->setRow("balance", entry);
     BOOST_TEST(ret == true);
+    BOOST_TEST(entry != nullptr);
     keys = table->getPrimaryKeys(nullptr);
+    BOOST_TEST(keys.size() == 3);
     entries = table->getRows(keys);
-    BOOST_TEST(entries.size() == 2);
+    BOOST_TEST(entries.size() == 3);
     entry = table->getRow("name");
     BOOST_TEST(entry != nullptr);
     entry = table->getRow("balance");
+    BOOST_TEST(entry != nullptr);
+    entry = table->getRow("balance1");
     BOOST_TEST(entry == nullptr);
     ret = table->remove("name");
     BOOST_TEST(ret == true);
+    entry = table->getRow("name");
+    BOOST_TEST(entry == nullptr);
+    keys = table->getPrimaryKeys(nullptr);
+    BOOST_TEST(keys.size() == 2);
+    entries = table->getRows(keys);
+    BOOST_TEST(entries.size() == 2);
     ret = table->remove("id");
     BOOST_TEST(ret == true);
+    entry = table->getRow("id");
+    BOOST_TEST(entry == nullptr);
+    keys = table->getPrimaryKeys(nullptr);
+    BOOST_TEST(keys.size() == 1);
+    entries = table->getRows(keys);
+    BOOST_TEST(entries.size() == 1);
 }
 
 BOOST_AUTO_TEST_CASE(parallel_openTable)

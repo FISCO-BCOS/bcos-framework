@@ -19,6 +19,7 @@
  * @date: 2021-04-07
  */
 #pragma once
+#include "../../libutilities/Error.h"
 #include "interfaces/crypto/Hash.h"
 #include "interfaces/storage/Common.h"
 #include <functional>
@@ -77,6 +78,14 @@ public:
     virtual std::vector<std::string> getPrimaryKeys(
         std::shared_ptr<Condition> _condition) const = 0;
     virtual bool setRow(const std::string& _key, std::shared_ptr<Entry> _entry) = 0;
+
+    virtual void asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
+        std::function<void(Error, std::vector<std::string>)> _callback) = 0;
+    virtual void asyncGetRow(std::shared_ptr<std::string> _key,
+        std::function<void(Error, std::shared_ptr<Entry>)> _callback) = 0;
+    virtual void asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
+        std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback) = 0;
+
     virtual bool remove(const std::string& _key) = 0;
     virtual TableInfo::Ptr tableInfo() const = 0;
     virtual Entry::Ptr newEntry() = 0;

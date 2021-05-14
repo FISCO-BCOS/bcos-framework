@@ -29,7 +29,6 @@ namespace bcos
 {
 namespace storage
 {
-
 class Table : public TableInterface
 {
 public:
@@ -45,6 +44,15 @@ public:
     std::vector<std::string> getPrimaryKeys(std::shared_ptr<Condition> _condition) const override;
     bool setRow(const std::string& _key, std::shared_ptr<Entry> _entry) override;
     bool remove(const std::string& _key) override;
+
+    void asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
+        std::function<void(Error, std::vector<std::string>)> _callback) override;
+    void asyncGetRow(std::shared_ptr<std::string> _key,
+        std::function<void(Error, std::shared_ptr<Entry>)> _callback) override;
+    void asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
+        std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback)
+        override;
+
     TableInfo::Ptr tableInfo() const override { return m_tableInfo; }
     Entry::Ptr newEntry() override { return std::make_shared<Entry>(m_blockNumber); }
     crypto::HashType hash() override;
@@ -55,7 +63,7 @@ public:
 
         for (auto& it : m_dirty)
         {
-            if (!it.second->rollbacked())
+            if (!it.second->rollbacked() && it.second->dirty())
             {
                 auto entry = std::make_shared<Entry>();
                 entry->copyFrom(it.second);
