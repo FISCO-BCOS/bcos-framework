@@ -31,6 +31,21 @@ namespace bcos
 {
 namespace storage
 {
+const char* const SYS_TABLE = "s_tables";
+const char* const SYS_TABLE_KEY = "table_name";
+const char* const SYS_TABLE_VALUE_FIELDS = "value_fields";
+const char* const SYS_TABLE_KEY_FIELDS = "key_field";
+
+inline TableInfo::Ptr getSysTableInfo(const std::string& tableName)
+{
+    if (tableName == SYS_TABLE)
+    {
+        return std::make_shared<TableInfo>(tableName, SYS_TABLE_KEY,
+            std::string(SYS_TABLE_KEY_FIELDS) + "," + SYS_TABLE_VALUE_FIELDS);
+    }
+    return nullptr;
+}
+
 class TableInterface : public std::enable_shared_from_this<TableInterface>
 {
 public:
@@ -89,7 +104,7 @@ public:
     virtual crypto::HashType hash() = 0;
     virtual size_t savepoint() = 0;
     virtual void rollback(size_t _savepoint) = 0;
-    virtual void commit() = 0;
+    virtual size_t commit() = 0;
 };
 }  // namespace storage
 }  // namespace bcos

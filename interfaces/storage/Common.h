@@ -201,8 +201,8 @@ public:
             return it->second;
         }
 
-        STORAGE_LOG(ERROR) << LOG_BADGE("Entry") << LOG_DESC("can't find key")
-                           << LOG_KV("key", key);
+        STORAGE_LOG(WARNING) << LOG_BADGE("Entry") << LOG_DESC("can't find")
+                           << LOG_KV("field", key);
         return "";
     }
     virtual void setField(const std::string& key, const std::string& value)

@@ -40,6 +40,7 @@ namespace ledger
 class LedgerInterface
 {
 public:
+    using Ptr = std::shared_ptr<LedgerInterface>;
     LedgerInterface() = default;
     virtual ~LedgerInterface() {}
 
@@ -57,13 +58,13 @@ public:
         std::function<void(Error::Ptr, LedgerConfig::Ptr)> _onCommitBlock) = 0;
 
     /**
-     * @brief async pre-store txs in block when pbft backup
-     * @param _txsToStore only txs in blocks, without header info
+     * @brief async pre-store tx in block when tx pool verify
+     * @param _txToStore
      * @param _number pre-store block number
      * @param _onTxsStored callback
      */
-    virtual void asyncPreStoreTransactions(bcos::protocol::Block::Ptr _txsToStore,
-        protocol::BlockNumber _number, std::function<void(Error::Ptr)> _onTxsStored) = 0;
+    virtual void asyncPreStoreTransaction(bytesPointer _txToStore,
+        const crypto::HashType& _txHash, std::function<void(Error::Ptr)> _onTxStored) = 0;
 
     /**
      * @brief async get block by blockNumber
@@ -92,14 +93,14 @@ public:
      * @param _onGetBlock
      */
     virtual void asyncGetBlockHashByNumber(protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, const crypto::HashType)> _onGetBlock) = 0;
+        std::function<void(Error::Ptr, crypto::HashType const&)> _onGetBlock) = 0;
 
     /**
      * @brief async get block number by block hash
      * @param _blockHash the hash of block to get
      * @param _onGetBlock
      */
-    virtual void asyncGetBlockNumberByHash(const crypto::HashType& _blockHash,
+    virtual void asyncGetBlockNumberByHash(crypto::HashType const& _blockHash,
         std::function<void(Error::Ptr, protocol::BlockNumber)> _onGetBlock) = 0;
 
     /**
@@ -183,7 +184,8 @@ public:
      * @param _onGetList
      */
     virtual void asyncGetNonceList(protocol::BlockNumber _startNumber, int64_t _offset,
-        std::function<void(Error::Ptr, std::map<protocol::BlockNumber, protocol::NonceListPtr>)>
+        std::function<void(
+            Error::Ptr, std::shared_ptr<std::map<protocol::BlockNumber, protocol::NonceListPtr>>)>
             _onGetList) = 0;
 };
 }  // namespace ledger

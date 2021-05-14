@@ -39,15 +39,6 @@ public:
       : m_DB(_db), m_hashImpl(_hashImpl), m_blockNumber(_blockNum)
     {
         m_sysTables.push_back(SYS_TABLE);
-        if (m_blockNumber == 0)
-        {  // create SYS_TABLE at block 0
-            auto sysTable = openTableWithoutLock(SYS_TABLE);
-            auto entry = sysTable->newEntry();
-            entry->setField(SYS_TABLE_KEY, SYS_TABLE);
-            entry->setField(SYS_TABLE_KEY_FIELDS, SYS_TABLE_KEY);
-            entry->setField("value_fields", "value_fields");
-            sysTable->setRow(SYS_TABLE, entry);
-        }
     }
     virtual ~TableFactory() {}
     // virtual void init();
@@ -69,7 +60,7 @@ public:
             if (tableEntry)
             {
                 STORAGE_LOG(WARNING)
-                    << LOG_BADGE("TableFactory") << LOG_DESC("table already exist in _sys_tables_")
+                    << LOG_BADGE("TableFactory") << LOG_DESC("table already exist")
                     << LOG_KV("table name", _tableName);
                 return false;
             }
@@ -164,7 +155,7 @@ public:
             changeLog.pop_back();
         }
     }
-    void commit() override
+    size_t commit() override
     {
         auto start_time = utcTime();
         auto record_time = utcTime();
@@ -184,10 +175,10 @@ public:
         }
         auto getData_time_cost = utcTime() - record_time;
         record_time = utcTime();
-
+        size_t ret = 0;
         if (!datas.empty())
         {
-            m_DB->commitTables(infos, datas);
+            ret = m_DB->commitTables(infos, datas);
         }
         auto commit_time_cost = utcTime() - record_time;
         record_time = utcTime();
@@ -199,6 +190,7 @@ public:
                            << LOG_KV("commitTimeCost", commit_time_cost)
                            << LOG_KV("clearTimeCost", clear_time_cost)
                            << LOG_KV("totalTimeCost", utcTime() - start_time);
+        return ret;
     }
     virtual bool checkAuthority(const std::string& _tableName, Address const& _user) const
     {

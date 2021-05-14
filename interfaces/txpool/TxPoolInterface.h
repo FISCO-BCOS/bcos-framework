@@ -66,17 +66,6 @@ public:
     virtual void asyncVerifyBlock(bcos::crypto::PublicPtr _generatedNodeID,
         bytesConstRef const& _block, std::function<void(Error::Ptr, bool)> _onVerifyFinished) = 0;
 
-
-    /**
-     * @brief Persistent transaction list
-     *
-     * @param _proposalHash the hash of the proposal that the txs belong to
-     * @param _txsToStore the hash of the txs to be stored
-     * @param _onTxsStored callback to be called after the given txs have been stored
-     */
-    virtual void asyncStoreTxs(bcos::crypto::HashType const& _proposalHash,
-        bytesConstRef _txsToStore, std::function<void(Error::Ptr)> _onTxsStored) = 0;
-
     /**
      * @brief The dispatcher obtains the transaction list corresponding to the block from the
      * transaction pool
@@ -84,8 +73,8 @@ public:
      * @param _block the block to be filled with transactions
      * @param _onBlockFilled callback to be called after the block has been filled
      */
-    virtual void asyncFillBlock(
-        bcos::protocol::Block::Ptr _block, std::function<void(Error)> _onBlockFilled) = 0;
+    virtual void asyncFillBlock(bcos::crypto::HashListPtr _txsHash,
+        std::function<void(Error::Ptr, bcos::protocol::Block::Ptr)> _onBlockFilled) = 0;
 
     /**
      * @brief After the blockchain is on-chain, the interface is called to notify the transaction
@@ -115,6 +104,9 @@ public:
         std::function<void(Error::Ptr)> _onRecvResponse) = 0;
     virtual void notifyConsensusNodeList(
         bcos::consensus::ConsensusNodeList const& _consensusNodeList,
+        std::function<void(Error::Ptr)> _onRecvResponse) = 0;
+
+    virtual void notifyObserverNodeList(bcos::consensus::ConsensusNodeList const& _observerNodeList,
         std::function<void(Error::Ptr)> _onRecvResponse) = 0;
 };
 }  // namespace txpool

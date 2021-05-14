@@ -18,8 +18,8 @@
  * @author: yujiechen
  * @date: 2021-03-16
  */
-#include "FakeBlockHeader.h"
 #include "../../../testutils/TestPromptFixture.h"
+#include "FakeBlockHeader.h"
 
 using namespace bcos;
 using namespace bcos::protocol;
