@@ -92,7 +92,7 @@ void testBlock(CryptoSuite::Ptr cryptoSuite)
     BOOST_CHECK_EQUAL(tx.chainId(), decodedTx.chainId());
     BOOST_CHECK_EQUAL(tx.groupId(), decodedTx.groupId());
     BOOST_CHECK_EQUAL(tx.importTime(), decodedTx.importTime());
-    BOOST_CHECK(tx.verify());
+    BOOST_CHECK_NO_THROW(tx.verify());
 
     (const_cast<byte*>(buffer.data()))[0] += 1;
     BOOST_CHECK_THROW(
