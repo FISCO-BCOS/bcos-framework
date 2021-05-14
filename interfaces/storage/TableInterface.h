@@ -114,6 +114,7 @@ public:
     virtual size_t savepoint() = 0;
     virtual void rollback(size_t _savepoint) = 0;
     virtual size_t commit() = 0;
+    virtual void asyncCommit(std::function<void(Error, size_t)> _callback) = 0;
 };
 }  // namespace storage
 }  // namespace bcos
