@@ -65,7 +65,7 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
         checkBlockHeader(block->blockHeader(), decodedBlock->blockHeader());
     }
     // check transactions
-    BOOST_CHECK(decodedBlock->transactionsSize() == block->transactionsSize());
+    BOOST_CHECK_EQUAL(decodedBlock->transactionsSize(), block->transactionsSize());
     for (size_t i = 0; i < block->transactionsSize(); ++i)
     {
         checkTransction(block->transaction(i), decodedBlock->transaction(i));
@@ -77,7 +77,7 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
     }
     */
     // check receipts
-    BOOST_CHECK(decodedBlock->receiptsSize() == block->receiptsSize());
+    BOOST_CHECK_EQUAL(decodedBlock->receiptsSize(), block->receiptsSize());
     for (size_t i = 0; i < block->receiptsSize(); ++i)
     {
         checkReceipts(_cryptoSuite->hashImpl(), block->receipt(i), decodedBlock->receipt(i));

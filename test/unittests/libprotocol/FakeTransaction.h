@@ -81,17 +81,17 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
     BOOST_CHECK(
         pbTransaction->sender().toBytes() == _keyPair->address(_cryptoSuite->hashImpl()).asBytes());
     // encode
-    std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
-    pbTransaction->encode(*encodedData);
+    // std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
+    auto encodedData = pbTransaction->encode(false);
     auto encodedDataCache = pbTransaction->encode();
-    BOOST_CHECK(*encodedData == encodedDataCache.toBytes());
-    std::cout << "#### encodedData is:" << *toHexString(*encodedData) << std::endl;
+    BOOST_CHECK(encodedData.toBytes() == encodedDataCache.toBytes());
+    std::cout << "#### encodedData is:" << *toHexString(encodedData) << std::endl;
     std::cout << "### hash:" << pbTransaction->hash().hex() << std::endl;
     std::cout << "### sender:" << *toHexString(pbTransaction->sender()) << std::endl;
     std::cout << "### type:" << pbTransaction->type() << std::endl;
     std::cout << "### to:" << *toHexString(pbTransaction->to()) << std::endl;
     // decode
-    auto decodedTransaction = factory->createTransaction(*encodedData, true);
+    auto decodedTransaction = factory->createTransaction(encodedData, true);
     checkTransction(pbTransaction, decodedTransaction);
     return decodedTransaction;
 }

@@ -22,6 +22,7 @@
 #include "../../libutilities/Common.h"
 #include "../../libutilities/Error.h"
 #include "TransactionSubmitResult.h"
+#include "interfaces/crypto/Hash.h"
 namespace bcos
 {
 namespace protocol
@@ -44,34 +45,34 @@ public:
 
     virtual ~Transaction() {}
 
-    virtual void decode(bytesConstRef _txData, bool _checkSig) = 0;
-    virtual void encode(bytes& _encodedData) const = 0;
+    virtual void decode(bytesConstRef _txData) = 0;
     virtual bytesConstRef encode(bool _onlyHashFields = false) const = 0;
-    virtual bcos::crypto::HashType const& hash() const
-    {
-        UpgradableGuard l(x_hash);
-        if (m_hash != bcos::crypto::HashType())
-        {
-            return m_hash;
-        }
-        UpgradeGuard ul(l);
-        auto hashFields = encode(true);
-        m_hash = m_cryptoSuite->hash(hashFields);
-        return m_hash;
-    }
+    virtual bcos::crypto::HashType const& hash() const = 0;
 
-    virtual void verify() const
+    virtual bool verify() const
     {
         // The tx has already been verified
-        if (sender().size() > 0)
+        if (!sender().empty())
         {
-            return;
+            return true;
         }
+
+        // check the hash
+        auto hashFields = encode(true);
+        auto hash = m_cryptoSuite->hash(hashFields);
+
+        if (hash != this->hash())
+        {
+            return false;
+        }
+
         // check the signatures
         auto signature = signatureData();
-        auto publicKey = m_cryptoSuite->signatureImpl()->recover(hash(), signature);
+        auto publicKey = m_cryptoSuite->signatureImpl()->recover(this->hash(), signature);
         // recover the sender
         forceSender(m_cryptoSuite->calculateAddress(publicKey).asBytes());
+
+        return true;
     }
 
     virtual int32_t version() const = 0;
@@ -118,9 +119,7 @@ public:
     }
 
 protected:
-    mutable bcos::bytes m_sender = bcos::bytes();
-    mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
-    mutable SharedMutex x_hash;
+    mutable bcos::bytes m_sender;
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
 
     TxSubmitCallback m_submitCallback;

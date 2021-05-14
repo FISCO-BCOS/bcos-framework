@@ -53,9 +53,10 @@ public:
                (hash() == _comparedTx.hash());
     }
 
-    void decode(bytesConstRef _txData, bool _checkSig) override;
-    void encode(bytes& _encodedData) const override;
+    void decode(bytesConstRef _txData) override;
     bytesConstRef encode(bool _onlyHashFields = false) const override;
+
+    bcos::crypto::HashType const& hash() const override;
 
     u256 const& nonce() const override { return m_nonce; }
     int32_t version() const override { return m_transactionHashFields->version(); }
@@ -90,6 +91,8 @@ protected:
     }
 
 private:
+    void encode(bytes& _encodedData) const;
+
     std::shared_ptr<PBRawTransaction> m_transaction;
     std::shared_ptr<PBRawTransactionHashFields> m_transactionHashFields;
     bytesPointer m_dataCache;

@@ -5,11 +5,11 @@
 
 namespace bcos
 {
-template <class T, typename = std::enable_if_t<std::is_copy_constructible<T>::value>,
-    typename = std::enable_if_t<std::is_move_constructible<T>::value>>
+template <class T>
 class ConcurrentCOW
 {
 public:
+    ConcurrentCOW() {};
     explicit ConcurrentCOW(T&& obj) { reset(std::forward<T>(obj)); };
     ConcurrentCOW(const ConcurrentCOW& cow) noexcept { m_obj = cow.m_obj; }
     ConcurrentCOW(ConcurrentCOW&& cow) noexcept { m_obj = std::move(cow.m_obj); }
@@ -18,6 +18,8 @@ public:
     ~ConcurrentCOW() noexcept { }
 
     void reset(T&& obj) { m_obj = std::make_shared<T>(std::forward<T>(obj)); }
+
+    bool empty() const noexcept { return m_obj.get() == nullptr; }
 
     const T& operator*() const noexcept { return get(); }
     const T* operator->() const noexcept { return m_obj.get(); }

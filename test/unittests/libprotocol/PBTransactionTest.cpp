@@ -18,9 +18,12 @@
  * @author: yujiechen
  * @date: 2021-03-16
  */
+#include "libprotocol/protobuf/PBTransaction.h"
+#include "../../../testutils/TestPromptFixture.h"
 #include "FakeTransaction.h"
 #include "libprotocol/Common.h"
-#include "../../../testutils/TestPromptFixture.h"
+#include "libutilities/DataConvertUtility.h"
+#include <boost/test/tools/old/interface.hpp>
 
 using namespace bcos;
 using namespace bcos::crypto;
@@ -64,11 +67,46 @@ BOOST_AUTO_TEST_CASE(testSMTransaction)
     testTransaction(cryptoSuite, keyPair, to.asBytes(), input, nonce, blockLimit, chainId, groupId);
 }
 
+void testBlock(CryptoSuite::Ptr cryptoSuite)
+{
+    std::string to = "5fe3c4c3e2079879a0dba1937aca95ac16e68f0f";
+    std::string input =
+        "616e73616374696f6e1241e4dd502f6f5f3dbc0639e8587f2a9d6227dddac55e4c40b098fd3e3c4a60cabe6cd"
+        "7";
+    PBTransaction tx(cryptoSuite, 100, *fromHexString(to), *fromHexString(input), u256(10086), 1000,
+        "testChain", "testGroup", 888);
+
+    auto keyPair = cryptoSuite->signatureImpl()->generateKeyPair();
+    auto sign = cryptoSuite->signatureImpl()->sign(keyPair, tx.hash());
+    tx.updateSignature(bcos::ref(*sign), keyPair->publicKey()->data());;
+
+    auto buffer = tx.encode(false);
+
+    PBTransaction decodedTx(cryptoSuite, buffer, false);
+
+    BOOST_CHECK_EQUAL(tx.version(), decodedTx.version());
+    BOOST_CHECK_EQUAL(tx.to().toString(), decodedTx.to().toString());
+    BOOST_CHECK_EQUAL(tx.input().toString(), decodedTx.input().toString());
+    BOOST_CHECK_EQUAL(tx.nonce().convert_to<int>(), decodedTx.nonce().convert_to<int>());
+    BOOST_CHECK_EQUAL(tx.blockLimit(), decodedTx.blockLimit());
+    BOOST_CHECK_EQUAL(tx.chainId(), decodedTx.chainId());
+    BOOST_CHECK_EQUAL(tx.groupId(), decodedTx.groupId());
+    BOOST_CHECK_EQUAL(tx.importTime(), decodedTx.importTime());
+    BOOST_CHECK(tx.verify());
+
+    (const_cast<byte*>(buffer.data()))[0] += 1;
+    BOOST_CHECK_THROW(
+        std::make_shared<PBTransaction>(cryptoSuite, buffer, true), PBObjectDecodeException);
+}
+
 BOOST_AUTO_TEST_CASE(testTransactionWithRawData)
 {
     auto hashImpl = std::make_shared<Keccak256Hash>();
     auto signatureImpl = std::make_shared<Secp256k1SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
+
+    testBlock(cryptoSuite);
+    /*
     auto encodedData =
         "0a6108011207636861696e49641a0767726f7570496420d7843d2a200000000000000000000000000000000000"
         "000000000000000000000007273e2332145fe3c4c3e2079879a0dba1937aca95ac16e68f0f3a0f746573745472"
@@ -92,6 +130,7 @@ BOOST_AUTO_TEST_CASE(testTransactionWithRawData)
     (*encodedBytes)[0] += 1;
     BOOST_CHECK_THROW(
         std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true), PBObjectDecodeException);
+        */
 }
 
 BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
@@ -99,6 +138,9 @@ BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
     auto hashImpl = std::make_shared<Sm3Hash>();
     auto signatureImpl = std::make_shared<SM2SignatureImpl>();
     auto cryptoSuite = std::make_shared<CryptoSuite>(hashImpl, signatureImpl, nullptr);
+
+    testBlock(cryptoSuite);
+    /*
     auto encodedData =
         "0a4b08011207636861696e49641a0767726f7570496420d7843d2a200000000000000000000000000000000000"
         "000000000000000000000007273e233a0f746573745472616e73616374696f6e128001dbbdfc7aafc79dda0225"
@@ -122,6 +164,7 @@ BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
     (*encodedBytes)[0] += 1;
     BOOST_CHECK_THROW(
         std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true), PBObjectDecodeException);
+        */
 }
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
