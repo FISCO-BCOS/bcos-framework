@@ -49,12 +49,12 @@ public:
     virtual bytesConstRef encode(bool _onlyHashFields = false) const = 0;
     virtual bcos::crypto::HashType const& hash() const = 0;
 
-    virtual bool verify() const
+    virtual void verify() const
     {
         // The tx has already been verified
         if (!sender().empty())
         {
-            return true;
+            return;
         }
 
         // check the hash
@@ -63,7 +63,7 @@ public:
 
         if (hash != this->hash())
         {
-            return false;
+            throw bcos::Exception("Hash mismatch!");
         }
 
         // check the signatures
@@ -71,8 +71,6 @@ public:
         auto publicKey = m_cryptoSuite->signatureImpl()->recover(this->hash(), signature);
         // recover the sender
         forceSender(m_cryptoSuite->calculateAddress(publicKey).asBytes());
-
-        return true;
     }
 
     virtual int32_t version() const = 0;
