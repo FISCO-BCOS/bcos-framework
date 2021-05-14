@@ -57,6 +57,9 @@ PBTransaction::PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_
     // encode hashFields
     auto encodedHashFieldsData = encodePBObject(m_transactionHashFields);
     m_transaction->set_hashfieldsdata(encodedHashFieldsData->data(), encodedHashFieldsData->size());
+
+    auto hash = m_cryptoSuite->hash(*encodedHashFieldsData);
+    m_transaction->set_hashfieldshash(hash.data(), hash.size);
     // set import time
     m_transaction->set_import_time(_importTime);
 }
@@ -64,10 +67,13 @@ PBTransaction::PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_
 PBTransaction::PBTransaction(CryptoSuite::Ptr _cryptoSuite, bytesConstRef _txData, bool _checkSig)
   : PBTransaction(_cryptoSuite)
 {
-    decode(_txData, _checkSig);
+    decode(_txData);
+    if(_checkSig) {
+        verify();
+    }
 }
 
-void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
+void PBTransaction::decode(bytesConstRef _txData)
 {
     // cache data into dataCache
     *m_dataCache = _txData.toBytes();
@@ -88,11 +94,6 @@ void PBTransaction::decode(bytesConstRef _txData, bool _checkSig)
     m_nonce =
         fromBigEndian<u256>(bytesConstRef((const byte*)m_transactionHashFields->nonce().data(),
             m_transactionHashFields->nonce().size()));
-    if (!_checkSig)
-    {
-        return;
-    }
-    verify();
 }
 
 void PBTransaction::encode(bytes& _encodedData) const
@@ -107,11 +108,15 @@ bytesConstRef PBTransaction::encode(bool _onlyHashFields) const
         auto const& hashFieldData = m_transaction->hashfieldsdata();
         return bytesConstRef((byte const*)hashFieldData.data(), hashFieldData.size());
     }
-    if (m_dataCache->size() == 0)
+    if (m_dataCache->empty())
     {
         encode(*m_dataCache);
     }
     return bytesConstRef((byte const*)m_dataCache->data(), m_dataCache->size());
+}
+
+bcos::crypto::HashType const& PBTransaction::hash() const {
+    return *(reinterpret_cast<const bcos::crypto::HashType*>(m_transaction->hashfieldshash().data()));
 }
 
 void PBTransaction::updateSignature(bytesConstRef _signatureData, bytes const& _sender)
