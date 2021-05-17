@@ -19,6 +19,7 @@
 #pragma once
 
 #include "../../libutilities/FixedBytes.h"
+#include "../crypto/CryptoSuite.h"
 #include <gsl/span>
 
 namespace bcos

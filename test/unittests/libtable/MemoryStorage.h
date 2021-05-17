@@ -126,33 +126,31 @@ public:
     {}
 
     // cache TableFactory
-    void asyncAddStateCache(protocol::BlockNumber, protocol::Block::Ptr,
-        std::shared_ptr<TableFactory>, std::function<void(Error::Ptr)>) override
+    void asyncAddStateCache(protocol::BlockNumber, std::shared_ptr<TableFactory>,
+        std::function<void(Error::Ptr)>) override
     {}
     void asyncDropStateCache(protocol::BlockNumber, std::function<void(Error::Ptr)>) override {}
-    void asyncGetBlock(
-        protocol::BlockNumber, std::function<void(Error::Ptr, protocol::Block::Ptr)>) override
+    void asyncGetStateCache(protocol::BlockNumber,
+        std::function<void(Error::Ptr, std::shared_ptr<TableFactory>)>) override
     {}
-    void asyncGetStateCache(
-        protocol::BlockNumber, std::function<void(Error::Ptr, std::shared_ptr<TableFactory>)>) override
-    {}
-    protocol::Block::Ptr getBlock(protocol::BlockNumber) override { return nullptr; }
     std::shared_ptr<TableFactory> getStateCache(protocol::BlockNumber) override { return nullptr; }
     void dropStateCache(protocol::BlockNumber) override {}
-    void addStateCache(
-        protocol::BlockNumber, protocol::Block::Ptr, std::shared_ptr<TableFactory>) override
-    {}
+    void addStateCache(protocol::BlockNumber, std::shared_ptr<TableFactory>) override {}
     // KV store in split database, used to store data off-chain
     bool put(const std::string_view&, const std::string_view&, const std::string_view&) override
     {
         return true;
     }
     std::string get(const std::string_view&, const std::string_view&) override { return ""; }
-    void asyncPut(std::shared_ptr<std::string>, std::shared_ptr<std::string>, std::shared_ptr<std::string>,
-        std::function<void(Error::Ptr)>) override
+    bool remove(const std::string_view&, const std::string_view&) override { return true; }
+    void asyncPut(std::shared_ptr<std::string>, std::shared_ptr<std::string>,
+        std::shared_ptr<std::string>, std::function<void(Error::Ptr)>) override
     {}
     void asyncGet(std::shared_ptr<std::string>, std::shared_ptr<std::string>,
         std::function<void(Error::Ptr, const std::string& value)>) override
+    {}
+    void asyncRemove(std::shared_ptr<std::string>, std::shared_ptr<std::string>,
+        std::function<void(Error::Ptr)>) override
     {}
     void asyncGetBatch(std::shared_ptr<std::string>, std::shared_ptr<std::vector<std::string>>,
         std::function<void(Error::Ptr, std::shared_ptr<std::vector<std::string>>)>) override

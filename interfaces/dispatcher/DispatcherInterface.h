@@ -13,8 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief interface of TableInterface
- * @file TableInterface.h
+ * @brief interface of Dispatcher
+ * @file DispatcherInterface.h
  * @author: xingqiangbai
  * @date: 2021-05-17
  */
@@ -35,11 +35,15 @@ public:
     using Ptr = std::shared_ptr<DispatcherInterface>;
     DispatcherInterface() = default;
     virtual ~DispatcherInterface() {}
-    virtual void asyncExecuteBlock(protocol::Block::Ptr block, bool verify,
-        std::function<void(Error, protocol::BlockHeader::Ptr)> callback) = 0;
-    virtual void asyncGetBlockHeaderHash(protocol::BlockNumber number,
-        std::function<void(Error, std::shared_ptr<crypto::HashType>)> callback) = 0;
-    virtual void asyncGetLatestBlock(std::function<void(Error, protocol::Block::Ptr)> callback) = 0;
+    virtual void asyncExecuteBlock(protocol::Block::Ptr _block, bool _verify,
+        std::function<void(Error::Ptr, protocol::BlockHeader::Ptr)> _callback) = 0;
+    virtual void asyncGetBlockHeaderHash(protocol::BlockNumber _number,
+        std::function<void(Error::Ptr, std::shared_ptr<crypto::HashType>)> _callback) = 0;
+    virtual void asyncGetLatestBlock(
+        std::function<void(Error::Ptr, protocol::Block::Ptr)> _callback) = 0;
+    virtual void asyncNotifyExecutionResult(Error::Ptr _error,
+        std::shared_ptr<protocol::BlockHeader> _header,
+        std::function<void(Error::Ptr)> _callback) = 0;
 };
 
 }  // namespace dispatcher
