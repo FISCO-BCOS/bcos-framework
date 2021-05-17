@@ -112,7 +112,7 @@ public:
      */
     virtual void asyncGetBatchTxsByHashList(crypto::HashListPtr _txHashList, bool _withProof,
         std::function<void(Error::Ptr, std::shared_ptr<std::vector<bytesPointer>>,
-            std::map<std::string, MerkleProofPtr>)>
+        std::shared_ptr<std::map<std::string, MerkleProofPtr> >) >
             _onGetTx) = 0;
 
     /**
