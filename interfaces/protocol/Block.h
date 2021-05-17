@@ -48,6 +48,7 @@ class Block
 {
 public:
     using Ptr = std::shared_ptr<Block>;
+    using ConstPtr = std::shared_ptr<Block const>;
     Block(
         TransactionFactory::Ptr _transactionFactory, TransactionReceiptFactory::Ptr _receiptFactory)
       : m_transactionFactory(_transactionFactory), m_receiptFactory(_receiptFactory)
@@ -153,7 +154,6 @@ public:
     virtual void setNonceList(NonceList const& _nonceList) = 0;
     virtual void setNonceList(NonceList&& _nonceList) = 0;
     virtual NonceList const& nonceList() const = 0;
-    // TODO: set DAG mutually exclusive parameters
 
 private:
     void updateTxsRootForHeader(bool _updateHeader, bcos::crypto::HashType const& _txsRoot)

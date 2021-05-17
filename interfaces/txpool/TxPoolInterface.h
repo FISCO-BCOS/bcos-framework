@@ -18,6 +18,7 @@
  * @date: 2021-04-07
  */
 #pragma once
+#include "../../interfaces/consensus/ConsensusNodeInterface.h"
 #include "../../interfaces/protocol/Block.h"
 #include "../../interfaces/protocol/Transaction.h"
 #include "../../interfaces/protocol/TransactionSubmitResult.h"
@@ -53,8 +54,10 @@ public:
      * @param _sealCallback after the  txpool responds to the sealed txs, the callback is triggered
      */
     virtual void asyncSealTxs(size_t _txsLimit, TxsHashSetPtr _avoidTxs,
-        std::function<void(Error::Ptr, bcos::protocol::ConstTransactionsPtr)> _sealCallback) = 0;
+        std::function<void(Error::Ptr, bcos::crypto::HashListPtr)> _sealCallback) = 0;
 
+    virtual void asyncMarkTxs(bcos::crypto::HashListPtr _txsHash, bool _sealedFlag,
+        std::function<void(Error::Ptr)> _onRecvResponse) = 0;
     /**
      * @brief verify transactions in Block for the consensus module
      *

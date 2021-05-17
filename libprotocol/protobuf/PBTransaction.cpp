@@ -68,7 +68,8 @@ PBTransaction::PBTransaction(CryptoSuite::Ptr _cryptoSuite, bytesConstRef _txDat
   : PBTransaction(_cryptoSuite)
 {
     decode(_txData);
-    if(_checkSig) {
+    if (_checkSig)
+    {
         verify();
     }
 }
@@ -115,8 +116,10 @@ bytesConstRef PBTransaction::encode(bool _onlyHashFields) const
     return bytesConstRef((byte const*)m_dataCache->data(), m_dataCache->size());
 }
 
-bcos::crypto::HashType const& PBTransaction::hash() const {
-    return *(reinterpret_cast<const bcos::crypto::HashType*>(m_transaction->hashfieldshash().data()));
+bcos::crypto::HashType const& PBTransaction::hash() const
+{
+    return *(
+        reinterpret_cast<const bcos::crypto::HashType*>(m_transaction->hashfieldshash().data()));
 }
 
 void PBTransaction::updateSignature(bytesConstRef _signatureData, bytes const& _sender)

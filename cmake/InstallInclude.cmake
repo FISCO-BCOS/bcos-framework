@@ -46,6 +46,12 @@ install(
     DESTINATION "${DESTINATION_INCLUDE_DIR}"
     FILES_MATCHING PATTERN "*.h"
 )
+#sealer
+install(
+    DIRECTORY "libsealer"
+    DESTINATION "${DESTINATION_INCLUDE_DIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
 #testutils
 install(
     DIRECTORY "testutils"

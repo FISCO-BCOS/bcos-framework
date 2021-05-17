@@ -83,6 +83,7 @@ public:
 
     virtual bytesConstRef input() const = 0;
     virtual int64_t importTime() const = 0;
+    virtual void setImportTime(int64_t _importTime) = 0;
     virtual TransactionType type() const = 0;
     virtual void forceSender(bytes const& _sender) const { m_sender = _sender; }
 
@@ -122,11 +123,11 @@ protected:
 
     TxSubmitCallback m_submitCallback;
     // the tx has been synced or not
-    mutable bool m_synced = false;
+    mutable std::atomic_bool m_synced = {false};
     // the tx has been sealed by the leader of not
-    mutable bool m_sealed = false;
+    mutable std::atomic_bool m_sealed = {false};
     // the tx is invalid for verify failed
-    mutable bool m_invalid = false;
+    mutable std::atomic_bool m_invalid = {false};
 
     // Record the list of nodes containing the transaction and provide related query interfaces.
     mutable bcos::SharedMutex x_knownNodeList;
