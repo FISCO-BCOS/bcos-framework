@@ -159,19 +159,27 @@ public:
         auto start_time = utcTime();
         auto record_time = utcTime();
         std::vector<TableInfo::Ptr> infos;
+        infos.reserve(m_name2Table.size());
         std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>> datas;
-
         for (auto& dbIt : m_name2Table)
         {
             auto table = dbIt.second;
             if (table->dirty())
             {
-                STORAGE_LOG(TRACE) << "Dumping table: " << dbIt.first;
-                auto tableData = table->dump();
-                datas.push_back(tableData);
                 infos.push_back(table->tableInfo());
             }
         }
+        datas.resize(infos.size());
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, infos.size()),
+            [&](const tbb::blocked_range<size_t>& range) {
+                for (auto it = range.begin(); it != range.end(); ++it)
+                {
+                    auto table = m_name2Table[infos[it]->name];
+                    STORAGE_LOG(TRACE) << "Dumping table: " << infos[it]->name;
+                    auto tableData = table->dump();
+                    datas[it] = (tableData);
+                }
+            });
         auto getData_time_cost = utcTime() - record_time;
         record_time = utcTime();
         size_t ret = 0;
@@ -197,20 +205,28 @@ public:
         auto start_time = utcTime();
         auto record_time = utcTime();
         auto infos = std::make_shared<std::vector<TableInfo::Ptr>>();
+        infos->reserve(m_name2Table.size());
         auto datas = std::make_shared<
             std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>();
-
         for (auto& dbIt : m_name2Table)
-        {  // TODO: maybe parallel_for
+        {
             auto table = dbIt.second;
             if (table->dirty())
             {
-                STORAGE_LOG(TRACE) << "Dumping table: " << dbIt.first;
-                auto tableData = table->dump();
-                datas->push_back(tableData);
                 infos->push_back(table->tableInfo());
             }
         }
+        datas->resize(infos->size());
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, infos->size()),
+            [&](const tbb::blocked_range<size_t>& range) {
+                for (auto it = range.begin(); it != range.end(); ++it)
+                {
+                    auto table = m_name2Table[(*infos)[it]->name];
+                    STORAGE_LOG(TRACE) << "Dumping table: " << (*infos)[it]->name;
+                    auto tableData = table->dump();
+                    (*datas)[it] = (tableData);
+                }
+            });
         auto getData_time_cost = utcTime() - record_time;
         record_time = utcTime();
         if (!datas->empty())
