@@ -51,6 +51,8 @@ protected:
     void executeWorker() override;
     virtual void noteGenerateProposal() { m_signalled.notify_all(); }
 
+    virtual void submitProposal(bcos::protocol::Block::Ptr _proposal);
+
 protected:
     SealerConfig::Ptr m_sealerConfig;
     SealingManager::Ptr m_sealingManager;

@@ -18,6 +18,7 @@
  * @date: 2021-05-14
  */
 #pragma once
+#include "interfaces/consensus/ConsensusInterface.h"
 #include "interfaces/protocol/BlockFactory.h"
 #include "interfaces/txpool/TxPoolInterface.h"
 namespace bcos
@@ -28,9 +29,10 @@ class SealerConfig
 {
 public:
     using Ptr = std::shared_ptr<SealerConfig>;
-    SealerConfig(
-        bcos::txpool::TxPoolInterface::Ptr _txpool, bcos::protocol::BlockFactory::Ptr _blockFactory)
-      : m_txpool(_txpool), m_blockFactory(_blockFactory)
+    SealerConfig(bcos::txpool::TxPoolInterface::Ptr _txpool,
+        bcos::protocol::BlockFactory::Ptr _blockFactory,
+        bcos::consensus::ConsensusInterface::Ptr _consensus)
+      : m_txpool(_txpool), m_blockFactory(_blockFactory), m_consensus(_consensus)
     {}
     virtual ~SealerConfig() {}
 
@@ -40,10 +42,12 @@ public:
     virtual void setMinSealTime(unsigned _minSealTime) { m_minSealTime = _minSealTime; }
 
     bcos::protocol::BlockFactory::Ptr blockFactory() { return m_blockFactory; }
+    bcos::consensus::ConsensusInterface::Ptr consensus() { return m_consensus; }
 
 protected:
     bcos::txpool::TxPoolInterface::Ptr m_txpool;
     bcos::protocol::BlockFactory::Ptr m_blockFactory;
+    bcos::consensus::ConsensusInterface::Ptr m_consensus;
     unsigned m_minSealTime = 500;
 };
 }  // namespace sealer

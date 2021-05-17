@@ -84,7 +84,7 @@ void Sealer::executeWorker()
     if (m_sealingManager->shouldGenerateProposal())
     {
         auto proposal = m_sealingManager->generateProposal();
-        // TODO: submit the proposal to the consensus module
+        submitProposal(proposal);
         SEAL_LOG(DEBUG) << LOG_DESC("Generate proposal")
                         << LOG_KV("number", proposal->blockHeader()->number())
                         << LOG_KV("hash", proposal->blockHeader()->hash().abridged())
@@ -95,4 +95,25 @@ void Sealer::executeWorker()
     {
         m_sealingManager->fetchTransactions();
     }
+}
+
+void Sealer::submitProposal(bcos::protocol::Block::Ptr _proposal)
+{
+    bytesPointer encodedData = std::make_shared<bytes>();
+    _proposal->encode(*encodedData);
+    m_sealerConfig->consensus()->asyncSubmitProposal(ref(*encodedData),
+        _proposal->blockHeader()->number(), _proposal->blockHeader()->hash(),
+        [this, _proposal](Error::Ptr _error) {
+            if (_error->errorCode() == CommonError::SUCCESS)
+            {
+                return;
+            }
+            SEAL_LOG(WARNING) << LOG_DESC("asyncSubmitProposal failed: put back the transactions");
+            auto txsHash = std::make_shared<HashList>();
+            for (size_t i = 0; i < _proposal->transactionsHashSize(); i++)
+            {
+                txsHash->emplace_back(_proposal->transactionHash(i));
+            }
+            this->m_sealingManager->appendTransactions(txsHash);
+        });
 }
