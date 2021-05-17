@@ -66,8 +66,9 @@ public:
         return m_onReady.add(_t);
     }
 
-protected:
     virtual void appendTransactions(bcos::crypto::HashListPtr _fetchedTxs);
+
+protected:
     virtual bool reachMinSealTimeCondition();
     virtual void clearPendingTxs();
     virtual void notifyResetTxsFlag(bcos::crypto::HashListPtr _txsHash, bool _flag);

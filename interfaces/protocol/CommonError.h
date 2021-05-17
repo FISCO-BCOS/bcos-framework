@@ -19,6 +19,7 @@
  * @date 2021-04-22
  */
 #pragma once
+#include <stdint.h>
 namespace bcos
 {
 namespace protocol

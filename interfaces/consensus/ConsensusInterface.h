@@ -19,9 +19,11 @@
  * @date 2021-04-08
  */
 #pragma once
-#include "interfaces/consensus/ConsensusTypeDef.h"
-#include "interfaces/crypto/KeyInterface.h"
-#include "libutilities/Error.h"
+#include "../../interfaces/crypto/CommonType.h"
+#include "../../interfaces/crypto/KeyInterface.h"
+#include "../../interfaces/protocol/ProtocolTypeDef.h"
+#include "../../libutilities/Error.h"
+#include "ConsensusTypeDef.h"
 
 namespace bcos
 {
@@ -31,24 +33,16 @@ namespace consensus
 class ConsensusInterface
 {
 public:
+    using Ptr = std::shared_ptr<ConsensusInterface>;
     ConsensusInterface() = default;
     virtual ~ConsensusInterface() {}
 
-    // asyncGetNodeID gets NodeID
-    virtual void asyncGetNodeID(
-        std::function<void(Error::Ptr, bcos::crypto::PublicPtr)> _onGetNodeID) = 0;
-    // asyncGetNodeIndex gets node index
-    virtual void asyncGetNodeIndex(std::function<void(Error::Ptr, IndexType)> _onGetNodeIndex) = 0;
-
-    // asyncGetNodeType gets the type of the consensus node
-    virtual void asyncGetNodeType(std::function<void(NodeType const&)> _onGetNodeType) = 0;
-
-    // isLeader checks whether the node is the sealer or not
-    virtual void isLeader(std::function<void(bool)> _callback) = 0;
-
+    // TODO: Supplement the consensus-related interfaces required by RPC
     virtual void asyncSubmitProposal(bytesConstRef _proposalData,
         bcos::protocol::BlockNumber _proposalIndex, bcos::crypto::HashType const& _proposalHash,
-        std::function<void(Error::Ptr)> _onProposalSubmitted)
+        std::function<void(Error::Ptr)> _onProposalSubmitted) = 0;
+
+    virtual void asyncGetPBFTView(std::function<void(Error::Ptr, ViewType)> _onGetView) = 0;
 };
 }  // namespace consensus
 }  // namespace bcos
