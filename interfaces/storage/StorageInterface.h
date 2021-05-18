@@ -83,6 +83,10 @@ public:
     virtual bool put(const std::string& columnFamily, const std::string_view& key,
         const std::string_view& value) = 0;
     virtual std::string get(const std::string& columnFamily, const std::string_view& key) = 0;
+    virtual void asyncPut(const std::string& columnFamily, const std::string_view& key,
+        const std::string_view& value, std::function<void(Error)> _callback) = 0;
+    virtual void asyncGet(const std::string& columnFamily, const std::string_view& key,
+        std::function<void(Error, const std::string& value)> _callback) = 0;
     virtual void asyncGetBatch(const std::string& columnFamily,
         std::shared_ptr<std::vector<std::string_view> > keys,
         std::function<void(Error, std::shared_ptr<std::vector<std::string> >)> callback) = 0;

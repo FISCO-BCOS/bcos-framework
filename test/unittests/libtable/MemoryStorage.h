@@ -79,7 +79,7 @@ public:
                 if (data[_tableInfo->name].count(std::string(key)))
                 {
                     if (data[_tableInfo->name][key]->getStatus() == Entry::Status::NORMAL)
-                    { // this if is unnecessary
+                    {  // this if is unnecessary
                         ret[key] = data[_tableInfo->name][key];
                     }
                 }
@@ -148,6 +148,12 @@ public:
         return true;
     }
     std::string get(const std::string&, const std::string_view&) override { return ""; }
+    void asyncPut(const std::string&, const std::string_view&, const std::string_view&,
+        std::function<void(Error)>) override
+    {}
+    void asyncGet(const std::string&, const std::string_view&,
+        std::function<void(Error, const std::string& value)>) override
+    {}
     void asyncGetBatch(const std::string&, std::shared_ptr<std::vector<std::string_view>>,
         std::function<void(Error, std::shared_ptr<std::vector<std::string>>)>) override
     {}
