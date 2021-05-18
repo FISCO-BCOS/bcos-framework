@@ -87,7 +87,8 @@ public:
         }
         return ret;
     }
-    size_t commitTables(const std::vector<std::shared_ptr<TableInfo>> _tableInfos,
+    size_t commitBlock(protocol::BlockNumber,
+        const std::vector<std::shared_ptr<TableInfo>> _tableInfos,
         std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>>& _tableDatas)
         override
     {
@@ -120,7 +121,9 @@ public:
     void asyncGetRows(std::shared_ptr<TableInfo>, std::shared_ptr<std::vector<std::string>>,
         std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)>) override
     {}
-    void asyncCommitTables(std::shared_ptr<std::vector<std::shared_ptr<TableInfo>>>,
+
+    void asyncCommitBlock(protocol::BlockNumber,
+        std::shared_ptr<std::vector<std::shared_ptr<TableInfo>>>,
         std::shared_ptr<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>&,
         std::function<void(Error::Ptr, size_t)>) override
     {}
