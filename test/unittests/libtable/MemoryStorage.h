@@ -112,29 +112,29 @@ public:
     }
 
     void asyncGetPrimaryKeys(std::shared_ptr<TableInfo>, std::shared_ptr<Condition>,
-        std::function<void(Error, std::vector<std::string>)>) override
+        std::function<void(Error::Ptr, std::vector<std::string>)>) override
     {}
     void asyncGetRow(std::shared_ptr<TableInfo>, std::shared_ptr<std::string>,
-        std::function<void(Error, std::shared_ptr<Entry>)>) override
+        std::function<void(Error::Ptr, std::shared_ptr<Entry>)>) override
     {}
     void asyncGetRows(std::shared_ptr<TableInfo>, std::shared_ptr<std::vector<std::string>>,
-        std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)>) override
+        std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)>) override
     {}
     void asyncCommitTables(std::shared_ptr<std::vector<std::shared_ptr<TableInfo>>>,
         std::shared_ptr<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>&,
-        std::function<void(Error, size_t)>) override
+        std::function<void(Error::Ptr, size_t)>) override
     {}
 
     // cache TableFactory
     void asyncAddStateCache(protocol::BlockNumber, protocol::Block::Ptr,
-        std::shared_ptr<TableFactory>, std::function<void(Error)>) override
+        std::shared_ptr<TableFactory>, std::function<void(Error::Ptr)>) override
     {}
-    void asyncDropStateCache(protocol::BlockNumber, std::function<void(Error)>) override {}
+    void asyncDropStateCache(protocol::BlockNumber, std::function<void(Error::Ptr)>) override {}
     void asyncGetBlock(
-        protocol::BlockNumber, std::function<void(Error, protocol::Block::Ptr)>) override
+        protocol::BlockNumber, std::function<void(Error::Ptr, protocol::Block::Ptr)>) override
     {}
     void asyncGetStateCache(
-        protocol::BlockNumber, std::function<void(Error, std::shared_ptr<TableFactory>)>) override
+        protocol::BlockNumber, std::function<void(Error::Ptr, std::shared_ptr<TableFactory>)>) override
     {}
     protocol::Block::Ptr getBlock(protocol::BlockNumber) override { return nullptr; }
     std::shared_ptr<TableFactory> getStateCache(protocol::BlockNumber) override { return nullptr; }
@@ -143,19 +143,19 @@ public:
         protocol::BlockNumber, protocol::Block::Ptr, std::shared_ptr<TableFactory>) override
     {}
     // KV store in split database, used to store data off-chain
-    bool put(const std::string&, const std::string_view&, const std::string_view&) override
+    bool put(const std::string_view&, const std::string_view&, const std::string_view&) override
     {
         return true;
     }
-    std::string get(const std::string&, const std::string_view&) override { return ""; }
-    void asyncPut(const std::string&, const std::string_view&, const std::string_view&,
-        std::function<void(Error)>) override
+    std::string get(const std::string_view&, const std::string_view&) override { return ""; }
+    void asyncPut(std::shared_ptr<std::string>, std::shared_ptr<std::string>, std::shared_ptr<std::string>,
+        std::function<void(Error::Ptr)>) override
     {}
-    void asyncGet(const std::string&, const std::string_view&,
-        std::function<void(Error, const std::string& value)>) override
+    void asyncGet(std::shared_ptr<std::string>, std::shared_ptr<std::string>,
+        std::function<void(Error::Ptr, const std::string& value)>) override
     {}
-    void asyncGetBatch(const std::string&, std::shared_ptr<std::vector<std::string_view>>,
-        std::function<void(Error, std::shared_ptr<std::vector<std::string>>)>) override
+    void asyncGetBatch(std::shared_ptr<std::string>, std::shared_ptr<std::vector<std::string>>,
+        std::function<void(Error::Ptr, std::shared_ptr<std::vector<std::string>>)>) override
     {}
 
 private:

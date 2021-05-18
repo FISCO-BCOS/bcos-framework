@@ -182,17 +182,17 @@ bool Table::remove(const std::string& _key)
 }
 
 void Table::asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
-    std::function<void(Error, std::vector<std::string>)> _callback)
+    std::function<void(Error::Ptr, std::vector<std::string>)> _callback)
 {
     m_DB->asyncGetPrimaryKeys(m_tableInfo, _condition, _callback);
 }
 void Table::asyncGetRow(
-    std::shared_ptr<std::string> _key, std::function<void(Error, std::shared_ptr<Entry>)> _callback)
+    std::shared_ptr<std::string> _key, std::function<void(Error::Ptr, std::shared_ptr<Entry>)> _callback)
 {
     m_DB->asyncGetRow(m_tableInfo, _key, _callback);
 }
 void Table::asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
-    std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback)
+    std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)> _callback)
 {
     m_DB->asyncGetRows(m_tableInfo, _keys, _callback);
 }

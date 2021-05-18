@@ -200,7 +200,7 @@ public:
         return ret;
     }
 
-    void asyncCommit(std::function<void(Error, size_t)> _callback) override
+    void asyncCommit(std::function<void(Error::Ptr, size_t)> _callback) override
     {
         auto start_time = utcTime();
         auto record_time = utcTime();

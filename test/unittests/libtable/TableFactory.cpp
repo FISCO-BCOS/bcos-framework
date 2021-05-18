@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(keys.size() == 1);
     entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 1);
-    tableFactory->asyncCommit([](Error, size_t){});
+    tableFactory->asyncCommit([](Error::Ptr, size_t){});
 }
 
 BOOST_AUTO_TEST_CASE(parallel_openTable)

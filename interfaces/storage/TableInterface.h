@@ -80,11 +80,11 @@ public:
     virtual bool setRow(const std::string& _key, std::shared_ptr<Entry> _entry) = 0;
 
     virtual void asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
-        std::function<void(Error, std::vector<std::string>)> _callback) = 0;
+        std::function<void(Error::Ptr, std::vector<std::string>)> _callback) = 0;
     virtual void asyncGetRow(std::shared_ptr<std::string> _key,
-        std::function<void(Error, std::shared_ptr<Entry>)> _callback) = 0;
+        std::function<void(Error::Ptr, std::shared_ptr<Entry>)> _callback) = 0;
     virtual void asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
-        std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback) = 0;
+        std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)> _callback) = 0;
 
     virtual bool remove(const std::string& _key) = 0;
     virtual TableInfo::Ptr tableInfo() const = 0;
@@ -114,7 +114,7 @@ public:
     virtual size_t savepoint() = 0;
     virtual void rollback(size_t _savepoint) = 0;
     virtual size_t commit() = 0;
-    virtual void asyncCommit(std::function<void(Error, size_t)> _callback) = 0;
+    virtual void asyncCommit(std::function<void(Error::Ptr, size_t)> _callback) = 0;
 };
 }  // namespace storage
 }  // namespace bcos
