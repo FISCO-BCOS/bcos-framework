@@ -46,11 +46,11 @@ public:
     bool remove(const std::string& _key) override;
 
     void asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
-        std::function<void(Error, std::vector<std::string>)> _callback) override;
+        std::function<void(Error::Ptr, std::vector<std::string>)> _callback) override;
     void asyncGetRow(std::shared_ptr<std::string> _key,
-        std::function<void(Error, std::shared_ptr<Entry>)> _callback) override;
+        std::function<void(Error::Ptr, std::shared_ptr<Entry>)> _callback) override;
     void asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
-        std::function<void(Error, std::map<std::string, std::shared_ptr<Entry>>)> _callback)
+        std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)> _callback)
         override;
 
     TableInfo::Ptr tableInfo() const override { return m_tableInfo; }
