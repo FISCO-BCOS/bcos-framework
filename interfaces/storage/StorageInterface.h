@@ -84,14 +84,16 @@ public:
     virtual std::string get(
         const std::string_view& _columnFamily, const std::string_view& _key) = 0;
     virtual bool remove(const std::string_view& _columnFamily, const std::string_view& _key) = 0;
+
     virtual void asyncPut(std::shared_ptr<std::string> _columnFamily,
-        std::shared_ptr<std::string> _key, std::shared_ptr<std::string> value,
+        std::shared_ptr<std::string> _key, std::shared_ptr<bytes> _value,
         std::function<void(Error::Ptr)> _callback) = 0;
     virtual void asyncRemove(std::shared_ptr<std::string> _columnFamily,
         std::shared_ptr<std::string> _key, std::function<void(Error::Ptr)> _callback) = 0;
     virtual void asyncGet(std::shared_ptr<std::string> _columnFamily,
         std::shared_ptr<std::string> _key,
         std::function<void(Error::Ptr, const std::string& value)> _callback) = 0;
+
     virtual void asyncGetBatch(std::shared_ptr<std::string> _columnFamily,
         std::shared_ptr<std::vector<std::string> > _keys,
         std::function<void(Error::Ptr, std::shared_ptr<std::vector<std::string> >)> callback) = 0;

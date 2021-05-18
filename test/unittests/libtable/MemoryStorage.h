@@ -147,7 +147,7 @@ public:
     std::string get(const std::string_view&, const std::string_view&) override { return ""; }
     bool remove(const std::string_view&, const std::string_view&) override { return true; }
     void asyncPut(std::shared_ptr<std::string>, std::shared_ptr<std::string>,
-        std::shared_ptr<std::string>, std::function<void(Error::Ptr)>) override
+        std::shared_ptr<bytes>, std::function<void(Error::Ptr)>) override
     {}
     void asyncGet(std::shared_ptr<std::string>, std::shared_ptr<std::string>,
         std::function<void(Error::Ptr, const std::string& value)>) override
