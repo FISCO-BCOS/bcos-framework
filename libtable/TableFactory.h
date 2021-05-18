@@ -185,7 +185,7 @@ public:
         size_t ret = 0;
         if (!datas.empty())
         {
-            ret = m_DB->commitTables(infos, datas);
+            ret = m_DB->commitBlock(m_blockNumber, infos, datas);
         }
         auto commit_time_cost = utcTime() - record_time;
         record_time = utcTime();
@@ -206,8 +206,8 @@ public:
         auto record_time = utcTime();
         auto infos = std::make_shared<std::vector<TableInfo::Ptr>>();
         infos->reserve(m_name2Table.size());
-        auto datas = std::make_shared<
-            std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>();
+        auto datas =
+            std::make_shared<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>();
         for (auto& dbIt : m_name2Table)
         {
             auto table = dbIt.second;
@@ -231,7 +231,7 @@ public:
         record_time = utcTime();
         if (!datas->empty())
         {
-            m_DB->asyncCommitTables(infos, datas, _callback);
+            m_DB->asyncCommitBlock(m_blockNumber, infos, datas, _callback);
         }
         auto commit_time_cost = utcTime() - record_time;
         record_time = utcTime();
