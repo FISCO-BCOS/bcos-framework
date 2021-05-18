@@ -26,6 +26,7 @@
 #include "../../interfaces/protocol/BlockHeader.h"
 #include "../../interfaces/protocol/Transaction.h"
 #include "../../interfaces/protocol/TransactionReceipt.h"
+#include "../../interfaces/storage/TableInterface.h"
 #include "../../libutilities/Error.h"
 #include "LedgerConfig.h"
 #include "LedgerTypeDef.h"
@@ -45,26 +46,30 @@ public:
     virtual ~LedgerInterface() {}
 
     /**
-     * @brief async commit a block
-     *
-     * @param _blockNumber the number of block to commit, txs had been stored in asyncPreStoreTxs()
-     * @param _signList the signature list of block header to commit,
-     *                  if _signList.empty(), it means sync module call this interface or error
-     * happened if not, it means consensus call this
+     * @brief async commit a block in consensus/sync module
+     * @param _blockHeader the header to commit, this header should have signList
      * @param _onCommitBlock trigger this callback when commit block in storage
      */
-    virtual void asyncCommitBlock(bcos::protocol::BlockNumber _blockNumber,
-        const gsl::span<const protocol::Signature>& _signList,
+    virtual void asyncCommitBlock(bcos::protocol::BlockHeader::Ptr _blockHeader,
         std::function<void(Error::Ptr, LedgerConfig::Ptr)> _onCommitBlock) = 0;
 
     /**
-     * @brief async pre-store tx in block when tx pool verify
-     * @param _txToStore
-     * @param _number pre-store block number
+     * @brief async store txs in block when tx pool verify
+     * @param _txToStore tx bytes data list
+     * @param _txHashList tx hash list
      * @param _onTxsStored callback
      */
-    virtual void asyncPreStoreTransaction(bytesConstRef _txToStore, const crypto::HashType& _txHash,
-        std::function<void(Error::Ptr)> _onTxStored) = 0;
+    virtual void asyncStoreTransactions(std::shared_ptr<std::vector<bytesPointer>> _txToStore,
+        crypto::HashListPtr _txHashList, std::function<void(Error::Ptr)> _onTxStored) = 0;
+
+    /**
+     * @brief async store receipts when execute module executed
+     * @param _tableFactory
+     * @param _block full block within receipts
+     * @param _onReceiptStored
+     */
+    virtual void asyncStoreReceipts(storage::TableFactoryInterface::Ptr _tableFactory,
+        protocol::Block::Ptr _block, std::function<void(Error::Ptr)> _onReceiptStored) = 0;
 
     /**
      * @brief async get block by blockNumber
@@ -81,7 +86,6 @@ public:
 
     /**
      * @brief async get latest block number
-     *
      * @param _onGetBlock
      */
     virtual void asyncGetBlockNumber(
@@ -123,32 +127,6 @@ public:
      * @param _onGetTx
      */
     virtual void asyncGetTransactionReceiptByHash(crypto::HashType const& _txHash, bool _withProof,
-        std::function<void(Error::Ptr, protocol::TransactionReceipt::ConstPtr, MerkleProofPtr)>
-            _onGetTx) = 0;
-
-    /**
-     * @brief async get transaction by block number and index
-     * @param _blockNumber number of block
-     * @param _index index of tx in block txList
-     * @param _withProof if true then it will callback MerkleProofPtr in _onGetTx
-     *                   if false then MerkleProofPtr will be nullptr
-     * @param _onGetTx
-     */
-    virtual void asyncGetTransactionByBlockNumberAndIndex(protocol::BlockNumber _blockNumber,
-        int64_t _index, bool _withProof,
-        std::function<void(Error::Ptr, protocol::Transaction::ConstPtr, MerkleProofPtr)>
-            _onGetTx) = 0;
-
-    /**
-     * @brief async get a tx receipt by block number and index
-     * @param _blockNumber number of block
-     * @param _index index of tx receipt in block receipt list
-     * @param _withProof if true then it will callback MerkleProofPtr in _onGetTx
-     *                   if false then MerkleProofPtr will be nullptr
-     * @param _onGetTx
-     */
-    virtual void asyncGetReceiptByBlockNumberAndIndex(protocol::BlockNumber _blockNumber,
-        int64_t _index, bool _withProof,
         std::function<void(Error::Ptr, protocol::TransactionReceipt::ConstPtr, MerkleProofPtr)>
             _onGetTx) = 0;
 
