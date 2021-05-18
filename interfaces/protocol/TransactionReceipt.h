@@ -20,6 +20,7 @@
 
 #include "../../libutilities/FixedBytes.h"
 #include "../crypto/CryptoSuite.h"
+#include "ProtocolTypeDef.h"
 #include <gsl/span>
 
 namespace bcos
@@ -64,6 +65,8 @@ public:
     virtual bytesConstRef output() const = 0;
     virtual gsl::span<const LogEntry> logEntries() const = 0;
     virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() { return m_cryptoSuite; }
+    virtual BlockNumber blockNumber() const = 0;
+
 
 protected:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;

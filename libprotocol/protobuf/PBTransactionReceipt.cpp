@@ -38,7 +38,7 @@ PBTransactionReceipt::PBTransactionReceipt(
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
     HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
-    LogEntriesPtr _logEntries, int32_t _status)
+    LogEntriesPtr _logEntries, int32_t _status, BlockNumber _blockNumber)
   : TransactionReceipt(_cryptoSuite),
     m_receipt(std::make_shared<PBRawTransactionReceipt>()),
     m_stateRoot(_stateRoot),
@@ -46,7 +46,8 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
     m_contractAddress(_contractAddress),
     m_logEntries(_logEntries),
     m_status(_status),
-    m_bloom(generateBloom(_logEntries, _cryptoSuite))
+    m_bloom(generateBloom(_logEntries, _cryptoSuite)),
+    m_blockNumber(_blockNumber)
 {
     m_dataCache = std::make_shared<bytes>();
     m_receipt->set_version(_version);
@@ -54,18 +55,18 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
     HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
-    LogEntriesPtr _logEntries, int32_t _status, bytes const& _ouptput)
-  : PBTransactionReceipt(
-        _cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress, _logEntries, _status)
+    LogEntriesPtr _logEntries, int32_t _status, bytes const& _ouptput, BlockNumber _blockNumber)
+  : PBTransactionReceipt(_cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress,
+        _logEntries, _status, _blockNumber)
 {
     m_output = _ouptput;
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
     HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
-    LogEntriesPtr _logEntries, int32_t _status, bytes&& _ouptput)
-  : PBTransactionReceipt(
-        _cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress, _logEntries, _status)
+    LogEntriesPtr _logEntries, int32_t _status, bytes&& _ouptput, BlockNumber _blockNumber)
+  : PBTransactionReceipt(_cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress,
+        _logEntries, _status, _blockNumber)
 {
     m_output = std::move(_ouptput);
 }
@@ -78,7 +79,7 @@ void PBTransactionReceipt::decode(bytesConstRef _data)
     ScaleDecoderStream stream(gsl::span<const byte>(
         (byte*)m_receipt->hashfieldsdata().data(), m_receipt->hashfieldsdata().size()));
     stream >> m_status >> m_output >> m_contractAddress >> m_stateRoot >> m_gasUsed >> m_bloom >>
-        m_logEntries;
+        m_logEntries >> m_blockNumber;
 }
 
 void PBTransactionReceipt::encode(bytes& _encodeReceiptData) const
@@ -115,7 +116,7 @@ void PBTransactionReceipt::encodeHashFields() const
     // encode the hashFieldsData
     ScaleEncoderStream stream;
     stream << m_status << m_output << m_contractAddress << m_stateRoot << m_gasUsed << m_bloom
-           << m_logEntries;
+           << m_logEntries << m_blockNumber;
     auto hashFieldsData = stream.data();
     m_receipt->set_version(m_version);
     m_receipt->set_hashfieldsdata(hashFieldsData.data(), hashFieldsData.size());

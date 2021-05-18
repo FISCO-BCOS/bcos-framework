@@ -49,19 +49,19 @@ public:
     TransactionReceipt::Ptr createReceipt(int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
         bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
-        bytes const& _output) override
+        bytes const& _output, BlockNumber _blockNumber) override
     {
         return std::make_shared<PBTransactionReceipt>(m_cryptoSuite, _version, _stateRoot, _gasUsed,
-            _contractAddress, _logEntries, _status, _output);
+            _contractAddress, _logEntries, _status, _output, _blockNumber);
     }
 
     TransactionReceipt::Ptr createReceipt(int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
-        bytes&& _output) override
+        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status, bytes&& _output,
+        BlockNumber _blockNumber) override
     {
         return std::make_shared<PBTransactionReceipt>(m_cryptoSuite, _version, _stateRoot, _gasUsed,
-            _contractAddress, _logEntries, _status, _output);
+            _contractAddress, _logEntries, _status, _output, _blockNumber);
     }
 
     bcos::crypto::CryptoSuite::Ptr cryptoSuite() override { return m_cryptoSuite; }
