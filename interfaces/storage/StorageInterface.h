@@ -59,33 +59,37 @@ public:
         std::function<void(Error::Ptr, std::shared_ptr<Entry>)> _callback) = 0;
     virtual void asyncGetRows(std::shared_ptr<TableInfo> _tableInfo,
         std::shared_ptr<std::vector<std::string> > _keys,
-        std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry> >)> _callback) = 0;
+        std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry> >)>
+            _callback) = 0;
     virtual void asyncCommitTables(
         std::shared_ptr<std::vector<std::shared_ptr<TableInfo> > > _infos,
         std::shared_ptr<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr> > > >& _datas,
         std::function<void(Error::Ptr, size_t)> _callback) = 0;
 
     // cache TableFactory
-    virtual void asyncAddStateCache(protocol::BlockNumber _blockNumber, protocol::Block::Ptr _block,
+    virtual void asyncAddStateCache(protocol::BlockNumber _blockNumber,
         std::shared_ptr<TableFactory> _tablefactory, std::function<void(Error::Ptr)> _callback) = 0;
     virtual void asyncDropStateCache(
         protocol::BlockNumber _blockNumber, std::function<void(Error::Ptr)> _callback) = 0;
-    virtual void asyncGetBlock(protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, protocol::Block::Ptr)> _callback) = 0;
     virtual void asyncGetStateCache(protocol::BlockNumber _blockNumber,
         std::function<void(Error::Ptr, std::shared_ptr<TableFactory>)> _callback) = 0;
-    virtual protocol::Block::Ptr getBlock(protocol::BlockNumber _blockNumber) = 0;
     virtual std::shared_ptr<TableFactory> getStateCache(protocol::BlockNumber _blockNumber) = 0;
     virtual void dropStateCache(protocol::BlockNumber _blockNumber) = 0;
-    virtual void addStateCache(protocol::BlockNumber _blockNumber, protocol::Block::Ptr _block,
-        std::shared_ptr<TableFactory> _tablefactory) = 0;
+    virtual void addStateCache(
+        protocol::BlockNumber _blockNumber, std::shared_ptr<TableFactory> _tablefactory) = 0;
     // KV store in split database, used to store data off-chain
     virtual bool put(const std::string_view& _columnFamily, const std::string_view& _key,
         const std::string_view& _value) = 0;
-    virtual std::string get(const std::string_view& _columnFamily, const std::string_view& _key) = 0;
-    virtual void asyncPut(std::shared_ptr<std::string> _columnFamily, std::shared_ptr<std::string> _key,
-        std::shared_ptr<std::string> value, std::function<void(Error::Ptr)> _callback) = 0;
-    virtual void asyncGet(std::shared_ptr<std::string> _columnFamily, std::shared_ptr<std::string> _key,
+    virtual std::string get(
+        const std::string_view& _columnFamily, const std::string_view& _key) = 0;
+    virtual bool remove(const std::string_view& _columnFamily, const std::string_view& _key) = 0;
+    virtual void asyncPut(std::shared_ptr<std::string> _columnFamily,
+        std::shared_ptr<std::string> _key, std::shared_ptr<std::string> value,
+        std::function<void(Error::Ptr)> _callback) = 0;
+    virtual void asyncRemove(std::shared_ptr<std::string> _columnFamily,
+        std::shared_ptr<std::string> _key, std::function<void(Error::Ptr)> _callback) = 0;
+    virtual void asyncGet(std::shared_ptr<std::string> _columnFamily,
+        std::shared_ptr<std::string> _key,
         std::function<void(Error::Ptr, const std::string& value)> _callback) = 0;
     virtual void asyncGetBatch(std::shared_ptr<std::string> _columnFamily,
         std::shared_ptr<std::vector<std::string> > _keys,
