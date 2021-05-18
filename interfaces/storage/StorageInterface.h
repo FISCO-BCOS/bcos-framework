@@ -47,7 +47,8 @@ public:
         std::shared_ptr<TableInfo> _tableInfo, const std::string_view& _key) = 0;
     virtual std::map<std::string, std::shared_ptr<Entry> > getRows(
         std::shared_ptr<TableInfo> _tableInfo, const std::vector<std::string>& _keys) = 0;
-    virtual size_t commitTables(const std::vector<std::shared_ptr<TableInfo> > _tableInfos,
+    virtual size_t commitBlock(protocol::BlockNumber _blockNumber,
+        const std::vector<std::shared_ptr<TableInfo> > _tableInfos,
         std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry> > > >&
             _tableDatas) = 0;
 
@@ -61,7 +62,7 @@ public:
         std::shared_ptr<std::vector<std::string> > _keys,
         std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry> >)>
             _callback) = 0;
-    virtual void asyncCommitTables(
+    virtual void asyncCommitBlock(protocol::BlockNumber _blockNumber,
         std::shared_ptr<std::vector<std::shared_ptr<TableInfo> > > _infos,
         std::shared_ptr<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr> > > >& _datas,
         std::function<void(Error::Ptr, size_t)> _callback) = 0;
