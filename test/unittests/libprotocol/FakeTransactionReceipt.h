@@ -18,9 +18,9 @@
  * @date: 2021-03-16
  */
 #pragma once
+#include "../../../testutils/HashImpl.h"
 #include "libprotocol/protobuf/PBTransactionReceiptFactory.h"
 #include "libutilities/Common.h"
-#include "../../../testutils/HashImpl.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace bcos;
@@ -85,7 +85,7 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
     }
     auto factory = std::make_shared<PBTransactionReceiptFactory>(_cryptoSuite);
     auto receipt = factory->createReceipt(version, stateRoot, gasUsed, contractAddress.asBytes(),
-        logEntries, (int32_t)status, output);
+        logEntries, (int32_t)status, output, 0);
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     auto start = utcTime();
@@ -93,6 +93,21 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
     {
         receipt->encode(*encodedData);
     }
+
+    std::cout << "##### testPBTransactionReceipt:"
+              << "encodedData:" << *toHexString(*encodedData) << std::endl;
+    std::cout << "stateRoot:" << receipt->stateRoot().hex() << std::endl;
+    std::cout << "receipt->output():" << *toHexString(receipt->output()) << std::endl;
+    std::cout << "receipt->contractAddress():" << *toHexString(receipt->contractAddress())
+              << std::endl;
+    std::cout << "receipt->hash().hex(): " << receipt->hash().hex() << std::endl;
+    std::cout << "receipt->bloom().hex():" << receipt->bloom().hex() << std::endl;
+    auto& logEntry = (receipt->logEntries())[1];
+    std::cout << "(logEntry.topics()[0]).hex():" << (logEntry.topics()[0]).hex() << std::endl;
+    std::cout << "*toHexString(logEntry.address()):" << *toHexString(logEntry.address())
+              << std::endl;
+    std::cout << "*toHexString(logEntry.data()):" << *toHexString(logEntry.data()) << std::endl;
+
     std::cout << "##### ScaleReceipt encodeT: " << (utcTime() - start)
               << ", encodedData size:" << encodedData->size() << std::endl;
 

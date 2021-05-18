@@ -39,11 +39,12 @@ public:
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
         bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
-        bytes const& _output);
+        bytes const& _output, BlockNumber _blockNumber);
 
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status, bytes&& _output);
+        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status, bytes&& _output,
+        BlockNumber _blockNumber);
 
     ~PBTransactionReceipt() {}
 
@@ -63,10 +64,13 @@ public:
     }
     LogBloom const& bloom() const override { return m_bloom; }
 
+    BlockNumber blockNumber() const override { return m_blockNumber; }
+
 private:
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
         bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status);
+        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
+        BlockNumber _blockNumber);
     virtual void encodeHashFields() const;
 
 private:
@@ -81,6 +85,7 @@ private:
     int32_t m_status;
     bytes m_output;
     LogBloom m_bloom;
+    BlockNumber m_blockNumber;
 };
 }  // namespace protocol
 }  // namespace bcos

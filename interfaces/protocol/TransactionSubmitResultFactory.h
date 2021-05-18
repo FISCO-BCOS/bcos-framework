@@ -38,7 +38,7 @@ public:
         bcos::crypto::HashType const& _txHash, int32_t _status) = 0;
     virtual TransactionSubmitResult::Ptr createTxSubmitResult(TransactionReceipt::Ptr _receipt,
         bcos::crypto::HashType _txHash, int64_t _txIndex, bcos::crypto::HashType _blockHash,
-        BlockNumber _blockNumber, bytesConstRef _sender, bytesConstRef _to) = 0;
+        bytesConstRef _sender, bytesConstRef _to) = 0;
     virtual TransactionSubmitResult::Ptr createTxSubmitResult(TransactionReceipt::Ptr _receipt,
         Transaction::Ptr _tx, int64_t _txIndex, BlockHeader::Ptr _blockHeader) = 0;
 };
