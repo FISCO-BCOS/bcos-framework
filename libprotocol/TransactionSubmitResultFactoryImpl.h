@@ -40,10 +40,10 @@ public:
 
     TransactionSubmitResult::Ptr createTxSubmitResult(TransactionReceipt::Ptr _receipt,
         bcos::crypto::HashType _txHash, int64_t _txIndex, bcos::crypto::HashType _blockHash,
-        BlockNumber _blockNumber, bytesConstRef _sender, bytesConstRef _to) override
+        bytesConstRef _sender, bytesConstRef _to) override
     {
         return std::make_shared<TransactionSubmitResultImpl>(
-            _receipt, _txHash, _txIndex, _blockHash, _blockNumber, _sender, _to);
+            _receipt, _txHash, _txIndex, _blockHash, _sender, _to);
     }
 
     TransactionSubmitResult::Ptr createTxSubmitResult(TransactionReceipt::Ptr _receipt,

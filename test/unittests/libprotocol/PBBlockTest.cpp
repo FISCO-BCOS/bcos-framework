@@ -18,10 +18,10 @@
  * @author: yujiechen
  * @date: 2021-03-23
  */
+#include "../../../testutils/TestPromptFixture.h"
 #include "FakeBlock.h"
 #include "libprotocol/TransactionSubmitResultFactoryImpl.h"
 #include "libprotocol/TransactionSubmitResultImpl.h"
-#include "../../../testutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 #include <memory>
 using namespace bcos;
@@ -102,7 +102,6 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     BOOST_CHECK(onChainResult->to().toBytes() == tx->to().toBytes());
     BOOST_CHECK(onChainResult->txHash() == tx->hash());
     BOOST_CHECK(onChainResult->blockHash() == decodedBlock->blockHeader()->hash());
-    BOOST_CHECK(onChainResult->blockNumber() == decodedBlock->blockHeader()->number());
     BOOST_CHECK(cryptoSuite->hash("123") == blockFactory->cryptoSuite()->hash("123"));
 
     auto factory = std::make_shared<TransactionSubmitResultFactoryImpl>();
@@ -112,7 +111,6 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     BOOST_CHECK(result->to().toBytes() == tx->to().toBytes());
     BOOST_CHECK(result->txHash() == tx->hash());
     BOOST_CHECK(result->blockHash() == decodedBlock->blockHeader()->hash());
-    BOOST_CHECK(result->blockNumber() == decodedBlock->blockHeader()->number());
 }
 BOOST_AUTO_TEST_CASE(testNormalBlock)
 {
