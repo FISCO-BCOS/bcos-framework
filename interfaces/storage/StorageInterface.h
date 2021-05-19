@@ -30,7 +30,7 @@ namespace bcos
 {
 namespace storage
 {
-class TableFactory;
+class TableFactoryInterface;
 class StorageInterface : public std::enable_shared_from_this<StorageInterface>
 {
 public:
@@ -63,17 +63,17 @@ public:
         std::shared_ptr<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr> > > >& _datas,
         std::function<void(Error::Ptr, size_t)> _callback) = 0;
 
-    // cache TableFactory
+    // cache TableFactoryInterface
     virtual void asyncAddStateCache(protocol::BlockNumber _blockNumber,
-        std::shared_ptr<TableFactory> _tablefactory, std::function<void(Error::Ptr)> _callback) = 0;
+        std::shared_ptr<TableFactoryInterface> _tablefactory, std::function<void(Error::Ptr)> _callback) = 0;
     virtual void asyncDropStateCache(
         protocol::BlockNumber _blockNumber, std::function<void(Error::Ptr)> _callback) = 0;
     virtual void asyncGetStateCache(protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, std::shared_ptr<TableFactory>)> _callback) = 0;
-    virtual std::shared_ptr<TableFactory> getStateCache(protocol::BlockNumber _blockNumber) = 0;
+        std::function<void(Error::Ptr, std::shared_ptr<TableFactoryInterface>)> _callback) = 0;
+    virtual std::shared_ptr<TableFactoryInterface> getStateCache(protocol::BlockNumber _blockNumber) = 0;
     virtual void dropStateCache(protocol::BlockNumber _blockNumber) = 0;
     virtual void addStateCache(
-        protocol::BlockNumber _blockNumber, std::shared_ptr<TableFactory> _tablefactory) = 0;
+        protocol::BlockNumber _blockNumber, std::shared_ptr<TableFactoryInterface> _tablefactory) = 0;
 
     // KV store in split database, used to store data off-chain
     virtual Error::Ptr put(const std::string_view& _columnFamily, const std::string_view& _key,
