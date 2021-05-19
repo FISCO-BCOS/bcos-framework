@@ -162,9 +162,59 @@ public:
     {
         auto start_time = utcTime();
         auto record_time = utcTime();
-        std::vector<TableInfo::Ptr> infos;
+        auto data = exportData();
+        auto getData_time_cost = utcTime() - record_time;
+        record_time = utcTime();
+        std::pair<size_t, Error::Ptr> ret{0, nullptr};
+        if (!data.second.empty())
+        {
+            ret = m_DB->commitBlock(m_blockNumber, data.first, data.second);
+        }
+        auto commit_time_cost = utcTime() - record_time;
+        record_time = utcTime();
+        m_name2Table.clear();
+        auto clear_time_cost = utcTime() - record_time;
+        getChangeLog().clear();
+        STORAGE_LOG(DEBUG) << LOG_BADGE("Commit") << LOG_DESC("Commit db time record")
+                           << LOG_KV("getDataTimeCost", getData_time_cost)
+                           << LOG_KV("commitTimeCost", commit_time_cost)
+                           << LOG_KV("clearTimeCost", clear_time_cost)
+                           << LOG_KV("totalTimeCost", utcTime() - start_time);
+        return ret;
+    }
+
+    void asyncCommit(std::function<void(Error::Ptr, size_t)> _callback) override
+    {
+        auto start_time = utcTime();
+        auto record_time = utcTime();
+        auto data = exportData();
+        auto getData_time_cost = utcTime() - record_time;
+        record_time = utcTime();
+        if (!data.second.empty())
+        {
+            auto dataPtr =
+                std::make_shared<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>();
+            dataPtr->swap(data.second);
+            auto infoPtr = std::make_shared<std::vector<TableInfo::Ptr>>();
+            infoPtr->swap(data.first);
+            m_DB->asyncCommitBlock(m_blockNumber, infoPtr, dataPtr, _callback);
+        }
+        auto commit_time_cost = utcTime() - record_time;
+        STORAGE_LOG(DEBUG) << LOG_BADGE("Commit") << LOG_DESC("Commit db time record")
+                           << LOG_KV("getDataTimeCost", getData_time_cost)
+                           << LOG_KV("commitTimeCost", commit_time_cost)
+                           << LOG_KV("totalTimeCost", utcTime() - start_time);
+    }
+    std::pair<std::vector<TableInfo::Ptr>,
+        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
+    exportData() override
+    {
+        std::pair<std::vector<TableInfo::Ptr>,
+            std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
+            ret;
+        auto& infos = ret.first;
+        auto& datas = ret.second;
         infos.reserve(m_name2Table.size());
-        std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>> datas;
         for (auto& dbIt : m_name2Table)
         {
             auto table = dbIt.second;
@@ -184,64 +234,11 @@ public:
                     datas[it] = (tableData);
                 }
             });
-        auto getData_time_cost = utcTime() - record_time;
-        record_time = utcTime();
-        std::pair<size_t, Error::Ptr> ret{0, nullptr};
-        if (!datas.empty())
-        {
-            ret = m_DB->commitBlock(m_blockNumber, infos, datas);
-        }
-        auto commit_time_cost = utcTime() - record_time;
-        record_time = utcTime();
-        m_name2Table.clear();
-        auto clear_time_cost = utcTime() - record_time;
-        getChangeLog().clear();
-        STORAGE_LOG(DEBUG) << LOG_BADGE("Commit") << LOG_DESC("Commit db time record")
-                           << LOG_KV("getDataTimeCost", getData_time_cost)
-                           << LOG_KV("commitTimeCost", commit_time_cost)
-                           << LOG_KV("clearTimeCost", clear_time_cost)
-                           << LOG_KV("totalTimeCost", utcTime() - start_time);
         return ret;
     }
-
-    void asyncCommit(std::function<void(Error::Ptr, size_t)> _callback) override
-    {
-        auto start_time = utcTime();
-        auto record_time = utcTime();
-        auto infos = std::make_shared<std::vector<TableInfo::Ptr>>();
-        infos->reserve(m_name2Table.size());
-        auto datas =
-            std::make_shared<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>();
-        for (auto& dbIt : m_name2Table)
-        {
-            auto table = dbIt.second;
-            if (table->dirty())
-            {
-                infos->push_back(table->tableInfo());
-            }
-        }
-        datas->resize(infos->size());
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, infos->size()),
-            [&](const tbb::blocked_range<size_t>& range) {
-                for (auto it = range.begin(); it != range.end(); ++it)
-                {
-                    auto table = m_name2Table[(*infos)[it]->name];
-                    STORAGE_LOG(TRACE) << "Dumping table: " << (*infos)[it]->name;
-                    auto tableData = table->dump();
-                    (*datas)[it] = (tableData);
-                }
-            });
-        auto getData_time_cost = utcTime() - record_time;
-        record_time = utcTime();
-        if (!datas->empty())
-        {
-            m_DB->asyncCommitBlock(m_blockNumber, infos, datas, _callback);
-        }
-        auto commit_time_cost = utcTime() - record_time;
-        STORAGE_LOG(DEBUG) << LOG_BADGE("Commit") << LOG_DESC("Commit db time record")
-                           << LOG_KV("getDataTimeCost", getData_time_cost)
-                           << LOG_KV("commitTimeCost", commit_time_cost)
-                           << LOG_KV("totalTimeCost", utcTime() - start_time);
+    void importData(std::vector<TableInfo::Ptr>,
+        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>) override
+    {  // FIXME: implement importData of Table and complete this method
     }
 
     virtual bool checkAuthority(const std::string& _tableName, Address const& _user) const

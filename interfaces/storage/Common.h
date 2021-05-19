@@ -54,6 +54,7 @@ enum StorageErrorCode
     DataBaseUnavailable = -50000,
     NotFound = -50001,
     InvalidArgument = -50002,
+    StateCacheNotFound = -50003,
 };
 
 class Condition : public std::enable_shared_from_this<Condition>
