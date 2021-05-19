@@ -236,9 +236,23 @@ public:
             });
         return ret;
     }
-    void importData(std::vector<TableInfo::Ptr>,
-        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>) override
-    {  // FIXME: implement importData of Table and complete this method
+    void importData(std::vector<TableInfo::Ptr> _tableInfos,
+        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>> _tableDatas) override
+    {
+        for (size_t i = 0; i < _tableInfos.size(); ++i)
+        {
+            auto table = std::make_shared<Table>(m_DB, _tableInfos[i], m_hashImpl, m_blockNumber);
+            table->setRecorder([&](TableInterface::Change::Ptr _change) {
+                auto& changeLog = getChangeLog();
+                changeLog.emplace_back(_change);
+            });
+
+            for (auto& item : *(_tableDatas[i]))
+            {
+                table->setRow(item.first, item.second);
+            }
+            m_name2Table.insert({_tableInfos[i]->name, table});
+        }
     }
 
     virtual bool checkAuthority(const std::string& _tableName, Address const& _user) const

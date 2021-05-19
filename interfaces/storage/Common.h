@@ -390,12 +390,13 @@ private:
         return lock;
     }
 
-    protocol::BlockNumber m_num = 0;
     bool m_dirty = false;
-    Status m_status = Status::NORMAL;
     bool m_rollbacked = false;
     ssize_t m_capacityOfHashField = 0;
 
+    // should serialization
+    protocol::BlockNumber m_num = 0;
+    Status m_status = Status::NORMAL;
     EntryData::Ptr m_data;
 };
 
