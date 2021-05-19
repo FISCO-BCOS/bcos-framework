@@ -19,12 +19,12 @@
  * @date 2021-05-11
  */
 #pragma once
-#include "../../libsync/interfaces/TxsSyncMsgFactory.h"
 #include "TxsSyncMsg.h"
+#include "libsync/interfaces/TxsSyncMsgFactory.h"
 
 namespace bcos
 {
-namespace txpool
+namespace sync
 {
 class TxsSyncMsgFactoryImpl : public TxsSyncMsgFactory
 {
@@ -39,5 +39,5 @@ public:
         return std::make_shared<TxsSyncMsg>(_data);
     }
 };
-}  // namespace txpool
+}  // namespace sync
 }  // namespace bcos

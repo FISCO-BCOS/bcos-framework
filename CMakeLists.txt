@@ -109,7 +109,11 @@ set(TOOL_TARGET "tool")
 # define the generated proto file path
 set(PROTO_GENERATE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libprotocol/${BCOS_PROTO_NAME})
 set(PROTO_PATH ${PROJECT_SOURCE_DIR})
+
+# generate sync protobuf files
 set(SYNC_PROTO_GENERATE_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
+set(SYNC_PROTO_SUB_DIR "libsync/protocol/proto")
+set(SYNC_PROTO_GENERATE_DIR ${SYNC_PROTO_GENERATE_BASE_DIR}/${SYNC_PROTO_SUB_DIR})
 
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)

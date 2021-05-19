@@ -19,8 +19,8 @@
  * @date 2021-05-11
  */
 #pragma once
-#include "../../interfaces/TxsSyncMsgInterface.h"
-#include "../proto/TxsSync.pb.h"
+#include "libsync/interfaces/TxsSyncMsgInterface.h"
+#include "libsync/protocol/proto/TxsSync.pb.h"
 namespace bcos
 {
 namespace sync
@@ -30,7 +30,7 @@ class TxsSyncMsg : public TxsSyncMsgInterface
 public:
     TxsSyncMsg()
       : m_rawSyncMessage(std::make_shared<TxsSyncMessage>()),
-        m_txsHash(std::make_shared<HashList>())
+        m_txsHash(std::make_shared<bcos::crypto::HashList>())
     {}
 
     explicit TxsSyncMsg(bytesConstRef _data) : TxsSyncMsg() { decode(_data); }
@@ -50,14 +50,13 @@ public:
     void setTxsData(bytes const& _txsData) override;
     void setTxsData(bytes&& _txsData) override;
     void setTxsHash(bcos::crypto::HashList const& _txsHash) override;
-    bcos::crypto::HashList const& txsHash() override;
 
 protected:
     virtual void DeserializeObject();
 
 private:
     std::shared_ptr<TxsSyncMessage> m_rawSyncMessage;
-    HashListPtr m_txsHash;
+    bcos::crypto::HashListPtr m_txsHash;
 };
 }  // namespace sync
 }  // namespace bcos

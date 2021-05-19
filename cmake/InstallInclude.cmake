@@ -33,6 +33,12 @@ install(
     FILES_MATCHING PATTERN "*.h"
 )
 
+install(
+    DIRECTORY ${SYNC_PROTO_GENERATE_DIR}
+    DESTINATION "${DESTINATION_INCLUDE_DIR}/libsync/protocol"
+    FILES_MATCHING PATTERN "*.h"
+)
+
 # table
 install(
     DIRECTORY "libtable"

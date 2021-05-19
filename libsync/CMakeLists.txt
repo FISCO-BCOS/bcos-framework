@@ -2,7 +2,6 @@ file(GLOB SRC_LIST "*.cpp")
 file(GLOB HEADERS "*.h")
 
 set(MESSAGES_PROTOS TxsSync.proto)
-set(SYNC_PROTO_SUB_DIR "libsync/protocol/proto")
 set(SYNC_PROTO_GENERATE_DIR ${SYNC_PROTO_GENERATE_BASE_DIR}/${SYNC_PROTO_SUB_DIR})
 
 include(GenerateSources)
