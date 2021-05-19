@@ -18,5 +18,5 @@
  * @date: 2021-05-14
  */
 #pragma once
-#include "libutilities/Log.h"
+#include "../libutilities/Log.h"
 #define SEAL_LOG(LEVEL) LOG(LEVEL) << LOG_BADGE("CONSENSUS") << LOG_BADGE("SEALER")

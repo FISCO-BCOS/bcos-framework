@@ -20,9 +20,9 @@
  */
 #pragma once
 
-#include "interfaces/storage/Common.h"
-#include "interfaces/storage/StorageInterface.h"
-#include "interfaces/storage/TableInterface.h"
+#include "../interfaces/storage/Common.h"
+#include "../interfaces/storage/StorageInterface.h"
+#include "../interfaces/storage/TableInterface.h"
 #include "tbb/concurrent_unordered_map.h"
 
 namespace bcos

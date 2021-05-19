@@ -19,8 +19,8 @@
  * @date 2021-05-11
  */
 #pragma once
-#include "libsync/interfaces/TxsSyncMsgFactory.h"
-#include "libsync/protocol/PB/TxsSyncMsg.h"
+#include "../../libsync/interfaces/TxsSyncMsgFactory.h"
+#include "TxsSyncMsg.h"
 
 namespace bcos
 {

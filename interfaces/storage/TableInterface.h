@@ -20,8 +20,8 @@
  */
 #pragma once
 #include "../../libutilities/Error.h"
-#include "interfaces/crypto/Hash.h"
-#include "interfaces/storage/Common.h"
+#include "../../interfaces/crypto/Hash.h"
+#include "../../interfaces/storage/Common.h"
 #include <functional>
 #include <map>
 #include <memory>
