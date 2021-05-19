@@ -154,7 +154,7 @@ public:
             changeLog.pop_back();
         }
     }
-    size_t commit() override
+    std::pair<size_t, Error::Ptr> commit() override
     {
         auto start_time = utcTime();
         auto record_time = utcTime();
@@ -182,7 +182,7 @@ public:
             });
         auto getData_time_cost = utcTime() - record_time;
         record_time = utcTime();
-        size_t ret = 0;
+        std::pair<size_t, Error::Ptr> ret{0, nullptr};
         if (!datas.empty())
         {
             ret = m_DB->commitBlock(m_blockNumber, infos, datas);

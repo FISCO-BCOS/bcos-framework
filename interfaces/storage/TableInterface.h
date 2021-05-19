@@ -113,7 +113,7 @@ public:
     virtual crypto::HashType hash() = 0;
     virtual size_t savepoint() = 0;
     virtual void rollback(size_t _savepoint) = 0;
-    virtual size_t commit() = 0;
+    virtual std::pair<size_t, Error::Ptr> commit() = 0;
     virtual void asyncCommit(std::function<void(Error::Ptr, size_t)> _callback) = 0;
 };
 }  // namespace storage
