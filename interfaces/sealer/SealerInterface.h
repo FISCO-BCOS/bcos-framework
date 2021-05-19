@@ -20,6 +20,8 @@
  */
 #pragma once
 #include "../../libutilities/Error.h"
+#include <functional>
+
 namespace bcos
 {
 namespace sealer
