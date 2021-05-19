@@ -32,7 +32,7 @@ namespace bcos
 {
 namespace storage
 {
-std::shared_ptr<Entry> Table::getRow(const std::string& _key)
+Entry::Ptr Table::getRow(const std::string& _key)
 {
     auto entryIt = m_dirty.find(_key);
     if (entryIt != m_dirty.end() && !entryIt->second->rollbacked())
@@ -43,27 +43,32 @@ std::shared_ptr<Entry> Table::getRow(const std::string& _key)
             entry->copyFrom(entryIt->second);
             return entry;
         }
+        // deleted
         return nullptr;
     }
     return m_DB->getRow(m_tableInfo, _key);
 }
-std::map<std::string, std::shared_ptr<Entry>> Table::getRows(const std::vector<std::string>& _keys)
+
+std::map<std::string, Entry::Ptr> Table::getRows(const std::vector<std::string>& _keys)
 {
-    std::map<std::string, std::shared_ptr<Entry>> ret;
-    std::map<std::string, std::shared_ptr<Entry>> queryRet;
+    std::map<std::string, Entry::Ptr> ret;
+    std::map<std::string, Entry::Ptr> queryRet;
     tbb::parallel_invoke(
         [&]() {
             for (auto& key : _keys)
             {
                 auto entryIt = m_dirty.find(key);
-                if (entryIt != m_dirty.end())
+                if (entryIt != m_dirty.end() && !entryIt->second->rollbacked())
                 {
-                    if (!entryIt->second->rollbacked() &&
-                        entryIt->second->getStatus() != Entry::Status::DELETED)
+                    if (entryIt->second->getStatus() != Entry::Status::DELETED)
                     {  // copy from
                         auto entry = std::make_shared<Entry>();
                         entry->copyFrom(entryIt->second);
                         ret[key] = entry;
+                    }
+                    else
+                    {  // deleted
+                        ret[key] = nullptr;
                     }
                 }
             }
@@ -105,7 +110,7 @@ std::vector<std::string> Table::getPrimaryKeys(std::shared_ptr<Condition> _condi
     return ret;
 }
 
-bool Table::setRow(const std::string& _key, std::shared_ptr<Entry> _entry)
+bool Table::setRow(const std::string& _key, Entry::Ptr _entry)
 {  // For concurrent_unordered_map, insert and emplace methods may create a temporary item that
     // is destroyed if another thread inserts an item with the same key concurrently.
     // So, parallel insert same key is not permitted
@@ -184,17 +189,85 @@ bool Table::remove(const std::string& _key)
 void Table::asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
     std::function<void(Error::Ptr, std::vector<std::string>)> _callback)
 {
-    m_DB->asyncGetPrimaryKeys(m_tableInfo, _condition, _callback);
+    auto ret = make_shared<vector<string>>();
+    auto deleted = make_shared<set<string>>();
+    for (auto item : m_dirty)
+    {
+        if (!item.second->rollbacked() && (!_condition || _condition->isValid(item.first)))
+        {
+            if (item.second->getStatus() != Entry::Status::DELETED)
+            {
+                ret->push_back(item.first);
+            }
+            else
+            {
+                deleted->insert(item.first);
+            }
+        }
+    }
+
+    m_DB->asyncGetPrimaryKeys(m_tableInfo, _condition,
+        [ret, deleted, _callback](Error::Ptr error, std::vector<std::string> keys) {
+            auto len = ret->size();
+            for (size_t i = 0; i < keys.size(); ++i)
+            {
+                if (!deleted->count(keys[i]) &&
+                    find(ret->begin(), ret->begin() + len, keys[i]) == ret->begin() + len)
+                {
+                    ret->emplace_back(move(keys[i]));
+                }
+            }
+            _callback(error, *ret);
+        });
 }
+
 void Table::asyncGetRow(
-    std::shared_ptr<std::string> _key, std::function<void(Error::Ptr, std::shared_ptr<Entry>)> _callback)
+    std::shared_ptr<std::string> _key, std::function<void(Error::Ptr, Entry::Ptr)> _callback)
 {
+    Entry::Ptr entry = nullptr;
+    auto entryIt = m_dirty.find(*_key);
+    if (entryIt != m_dirty.end() && !entryIt->second->rollbacked())
+    {
+        if (entryIt->second->getStatus() != Entry::Status::DELETED)
+        {
+            entry = std::make_shared<Entry>();
+            entry->copyFrom(entryIt->second);
+            _callback(nullptr, entry);
+            return;
+        }
+        _callback(make_shared<Error>(StorageErrorCode::NotFound, "the key was deleted"), entry);
+        return;
+    }
     m_DB->asyncGetRow(m_tableInfo, _key, _callback);
 }
+
 void Table::asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
-    std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)> _callback)
+    std::function<void(Error::Ptr, std::map<std::string, Entry::Ptr>)> _callback)
 {
-    m_DB->asyncGetRows(m_tableInfo, _keys, _callback);
+    auto ret = make_shared<std::map<std::string, Entry::Ptr>>();
+
+    for (auto& key : *_keys)
+    {
+        auto entryIt = m_dirty.find(key);
+        if (entryIt != m_dirty.end() && !entryIt->second->rollbacked())
+        {
+            if (entryIt->second->getStatus() != Entry::Status::DELETED)
+            {  // copy from
+                auto entry = std::make_shared<Entry>();
+                entry->copyFrom(entryIt->second);
+                (*ret)[key] = entry;
+            }
+            else
+            {  // deleted
+                (*ret)[key] = nullptr;
+            }
+        }
+    }
+    m_DB->asyncGetRows(m_tableInfo, _keys,
+        [ret, _callback](Error::Ptr error, std::map<std::string, Entry::Ptr> queryRet) {
+            ret->merge(queryRet);
+            _callback(error, *ret);
+        });
 }
 
 crypto::HashType Table::hash()

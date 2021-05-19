@@ -34,11 +34,6 @@ class TableFactory;
 class StorageInterface : public std::enable_shared_from_this<StorageInterface>
 {
 public:
-    enum ErrorCode
-    {
-        DataBaseUnavailable = -50000,
-        NotFound = -50001,
-    };
     using Ptr = std::shared_ptr<StorageInterface>;
     StorageInterface() = default;
     virtual ~StorageInterface() = default;
@@ -79,6 +74,7 @@ public:
     virtual void dropStateCache(protocol::BlockNumber _blockNumber) = 0;
     virtual void addStateCache(
         protocol::BlockNumber _blockNumber, std::shared_ptr<TableFactory> _tablefactory) = 0;
+
     // KV store in split database, used to store data off-chain
     virtual Error::Ptr put(const std::string_view& _columnFamily, const std::string_view& _key,
         const std::string_view& _value) = 0;
