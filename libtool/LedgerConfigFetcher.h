@@ -1,0 +1,79 @@
+/**
+ *  Copyright (C) 2021 FISCO BCOS.
+ *  SPDX-License-Identifier: Apache-2.0
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ * @brief Public function to get information from Ledger
+ * @file LedgerConfigFetcher.h
+ * @author: yujiechen
+ * @date 2021-05-19
+ */
+#pragma once
+#include "interfaces/ledger/LedgerConfig.h"
+#include "interfaces/ledger/LedgerInterface.h"
+#include "libutilities/Log.h"
+
+#define TOOL_LOG(LEVEL) LOG(LEVEL) << LOG_BADGE("TOOL")
+
+namespace bcos
+{
+namespace tool
+{
+class LedgerConfigFetcher : public std::enable_shared_from_this<LedgerConfigFetcher>
+{
+public:
+    using Ptr = std::shared_ptr<LedgerConfigFetcher>;
+    explicit LedgerConfigFetcher(bcos::ledger::LedgerInterface::Ptr _ledger) : m_ledger(_ledger) {}
+    virtual ~LedgerConfigFetcher() {}
+
+    virtual void fetchBlockNumberAndHash();
+    virtual void fetchConsensusNodeList();
+    virtual void fetchObserverNodeList();
+    virtual void fetchConsensusTimeout();
+    virtual void fetchBlockTxCountLimit();
+    virtual bcos::ledger::LedgerConfig::Ptr ledgerConfig() { return m_ledgerConfig; }
+
+    virtual void waitFetchFinished();
+
+protected:
+    virtual bool fetchFinished()
+    {
+        return m_fetchBlockInfoFinished && m_fetchConsensusInfoFinished &&
+               m_fetchObserverInfoFinshed && m_fetchConsensusTimeoutFinished &&
+               m_fetchBlockTxCountLimitFinished;
+    }
+
+    virtual void fetchBlockHash(bcos::protocol::BlockNumber _blockNumber);
+    virtual void fetchSystemConfig(
+        std::string const& _key, std::function<void(std::string const&)> _onRecvValue);
+    virtual void fetchNodeListByNodeType(std::string const& _type,
+        bcos::consensus::ConsensusNodeListPtr _nodeList, std::function<void()> _onRecvNodeList);
+
+    bcos::ledger::LedgerInterface::Ptr m_ledger;
+    bcos::ledger::LedgerConfig::Ptr m_ledgerConfig;
+
+    // assume this module can wait at most 10s
+    uint64_t m_timeout = 10000;
+
+private:
+    boost::condition_variable m_signalled;
+    boost::mutex x_signalled;
+
+    std::atomic_bool m_fetchBlockInfoFinished = {true};
+    std::atomic_bool m_fetchConsensusInfoFinished = {true};
+    std::atomic_bool m_fetchObserverInfoFinshed = {true};
+    std::atomic_bool m_fetchConsensusTimeoutFinished = {true};
+    std::atomic_bool m_fetchBlockTxCountLimitFinished = {true};
+};
+}  // namespace tool
+}  // namespace bcos

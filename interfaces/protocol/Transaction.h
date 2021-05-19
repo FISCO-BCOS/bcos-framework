@@ -18,11 +18,11 @@
  */
 #pragma once
 #include "../../interfaces/crypto/CryptoSuite.h"
+#include "../../interfaces/crypto/Hash.h"
 #include "../../interfaces/crypto/KeyInterface.h"
 #include "../../libutilities/Common.h"
 #include "../../libutilities/Error.h"
 #include "TransactionSubmitResult.h"
-#include "../../interfaces/crypto/Hash.h"
 namespace bcos
 {
 namespace protocol
@@ -84,7 +84,14 @@ public:
     virtual bytesConstRef input() const = 0;
     virtual int64_t importTime() const = 0;
     virtual void setImportTime(int64_t _importTime) = 0;
-    virtual TransactionType type() const = 0;
+    virtual TransactionType type() const
+    {
+        if (to().size() > 0)
+        {
+            return TransactionType::MessageCall;
+        }
+        return TransactionType::ContractCreation;
+    }
     virtual void forceSender(bytes const& _sender) const { m_sender = _sender; }
 
     virtual bytesConstRef signatureData() const = 0;

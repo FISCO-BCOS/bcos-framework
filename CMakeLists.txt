@@ -104,6 +104,7 @@ set(PROTOCOL_TARGET "protocol")
 set(PBPROTOCOL_TARGET "protocol-pb")
 set(SYNC_TARGET "sync")
 set(SEALER_TARGET "sealer")
+set(TOOL_TARGET "tool")
 
 # define the generated proto file path
 set(PROTO_GENERATE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libprotocol/${BCOS_PROTO_NAME})
@@ -118,6 +119,7 @@ add_subdirectory(libprotocol)
 add_subdirectory(libprotocol/protobuf)
 add_subdirectory(libsync)
 add_subdirectory(libsealer)
+add_subdirectory(libtool)
 
 # test releated
 if (TESTS)
@@ -183,6 +185,15 @@ install(
 
 install(
     TARGETS ${SEALER_TARGET}
+    EXPORT "${TARGETS_EXPORT_NAME}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+install(
+    TARGETS ${TOOL_TARGET}
     EXPORT "${TARGETS_EXPORT_NAME}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"

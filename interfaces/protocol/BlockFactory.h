@@ -22,6 +22,7 @@
 #include "Block.h"
 #include "BlockHeaderFactory.h"
 #include "TransactionFactory.h"
+#include "TransactionReceiptFactory.h"
 namespace bcos
 {
 namespace protocol
@@ -41,6 +42,7 @@ public:
     virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() = 0;
     virtual BlockHeaderFactory::Ptr blockHeaderFactory() = 0;
     virtual TransactionFactory::Ptr transactionFactory() = 0;
+    virtual TransactionReceiptFactory::Ptr receiptFactory() = 0;
 };
 }  // namespace protocol
 }  // namespace bcos

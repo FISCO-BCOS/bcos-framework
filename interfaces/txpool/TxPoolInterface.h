@@ -36,6 +36,9 @@ public:
     TxPoolInterface() = default;
     virtual ~TxPoolInterface() {}
 
+    virtual void start() = 0;
+    virtual void stop() = 0;
+
     /**
      * @brief submit a transaction
      *

@@ -52,6 +52,12 @@ install(
     DESTINATION "${DESTINATION_INCLUDE_DIR}"
     FILES_MATCHING PATTERN "*.h"
 )
+#tool
+install(
+    DIRECTORY "libtool"
+    DESTINATION "${DESTINATION_INCLUDE_DIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
 #testutils
 install(
     DIRECTORY "testutils"

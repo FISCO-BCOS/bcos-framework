@@ -35,12 +35,6 @@ PBTransaction::PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_
     if (_to != bytes())
     {
         m_transactionHashFields->set_to(_to.data(), Address::size);
-        m_type = TransactionType::MessageCall;
-    }
-    else
-    {
-        // TODO: After the contract path feature is implemented, this logic needs to be adjusted
-        m_type = TransactionType::ContractCreation;
     }
     // set input data
     m_transactionHashFields->set_input(_input.data(), _input.size());
@@ -84,14 +78,6 @@ void PBTransaction::decode(bytesConstRef _txData)
     auto transactionHashFields = m_transaction->mutable_hashfieldsdata();
     decodePBObject(m_transactionHashFields,
         bytesConstRef((byte const*)transactionHashFields->c_str(), transactionHashFields->size()));
-    if (m_transactionHashFields->mutable_to()->size() > 0)
-    {
-        m_type = TransactionType::MessageCall;
-    }
-    else
-    {
-        m_type = TransactionType::ContractCreation;
-    }
     m_nonce =
         fromBigEndian<u256>(bytesConstRef((const byte*)m_transactionHashFields->nonce().data(),
             m_transactionHashFields->nonce().size()));
