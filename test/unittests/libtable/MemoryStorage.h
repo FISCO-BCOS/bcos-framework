@@ -129,16 +129,16 @@ public:
     {}
 
     // cache TableFactory
-    void asyncAddStateCache(protocol::BlockNumber, std::shared_ptr<TableFactory>,
+    void asyncAddStateCache(protocol::BlockNumber, std::shared_ptr<TableFactoryInterface>,
         std::function<void(Error::Ptr)>) override
     {}
     void asyncDropStateCache(protocol::BlockNumber, std::function<void(Error::Ptr)>) override {}
     void asyncGetStateCache(protocol::BlockNumber,
-        std::function<void(Error::Ptr, std::shared_ptr<TableFactory>)>) override
+        std::function<void(Error::Ptr, std::shared_ptr<TableFactoryInterface>)>) override
     {}
-    std::shared_ptr<TableFactory> getStateCache(protocol::BlockNumber) override { return nullptr; }
+    std::shared_ptr<TableFactoryInterface> getStateCache(protocol::BlockNumber) override { return nullptr; }
     void dropStateCache(protocol::BlockNumber) override {}
-    void addStateCache(protocol::BlockNumber, std::shared_ptr<TableFactory>) override {}
+    void addStateCache(protocol::BlockNumber, std::shared_ptr<TableFactoryInterface>) override {}
     // KV store in split database, used to store data off-chain
     Error::Ptr put(
         const std::string_view&, const std::string_view&, const std::string_view&) override
