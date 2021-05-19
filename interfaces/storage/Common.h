@@ -49,6 +49,13 @@ namespace bcos
 {
 namespace storage
 {
+enum StorageErrorCode
+{
+    DataBaseUnavailable = -50000,
+    NotFound = -50001,
+    InvalidArgument = -50002,
+};
+
 class Condition : public std::enable_shared_from_this<Condition>
 {
 public:
@@ -202,7 +209,7 @@ public:
         }
 
         STORAGE_LOG(WARNING) << LOG_BADGE("Entry") << LOG_DESC("can't find")
-                           << LOG_KV("field", key);
+                             << LOG_KV("field", key);
         return "";
     }
     virtual void setField(const std::string& key, const std::string& value)

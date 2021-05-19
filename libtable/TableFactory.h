@@ -40,7 +40,11 @@ public:
     {
         m_sysTables.push_back(SYS_TABLE);
     }
-    virtual ~TableFactory() {}
+    virtual ~TableFactory()
+    {
+        m_name2Table.clear();
+        getChangeLog().clear();
+    }
     // virtual void init();
 
     std::shared_ptr<TableInterface> openTable(const std::string& _tableName) override
@@ -234,14 +238,9 @@ public:
             m_DB->asyncCommitBlock(m_blockNumber, infos, datas, _callback);
         }
         auto commit_time_cost = utcTime() - record_time;
-        record_time = utcTime();
-        m_name2Table.clear();
-        auto clear_time_cost = utcTime() - record_time;
-        getChangeLog().clear();
         STORAGE_LOG(DEBUG) << LOG_BADGE("Commit") << LOG_DESC("Commit db time record")
                            << LOG_KV("getDataTimeCost", getData_time_cost)
                            << LOG_KV("commitTimeCost", commit_time_cost)
-                           << LOG_KV("clearTimeCost", clear_time_cost)
                            << LOG_KV("totalTimeCost", utcTime() - start_time);
     }
 
