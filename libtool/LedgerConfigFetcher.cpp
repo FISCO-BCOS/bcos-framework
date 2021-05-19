@@ -297,3 +297,43 @@ void LedgerConfigFetcher::fetchBlockTxCountLimit()
         }
     });
 }
+
+void LedgerConfigFetcher::fetchNonceList(BlockNumber _startNumber, int64_t _offset)
+{
+    m_fetchNonceListFinished = false;
+    auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
+    m_ledger->asyncGetNonceList(_startNumber, _offset,
+        [self, _startNumber, _offset](
+            Error::Ptr _error, std::shared_ptr<std::map<BlockNumber, NonceListPtr>> _nonceList) {
+            try
+            {
+                auto fetcher = self.lock();
+                if (!fetcher)
+                {
+                    return;
+                }
+                if (_error->errorCode() == CommonError::SUCCESS)
+                {
+                    TOOL_LOG(INFO)
+                        << LOG_DESC("LedgerConfigFetcher: fetchNonceList success")
+                        << LOG_KV("startNumber", _startNumber) << LOG_KV("offset", _offset);
+                    fetcher->m_nonceList = _nonceList;
+                    fetcher->m_fetchNonceListFinished = true;
+                    fetcher->m_signalled.notify_all();
+                    return;
+                }
+                TOOL_LOG(WARNING) << LOG_DESC(
+                                         "LedgerConfigFetcher: fetchNonceList failed, retry again")
+                                  << LOG_KV("errorCode", _error->errorCode())
+                                  << LOG_KV("errorMsg", _error->errorMessage())
+                                  << LOG_KV("startNumber", _startNumber)
+                                  << LOG_KV("offset", _offset);
+                fetcher->fetchNonceList(_startNumber, _offset);
+            }
+            catch (std::exception const& e)
+            {
+                TOOL_LOG(WARNING) << LOG_DESC("fetchNonceList exception")
+                                  << LOG_KV("error", boost::diagnostic_information(e));
+            }
+        });
+}
