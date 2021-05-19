@@ -18,10 +18,10 @@
  * @date: 2021-05-14
  */
 #pragma once
-#include "interfaces/protocol/BlockFactory.h"
-#include "libsealer/SealerConfig.h"
-#include "libutilities/CallbackCollectionHandler.h"
-#include "libutilities/ThreadPool.h"
+#include "../interfaces/protocol/BlockFactory.h"
+#include "SealerConfig.h"
+#include "../libutilities/CallbackCollectionHandler.h"
+#include "../libutilities/ThreadPool.h"
 namespace bcos
 {
 namespace sealer

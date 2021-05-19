@@ -20,8 +20,8 @@
 #pragma once
 #include "SealerConfig.h"
 #include "SealingManager.h"
-#include "interfaces/sealer/SealerInterface.h"
-#include "libutilities/Worker.h"
+#include "../interfaces/sealer/SealerInterface.h"
+#include "../libutilities/Worker.h"
 
 namespace bcos
 {
