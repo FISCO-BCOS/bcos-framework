@@ -49,7 +49,7 @@ public:
 
     bool operator==(PBTransaction const& _comparedTx)
     {
-        return (m_type == _comparedTx.type()) && (importTime() == _comparedTx.importTime()) &&
+        return (type() == _comparedTx.type()) && (importTime() == _comparedTx.importTime()) &&
                (hash() == _comparedTx.hash());
     }
 
@@ -68,7 +68,7 @@ public:
         auto const& _receiver = m_transactionHashFields->to();
         return bytesConstRef((byte const*)_receiver.c_str(), _receiver.size());
     }
-    TransactionType type() const override { return m_type; }
+
     bytesConstRef input() const override;
     int64_t importTime() const override { return m_transaction->import_time(); }
     void setImportTime(int64_t _importTime) override
@@ -102,7 +102,6 @@ private:
     bytesPointer m_dataCache;
 
     u256 m_nonce;
-    TransactionType m_type;
 };
 }  // namespace protocol
 }  // namespace bcos

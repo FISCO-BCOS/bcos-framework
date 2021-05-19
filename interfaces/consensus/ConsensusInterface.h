@@ -37,6 +37,9 @@ public:
     ConsensusInterface() = default;
     virtual ~ConsensusInterface() {}
 
+    virtual void start() = 0;
+    virtual void stop() = 0;
+
     // TODO: Supplement the consensus-related interfaces required by RPC
     virtual void asyncSubmitProposal(bytesConstRef _proposalData,
         bcos::protocol::BlockNumber _proposalIndex, bcos::crypto::HashType const& _proposalHash,

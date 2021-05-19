@@ -68,7 +68,7 @@ public:
 
     BlockHeaderFactory::Ptr blockHeaderFactory() override { return m_blockHeaderFactory; }
     TransactionFactory::Ptr transactionFactory() override { return m_transactionFactory; }
-    TransactionReceiptFactory::Ptr receiptFactory() { return m_receiptFactory; }
+    TransactionReceiptFactory::Ptr receiptFactory() override { return m_receiptFactory; }
 
 private:
     BlockHeaderFactory::Ptr m_blockHeaderFactory;

@@ -74,6 +74,9 @@ public:
     uint64_t consensusTimeout() const { return m_consensusTimeout; }
     uint64_t blockTxCountLimit() const { return m_blockTxCountLimit; }
 
+    bcos::consensus::ConsensusNodeListPtr mutableConsensusList() { return m_consensusNodeList; }
+    bcos::consensus::ConsensusNodeListPtr mutableObserverList() { return m_observerNodeList; }
+
 protected:
     bcos::consensus::ConsensusNodeListPtr m_consensusNodeList;
     bcos::consensus::ConsensusNodeListPtr m_observerNodeList;
