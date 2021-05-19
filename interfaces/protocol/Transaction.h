@@ -22,7 +22,7 @@
 #include "../../libutilities/Common.h"
 #include "../../libutilities/Error.h"
 #include "TransactionSubmitResult.h"
-#include "interfaces/crypto/Hash.h"
+#include "../../interfaces/crypto/Hash.h"
 namespace bcos
 {
 namespace protocol
