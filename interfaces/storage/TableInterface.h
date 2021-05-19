@@ -19,9 +19,9 @@
  * @date: 2021-04-07
  */
 #pragma once
-#include "../../libutilities/Error.h"
 #include "../../interfaces/crypto/Hash.h"
 #include "../../interfaces/storage/Common.h"
+#include "../../libutilities/Error.h"
 #include <functional>
 #include <map>
 #include <memory>
@@ -84,7 +84,8 @@ public:
     virtual void asyncGetRow(std::shared_ptr<std::string> _key,
         std::function<void(Error::Ptr, std::shared_ptr<Entry>)> _callback) = 0;
     virtual void asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
-        std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)> _callback) = 0;
+        std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)>
+            _callback) = 0;
 
     virtual bool remove(const std::string& _key) = 0;
     virtual TableInfo::Ptr tableInfo() const = 0;
@@ -115,6 +116,11 @@ public:
     virtual void rollback(size_t _savepoint) = 0;
     virtual std::pair<size_t, Error::Ptr> commit() = 0;
     virtual void asyncCommit(std::function<void(Error::Ptr, size_t)> _callback) = 0;
+    virtual std::pair<std::vector<TableInfo::Ptr>,
+        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
+    exportData() = 0;
+    virtual void importData(std::vector<TableInfo::Ptr>,
+        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>) = 0;
 };
 }  // namespace storage
 }  // namespace bcos
