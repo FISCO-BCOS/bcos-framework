@@ -87,7 +87,7 @@ public:
         }
         return ret;
     }
-    size_t commitBlock(protocol::BlockNumber,
+    std::pair<size_t, Error::Ptr> commitBlock(protocol::BlockNumber,
         const std::vector<std::shared_ptr<TableInfo>> _tableInfos,
         std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>>& _tableDatas)
         override
@@ -95,7 +95,7 @@ public:
         size_t total = 0;
         if (_tableInfos.size() != _tableDatas.size())
         {
-            return 0;
+            return {0, nullptr};
         }
         std::lock_guard<std::mutex> lock(m_mutex);
         for (size_t i = 0; i < _tableInfos.size(); ++i)
@@ -109,7 +109,7 @@ public:
                 }
             }
         }
-        return total;
+        return {total, nullptr};
     }
 
     void asyncGetPrimaryKeys(std::shared_ptr<TableInfo>, std::shared_ptr<Condition>,
@@ -140,12 +140,17 @@ public:
     void dropStateCache(protocol::BlockNumber) override {}
     void addStateCache(protocol::BlockNumber, std::shared_ptr<TableFactory>) override {}
     // KV store in split database, used to store data off-chain
-    bool put(const std::string_view&, const std::string_view&, const std::string_view&) override
+    Error::Ptr put(
+        const std::string_view&, const std::string_view&, const std::string_view&) override
     {
-        return true;
+        return nullptr;
     }
-    std::string get(const std::string_view&, const std::string_view&) override { return ""; }
-    bool remove(const std::string_view&, const std::string_view&) override { return true; }
+    std::pair<std::string, Error::Ptr> get(
+        const std::string_view&, const std::string_view&) override
+    {
+        return {"", nullptr};
+    }
+    Error::Ptr remove(const std::string_view&, const std::string_view&) override { return nullptr; }
     void asyncPut(std::shared_ptr<std::string>, std::shared_ptr<std::string>,
         std::shared_ptr<bytes>, std::function<void(Error::Ptr)>) override
     {}

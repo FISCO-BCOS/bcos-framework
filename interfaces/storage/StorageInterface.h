@@ -36,7 +36,8 @@ class StorageInterface : public std::enable_shared_from_this<StorageInterface>
 public:
     enum ErrorCode
     {
-        DataBase_Unavailable = -50000,
+        DataBaseUnavailable = -50000,
+        NotFound = -50001,
     };
     using Ptr = std::shared_ptr<StorageInterface>;
     StorageInterface() = default;
@@ -47,7 +48,7 @@ public:
         std::shared_ptr<TableInfo> _tableInfo, const std::string_view& _key) = 0;
     virtual std::map<std::string, std::shared_ptr<Entry> > getRows(
         std::shared_ptr<TableInfo> _tableInfo, const std::vector<std::string>& _keys) = 0;
-    virtual size_t commitBlock(protocol::BlockNumber _blockNumber,
+    virtual std::pair<size_t, Error::Ptr> commitBlock(protocol::BlockNumber _blockNumber,
         const std::vector<std::shared_ptr<TableInfo> > _tableInfos,
         std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry> > > >&
             _tableDatas) = 0;
@@ -79,11 +80,12 @@ public:
     virtual void addStateCache(
         protocol::BlockNumber _blockNumber, std::shared_ptr<TableFactory> _tablefactory) = 0;
     // KV store in split database, used to store data off-chain
-    virtual bool put(const std::string_view& _columnFamily, const std::string_view& _key,
+    virtual Error::Ptr put(const std::string_view& _columnFamily, const std::string_view& _key,
         const std::string_view& _value) = 0;
-    virtual std::string get(
+    virtual std::pair<std::string, Error::Ptr> get(
         const std::string_view& _columnFamily, const std::string_view& _key) = 0;
-    virtual bool remove(const std::string_view& _columnFamily, const std::string_view& _key) = 0;
+    virtual Error::Ptr remove(
+        const std::string_view& _columnFamily, const std::string_view& _key) = 0;
 
     virtual void asyncPut(std::shared_ptr<std::string> _columnFamily,
         std::shared_ptr<std::string> _key, std::shared_ptr<bytes> _value,
