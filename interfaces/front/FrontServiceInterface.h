@@ -27,12 +27,11 @@ namespace bcos
 {
 namespace front
 {
-using CallbackFunc = std::function<void(Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
-    bytesConstRef _data, std::function<void(bytesConstRef _respData)> _respFunc)>;
-using MessageDispatcher = std::function<void(Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
-    bytesConstRef _data, std::function<void(bytesConstRef _respData)> _respFunc)>;
+using ErrorFunc = std::function<void(Error::Ptr _error)>;
 
-using NodeStatusNotifier = std::function<void(Error::Ptr _error)>;
+using ResponseFunc = std::function<void(bytesConstRef _respData)>;
+using CallbackFunc = std::function<void(Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
+    bytesConstRef _data, ResponseFunc _respFunc)>;
 
 /**
  * @brief: the interface provided by the front service
@@ -44,12 +43,40 @@ public:
 
 public:
     /**
-     * @brief: get nodeID list
+     * @brief: start/stop service
+     */
+    virtual void start() = 0;
+    virtual void stop() = 0;
+
+public:
+    /**
+     * @brief: receive nodeIDs from gateway, call by gateway
+     * @param _groupID: groupID
+     * @param _nodeIDs: received nodeIDs
      * @return void
      */
-    virtual void asyncGetNodeIDs(std::function<void(
-            Error::Ptr _error, std::shared_ptr<const bcos::crypto::NodeIDs> _nodeIDs)>
-            _callback) const = 0;
+    virtual void onReceiveNodeIDs(const std::string& _groupID,
+        std::shared_ptr<const crypto::NodeIDs> _nodeIDs, ErrorFunc _errorFunc) = 0;
+
+    /**
+     * @brief: receive message from gateway, call by gateway
+     * @param _groupID: groupID
+     * @param _nodeID: the node send this message
+     * @param _data: received message data
+     * @return void
+     */
+    virtual void onReceiveMessage(const std::string& _groupID, bcos::crypto::NodeIDPtr _nodeID,
+        bytesConstRef _data, ErrorFunc _errorFunc) = 0;
+
+    /**
+     * @brief: receive broadcast message from gateway, call by gateway
+     * @param _groupID: groupID
+     * @param _nodeID: the node send this message
+     * @param _data: received message data
+     * @return void
+     */
+    virtual void onReceiveBroadcastMessage(const std::string& _groupID,
+        bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data, ErrorFunc _errorFunc) = 0;
 
     /**
      * @brief: send message to node
@@ -79,23 +106,7 @@ public:
      * @param _data:  message
      * @return void
      */
-    virtual void asyncMulticastMessage(int _moduleID, bytesConstRef _data) = 0;
-
-    /**
-     * @brief: register the node change callback
-     * @param _moduleID: moduleID
-     * @param _notifier:
-     * @return void
-     */
-    virtual void registerNodeStatusNotifier(int _moduleID, NodeStatusNotifier _notifier) = 0;
-
-    /**
-     * @brief: register the callback for module message
-     * @param _moduleID: moduleID
-     * @param _dispatcher:
-     * @return void
-     */
-    virtual void registerMessageDispatcher(int _moduleID, MessageDispatcher _dispatcher) = 0;
+    virtual void asyncSendBroadcastMessage(int _moduleID, bytesConstRef _data) = 0;
 };
 
 }  // namespace front
