@@ -29,13 +29,16 @@ class SealerConfig
 {
 public:
     using Ptr = std::shared_ptr<SealerConfig>;
-    SealerConfig(bcos::txpool::TxPoolInterface::Ptr _txpool,
-        bcos::protocol::BlockFactory::Ptr _blockFactory,
-        bcos::consensus::ConsensusInterface::Ptr _consensus)
-      : m_txpool(_txpool), m_blockFactory(_blockFactory), m_consensus(_consensus)
+    SealerConfig(
+        bcos::protocol::BlockFactory::Ptr _blockFactory, bcos::txpool::TxPoolInterface::Ptr _txpool)
+      : m_txpool(_txpool), m_blockFactory(_blockFactory)
     {}
     virtual ~SealerConfig() {}
 
+    virtual void setConsensusInterface(bcos::consensus::ConsensusInterface::Ptr _consensus)
+    {
+        m_consensus = _consensus;
+    }
     virtual bcos::txpool::TxPoolInterface::Ptr txpool() { return m_txpool; }
 
     virtual unsigned minSealTime() const { return m_minSealTime; }

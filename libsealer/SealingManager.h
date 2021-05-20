@@ -19,9 +19,9 @@
  */
 #pragma once
 #include "../interfaces/protocol/BlockFactory.h"
-#include "SealerConfig.h"
 #include "../libutilities/CallbackCollectionHandler.h"
 #include "../libutilities/ThreadPool.h"
+#include "SealerConfig.h"
 namespace bcos
 {
 namespace sealer

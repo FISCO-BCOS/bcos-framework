@@ -18,8 +18,8 @@
  * @date: 2021-05-14
  */
 #include "SealingManager.h"
-#include "Common.h"
 #include "../interfaces/protocol/CommonError.h"
+#include "Common.h"
 
 using namespace bcos;
 using namespace bcos::sealer;
