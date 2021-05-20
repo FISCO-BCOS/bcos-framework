@@ -97,7 +97,7 @@ public:
      * @param _onGetBlock
      */
     virtual void asyncGetBlockHashByNumber(protocol::BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, crypto::HashType const&)> _onGetBlock) = 0;
+        std::function<void(Error::Ptr, std::shared_ptr<crypto::HashType>)> _onGetBlock) = 0;
 
     /**
      * @brief async get block number by block hash
