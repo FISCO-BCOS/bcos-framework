@@ -18,10 +18,10 @@
  * @date: 2021-05-14
  */
 #pragma once
-#include "SealerConfig.h"
-#include "SealingManager.h"
 #include "../interfaces/sealer/SealerInterface.h"
 #include "../libutilities/Worker.h"
+#include "SealerConfig.h"
+#include "SealingManager.h"
 
 namespace bcos
 {
@@ -39,8 +39,8 @@ public:
     }
     virtual ~Sealer() {}
 
-    virtual void start();
-    virtual void stop();
+    void start() override;
+    void stop() override;
 
     void asyncNotifySealProposal(size_t _proposalStartIndex, size_t _proposalEndIndex,
         size_t _maxTxsPerBlock, std::function<void(Error::Ptr)> _onRecvResponse) override;
