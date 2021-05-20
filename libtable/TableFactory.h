@@ -255,14 +255,14 @@ public:
         }
     }
 
-    virtual bool checkAuthority(const std::string& _tableName, Address const& _user) const
+    bool checkAuthority(const std::string& _tableName, const std::string& _user) const override
     {
         // FIXME: implement when we get permission control
         (void)_tableName;
         (void)_user;
         return false;
     }
-    virtual bool grantAccess(const std::string& _tableName, Address const& _user)
+    virtual bool grantAccess(const std::string& _tableName, const std::string& _user)
     {
         // FIXME: implement when we get permission control
         (void)_tableName;

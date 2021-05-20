@@ -121,6 +121,7 @@ public:
     exportData() = 0;
     virtual void importData(std::vector<TableInfo::Ptr>,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>) = 0;
+    virtual bool checkAuthority(const std::string& _tableName, const std::string& _user) const = 0;
 };
 }  // namespace storage
 }  // namespace bcos
