@@ -236,8 +236,9 @@ public:
             });
         return ret;
     }
-    void importData(std::vector<TableInfo::Ptr> _tableInfos,
-        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>> _tableDatas) override
+
+    void importData(std::vector<TableInfo::Ptr>& _tableInfos,
+        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>& _tableDatas) override
     {
         for (size_t i = 0; i < _tableInfos.size(); ++i)
         {

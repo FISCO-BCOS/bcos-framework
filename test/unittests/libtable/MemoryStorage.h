@@ -34,7 +34,7 @@ public:
     virtual ~MemoryStorage() = default;
 
     std::vector<std::string> getPrimaryKeys(
-        std::shared_ptr<TableInfo> _tableInfo, std::shared_ptr<Condition> _condition) const override
+        const std::shared_ptr<TableInfo>& _tableInfo, const Condition::Ptr _condition) const override
     {
         std::vector<std::string> ret;
         std::lock_guard<std::mutex> lock(m_mutex);
@@ -51,7 +51,7 @@ public:
         return ret;
     }
     std::shared_ptr<Entry> getRow(
-        std::shared_ptr<TableInfo> _tableInfo, const std::string_view& _key) override
+        std::shared_ptr<TableInfo>& _tableInfo, const std::string_view& _key) override
     {
         std::shared_ptr<Entry> ret = nullptr;
         std::lock_guard<std::mutex> lock(m_mutex);
@@ -68,7 +68,7 @@ public:
         return ret;
     }
     std::map<std::string, std::shared_ptr<Entry>> getRows(
-        std::shared_ptr<TableInfo> _tableInfo, const std::vector<std::string>& _keys) override
+        std::shared_ptr<TableInfo>& _tableInfo, const std::vector<std::string>& _keys) override
     {
         std::map<std::string, std::shared_ptr<Entry>> ret;
         std::lock_guard<std::mutex> lock(m_mutex);
@@ -88,7 +88,7 @@ public:
         return ret;
     }
     std::pair<size_t, Error::Ptr> commitBlock(protocol::BlockNumber,
-        const std::vector<std::shared_ptr<TableInfo>> _tableInfos,
+        const std::vector<std::shared_ptr<TableInfo>>& _tableInfos,
         std::vector<std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>>>& _tableDatas)
         override
     {
@@ -112,24 +112,24 @@ public:
         return {total, nullptr};
     }
 
-    void asyncGetPrimaryKeys(std::shared_ptr<TableInfo>, std::shared_ptr<Condition>,
-        std::function<void(Error::Ptr, std::vector<std::string>)>) override
+    void asyncGetPrimaryKeys(std::shared_ptr<TableInfo>&, Condition::Ptr,
+        std::function<void(Error::Ptr, const std::vector<std::string>&)>) override
     {}
-    void asyncGetRow(std::shared_ptr<TableInfo>, std::shared_ptr<std::string>,
+    void asyncGetRow(std::shared_ptr<TableInfo>&, std::shared_ptr<std::string>&,
         std::function<void(Error::Ptr, std::shared_ptr<Entry>)>) override
     {}
-    void asyncGetRows(std::shared_ptr<TableInfo>, std::shared_ptr<std::vector<std::string>>,
+    void asyncGetRows(std::shared_ptr<TableInfo>&, std::shared_ptr<std::vector<std::string>>&,
         std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)>) override
     {}
 
     void asyncCommitBlock(protocol::BlockNumber,
-        std::shared_ptr<std::vector<std::shared_ptr<TableInfo>>>,
+        std::shared_ptr<std::vector<std::shared_ptr<TableInfo>>>&,
         std::shared_ptr<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>&,
         std::function<void(Error::Ptr, size_t)>) override
     {}
 
     // cache TableFactory
-    void asyncAddStateCache(protocol::BlockNumber, std::shared_ptr<TableFactoryInterface>,
+    void asyncAddStateCache(protocol::BlockNumber, std::shared_ptr<TableFactoryInterface>&,
         std::function<void(Error::Ptr)>) override
     {}
     void asyncDropStateCache(protocol::BlockNumber, std::function<void(Error::Ptr)>) override {}
@@ -138,7 +138,7 @@ public:
     {}
     std::shared_ptr<TableFactoryInterface> getStateCache(protocol::BlockNumber) override { return nullptr; }
     void dropStateCache(protocol::BlockNumber) override {}
-    void addStateCache(protocol::BlockNumber, std::shared_ptr<TableFactoryInterface>) override {}
+    void addStateCache(protocol::BlockNumber, std::shared_ptr<TableFactoryInterface>&) override {}
     // KV store in split database, used to store data off-chain
     Error::Ptr put(
         const std::string_view&, const std::string_view&, const std::string_view&) override
@@ -151,16 +151,16 @@ public:
         return {"", nullptr};
     }
     Error::Ptr remove(const std::string_view&, const std::string_view&) override { return nullptr; }
-    void asyncPut(std::shared_ptr<std::string>, std::shared_ptr<std::string>,
-        std::shared_ptr<bytes>, std::function<void(Error::Ptr)>) override
+    void asyncPut(std::shared_ptr<std::string>&, std::shared_ptr<std::string>&,
+        std::shared_ptr<bytes>&, std::function<void(Error::Ptr)>) override
     {}
-    void asyncGet(std::shared_ptr<std::string>, std::shared_ptr<std::string>,
+    void asyncGet(std::shared_ptr<std::string>&, std::shared_ptr<std::string>&,
         std::function<void(Error::Ptr, const std::string& value)>) override
     {}
-    void asyncRemove(std::shared_ptr<std::string>, std::shared_ptr<std::string>,
+    void asyncRemove(std::shared_ptr<std::string>&, std::shared_ptr<std::string>&,
         std::function<void(Error::Ptr)>) override
     {}
-    void asyncGetBatch(std::shared_ptr<std::string>, std::shared_ptr<std::vector<std::string>>,
+    void asyncGetBatch(std::shared_ptr<std::string>&, std::shared_ptr<std::vector<std::string>>&,
         std::function<void(Error::Ptr, std::shared_ptr<std::vector<std::string>>)>) override
     {}
 
