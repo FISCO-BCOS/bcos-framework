@@ -72,20 +72,17 @@ public:
     using RecorderType = std::function<void(Change::Ptr)>;
     TableInterface() = default;
     virtual ~TableInterface() {}
-    virtual std::shared_ptr<Entry> getRow(const std::string& _key) = 0;
-    virtual std::map<std::string, std::shared_ptr<Entry>> getRows(
-        const std::vector<std::string>& _keys) = 0;
-    virtual std::vector<std::string> getPrimaryKeys(
-        std::shared_ptr<Condition> _condition) const = 0;
-    virtual bool setRow(const std::string& _key, std::shared_ptr<Entry> _entry) = 0;
+    virtual Entry::Ptr getRow(const std::string& _key) = 0;
+    virtual std::map<std::string, Entry::Ptr> getRows(const std::vector<std::string>& _keys) = 0;
+    virtual std::vector<std::string> getPrimaryKeys(Condition::Ptr _condition) const = 0;
+    virtual bool setRow(const std::string& _key, Entry::Ptr& _entry) = 0;
 
-    virtual void asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
+    virtual void asyncGetPrimaryKeys(Condition::Ptr _condition,
         std::function<void(Error::Ptr, std::vector<std::string>)> _callback) = 0;
-    virtual void asyncGetRow(std::shared_ptr<std::string> _key,
-        std::function<void(Error::Ptr, std::shared_ptr<Entry>)> _callback) = 0;
-    virtual void asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
-        std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)>
-            _callback) = 0;
+    virtual void asyncGetRow(std::shared_ptr<std::string>& _key,
+        std::function<void(Error::Ptr, Entry::Ptr)> _callback) = 0;
+    virtual void asyncGetRows(std::shared_ptr<std::vector<std::string>>& _keys,
+        std::function<void(Error::Ptr, std::map<std::string, Entry::Ptr>)> _callback) = 0;
 
     virtual bool remove(const std::string& _key) = 0;
     virtual TableInfo::Ptr tableInfo() const = 0;
@@ -93,7 +90,7 @@ public:
 
     virtual crypto::HashType hash() = 0;
 
-    virtual std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>> dump() = 0;
+    virtual std::shared_ptr<std::map<std::string, Entry::Ptr>> dump() = 0;
 
     virtual void rollback(Change::Ptr _change) = 0;
     virtual bool dirty() const = 0;
@@ -119,8 +116,8 @@ public:
     virtual std::pair<std::vector<TableInfo::Ptr>,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
     exportData() = 0;
-    virtual void importData(std::vector<TableInfo::Ptr>,
-        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>) = 0;
+    virtual void importData(std::vector<TableInfo::Ptr>&,
+        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>&) = 0;
     virtual bool checkAuthority(const std::string& _tableName, const std::string& _user) const = 0;
 };
 }  // namespace storage

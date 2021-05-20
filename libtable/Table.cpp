@@ -79,7 +79,7 @@ std::map<std::string, Entry::Ptr> Table::getRows(const std::vector<std::string>&
     return ret;
 }
 
-std::vector<std::string> Table::getPrimaryKeys(std::shared_ptr<Condition> _condition) const
+std::vector<std::string> Table::getPrimaryKeys(Condition::Ptr _condition) const
 {
     std::vector<std::string> ret;
     std::set<std::string> deleted;
@@ -110,7 +110,7 @@ std::vector<std::string> Table::getPrimaryKeys(std::shared_ptr<Condition> _condi
     return ret;
 }
 
-bool Table::setRow(const std::string& _key, Entry::Ptr _entry)
+bool Table::setRow(const std::string& _key, Entry::Ptr& _entry)
 {  // For concurrent_unordered_map, insert and emplace methods may create a temporary item that
     // is destroyed if another thread inserts an item with the same key concurrently.
     // So, parallel insert same key is not permitted
@@ -186,7 +186,7 @@ bool Table::remove(const std::string& _key)
     return true;
 }
 
-void Table::asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
+void Table::asyncGetPrimaryKeys(Condition::Ptr _condition,
     std::function<void(Error::Ptr, std::vector<std::string>)> _callback)
 {
     auto ret = make_shared<vector<string>>();
@@ -222,7 +222,7 @@ void Table::asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
 }
 
 void Table::asyncGetRow(
-    std::shared_ptr<std::string> _key, std::function<void(Error::Ptr, Entry::Ptr)> _callback)
+    std::shared_ptr<std::string>& _key, std::function<void(Error::Ptr, Entry::Ptr)> _callback)
 {
     Entry::Ptr entry = nullptr;
     auto entryIt = m_dirty.find(*_key);
@@ -241,7 +241,7 @@ void Table::asyncGetRow(
     m_DB->asyncGetRow(m_tableInfo, _key, _callback);
 }
 
-void Table::asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
+void Table::asyncGetRows(std::shared_ptr<std::vector<std::string>>& _keys,
     std::function<void(Error::Ptr, std::map<std::string, Entry::Ptr>)> _callback)
 {
     auto ret = make_shared<std::map<std::string, Entry::Ptr>>();

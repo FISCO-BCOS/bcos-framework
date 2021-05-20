@@ -38,28 +38,26 @@ public:
       : m_DB(_db), m_tableInfo(_tableInfo), m_hashImpl(_hashImpl), m_blockNumber(_blockNum)
     {}
     virtual ~Table() {}
-    std::shared_ptr<Entry> getRow(const std::string& _key) override;
-    std::map<std::string, std::shared_ptr<Entry>> getRows(
-        const std::vector<std::string>& _keys) override;
-    std::vector<std::string> getPrimaryKeys(std::shared_ptr<Condition> _condition) const override;
-    bool setRow(const std::string& _key, std::shared_ptr<Entry> _entry) override;
+    Entry::Ptr getRow(const std::string& _key) override;
+    std::map<std::string, Entry::Ptr> getRows(const std::vector<std::string>& _keys) override;
+    std::vector<std::string> getPrimaryKeys(Condition::Ptr _condition) const override;
+    bool setRow(const std::string& _key, Entry::Ptr& _entry) override;
     bool remove(const std::string& _key) override;
 
-    void asyncGetPrimaryKeys(std::shared_ptr<Condition> _condition,
+    void asyncGetPrimaryKeys(Condition::Ptr _condition,
         std::function<void(Error::Ptr, std::vector<std::string>)> _callback) override;
-    void asyncGetRow(std::shared_ptr<std::string> _key,
-        std::function<void(Error::Ptr, std::shared_ptr<Entry>)> _callback) override;
-    void asyncGetRows(std::shared_ptr<std::vector<std::string>> _keys,
-        std::function<void(Error::Ptr, std::map<std::string, std::shared_ptr<Entry>>)> _callback)
-        override;
+    void asyncGetRow(std::shared_ptr<std::string>& _key,
+        std::function<void(Error::Ptr, Entry::Ptr)> _callback) override;
+    void asyncGetRows(std::shared_ptr<std::vector<std::string>>& _keys,
+        std::function<void(Error::Ptr, std::map<std::string, Entry::Ptr>)> _callback) override;
 
     TableInfo::Ptr tableInfo() const override { return m_tableInfo; }
     Entry::Ptr newEntry() override { return std::make_shared<Entry>(m_blockNumber); }
     crypto::HashType hash() override;
 
-    std::shared_ptr<std::map<std::string, std::shared_ptr<Entry>>> dump() override
+    std::shared_ptr<std::map<std::string, Entry::Ptr>> dump() override
     {
-        auto ret = std::make_shared<std::map<std::string, std::shared_ptr<Entry>>>();
+        auto ret = std::make_shared<std::map<std::string, Entry::Ptr>>();
 
         for (auto& it : m_dirty)
         {
