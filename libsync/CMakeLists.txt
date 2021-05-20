@@ -14,4 +14,4 @@ add_library(${SYNC_TARGET} ${SRC_LIST} ${PROTO_SRCS} ${HEADERS} ${PROTO_HDRS})
 target_compile_options(${SYNC_TARGET} PRIVATE -Wno-error -Wno-unused-variable)
 
 find_package(Protobuf CONFIG REQUIRED)
-target_link_libraries(${SYNC_TARGET} PUBLIC  ${UTILITIES_TARGET} ${PROTOCOL_TARGET} protobuf::libprotobuf)
+target_link_libraries(${SYNC_TARGET} PUBLIC ${UTILITIES_TARGET} protobuf::libprotobuf)
