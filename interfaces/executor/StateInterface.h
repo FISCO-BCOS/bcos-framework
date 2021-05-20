@@ -24,6 +24,7 @@
 #include "../../libutilities/FixedBytes.h"
 #include "../crypto/CommonType.h"
 #include "../protocol/ProtocolTypeDef.h"
+#include "../storage/TableInterface.h"
 #include <memory>
 
 namespace bcos
@@ -88,7 +89,7 @@ public:
     virtual void createContract(const std::string& _address) = 0;
 
     /// Sets the code of the account. Must only be called during / after contract creation.
-    virtual void setCode(const std::string& _address, bytes&& _code) = 0;
+    virtual void setCode(const std::string& _address, bytesConstRef _code) = 0;
 
     /// Delete an account (used for processing suicides). (set suicides key = 1 when use AMDB)
     virtual void kill(const std::string& _address) = 0;
@@ -97,7 +98,7 @@ public:
     /// @returns bytes() if no account exists at that address.
     /// @warning The reference to the code is only valid until the access to
     ///          other account. Do not keep it.
-    virtual bytes const code(const std::string& _address) const = 0;
+    virtual std::shared_ptr<bytes> code(const std::string& _address) const = 0;
 
     /// Get the code hash of an account.
     /// @returns EmptyHash if no account exists at that address or if there is no code
@@ -134,8 +135,8 @@ public:
 
     /// Get the account start nonce. May be required.
     virtual u256 const& accountStartNonce() const = 0;
-    virtual u256 const& requireAccountStartNonce() const = 0;
-    virtual void noteAccountStartNonce(u256 const& _actual) = 0;
+    // virtual u256 const& requireAccountStartNonce() const = 0;
+    // virtual void noteAccountStartNonce(u256 const& _actual) = 0;
 
     /// Create a savepoint in the state changelog.
     /// @return The savepoint index that can be used in rollback() function.
