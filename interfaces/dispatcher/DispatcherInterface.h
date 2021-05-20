@@ -37,8 +37,8 @@ public:
     virtual ~DispatcherInterface() {}
     virtual void asyncExecuteBlock(protocol::Block::Ptr _block, bool _verify,
         std::function<void(Error::Ptr, protocol::BlockHeader::Ptr)> _callback) = 0;
-    virtual void asyncGetBlockHeaderHash(protocol::BlockNumber _number,
-        std::function<void(Error::Ptr, std::shared_ptr<crypto::HashType>)> _callback) = 0;
+    // virtual void asyncGetBlockHeaderHash(protocol::BlockNumber _number,
+    //     std::function<void(Error::Ptr, std::shared_ptr<crypto::HashType>)> _callback) = 0;
     virtual void asyncGetLatestBlock(
         std::function<void(Error::Ptr, protocol::Block::Ptr)> _callback) = 0;
     virtual void asyncNotifyExecutionResult(Error::Ptr _error,
