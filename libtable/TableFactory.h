@@ -255,6 +255,7 @@ public:
             m_name2Table.insert({_tableInfos[i]->name, table});
         }
     }
+    protocol::BlockNumber blockNumber() const override { return m_blockNumber; }
 
     bool checkAuthority(const std::string& _tableName, const std::string& _user) const override
     {
