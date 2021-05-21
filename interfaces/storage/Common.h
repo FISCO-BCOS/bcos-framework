@@ -57,9 +57,8 @@ enum StorageErrorCode
     StateCacheNotFound = -50003,
 };
 
-class Condition : public std::enable_shared_from_this<Condition>
+struct Condition : public std::enable_shared_from_this<Condition>
 {
-public:
     using Ptr = std::shared_ptr<Condition>;
     Condition() = default;
     virtual ~Condition() = default;
@@ -121,7 +120,6 @@ public:
         return true;
     }
 
-private:
     enum class Comparator
     {
         EQ,

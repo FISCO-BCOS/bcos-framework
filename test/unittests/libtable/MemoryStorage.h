@@ -114,7 +114,7 @@ public:
     void asyncGetPrimaryKeys(const std::shared_ptr<TableInfo>&, const Condition::Ptr&,
         std::function<void(const Error::Ptr&, const std::vector<std::string>&)>) override
     {}
-    void asyncGetRow(const std::shared_ptr<TableInfo>&, const std::string&,
+    void asyncGetRow(const std::shared_ptr<TableInfo>&, const std::string_view&,
         std::function<void(const Error::Ptr&, const Entry::Ptr&)>) override
     {}
     void asyncGetRows(const std::shared_ptr<TableInfo>&,
@@ -158,16 +158,16 @@ public:
         return {"", nullptr};
     }
     Error::Ptr remove(const std::string_view&, const std::string_view&) override { return nullptr; }
-    void asyncPut(const std::string&, const std::string&, const std::shared_ptr<bytes>&,
+    void asyncPut(const std::string_view&, const std::string_view&, const std::string_view&,
         std::function<void(const Error::Ptr&)>) override
     {}
-    void asyncGet(const std::string&, const std::string&,
+    void asyncGet(const std::string_view&, const std::string_view&,
         std::function<void(const Error::Ptr&, const std::string& value)>) override
     {}
     void asyncRemove(
-        const std::string&, const std::string&, std::function<void(const Error::Ptr&)>) override
+        const std::string_view&, const std::string_view&, std::function<void(const Error::Ptr&)>) override
     {}
-    void asyncGetBatch(const std::string&, const std::shared_ptr<std::vector<std::string>>&,
+    void asyncGetBatch(const std::string_view&, const std::shared_ptr<std::vector<std::string>>&,
         std::function<void(const Error::Ptr&, const std::shared_ptr<std::vector<std::string>>&)>)
         override
     {}
