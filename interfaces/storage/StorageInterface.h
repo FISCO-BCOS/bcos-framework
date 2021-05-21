@@ -49,7 +49,7 @@ public:
     virtual void asyncGetPrimaryKeys(const TableInfo::Ptr& _tableInfo,
         const Condition::Ptr& _condition,
         std::function<void(const Error::Ptr&, const std::vector<std::string>&)> _callback) = 0;
-    virtual void asyncGetRow(const TableInfo::Ptr& _tableInfo, const std::string& _key,
+    virtual void asyncGetRow(const TableInfo::Ptr& _tableInfo, const std::string_view& _key,
         std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback) = 0;
     virtual void asyncGetRows(const TableInfo::Ptr& _tableInfo,
         const std::shared_ptr<std::vector<std::string> >& _keys,
@@ -84,14 +84,14 @@ public:
     virtual Error::Ptr remove(
         const std::string_view& _columnFamily, const std::string_view& _key) = 0;
 
-    virtual void asyncPut(const std::string& _columnFamily, const std::string& _key,
-        const std::shared_ptr<bytes>& _value, std::function<void(const Error::Ptr&)> _callback) = 0;
-    virtual void asyncRemove(const std::string& _columnFamily, const std::string& _key,
+    virtual void asyncPut(const std::string_view& _columnFamily, const std::string_view& _key,
+        const std::string_view& _value, std::function<void(const Error::Ptr&)> _callback) = 0;
+    virtual void asyncRemove(const std::string_view& _columnFamily, const std::string_view& _key,
         std::function<void(const Error::Ptr&)> _callback) = 0;
-    virtual void asyncGet(const std::string& _columnFamily, const std::string& _key,
+    virtual void asyncGet(const std::string_view& _columnFamily, const std::string_view& _key,
         std::function<void(const Error::Ptr&, const std::string& value)> _callback) = 0;
 
-    virtual void asyncGetBatch(const std::string& _columnFamily,
+    virtual void asyncGetBatch(const std::string_view& _columnFamily,
         const std::shared_ptr<std::vector<std::string> >& _keys,
         std::function<void(const Error::Ptr&, const std::shared_ptr<std::vector<std::string> >&)>
             callback) = 0;
