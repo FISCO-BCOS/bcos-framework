@@ -64,7 +64,7 @@ public:
         Entry::Ptr entry;
         bool tableDirty;
         Change(std::shared_ptr<TableInterface> _table, Kind _kind, std::string const& _key,
-            Entry::Ptr _entry, bool _tableDirty)
+            const Entry::Ptr& _entry, bool _tableDirty)
           : table(_table), kind(_kind), key(_key), entry(_entry), tableDirty(_tableDirty)
         {}
     };
@@ -74,15 +74,15 @@ public:
     virtual ~TableInterface() {}
     virtual Entry::Ptr getRow(const std::string& _key) = 0;
     virtual std::map<std::string, Entry::Ptr> getRows(const std::vector<std::string>& _keys) = 0;
-    virtual std::vector<std::string> getPrimaryKeys(Condition::Ptr _condition) const = 0;
-    virtual bool setRow(const std::string& _key, Entry::Ptr& _entry) = 0;
+    virtual std::vector<std::string> getPrimaryKeys(const Condition::Ptr& _condition) const = 0;
+    virtual bool setRow(const std::string& _key, const Entry::Ptr& _entry) = 0;
 
-    virtual void asyncGetPrimaryKeys(Condition::Ptr _condition,
-        std::function<void(Error::Ptr, std::vector<std::string>)> _callback) = 0;
-    virtual void asyncGetRow(std::shared_ptr<std::string>& _key,
-        std::function<void(Error::Ptr, Entry::Ptr)> _callback) = 0;
-    virtual void asyncGetRows(std::shared_ptr<std::vector<std::string>>& _keys,
-        std::function<void(Error::Ptr, std::map<std::string, Entry::Ptr>)> _callback) = 0;
+    virtual void asyncGetPrimaryKeys(const Condition::Ptr& _condition,
+        std::function<void(const Error::Ptr&, const std::vector<std::string>&)> _callback) = 0;
+    virtual void asyncGetRow(
+        const std::string& _key, std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback) = 0;
+    virtual void asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
+        std::function<void(const Error::Ptr&, const std::map<std::string, Entry::Ptr>&)> _callback) = 0;
 
     virtual bool remove(const std::string& _key) = 0;
     virtual TableInfo::Ptr tableInfo() const = 0;
@@ -112,7 +112,7 @@ public:
     virtual size_t savepoint() = 0;
     virtual void rollback(size_t _savepoint) = 0;
     virtual std::pair<size_t, Error::Ptr> commit() = 0;
-    virtual void asyncCommit(std::function<void(Error::Ptr, size_t)> _callback) = 0;
+    virtual void asyncCommit(std::function<void(const Error::Ptr&, size_t)> _callback) = 0;
     virtual std::pair<std::vector<TableInfo::Ptr>,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
     exportData() = 0;

@@ -40,16 +40,16 @@ public:
     virtual ~Table() {}
     Entry::Ptr getRow(const std::string& _key) override;
     std::map<std::string, Entry::Ptr> getRows(const std::vector<std::string>& _keys) override;
-    std::vector<std::string> getPrimaryKeys(Condition::Ptr _condition) const override;
-    bool setRow(const std::string& _key, Entry::Ptr& _entry) override;
+    std::vector<std::string> getPrimaryKeys(const Condition::Ptr& _condition) const override;
+    bool setRow(const std::string& _key, const Entry::Ptr& _entry) override;
     bool remove(const std::string& _key) override;
 
-    void asyncGetPrimaryKeys(Condition::Ptr _condition,
-        std::function<void(Error::Ptr, std::vector<std::string>)> _callback) override;
-    void asyncGetRow(std::shared_ptr<std::string>& _key,
-        std::function<void(Error::Ptr, Entry::Ptr)> _callback) override;
-    void asyncGetRows(std::shared_ptr<std::vector<std::string>>& _keys,
-        std::function<void(Error::Ptr, std::map<std::string, Entry::Ptr>)> _callback) override;
+    void asyncGetPrimaryKeys(const Condition::Ptr& _condition,
+        std::function<void(const Error::Ptr&, const std::vector<std::string>&)> _callback) override;
+    void asyncGetRow(const std::string& _key,
+        std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback) override;
+    void asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
+        std::function<void(const Error::Ptr&, const std::map<std::string, Entry::Ptr>&)> _callback) override;
 
     TableInfo::Ptr tableInfo() const override { return m_tableInfo; }
     Entry::Ptr newEntry() override { return std::make_shared<Entry>(m_blockNumber); }
