@@ -151,6 +151,11 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
     {  // the fields must ordered in key value_fields status num_field
         boost::split(fields, _fields, boost::is_any_of(","));
     }
+    explicit TableInfo(
+        const std::string& _tableName, const std::string& _key, const std::vector<std::string>& _fields)
+      : name(_tableName), key(_key), fields(_fields)
+    {
+    }
     std::string name;
     std::string key;
     std::vector<std::string> fields;
