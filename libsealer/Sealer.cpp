@@ -18,7 +18,6 @@
  * @date: 2021-05-14
  */
 #include "Sealer.h"
-#include "../interfaces/protocol/CommonError.h"
 #include "Common.h"
 using namespace bcos;
 using namespace bcos::sealer;
@@ -56,7 +55,7 @@ void Sealer::asyncNotifySealProposal(size_t _proposalStartIndex, size_t _proposa
     size_t _maxTxsPerBlock, std::function<void(Error::Ptr)> _onRecvResponse)
 {
     m_sealingManager->resetSealingInfo(_proposalStartIndex, _proposalEndIndex, _maxTxsPerBlock);
-    _onRecvResponse(std::make_shared<Error>(CommonError::SUCCESS, "SUCCESS"));
+    _onRecvResponse(nullptr);
     SEAL_LOG(INFO) << LOG_DESC("asyncNotifySealProposal")
                    << LOG_KV("startIndex", _proposalStartIndex)
                    << LOG_KV("endIndex", _proposalEndIndex)
@@ -67,7 +66,7 @@ void Sealer::asyncNoteUnSealedTxsSize(
     size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse)
 {
     m_sealingManager->setUnsealedTxsSize(_unsealedTxsSize);
-    _onRecvResponse(std::make_shared<Error>(CommonError::SUCCESS, "SUCCESS"));
+    _onRecvResponse(nullptr);
     SEAL_LOG(INFO) << LOG_DESC("asyncNoteUnSealedTxsSize")
                    << LOG_KV("unsealedTxsSize", _unsealedTxsSize);
 }
@@ -104,7 +103,7 @@ void Sealer::submitProposal(bcos::protocol::Block::Ptr _proposal)
     m_sealerConfig->consensus()->asyncSubmitProposal(ref(*encodedData),
         _proposal->blockHeader()->number(), _proposal->blockHeader()->hash(),
         [this, _proposal](Error::Ptr _error) {
-            if (_error->errorCode() == CommonError::SUCCESS)
+            if (_error == nullptr)
             {
                 return;
             }

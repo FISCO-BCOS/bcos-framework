@@ -19,9 +19,9 @@
  * @date: 2021-03-23
  */
 #include "../../../testutils/TestPromptFixture.h"
-#include "FakeBlock.h"
 #include "libprotocol/TransactionSubmitResultFactoryImpl.h"
 #include "libprotocol/TransactionSubmitResultImpl.h"
+#include "testutils/protocol/FakeBlock.h"
 #include <boost/test/unit_test.hpp>
 #include <memory>
 using namespace bcos;

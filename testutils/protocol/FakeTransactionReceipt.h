@@ -18,9 +18,9 @@
  * @date: 2021-03-16
  */
 #pragma once
-#include "../../../testutils/HashImpl.h"
 #include "libprotocol/protobuf/PBTransactionReceiptFactory.h"
 #include "libutilities/Common.h"
+#include "testutils/crypto/HashImpl.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace bcos;

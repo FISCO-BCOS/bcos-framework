@@ -20,9 +20,9 @@
  */
 #include "libprotocol/protobuf/PBTransaction.h"
 #include "../../../testutils/TestPromptFixture.h"
-#include "FakeTransaction.h"
 #include "libprotocol/Common.h"
 #include "libutilities/DataConvertUtility.h"
+#include "testutils/protocol/FakeTransaction.h"
 #include <boost/test/tools/old/interface.hpp>
 
 using namespace bcos;
@@ -78,7 +78,7 @@ void testBlock(CryptoSuite::Ptr cryptoSuite)
 
     auto keyPair = cryptoSuite->signatureImpl()->generateKeyPair();
     auto sign = cryptoSuite->signatureImpl()->sign(keyPair, tx.hash());
-    tx.updateSignature(bcos::ref(*sign), keyPair->publicKey()->data());;
+    tx.updateSignature(bcos::ref(*sign), keyPair->publicKey()->data());
 
     auto buffer = tx.encode(false);
 
