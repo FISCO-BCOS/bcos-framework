@@ -19,8 +19,8 @@
  * @date: 2021-03-16
  */
 #include "../../../testutils/TestPromptFixture.h"
-#include "FakeTransactionReceipt.h"
 #include "libprotocol/Common.h"
+#include "testutils/protocol/FakeTransactionReceipt.h"
 
 using namespace bcos;
 using namespace bcos::protocol;

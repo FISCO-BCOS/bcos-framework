@@ -18,7 +18,6 @@
  * @date: 2021-05-14
  */
 #include "SealingManager.h"
-#include "../interfaces/protocol/CommonError.h"
 #include "Common.h"
 
 using namespace bcos;
@@ -87,7 +86,7 @@ void SealingManager::notifyResetTxsFlag(HashListPtr _txsHashList, bool _flag)
 {
     m_config->txpool()->asyncMarkTxs(
         _txsHashList, _flag, [this, _txsHashList, _flag](Error::Ptr _error) {
-            if (_error->errorCode() == CommonError::SUCCESS)
+            if (_error == nullptr)
             {
                 SEAL_LOG(DEBUG) << LOG_DESC("asyncMarkTxs success");
                 return;
@@ -184,7 +183,7 @@ void SealingManager::fetchTransactions()
                 {
                     return;
                 }
-                if (_error->errorCode() != CommonError::SUCCESS)
+                if (_error != nullptr)
                 {
                     SEAL_LOG(WARNING) << LOG_DESC("fetchTransactions exception")
                                       << LOG_KV("returnCode", _error->errorCode())

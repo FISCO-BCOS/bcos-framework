@@ -19,12 +19,12 @@
  * @date: 2021-03-23
  */
 #pragma once
-#include "FakeBlockHeader.h"
-#include "FakeTransaction.h"
-#include "FakeTransactionReceipt.h"
 #include "libprotocol/protobuf/PBBlock.h"
 #include "libprotocol/protobuf/PBBlockFactory.h"
-#include "../../../testutils/HashImpl.h"
+#include "testutils/crypto/HashImpl.h"
+#include "testutils/protocol/FakeBlockHeader.h"
+#include "testutils/protocol/FakeTransaction.h"
+#include "testutils/protocol/FakeTransactionReceipt.h"
 #include <boost/test/unit_test.hpp>
 using namespace bcos;
 using namespace bcos::protocol;

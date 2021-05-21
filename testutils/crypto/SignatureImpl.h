@@ -23,7 +23,6 @@
 #include "../interfaces/crypto/Signature.h"
 #include "../libutilities/DataConvertUtility.h"
 #include "../libutilities/Exceptions.h"
-#include "../libutilities/DataConvertUtility.h"
 #include <wedpr-crypto/WedprCrypto.h>
 namespace bcos
 {
@@ -202,7 +201,10 @@ public:
     {
         return std::make_pair(false, bytes());
     }
-    bcos::crypto::KeyPairInterface::Ptr createKeyPair(bcos::crypto::SecretPtr) override { return nullptr; }
+    bcos::crypto::KeyPairInterface::Ptr createKeyPair(bcos::crypto::SecretPtr) override
+    {
+        return nullptr;
+    }
 };
 
 class SM2SignatureImpl : public crypto::SignatureCrypto
@@ -298,7 +300,10 @@ public:
     {
         return std::make_pair(false, bytes());
     }
-    bcos::crypto::KeyPairInterface::Ptr createKeyPair(bcos::crypto::SecretPtr) override { return nullptr; }
+    bcos::crypto::KeyPairInterface::Ptr createKeyPair(bcos::crypto::SecretPtr) override
+    {
+        return nullptr;
+    }
 };
 
 }  // namespace test

@@ -18,12 +18,12 @@
  * @date: 2021-03-16
  */
 #pragma once
-#include "../../../testutils/HashImpl.h"
-#include "../../../testutils/SignatureImpl.h"
 #include "interfaces/protocol/Exceptions.h"
 #include "libprotocol/Common.h"
 #include "libprotocol/protobuf/PBBlockHeaderFactory.h"
 #include "libutilities/Common.h"
+#include "testutils/crypto/HashImpl.h"
+#include "testutils/crypto/SignatureImpl.h"
 #include <tbb/parallel_invoke.h>
 #include <boost/test/unit_test.hpp>
 using namespace bcos;

@@ -21,7 +21,6 @@
 #include "LedgerConfigFetcher.h"
 #include "Exceptions.h"
 #include "interfaces/ledger/LedgerTypeDef.h"
-#include "interfaces/protocol/CommonError.h"
 #include "libutilities/Common.h"
 using namespace bcos::protocol;
 using namespace bcos::crypto;
@@ -64,7 +63,7 @@ void LedgerConfigFetcher::fetchBlockNumberAndHash()
             {
                 return;
             }
-            if (_error->errorCode() == CommonError::SUCCESS)
+            if (_error == nullptr)
             {
                 TOOL_LOG(INFO) << LOG_DESC("fetchBlockNumber success, begin to fetchBlockHash")
                                << LOG_KV("number", _number);
@@ -100,7 +99,7 @@ void LedgerConfigFetcher::fetchBlockHash(BlockNumber _blockNumber)
             {
                 return;
             }
-            if (_error->errorCode() == CommonError::SUCCESS)
+            if (_error == nullptr)
             {
                 TOOL_LOG(INFO) << LOG_DESC("LedgerConfigFetcher: fetchBlockHash success")
                                << LOG_KV("number", _blockNumber)
@@ -139,7 +138,7 @@ void LedgerConfigFetcher::fetchSystemConfig(
             {
                 return;
             }
-            if (_error->errorCode() == CommonError::SUCCESS)
+            if (_error == nullptr)
             {
                 TOOL_LOG(INFO) << LOG_DESC("LedgerConfigFetcher: fetchSystemConfig success")
                                << LOG_KV("key", _key) << LOG_KV("value", _sysValue)
@@ -176,7 +175,7 @@ void LedgerConfigFetcher::fetchNodeListByNodeType(
             {
                 return;
             }
-            if (_error->errorCode() == CommonError::SUCCESS)
+            if (_error == nullptr)
             {
                 TOOL_LOG(INFO) << LOG_DESC("LedgerConfigFetcher: fetchNodeListByNodeType success")
                                << LOG_KV("nodesSize", _nodes->size()) << LOG_KV("type", _type);
@@ -312,7 +311,7 @@ void LedgerConfigFetcher::fetchNonceList(BlockNumber _startNumber, int64_t _offs
                 {
                     return;
                 }
-                if (_error->errorCode() == CommonError::SUCCESS)
+                if (_error == nullptr)
                 {
                     TOOL_LOG(INFO)
                         << LOG_DESC("LedgerConfigFetcher: fetchNonceList success")

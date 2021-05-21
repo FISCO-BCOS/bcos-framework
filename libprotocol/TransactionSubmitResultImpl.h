@@ -19,6 +19,7 @@
  */
 #pragma once
 #include "../interfaces/protocol/TransactionSubmitResult.h"
+#include "../libprotocol/TransactionStatus.h"
 namespace bcos
 {
 namespace protocol
