@@ -19,8 +19,8 @@
  */
 
 #pragma once
-#include "interfaces/protocol/Exceptions.h"
 #include <iostream>
+#include <sstream>
 namespace bcos
 {
 struct Exception;

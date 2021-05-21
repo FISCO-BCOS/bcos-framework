@@ -29,7 +29,7 @@ include(FetchContent)
 set(BCOS_CMAKE_SCRIPTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts")
 FetchContent_Declare(bcos-cmake-scripts
     GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-cmake-scripts.git
-    GIT_TAG 23f6cde7b00ba32b4ad3fb72de7b0323a12a1190
+    GIT_TAG 0a31779be2619c839337fee705f3cd5ec1baf1d4
     SOURCE_DIR ${BCOS_CMAKE_SCRIPTS_DIR}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -63,8 +63,8 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 # init hunter
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/FISCO-BCOS/hunter/archive/8c81ea454c0c268b257da1fe3e3f2f69bd59a67d.tar.gz"
-    SHA1 "13292adf48c4c053ff2ceb7173631a296c08d1ac"
+    URL "https://${URL_BASE}/FISCO-BCOS/hunter/archive/60389000be6e74983b8790e695ba1bd10e88fab7.tar.gz"
+    SHA1 "8477caf1a595856cdc2c3b09568bbf9bf15f1f35"
     FILEPATH "${BCOS_FRAMEWORK_CMAKE_DIR}/config.cmake"
 )
 # set CMP0074 to NEW to suppress warnning, https://cmake.org/cmake/help/latest/policy/CMP0074.html
@@ -208,9 +208,10 @@ install(
 include(InstallInclude)
 # for doxygen
 include(BuildDocs)
+buildDoc(bcos-framework-doc)
 
 # for code coverage
 if (COVERAGE)
     include(Coverage)
-    config_coverage("'/usr*' '${CMAKE_CURRENT_SOURCE_DIR}/bcos-cmake-scripts*' '${CMAKE_CURRENT_SOURCE_DIR}/test/bcos-test*'")
+    config_coverage("framework-cov" "'/usr*' '${CMAKE_CURRENT_SOURCE_DIR}/bcos-cmake-scripts*' '${CMAKE_CURRENT_SOURCE_DIR}/test/bcos-test*'")
 endif ()
