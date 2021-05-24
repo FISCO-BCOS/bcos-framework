@@ -17,8 +17,8 @@
  * @author: yujiechen
  * @date: 2021-05-20
  */
-#include "Sealer.h"
 #include "SealerFactory.h"
+#include "Sealer.h"
 using namespace bcos;
 using namespace bcos::sealer;
 
