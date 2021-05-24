@@ -9,13 +9,13 @@ template <class T>
 class ConcurrentCOW
 {
 public:
-    ConcurrentCOW() {};
+    ConcurrentCOW(){};
     explicit ConcurrentCOW(T&& obj) { reset(std::forward<T>(obj)); };
     ConcurrentCOW(const ConcurrentCOW& cow) noexcept { m_obj = cow.m_obj; }
     ConcurrentCOW(ConcurrentCOW&& cow) noexcept { m_obj = std::move(cow.m_obj); }
     void operator=(const ConcurrentCOW& cow) noexcept { m_obj = cow.m_obj; }
     void operator=(ConcurrentCOW&& cow) noexcept { m_obj = std::move(cow.m_obj); }
-    ~ConcurrentCOW() noexcept { }
+    ~ConcurrentCOW() noexcept {}
 
     void reset(T&& obj) { m_obj = std::make_shared<T>(std::forward<T>(obj)); }
 
