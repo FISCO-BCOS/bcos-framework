@@ -69,18 +69,19 @@ public:
      * @param _to Account to which @a _value will be added.
      * @param _value Amount to be transferred.
      */
-    virtual void transferBalance(const std::string& _from, const std::string& _to, u256 const& _value) = 0;
+    virtual void transferBalance(
+        const std::string& _from, const std::string& _to, u256 const& _value) = 0;
 
     /// Get the root of the storage of an account.
     virtual crypto::HashType storageRoot(const std::string& _address) const = 0;
 
     /// Get the value of a storage position of an account.
     /// @returns 0 if no account exists at that address.
-    virtual u256 storage(const std::string& _address, u256 const& _memory) = 0;
+    virtual u256 storage(const std::string& _address, const std::string_view& _memory) = 0;
 
     /// Set the value of a storage position of an account.
-    virtual void setStorage(
-        const std::string& _address, u256 const& _location, u256 const& _value) = 0;
+    virtual void setStorage(const std::string& _address, const std::string_view& _location,
+        const std::string_view& _value) = 0;
 
     /// Clear the storage root hash of an account to the hash of the empty trie.
     virtual void clearStorage(const std::string& _address) = 0;
