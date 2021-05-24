@@ -40,6 +40,10 @@ public:
 
     virtual std::string shortHex() = 0;
     virtual std::string hex() = 0;
+
+    bool operator<(KeyInterface::Ptr _key) { return data() < _key->data(); }
+    bool operator==(KeyInterface::Ptr _key) { return data() == _key->data(); }
+    bool operator>(KeyInterface::Ptr _key) { return !(operator<(_key) || operator==(_key)); }
 };
 using Public = KeyInterface;
 using Secret = KeyInterface;
@@ -48,14 +52,7 @@ using SecretPtr = KeyInterface::Ptr;
 using NodeIDPtr = KeyInterface::Ptr;
 using NodeIDs = std::vector<NodeIDPtr>;
 using NodeIDListPtr = std::shared_ptr<NodeIDs>;
-struct KeyCompare
-{
-    bool operator()(NodeIDPtr _first, NodeIDPtr _second) const
-    {
-        return _first->data() <= _second->data();
-    }
-};
-using NodeIDSet = std::set<bcos::crypto::NodeIDPtr, KeyCompare>;
+using NodeIDSet = std::set<bcos::crypto::NodeIDPtr>;
 using NodeIDSetPtr = std::shared_ptr<NodeIDSet>;
 }  // namespace crypto
 }  // namespace bcos
