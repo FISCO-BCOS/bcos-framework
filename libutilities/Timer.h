@@ -61,11 +61,22 @@ public:
     virtual bool running() { return m_running; }
     virtual int64_t timeout() { return m_timeout; }
 
+    virtual void registerTimeoutHandler(std::function<void()> _timeoutHandler)
+    {
+        m_timeoutHandler = _timeoutHandler;
+    }
+
 protected:
     virtual void startTimer();
 
     // invoked everytime when it reaches the timeout
-    virtual void run() = 0;
+    virtual void run()
+    {
+        if (m_timeoutHandler)
+        {
+            m_timeoutHandler();
+        }
+    }
     // adjust the timeout
     virtual uint64_t adjustTimeout() { return m_timeout; }
     std::atomic<uint64_t> m_timeout = {0};
@@ -75,5 +86,6 @@ private:
     std::shared_ptr<boost::asio::io_service> m_ioService;
     std::shared_ptr<boost::asio::steady_timer> m_timer;
     boost::thread_group m_thread;
+    std::function<void()> m_timeoutHandler;
 };
 }  // namespace bcos
