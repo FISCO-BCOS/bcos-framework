@@ -89,11 +89,12 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     auto start = utcTime();
-    for (size_t i = 0; i < 200; i++)
+    for (size_t i = 0; i < 2; i++)
     {
         receipt->encode(*encodedData);
     }
 
+#if 0
     std::cout << "##### testPBTransactionReceipt:"
               << "encodedData:" << *toHexString(*encodedData) << std::endl;
     std::cout << "stateRoot:" << receipt->stateRoot().hex() << std::endl;
@@ -110,14 +111,14 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
 
     std::cout << "##### ScaleReceipt encodeT: " << (utcTime() - start)
               << ", encodedData size:" << encodedData->size() << std::endl;
-
+#endif
     auto encodedDataCache = receipt->encode();
     BOOST_CHECK(*encodedData == encodedDataCache.toBytes());
 
     // decode
     std::shared_ptr<TransactionReceipt> decodedReceipt;
     start = utcTime();
-    for (size_t i = 0; i < 20000; i++)
+    for (size_t i = 0; i < 2; i++)
     {
         decodedReceipt = factory->createReceipt(*encodedData);
     }

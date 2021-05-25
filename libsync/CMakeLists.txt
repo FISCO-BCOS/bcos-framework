@@ -10,6 +10,9 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${MESSAGES_PROTOS} ${PROTO_PATH} "pr
 aux_source_directory(./protocol SRC_LIST)
 include_directories(./protocol)
 
+aux_source_directory(./protocol/PB SRC_LIST)
+include_directories(./protocol/PB)
+
 add_library(${SYNC_TARGET} ${SRC_LIST} ${PROTO_SRCS} ${HEADERS} ${PROTO_HDRS})
 target_compile_options(${SYNC_TARGET} PRIVATE -Wno-error -Wno-unused-variable)
 
