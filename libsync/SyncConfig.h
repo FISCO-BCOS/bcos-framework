@@ -110,6 +110,12 @@ public:
         return m_nodeList->count(_nodeId);
     }
 
+    bcos::crypto::NodeIDSet groupNodeList()
+    {
+        ReadGuard l(x_nodeList);
+        return *m_nodeList;
+    }
+
 private:
     void updateNodeList()
     {
