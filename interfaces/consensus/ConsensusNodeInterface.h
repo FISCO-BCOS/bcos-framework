@@ -42,13 +42,13 @@ using ConsensusNodeListPtr = std::shared_ptr<ConsensusNodeList>;
 
 struct ConsensusNodeComparator
 {
-    inline bool operator()(ConsensusNodeInterface::Ptr _left, ConsensusNodeInterface::Ptr _right)
+    bool operator()(ConsensusNodeInterface::Ptr _left, ConsensusNodeInterface::Ptr _right) const
     {
-        if (_left->nodeID() == _right->nodeID())
+        if (_left->nodeID()->data() == _right->nodeID()->data())
         {
-            return _left->weight() <= _right->weight();
+            return _left->weight() < _right->weight();
         }
-        return (_left->nodeID() < _right->nodeID());
+        return (_left->nodeID()->data() < _right->nodeID()->data());
     }
 };
 
