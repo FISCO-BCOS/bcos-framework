@@ -21,6 +21,8 @@
 #pragma once
 #include "../../interfaces/crypto/CommonType.h"
 #include "../../interfaces/crypto/KeyInterface.h"
+#include "../../interfaces/ledger/LedgerConfig.h"
+#include "../../interfaces/protocol/Block.h"
 #include "../../interfaces/protocol/ProtocolTypeDef.h"
 #include "../../libutilities/Error.h"
 #include "ConsensusTypeDef.h"
@@ -46,6 +48,13 @@ public:
         std::function<void(Error::Ptr)> _onProposalSubmitted) = 0;
 
     virtual void asyncGetPBFTView(std::function<void(Error::Ptr, ViewType)> _onGetView) = 0;
+
+    // the sync module calls this interface to check block
+    virtual void asyncCheckBlock(bcos::protocol::Block::Ptr _block,
+        std::function<void(Error::Ptr, bool)> _onVerifyFinish) = 0;
+    // the sync module calls this interface to notify new block
+    virtual void asyncNotifyNewBlock(
+        bcos::ledger::LedgerConfig::Ptr _ledgerConfig, std::function<void(Error::Ptr)> _onRecv) = 0;
 
     // called by frontService to dispatch message
     virtual void asyncNotifyConsensusMessage(bcos::Error::Ptr _error,
