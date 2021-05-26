@@ -27,5 +27,5 @@ namespace consensus
 using NodeType = uint64_t;
 using IndexType = uint64_t;
 using ViewType = uint64_t;
-};  // namespace consensus
+}  // namespace consensus
 }  // namespace bcos
