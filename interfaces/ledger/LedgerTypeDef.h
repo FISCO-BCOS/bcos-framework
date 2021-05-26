@@ -41,5 +41,21 @@ static const char* const SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
 static const char* const CONSENSUS_SEALER = "consensus_sealer";
 static const char* const CONSENSUS_OBSERVER = "consensus_observer";
 
+// get current state key
+static const char* const SYS_KEY_CURRENT_NUMBER = "current_number";
+static const char* const SYS_KEY_TOTAL_TRANSACTION_COUNT = "total_transaction_count";
+static const char* const SYS_KEY_TOTAL_FAILED_TRANSACTION = "total_failed_transaction_count";
+
+// sys table name
+static const char* const SYS_CONSENSUS = "s_consensus";
+static const char* const SYS_CONFIG = "s_config";
+static const char* const SYS_CURRENT_STATE = "s_current_state";
+static const char* const SYS_HASH_2_NUMBER = "s_hash_2_number";
+static const char* const SYS_NUMBER_2_HASH = "s_number_2_hash";
+static const char* const SYS_BLOCK_NUMBER_2_NONCES = "s_block_number_2_nonces";
+static const char* const SYS_NUMBER_2_BLOCK_HEADER = "s_number_2_header";
+static const char* const SYS_NUMBER_2_TXS = "s_number_2_txs";
+static const char* const SYS_HASH_2_TX = "s_hash_2_tx";
+static const char* const SYS_HASH_2_RECEIPT = "s_hash_2_receipt";
 }  // namespace ledger
 }  // namespace bcos
