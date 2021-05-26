@@ -25,7 +25,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
 #include <iosfwd>
 #include <memory>
