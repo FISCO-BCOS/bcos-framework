@@ -106,7 +106,7 @@ public:
      * @param _data: message
      * @return void
      */
-    virtual void asyncSendResponse(const std::string& _id, bytesConstRef _data);
+    virtual void asyncSendResponse(const std::string& _id, bytesConstRef _data) = 0;
 
     /**
      * @brief: send messages to multiple nodes
