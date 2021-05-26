@@ -149,7 +149,7 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
     // fake transactions
     for (size_t i = 0; i < _txsNum; i++)
     {
-        auto tx = fakeTransaction(_cryptoSuite);
+        auto tx = fakeTransaction(_cryptoSuite, utcTime() + i);
         block->appendTransaction(tx);
     }
     // fake receipts
