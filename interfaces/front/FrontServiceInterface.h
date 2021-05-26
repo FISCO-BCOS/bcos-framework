@@ -27,11 +27,12 @@ namespace bcos
 {
 namespace front
 {
-using ErrorFunc = std::function<void(Error::Ptr _error)>;
-
+using GetNodeIDsFunc =
+    std::function<void(Error::Ptr _error, std::shared_ptr<const crypto::NodeIDs> _nodeIDs)>;
+using ReceiveMsgFunc = std::function<void(Error::Ptr _error)>;
 using ResponseFunc = std::function<void(bytesConstRef _respData)>;
 using CallbackFunc = std::function<void(Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
-    bytesConstRef _data, ResponseFunc _respFunc)>;
+    bytesConstRef _data, const std::string& _id, ResponseFunc _respFunc)>;
 
 /**
  * @brief: the interface provided by the front service
@@ -52,13 +53,19 @@ public:
 
 public:
     /**
+     * @brief: get nodeIDs from gateway
+     * @param _getNodeIDsFunc: get nodeIDs callback
+     * @return void
+     */
+    virtual void asyncGetNodeIDs(GetNodeIDsFunc _getNodeIDsFunc) = 0;
+    /**
      * @brief: receive nodeIDs from gateway, call by gateway
      * @param _groupID: groupID
      * @param _nodeIDs: received nodeIDs
      * @return void
      */
     virtual void onReceiveNodeIDs(const std::string& _groupID,
-        std::shared_ptr<const crypto::NodeIDs> _nodeIDs, ErrorFunc _errorFunc) = 0;
+        std::shared_ptr<const crypto::NodeIDs> _nodeIDs, ReceiveMsgFunc _receiveMsgCallback) = 0;
 
     /**
      * @brief: receive message from gateway, call by gateway
@@ -68,7 +75,7 @@ public:
      * @return void
      */
     virtual void onReceiveMessage(const std::string& _groupID, bcos::crypto::NodeIDPtr _nodeID,
-        bytesConstRef _data, ErrorFunc _errorFunc) = 0;
+        bytesConstRef _data, ReceiveMsgFunc _receiveMsgCallback) = 0;
 
     /**
      * @brief: receive broadcast message from gateway, call by gateway
@@ -78,7 +85,8 @@ public:
      * @return void
      */
     virtual void onReceiveBroadcastMessage(const std::string& _groupID,
-        bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data, ErrorFunc _errorFunc) = 0;
+        bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data,
+        ReceiveMsgFunc _receiveMsgCallback) = 0;
 
     /**
      * @brief: send message to node
@@ -91,6 +99,14 @@ public:
      */
     virtual void asyncSendMessageByNodeID(int _moduleID, bcos::crypto::NodeIDPtr _nodeID,
         bytesConstRef _data, uint32_t _timeout, CallbackFunc _callback) = 0;
+
+    /**
+     * @brief: send response
+     * @param _id: the request id
+     * @param _data: message
+     * @return void
+     */
+    virtual void asyncSendResponse(const std::string& _id, bytesConstRef _data);
 
     /**
      * @brief: send messages to multiple nodes
