@@ -98,16 +98,13 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
     return decodedTransaction;
 }
 
-inline Transaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite)
+inline Transaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite, u256 nonce = 120012323,
+    int64_t blockLimit = 1000023, std::string chainId = "chainId", std::string groupId = "groupId")
 {
     auto keyPair = _cryptoSuite->signatureImpl()->generateKeyPair();
     auto to = keyPair->address(_cryptoSuite->hashImpl()).asBytes();
     std::string inputStr = "testTransaction";
     bytes input = asBytes(inputStr);
-    u256 nonce = 120012323;
-    int64_t blockLimit = 1000023;
-    std::string chainId = "chainId";
-    std::string groupId = "groupId";
     return testTransaction(_cryptoSuite, keyPair, to, input, nonce, blockLimit, chainId, groupId);
 }
 }  // namespace test

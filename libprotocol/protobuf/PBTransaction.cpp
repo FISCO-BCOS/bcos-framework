@@ -112,6 +112,7 @@ void PBTransaction::updateSignature(bytesConstRef _signatureData, bytes const& _
 {
     m_transaction->set_signaturedata(_signatureData.data(), _signatureData.size());
     m_sender = _sender;
+    m_dataCache->clear();
 }
 
 bytesConstRef PBTransaction::input() const
