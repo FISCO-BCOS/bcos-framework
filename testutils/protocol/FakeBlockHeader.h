@@ -63,6 +63,7 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
         std::cout << "#### signatureData:" << *toHexString(signature.signature) << std::endl;
         index++;
     }
+#if 0
     std::cout << "### PBBlockHeaderTest: version:" << decodedBlockHeader->version() << std::endl;
     std::cout << "### PBBlockHeaderTest: txsRoot:" << decodedBlockHeader->txsRoot().hex()
               << std::endl;
@@ -78,7 +79,11 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     std::cout << "### PBBlockHeaderTest: sealer:" << *toHexString(decodedBlockHeader->extraData())
               << std::endl;
     std::cout << "#### hash:" << decodedBlockHeader->hash().hex() << std::endl;
-    std::cout << "### parentHash:" << blockHeader->parentInfo()[0].blockHash.hex() << std::endl;
+#endif
+    if (blockHeader->parentInfo().size() >= 1)
+    {
+        std::cout << "### parentHash:" << blockHeader->parentInfo()[0].blockHash.hex() << std::endl;
+    }
 }
 
 inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
@@ -117,7 +122,9 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
 
     // decode
     auto decodedBlockHeader = blockHeaderFactory->createBlockHeader(*encodedData);
+#if 0
     std::cout << "### PBBlockHeaderTest: encodedData:" << *toHexString(*encodedData) << std::endl;
+#endif
     // check the data of decodedBlockHeader
     checkBlockHeader(blockHeader, decodedBlockHeader);
     // test encode exception

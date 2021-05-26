@@ -40,6 +40,8 @@ class FrontServiceInterface
 {
 public:
     using Ptr = std::shared_ptr<FrontServiceInterface>;
+    FrontServiceInterface() = default;
+    virtual ~FrontServiceInterface() {}
 
 public:
     /**

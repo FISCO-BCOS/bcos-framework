@@ -34,7 +34,6 @@ public:
     {}
 
     explicit TxsSyncMsg(bytesConstRef _data) : TxsSyncMsg() { decode(_data); }
-
     ~TxsSyncMsg() override {}
 
     bytesPointer encode() const override;
@@ -52,7 +51,7 @@ public:
     void setTxsHash(bcos::crypto::HashList const& _txsHash) override;
 
 protected:
-    virtual void DeserializeObject();
+    virtual void deserializeObject();
 
 private:
     std::shared_ptr<TxsSyncMessage> m_rawSyncMessage;

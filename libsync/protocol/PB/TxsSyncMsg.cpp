@@ -33,7 +33,7 @@ bytesPointer TxsSyncMsg::encode() const
 void TxsSyncMsg::decode(bytesConstRef _data)
 {
     decodePBObject(m_rawSyncMessage, _data);
-    DeserializeObject();
+    deserializeObject();
 }
 
 int32_t TxsSyncMsg::version() const
@@ -87,7 +87,7 @@ void TxsSyncMsg::setTxsHash(HashList const& _txsHash)
     }
 }
 
-void TxsSyncMsg::DeserializeObject()
+void TxsSyncMsg::deserializeObject()
 {
     m_txsHash->clear();
     for (int i = 0; i < m_rawSyncMessage->txshash_size(); i++)

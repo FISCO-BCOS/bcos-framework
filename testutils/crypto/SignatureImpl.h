@@ -42,6 +42,11 @@ public:
     {
         decode(ref(_data));
     }
+    explicit CommonKeyImpl(bytesConstRef _data) : m_keyData(std::make_shared<bytes>())
+    {
+        decode(_data);
+    }
+    explicit CommonKeyImpl(bytes const& _data) : CommonKeyImpl(ref(_data)) {}
     explicit CommonKeyImpl(size_t _keySize, std::shared_ptr<bytes> _data)
     {
         if (_data->size() < _keySize)
