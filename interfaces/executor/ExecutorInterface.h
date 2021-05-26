@@ -24,8 +24,8 @@
 #include "../../libutilities/FixedBytes.h"
 #include "../crypto/CommonType.h"
 #include "../protocol/ProtocolTypeDef.h"
-#include "../protocol/TransactionReceipt.h"
 #include "../protocol/Transaction.h"
+#include "../protocol/TransactionReceipt.h"
 #include <memory>
 
 namespace bcos
@@ -40,9 +40,12 @@ public:
     // virtual bytes getCode(const string& address) const = 0;
     // virtual TransactionReceipt::Ptr BlockVerifier::executeTransaction(
     //     const BlockHeader& blockHeader, Transaction::Ptr _t) = 0;
-    virtual bytes asyncGetCode(std::shared_ptr<std::string> _address, std::function<void(Error::Ptr, std::shared_ptr<bytes>)> _callback) = 0;
-    virtual void asyncExecuteTransaction(
-        protocol::Transaction::Ptr _tx, std::function<void(Error::Ptr, protocol::TransactionReceipt::Ptr)> _callback) = 0;
+    virtual bytes asyncGetCode(std::shared_ptr<std::string> _address,
+        std::function<void(const Error::Ptr&, const std::shared_ptr<bytes>&)> _callback) = 0;
+    virtual void asyncExecuteTransaction(const protocol::Transaction::ConstPtr& _tx,
+        std::function<void(const Error::Ptr&, const protocol::TransactionReceipt::ConstPtr&)>
+            _callback) = 0;
+    virtual void stop() = 0;
 };
 
 }  // namespace executor
