@@ -88,7 +88,6 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
         logEntries, (int32_t)status, output, 0);
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
-    auto start = utcTime();
     for (size_t i = 0; i < 2; i++)
     {
         receipt->encode(*encodedData);
@@ -117,12 +116,13 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
 
     // decode
     std::shared_ptr<TransactionReceipt> decodedReceipt;
-    start = utcTime();
     for (size_t i = 0; i < 2; i++)
     {
         decodedReceipt = factory->createReceipt(*encodedData);
     }
+#if 0
     std::cout << "##### ScaleReceipt decodeT: " << (utcTime() - start) << std::endl;
+#endif
     checkReceipts(hashImpl, receipt, decodedReceipt);
     return decodedReceipt;
 }
