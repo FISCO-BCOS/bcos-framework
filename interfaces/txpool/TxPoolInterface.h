@@ -94,14 +94,6 @@ public:
         bcos::protocol::TransactionSubmitResultsPtr _txsResult,
         std::function<void(Error::Ptr)> _onNotifyFinished) = 0;
 
-    /**
-     * @brief the sync module calls this interface to obtain the new txs from the SDK
-     *
-     * @param _onReceiveNewTxs the callback to be called when receive new transaction list
-     */
-    virtual void asyncFetchNewTxs(size_t _txsLimit,
-        std::function<void(Error::Ptr, bcos::protocol::ConstTransactionsPtr)> _onReceiveNewTxs) = 0;
-
     // called by frontService to dispatch message
     virtual void asyncNotifyTxsSyncMessage(bcos::Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
         bytesPointer _data, std::function<void(bytesConstRef _respData)> _sendResponse,

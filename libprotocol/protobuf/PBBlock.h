@@ -129,6 +129,7 @@ public:
     void appendReceipt(TransactionReceipt::Ptr _receipt) override
     {
         m_receipts->push_back(_receipt);
+        clearReceiptsCache();
     }
     // set transaction hash
     void setTransactionsHash(HashListPtr _transactionsHash)  // removed
@@ -144,6 +145,7 @@ public:
     void appendTransactionHash(bcos::crypto::HashType const& _txHash) override
     {
         m_transactionsHash->push_back(_txHash);
+        clearTransactionsHashCache();
     }
     // set receipt hash
     void setReceiptsHash(HashListPtr _receiptsHash)  // removed
@@ -160,6 +162,7 @@ public:
     void appendReceiptHash(bcos::crypto::HashType const& _receiptHash) override
     {
         m_receiptsHash->push_back(_receiptHash);
+        clearReceiptsHashCache();
     }
     // get transactions size
     size_t transactionsSize() override { return m_transactions->size(); }
