@@ -20,7 +20,7 @@
 #pragma once
 
 #include "SealerConfig.h"
-#include "interfaces/sealer/SealerInterface.h"
+#include "../interfaces/sealer/SealerInterface.h"
 namespace bcos
 {
 namespace sealer
