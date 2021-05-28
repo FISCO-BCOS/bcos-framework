@@ -19,7 +19,7 @@
  */
 
 #pragma once
-
+#include <vector>
 namespace bcos
 {
 namespace ledger
@@ -40,6 +40,7 @@ static const char* const SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
 // get consensus node list type
 static const char* const CONSENSUS_SEALER = "consensus_sealer";
 static const char* const CONSENSUS_OBSERVER = "consensus_observer";
+static const char* const CONSENSUS_WORKING_SEALER = "consensus_working_sealer";
 
 // get current state key
 static const char* const SYS_KEY_CURRENT_NUMBER = "current_number";

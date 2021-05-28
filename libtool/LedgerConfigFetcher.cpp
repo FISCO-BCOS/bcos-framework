@@ -284,7 +284,7 @@ void LedgerConfigFetcher::fetchBlockTxCountLimit()
                 return;
             }
             fetcher->m_ledgerConfig->setBlockTxCountLimit(
-                boost::lexical_cast<uint64_t>(_blockTxCountLimit) * 1000);
+                boost::lexical_cast<uint64_t>(_blockTxCountLimit));
             fetcher->m_fetchBlockTxCountLimitFinished = true;
             fetcher->m_signalled.notify_all();
         }
