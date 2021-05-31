@@ -18,8 +18,8 @@
  * @date: 2021-05-08
  */
 #pragma once
-#include "interfaces/protocol/TransactionSubmitResultFactory.h"
-#include "libprotocol/TransactionSubmitResultImpl.h"
+#include "../interfaces/protocol/TransactionSubmitResultFactory.h"
+#include "TransactionSubmitResultImpl.h"
 
 namespace bcos
 {
