@@ -32,20 +32,34 @@ public:
         m_ioService(std::make_shared<boost::asio::io_service>()),
         m_timer(std::make_shared<boost::asio::steady_timer>(*m_ioService))
     {
-        m_thread.create_thread([this] {
-            bcos::pthread_setThreadName("timer");
-            m_ioService->run();
+        m_working = true;
+        m_worker = std::make_shared<std::thread>([&] {
+            while (m_working)
+            {
+                try
+                {
+                    m_ioService->run();
+                }
+                catch (std::exception const& e)
+                {
+                    LOG(WARNING) << LOG_DESC("Exception in Worker Thread of timer")
+                                 << LOG_KV("error", boost::diagnostic_information(e));
+                }
+                m_ioService->reset();
+            }
         });
     }
 
     virtual ~Timer()
     {
-        stop();
-        m_ioService->stop();
-        if (!m_thread.is_this_thread_in())
+        if (!m_working)
         {
-            m_thread.join_all();
+            return;
         }
+        stop();
+        m_working = false;
+        m_ioService->stop();
+        m_worker->join();
     }
 
     virtual void start();
@@ -56,7 +70,11 @@ public:
         start();
     }
 
-    virtual void reset(uint64_t _timeout) { m_timeout = _timeout; }
+    virtual void reset(uint64_t _timeout)
+    {
+        m_timeout = _timeout;
+        restart();
+    }
 
     virtual bool running() { return m_running; }
     virtual int64_t timeout() { return m_timeout; }
@@ -83,9 +101,12 @@ protected:
 
 private:
     std::atomic_bool m_running = {false};
+    std::atomic_bool m_working = {false};
+
     std::shared_ptr<boost::asio::io_service> m_ioService;
     std::shared_ptr<boost::asio::steady_timer> m_timer;
-    boost::thread_group m_thread;
+    std::shared_ptr<std::thread> m_worker;
+
     std::function<void()> m_timeoutHandler;
 };
 }  // namespace bcos

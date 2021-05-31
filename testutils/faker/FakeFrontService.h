@@ -52,7 +52,7 @@ public:
     virtual void asyncSendMessageByNodeID(int _moduleId, NodeIDPtr _fromNode, NodeIDPtr _nodeId,
         bytesConstRef _data, uint32_t, CallbackFunc _responseCallback)
     {
-        if (_moduleId == ModuleID::TxsSync && m_nodeId2TxPool.count(_fromNode))
+        if (_moduleId == ModuleID::TxsSync && m_nodeId2TxPool.count(_nodeId))
         {
             auto txpool = m_nodeId2TxPool[_nodeId];
             auto bytesData = std::make_shared<bytes>(_data.begin(), _data.end());
@@ -64,7 +64,7 @@ public:
                 },
                 nullptr);
         }
-        if (_moduleId == ModuleID::PBFT && m_nodeId2Consensus.count(_fromNode))
+        if (_moduleId == ModuleID::PBFT && m_nodeId2Consensus.count(_nodeId))
         {
             auto consensus = m_nodeId2Consensus[_nodeId];
             consensus->asyncNotifyConsensusMessage(nullptr, _nodeId, _data, nullptr, nullptr);

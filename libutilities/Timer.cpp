@@ -27,28 +27,11 @@ using namespace bcos;
 
 void Timer::start()
 {
-    auto timer = std::weak_ptr<Timer>(shared_from_this());
-    m_ioService->post([timer]() {
-        try
-        {
-            auto t = timer.lock();
-            if (!t)
-            {
-                return;
-            }
-            t->startTimer();
-        }
-        catch (std::exception const& e)
-        {
-            LOG(WARNING) << LOG_DESC("startTimer failed")
-                         << LOG_KV("errorInfo", boost::diagnostic_information(e));
-        }
-    });
+    startTimer();
 }
 
 void Timer::startTimer()
 {
-    // the timer already started
     if (m_running)
     {
         return;
@@ -75,14 +58,13 @@ void Timer::startTimer()
                 return;
             }
             t->run();
-            // The timer has been stopped
-            if (!t->m_running)
+            if (!t->running())
             {
                 return;
             }
-            // The timer has not been stopped
             else
             {
+                // The timer has not been stopped
                 t->startTimer();
             }
         }
@@ -92,7 +74,6 @@ void Timer::startTimer()
                          << LOG_KV("errorInfo", boost::diagnostic_information(e));
         }
     });
-    m_ioService->run();
     m_running = true;
 }
 
@@ -106,8 +87,4 @@ void Timer::stop()
     m_running = false;
     // cancel the timer
     m_timer->cancel();
-    if (m_ioService->stopped())
-    {
-        m_ioService->reset();
-    }
 }
