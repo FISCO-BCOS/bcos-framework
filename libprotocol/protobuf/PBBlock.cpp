@@ -19,8 +19,8 @@
  * @date: 2021-03-23
  */
 #include "PBBlock.h"
-#include "interfaces/protocol/Exceptions.h"
-#include "libprotocol/Common.h"
+#include "../../interfaces/protocol/Exceptions.h"
+#include "../Common.h"
 #include <tbb/parallel_invoke.h>
 
 using namespace bcos;
