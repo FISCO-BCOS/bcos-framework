@@ -18,7 +18,7 @@
  * @date: 20200608
  */
 #include "TransactionStatus.h"
-#include "interfaces/protocol/Exceptions.h"
+#include "../interfaces/protocol/Exceptions.h"
 
 using namespace std;
 using namespace bcos;

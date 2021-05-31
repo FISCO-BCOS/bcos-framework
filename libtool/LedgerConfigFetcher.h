@@ -19,9 +19,9 @@
  * @date 2021-05-19
  */
 #pragma once
-#include "interfaces/ledger/LedgerConfig.h"
-#include "interfaces/ledger/LedgerInterface.h"
-#include "libutilities/Log.h"
+#include "../interfaces/ledger/LedgerConfig.h"
+#include "../interfaces/ledger/LedgerInterface.h"
+#include "../libutilities/Log.h"
 
 #define TOOL_LOG(LEVEL) LOG(LEVEL) << LOG_BADGE("TOOL")
 
