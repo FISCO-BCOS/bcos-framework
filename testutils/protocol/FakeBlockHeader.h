@@ -48,8 +48,6 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     for (auto i = 0; i < decodedBlockHeader->sealerList().size(); i++)
     {
         BOOST_CHECK(decodedBlockHeader->sealerList()[i] == blockHeader->sealerList()[i]);
-        std::cout << "#### sealer " << i << ":" << *toHexString(blockHeader->sealerList()[i])
-                  << std::endl;
     }
     BOOST_CHECK(decodedBlockHeader->extraData().toBytes() == blockHeader->extraData().toBytes());
     BOOST_CHECK((decodedBlockHeader->consensusWeights()) == (blockHeader->consensusWeights()));
@@ -60,7 +58,6 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     {
         BOOST_CHECK(signature.index == blockHeader->signatureList()[index].index);
         BOOST_CHECK(signature.signature == blockHeader->signatureList()[index].signature);
-        std::cout << "#### signatureData:" << *toHexString(signature.signature) << std::endl;
         index++;
     }
 #if 0
@@ -79,11 +76,11 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     std::cout << "### PBBlockHeaderTest: sealer:" << *toHexString(decodedBlockHeader->extraData())
               << std::endl;
     std::cout << "#### hash:" << decodedBlockHeader->hash().hex() << std::endl;
-#endif
     if (blockHeader->parentInfo().size() >= 1)
     {
         std::cout << "### parentHash:" << blockHeader->parentInfo()[0].blockHash.hex() << std::endl;
     }
+#endif
 }
 
 inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, int32_t _version,

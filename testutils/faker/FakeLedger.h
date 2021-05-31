@@ -34,22 +34,41 @@ namespace bcos
 {
 namespace test
 {
-class FakeLedger : public LedgerInterface
+class FakeLedger : public LedgerInterface, public std::enable_shared_from_this<FakeLedger>
 {
 public:
     using Ptr = std::shared_ptr<FakeLedger>;
+    FakeLedger(BlockFactory::Ptr _blockFactory, size_t _blockNumber, size_t _txsSize,
+        size_t _receiptsSize, std::vector<bytes> _sealerList)
+      : m_blockFactory(_blockFactory),
+        m_ledgerConfig(std::make_shared<LedgerConfig>()),
+        m_sealerList(_sealerList)
+    {
+        init(_blockNumber, _txsSize, _receiptsSize, 0);
+        m_worker = std::make_shared<ThreadPool>("worker", 1);
+    }
+
     FakeLedger(
         BlockFactory::Ptr _blockFactory, size_t _blockNumber, size_t _txsSize, size_t _receiptsSize)
       : m_blockFactory(_blockFactory), m_ledgerConfig(std::make_shared<LedgerConfig>())
     {
-        auto genesisBlock = init(nullptr, true, 0, 0, 0);
+        auto sigImpl = m_blockFactory->cryptoSuite()->signatureImpl();
+        m_sealerList = fakeSealerList(m_keyPairVec, sigImpl, 4);
+        init(_blockNumber, _txsSize, _receiptsSize);
+        m_worker = std::make_shared<ThreadPool>("worker", 1);
+    }
+
+    void init(
+        size_t _blockNumber, size_t _txsSize, size_t _receiptsSize, int64_t _timestamp = utcTime())
+    {
+        auto genesisBlock = init(nullptr, true, 0, 0, 0, 0);
         m_ledger.push_back(genesisBlock);
         m_hash2Block[genesisBlock->blockHeader()->hash()] = 0;
 
         auto parentHeader = genesisBlock->blockHeader();
         for (size_t i = 1; i < _blockNumber; i++)
         {
-            auto block = init(parentHeader, true, i, _txsSize, _receiptsSize);
+            auto block = init(parentHeader, true, i, _txsSize, _receiptsSize, _timestamp);
             parentHeader = block->blockHeader();
             m_ledger.push_back(block);
             m_hash2Block[block->blockHeader()->hash()] = i;
@@ -59,7 +78,7 @@ public:
     }
 
     Block::Ptr init(BlockHeader::Ptr _parentBlockHeader, bool _withHeader, BlockNumber _blockNumber,
-        size_t _txsSize, size_t _receiptSize)
+        size_t _txsSize, size_t _receiptSize, int64_t _timestamp = utcTime())
     {
         auto block = fakeAndCheckBlock(
             m_blockFactory->cryptoSuite(), m_blockFactory, false, _txsSize, _receiptSize, 0, 0);
@@ -77,13 +96,12 @@ public:
             m_blockFactory->cryptoSuite()->hashImpl()->hash(std::to_string(_blockNumber));
         u256 gasUsed = 1232342523;
 
-        auto sigImpl = m_blockFactory->cryptoSuite()->signatureImpl();
-        auto sealerList = fakeSealerList(m_keyPairVec, sigImpl, 4);
         SignatureList signatureList;
         // fake blockHeader
-        auto blockHeader =
-            fakeAndTestBlockHeader(m_blockFactory->cryptoSuite(), 0, parentInfo, rootHash, rootHash,
-                rootHash, _blockNumber, gasUsed, utcTime(), 0, sealerList, bytes(), signatureList);
+        auto blockHeader = fakeAndTestBlockHeader(m_blockFactory->cryptoSuite(), 0, parentInfo,
+            rootHash, rootHash, rootHash, _blockNumber, gasUsed, _timestamp, 0, m_sealerList,
+            bytes(), signatureList);
+        auto sigImpl = m_blockFactory->cryptoSuite()->signatureImpl();
         signatureList = fakeSignatureList(sigImpl, m_keyPairVec, blockHeader->hash());
         blockHeader->setSignatureList(signatureList);
         block->setBlockHeader(blockHeader);
@@ -92,7 +110,7 @@ public:
 
     Block::Ptr populateFromHeader(BlockHeader::Ptr _blockHeader)
     {
-        auto block = init(nullptr, false, _blockHeader->number(), 5, 5);
+        auto block = m_blockFactory->createBlock();
         block->setBlockHeader(_blockHeader);
         return block;
     }
@@ -112,10 +130,19 @@ public:
             _onCommitBlock(std::make_shared<Error>(-1, "invalid block"), nullptr);
             return;
         }
-        auto block = populateFromHeader(_blockHeader);
-        m_ledger.push_back(block);
-        updateLedgerConfig(_blockHeader);
-        _onCommitBlock(nullptr, m_ledgerConfig);
+
+        auto self = std::weak_ptr<FakeLedger>(shared_from_this());
+        m_worker->enqueue([_blockHeader, _onCommitBlock, self]() {
+            auto ledger = self.lock();
+            if (!self.lock())
+            {
+                return;
+            }
+            auto block = ledger->populateFromHeader(_blockHeader);
+            ledger->m_ledger.push_back(block);
+            ledger->updateLedgerConfig(_blockHeader);
+            _onCommitBlock(nullptr, ledger->m_ledgerConfig);
+        });
     }
 
     // the txpool module use this interface to store txs
@@ -265,6 +292,8 @@ public:
     size_t storedTxsSize() { return m_txsHashToData.size(); }
     std::map<HashType, bytesPointer> const& txsHashToData() { return m_txsHashToData; }
 
+    std::vector<bytes> sealerList() { return m_sealerList; }
+
 private:
     BlockFactory::Ptr m_blockFactory;
     std::vector<KeyPairInterface::Ptr> m_keyPairVec;
@@ -278,6 +307,8 @@ private:
 
     std::map<HashType, bytesPointer> m_txsHashToData;
     std::map<std::string, std::string> m_systemConfig;
+    std::vector<bytes> m_sealerList;
+    std::shared_ptr<ThreadPool> m_worker = nullptr;
 };
 }  // namespace test
 }  // namespace bcos

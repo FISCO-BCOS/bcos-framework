@@ -77,6 +77,12 @@ public:
     bcos::consensus::ConsensusNodeListPtr mutableConsensusList() { return m_consensusNodeList; }
     bcos::consensus::ConsensusNodeListPtr mutableObserverList() { return m_observerNodeList; }
 
+    uint64_t leaderSwitchPeriod() const { return m_leaderSwitchPeriod; }
+    void setLeaderSwitchPeriod(uint64_t _leaderSwitchPeriod)
+    {
+        m_leaderSwitchPeriod = _leaderSwitchPeriod;
+    }
+
 protected:
     bcos::consensus::ConsensusNodeListPtr m_consensusNodeList;
     bcos::consensus::ConsensusNodeListPtr m_observerNodeList;
@@ -84,6 +90,7 @@ protected:
     bcos::protocol::BlockNumber m_blockNumber;
     uint64_t m_consensusTimeout;
     uint64_t m_blockTxCountLimit;
+    uint64_t m_leaderSwitchPeriod = 1;
 };
 }  // namespace ledger
 }  // namespace bcos
