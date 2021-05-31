@@ -177,7 +177,6 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
     block->encode(*encodedData);
     // decode block
     auto decodedBlock = _blockFactory->createBlock(*encodedData, true, true);
-    BOOST_CHECK(CompleteBlock == decodedBlock->blockType());
     checkBlock(_cryptoSuite, block, decodedBlock);
     // check txsHash
     BOOST_CHECK(decodedBlock->transactionsHashSize() == _txsHashNum);
