@@ -19,9 +19,9 @@
  * @date: 2021-03-23
  */
 #pragma once
-#include "interfaces/crypto/CryptoSuite.h"
-#include "interfaces/protocol/Block.h"
-#include "interfaces/protocol/BlockHeaderFactory.h"
+#include "../../interfaces/crypto/CryptoSuite.h"
+#include "../../interfaces/protocol/Block.h"
+#include "../../interfaces/protocol/BlockHeaderFactory.h"
 #include "libprotocol/bcos-proto/Block.pb.h"
 namespace bcos
 {

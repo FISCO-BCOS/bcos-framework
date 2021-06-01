@@ -20,11 +20,11 @@
  */
 #pragma once
 #include "PBBlock.h"
-#include "interfaces/crypto/CryptoSuite.h"
-#include "interfaces/protocol/BlockFactory.h"
-#include "interfaces/protocol/BlockHeaderFactory.h"
-#include "interfaces/protocol/TransactionFactory.h"
-#include "interfaces/protocol/TransactionReceiptFactory.h"
+#include "../../interfaces/crypto/CryptoSuite.h"
+#include "../../interfaces/protocol/BlockFactory.h"
+#include "../../interfaces/protocol/BlockHeaderFactory.h"
+#include "../../interfaces/protocol/TransactionFactory.h"
+#include "../../interfaces/protocol/TransactionReceiptFactory.h"
 namespace bcos
 {
 namespace protocol

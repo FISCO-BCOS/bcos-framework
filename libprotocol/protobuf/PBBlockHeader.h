@@ -19,9 +19,9 @@
  * @date: 2021-03-22
  */
 #pragma once
-#include "interfaces/protocol/BlockHeader.h"
+#include "../../interfaces/protocol/BlockHeader.h"
 #include "libprotocol/bcos-proto/BlockHeader.pb.h"
-#include "libutilities/FixedBytes.h"
+#include "../../libutilities/FixedBytes.h"
 
 namespace bcos
 {

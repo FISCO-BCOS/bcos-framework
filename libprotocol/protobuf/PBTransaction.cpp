@@ -19,8 +19,8 @@
  * @date: 2021-03-16
  */
 #include "PBTransaction.h"
-#include "interfaces/protocol/Exceptions.h"
-#include "libprotocol/Common.h"
+#include "../../interfaces/protocol/Exceptions.h"
+#include "../Common.h"
 using namespace bcos;
 using namespace bcos::protocol;
 using namespace bcos::crypto;
