@@ -127,6 +127,16 @@ bytes ScaleEncoderStream::data() const
     return buffer;
 }
 
+//ScaleEncoderStream& ScaleEncoderStream::operator<<(const s256& v) {
+//    encodeCompactInteger(s2u(v), *this);
+//    return *this;
+//}
+//
+//ScaleEncoderStream& ScaleEncoderStream::operator<<(const u256& v) {
+//    encodeCompactInteger(v, *this);
+//    return *this;
+//}
+
 ScaleEncoderStream& ScaleEncoderStream::operator<<(const CompactInteger& v)
 {
     encodeCompactInteger(v, *this);

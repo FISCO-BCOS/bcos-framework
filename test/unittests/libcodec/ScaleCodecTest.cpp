@@ -205,12 +205,12 @@ BOOST_AUTO_TEST_CASE(EncodeOptionalTest)
         s << boost::optional<uint8_t>{1};
         BOOST_CHECK(s.data() == (bytes{1, 1}));
     }
-
     // encode negative int8_t
-    ScaleEncoderStream s;
-    s << boost::optional<int8_t>{-1};
-    BOOST_CHECK(s.data() == (bytes{1, 255}));
-
+    {
+        ScaleEncoderStream s;
+        s << boost::optional<int8_t>{-1};
+        BOOST_CHECK(s.data() == (bytes{1, 255}));
+    }
     // encode non-existing uint16_t
     {
         ScaleEncoderStream s;
@@ -449,6 +449,69 @@ BOOST_AUTO_TEST_CASE(testScaleVariant)
     ScaleDecoderStream s4(match2);
     s4 >> val;
     BOOST_CHECK(boost::get<uint32_t>(val) == 2);
+}
+
+BOOST_AUTO_TEST_CASE(test256)
+{
+    {
+        // encode s256
+        ScaleEncoderStream s;
+        s256 num = -123;
+        u256 uNum = s2u(num);
+        s << uNum;
+        // decode s256
+        ScaleDecoderStream s2{gsl::make_span(s.data())};
+        u256 uNum2;
+        s2 >> uNum2;
+        s256 num2 = u2s(uNum2);
+        std::cout << "s256 test" << std::endl;
+        std::cout << "num: " << num << std::endl;
+        std::cout << "num2: " << num2 << std::endl;
+        BOOST_CHECK(num == num2);
+    }
+    {
+        // encode u256
+        ScaleEncoderStream s;
+        u256 num = 123;
+        s << num;
+        // decode u256
+        ScaleDecoderStream s2{gsl::make_span(s.data())};
+        u256 num2;
+        s2 >> num2;
+        std::cout << "u256 test" << std::endl;
+        std::cout << "num: " << num << std::endl;
+        std::cout << "num2: " << num2 << std::endl;
+        BOOST_CHECK(num == num2);
+    }
+    {
+        s256 sNum = -123;
+        u256 uNum = s2u(sNum);
+        s256 sNum2 = u2s(uNum);
+        std::cout << "u2s test" << std::endl;
+        std::cout << "sNum: " << sNum << std::endl;
+        std::cout << "uNum: " << uNum << std::endl;
+        std::cout << "sNum2: " << sNum2 << std::endl;
+        BOOST_CHECK(sNum == sNum2);
+    }
+    {
+        // encode u256
+        ScaleEncoderStream s;
+        u256 num1 = 123;
+        u256 num2 = 234;
+        s << num1 << num2;
+        // decode u256
+        ScaleDecoderStream s2{gsl::make_span(s.data())};
+        u256 num3;
+        u256 num4;
+        s2 >> num3 >> num4;
+        std::cout << "u256 test" << std::endl;
+        std::cout << "num1: " << num1 << std::endl;
+        std::cout << "num2: " << num2 << std::endl;
+        std::cout << "num3: " << num3 << std::endl;
+        std::cout << "num4: " << num4 << std::endl;
+        BOOST_CHECK(num1 == num3);
+        BOOST_CHECK(num2 == num4);
+    }
 }
 
 

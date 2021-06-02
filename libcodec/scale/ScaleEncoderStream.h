@@ -246,6 +246,9 @@ public:
         return *this;
     }
 
+//    ScaleEncoderStream& operator<<(const s256 & v);
+//
+//    ScaleEncoderStream& operator<<(const u256 & v);
     /**
      * @brief scale-encodes CompactInteger value as compact integer
      * @param v value to encode

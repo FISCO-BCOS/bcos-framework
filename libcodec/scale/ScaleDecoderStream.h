@@ -198,13 +198,13 @@ public:
         return *this;
     }
 
-    ScaleDecoderStream& operator>>(s256& v)
-    {
-        CompactInteger value;
-        *this >> value;
-        v = (s256)(value);
-        return *this;
-    }
+//    ScaleDecoderStream& operator>>(s256& v)
+//    {
+//        u256 value;
+//        *this >> value;
+//        v = u2s(value);
+//        return *this;
+//    }
 
     /**
      * @brief scale-decodes compact integer value
