@@ -30,7 +30,8 @@ public:
     explicit Timer(uint64_t _timeout)
       : m_timeout(_timeout),
         m_ioService(std::make_shared<boost::asio::io_service>()),
-        m_timer(std::make_shared<boost::asio::steady_timer>(*m_ioService))
+        m_timer(std::make_shared<boost::asio::steady_timer>(*m_ioService)),
+        m_work(*m_ioService)
     {
         m_working = true;
         m_worker = std::make_shared<std::thread>([&] {
@@ -108,5 +109,7 @@ private:
     std::shared_ptr<std::thread> m_worker;
 
     std::function<void()> m_timeoutHandler;
+    // m_work ensures that io_service's run() function will not exit while work is underway
+    boost::asio::io_service::work m_work;
 };
 }  // namespace bcos

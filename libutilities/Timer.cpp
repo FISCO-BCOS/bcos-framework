@@ -58,15 +58,6 @@ void Timer::startTimer()
                 return;
             }
             t->run();
-            if (!t->running())
-            {
-                return;
-            }
-            else
-            {
-                // The timer has not been stopped
-                t->startTimer();
-            }
         }
         catch (std::exception const& e)
         {
