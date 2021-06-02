@@ -322,21 +322,6 @@ void PBBlock::encodeNonceList() const
     }
 }
 
-// getNonces of the current block
-NonceListPtr PBBlock::nonces()
-{
-    auto nonceList = std::make_shared<NonceList>();
-    if (m_transactions->size() == 0)
-    {
-        return nonceList;
-    }
-    for (auto transaction : *m_transactions)
-    {
-        nonceList->push_back(transaction->nonce());
-    }
-    return nonceList;
-}
-
 Transaction::ConstPtr PBBlock::transaction(size_t _index) const
 {
     if (m_transactions->size() < _index)

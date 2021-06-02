@@ -141,8 +141,6 @@ public:
     // set receipt hash
     virtual void setReceiptHash(size_t _index, bcos::crypto::HashType const& _receptHash) = 0;
     virtual void appendReceiptHash(bcos::crypto::HashType const& _receiptHash) = 0;
-    // getNonces of the current block
-    virtual NonceListPtr nonces() = 0;
     // get transactions size
     virtual size_t transactionsSize() = 0;
     virtual size_t transactionsHashSize() = 0;

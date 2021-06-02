@@ -68,7 +68,6 @@ public:
     void encode(bytes& _encodeData) const override;
 
     // getNonces of the current block
-    NonceListPtr nonces() override;
     Transaction::ConstPtr transaction(size_t _index) const override;
     bcos::crypto::HashType const& transactionHash(size_t _index) const override;
     TransactionReceipt::ConstPtr receipt(size_t _index) const override;
