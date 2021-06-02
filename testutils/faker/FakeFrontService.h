@@ -67,7 +67,13 @@ public:
         if (_moduleId == ModuleID::PBFT && m_nodeId2Consensus.count(_nodeId))
         {
             auto consensus = m_nodeId2Consensus[_nodeId];
-            consensus->asyncNotifyConsensusMessage(nullptr, _nodeId, _data, nullptr, nullptr);
+            consensus->asyncNotifyConsensusMessage(
+                nullptr, _nodeId, _data,
+                [_responseCallback, _nodeId](bytesConstRef _respData) {
+                    // called when receive response data
+                    _responseCallback(nullptr, _nodeId, _respData, "", nullptr);
+                },
+                nullptr);
         }
     }
 
