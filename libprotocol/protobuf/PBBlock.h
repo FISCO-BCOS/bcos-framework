@@ -164,12 +164,12 @@ public:
         clearReceiptsHashCache();
     }
     // get transactions size
-    size_t transactionsSize() override { return m_transactions->size(); }
+    size_t transactionsSize() const override { return m_transactions->size(); }
     // get receipts size
-    size_t receiptsSize() override { return m_receipts->size(); }
+    size_t receiptsSize() const override { return m_receipts->size(); }
 
-    size_t transactionsHashSize() override { return m_transactionsHash->size(); }
-    size_t receiptsHashSize() override { return m_receiptsHash->size(); }
+    size_t transactionsHashSize() const override { return m_transactionsHash->size(); }
+    size_t receiptsHashSize() const override { return m_receiptsHash->size(); }
 
     void setNonceList(NonceList const& _nonceList) override
     {

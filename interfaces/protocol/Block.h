@@ -141,12 +141,27 @@ public:
     // set receipt hash
     virtual void setReceiptHash(size_t _index, bcos::crypto::HashType const& _receptHash) = 0;
     virtual void appendReceiptHash(bcos::crypto::HashType const& _receiptHash) = 0;
+
+    virtual NonceListPtr nonces() const
+    {
+        auto nonceList = std::make_shared<NonceList>();
+        if (transactionsSize() == 0)
+        {
+            return nonceList;
+        }
+        for (size_t i = 0; i < transactionsSize(); ++i)
+        {
+            nonceList->push_back(transaction(i)->nonce());
+        }
+        return nonceList;
+    }
+
     // get transactions size
-    virtual size_t transactionsSize() = 0;
-    virtual size_t transactionsHashSize() = 0;
+    virtual size_t transactionsSize() const = 0;
+    virtual size_t transactionsHashSize() const = 0;
     // get receipts size
-    virtual size_t receiptsSize() = 0;
-    virtual size_t receiptsHashSize() = 0;
+    virtual size_t receiptsSize() const = 0;
+    virtual size_t receiptsHashSize() const = 0;
 
     // for nonceList
     virtual void setNonceList(NonceList const& _nonceList) = 0;
