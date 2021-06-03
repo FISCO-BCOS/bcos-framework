@@ -20,8 +20,8 @@
  */
 #pragma once
 #include "../../interfaces/protocol/BlockHeader.h"
-#include "libprotocol/bcos-proto/BlockHeader.pb.h"
 #include "../../libutilities/FixedBytes.h"
+#include "libprotocol/bcos-proto/BlockHeader.pb.h"
 
 namespace bcos
 {
@@ -156,12 +156,10 @@ public:
         noteSignatureDirty();
     }
 
-    void populateEmptyBlock(int64_t _timestamp) override
+    void populateEmptyBlock(
+        BlockNumber _number, int64_t _sealerId, int64_t _timestamp = utcTime()) override
     {
-        m_number = 0;
-        m_gasUsed = 0;
-        m_sealer = 0;
-        m_timestamp = _timestamp;
+        BlockHeader::populateEmptyBlock(_number, _sealerId, _timestamp);
         noteDirty();
     }
 
