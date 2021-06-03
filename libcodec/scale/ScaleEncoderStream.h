@@ -17,8 +17,8 @@
  * @file ScaleEncoderStream.cpp
  */
 #pragma once
-#include "FixedWidthIntegerCodec.h"
 #include "../../libutilities/FixedBytes.h"
+#include "FixedWidthIntegerCodec.h"
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include <deque>
@@ -253,11 +253,18 @@ public:
      */
     ScaleEncoderStream& operator<<(const CompactInteger& v);
 
+    ScaleEncoderStream& operator<<(s256 const& v)
+    {
+        CompactInteger unsignedValue = s2u(v);
+        return *this << unsignedValue;
+    }
+
+    ScaleEncoderStream& operator<<(const u256& v) { return *this << (CompactInteger)v; }
+
 protected:
     template <size_t I, class... Ts>
     void encodeElementOfTuple(const std::tuple<Ts...>& v)
     {
-        
         *this << std::get<I>(v);
         if constexpr (sizeof...(Ts) > I + 1)
         {
