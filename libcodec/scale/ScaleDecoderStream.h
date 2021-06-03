@@ -17,10 +17,10 @@
  * @file ScaleDecoderStream.cpp
  */
 #pragma once
-#include "Common.h"
-#include "FixedWidthIntegerCodec.h"
 #include "../../libutilities/Common.h"
 #include "../../libutilities/FixedBytes.h"
+#include "Common.h"
+#include "FixedWidthIntegerCodec.h"
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
@@ -204,6 +204,13 @@ public:
      * @return
      */
     ScaleDecoderStream& operator>>(CompactInteger& v);
+    ScaleDecoderStream& operator>>(s256& v)
+    {
+        u256 unsignedValue;
+        *this >> unsignedValue;
+        v = u2s(unsignedValue);
+        return *this;
+    }
 
     template <unsigned N>
     ScaleDecoderStream& operator>>(FixedBytes<N>& fixedData)

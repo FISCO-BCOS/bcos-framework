@@ -13,12 +13,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+#include "../../../testutils/TestPromptFixture.h"
 #include "libcodec/scale/Scale.h"
 #include "libcodec/scale/ScaleDecoderStream.h"
 #include "libcodec/scale/ScaleEncoderStream.h"
 #include "libutilities/Common.h"
 #include "libutilities/DataConvertUtility.h"
-#include "../../../testutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace bcos;
@@ -673,6 +673,58 @@ auto length = 1048576;  // 2^20
   }
   BOOST_CHECK(stream.hasMore(1) ==false);
 }
+}
+
+BOOST_AUTO_TEST_CASE(testU256)
+{
+    u256 number = 3453456346534;
+    ScaleEncoderStream encoder;
+    // encode
+    encoder << number;
+    // decode
+    u256 decodedNumber;
+    auto &&out = encoder.data();
+    ScaleDecoderStream decoder(gsl::make_span(out));
+    decoder >> decodedNumber;
+    std::cout << "#### number:" << number << ", decodedNumber:" << decodedNumber << std::endl;
+    BOOST_CHECK(number == decodedNumber);
+
+    CompactInteger number2("123");
+    ScaleEncoderStream encoder2;
+    encoder2 << number2;
+    auto &&out2 = encoder2.data();
+    ScaleDecoderStream decoder2(gsl::make_span(out2));
+    CompactInteger decodedNumber2;
+    decoder2 >> decodedNumber2;
+    std::cout << "#### number2:" << number2 << ", decodedNumber2:" << decodedNumber2 << std::endl;
+    BOOST_CHECK(number2 == decodedNumber2);
+}
+BOOST_AUTO_TEST_CASE(tests256)
+{
+    s256 number = 3453456346534;
+    ScaleEncoderStream encoder;
+    // encode
+    encoder << number;
+    // decode
+    s256 decodedNumber;
+    auto &&out = encoder.data();
+    ScaleDecoderStream decoder(gsl::make_span(out));
+    decoder >> decodedNumber;
+    std::cout << "#### number:" << number << ", decodedNumber:" << decodedNumber << std::endl;
+    BOOST_CHECK(number == decodedNumber);
+
+
+    s256 number2 = -3453456346534;
+    ScaleEncoderStream encoder2;
+    // encode
+    encoder2 << number2;
+    // decode
+    s256 decodedNumber2;
+    auto &&out2 = encoder2.data();
+    ScaleDecoderStream decoder2(gsl::make_span(out2));
+    decoder2 >> decodedNumber2;
+    std::cout << "#### number2:" << number2 << ", decodedNumber2:" << decodedNumber2 << std::endl;
+    BOOST_CHECK(number2 == decodedNumber2);
 }
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
