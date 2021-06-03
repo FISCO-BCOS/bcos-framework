@@ -100,7 +100,13 @@ public:
             }
         }
     }
-    virtual void populateEmptyBlock(int64_t _timestamp) = 0;
+    virtual void populateEmptyBlock(
+        BlockNumber _number, int64_t _sealerId, int64_t _timestamp = utcTime())
+    {
+        setNumber(_number);
+        setSealer(_sealerId);
+        setTimestamp(_timestamp);
+    }
 
     // version returns the version of the blockHeader
     virtual int32_t version() const = 0;
