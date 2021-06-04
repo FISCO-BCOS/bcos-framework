@@ -17,6 +17,7 @@
  * @file FakeDispatcher.h
  * @author: yujiechen
  * @date 2021-05-28
+
  */
 #pragma once
 #include "../../interfaces/dispatcher/DispatcherInterface.h"
@@ -69,6 +70,8 @@ public:
     void asyncNotifyExecutionResult(
         Error::Ptr, std::shared_ptr<BlockHeader>, std::function<void(Error::Ptr)>) override
     {}
+
+    void stop() override {}
 
 private:
     std::vector<Block::Ptr> m_blocks;
