@@ -40,7 +40,7 @@ public:
     // virtual bytes getCode(const string& address) const = 0;
     // virtual TransactionReceipt::Ptr BlockVerifier::executeTransaction(
     //     const BlockHeader& blockHeader, Transaction::Ptr _t) = 0;
-    virtual bytes asyncGetCode(std::shared_ptr<std::string> _address,
+    virtual void asyncGetCode(std::shared_ptr<std::string> _address,
         std::function<void(const Error::Ptr&, const std::shared_ptr<bytes>&)> _callback) = 0;
     virtual void asyncExecuteTransaction(const protocol::Transaction::ConstPtr& _tx,
         std::function<void(const Error::Ptr&, const protocol::TransactionReceipt::ConstPtr&)>
