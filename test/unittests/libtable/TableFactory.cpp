@@ -20,10 +20,10 @@
 #include "libtable/TableFactory.h"
 #include "../../../testutils/TestPromptFixture.h"
 #include "Hash.h"
-#include "MemoryStorage.h"
 #include "interfaces/storage/TableInterface.h"
 #include "libtable/Table.h"
 #include "libutilities/ThreadPool.h"
+#include "testutils/faker/FakeStorage.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
@@ -41,7 +41,7 @@ struct TableFactoryFixture
     TableFactoryFixture()
     {
         hashImpl = make_shared<Header256Hash>();
-        memoryStorage = make_shared<MemoryStorage>();
+        memoryStorage = make_shared<FakeStorage>();
         BOOST_TEST(memoryStorage != nullptr);
         tableFactory = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
         BOOST_TEST(tableFactory != nullptr);
