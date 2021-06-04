@@ -28,6 +28,7 @@ using namespace bcos::front;
 using namespace bcos::crypto;
 using namespace bcos::protocol;
 using namespace bcos::txpool;
+using namespace bcos::consensus;
 
 namespace bcos
 {
