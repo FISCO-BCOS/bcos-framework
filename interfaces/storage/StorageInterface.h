@@ -95,6 +95,7 @@ public:
         const std::shared_ptr<std::vector<std::string> >& _keys,
         std::function<void(const Error::Ptr&, const std::shared_ptr<std::vector<std::string> >&)>
             callback) = 0;
+    virtual void stop(){};
 };
 
 }  // namespace storage

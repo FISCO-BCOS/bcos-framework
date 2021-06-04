@@ -42,6 +42,7 @@ public:
     virtual void asyncNotifyExecutionResult(Error::Ptr _error,
         std::shared_ptr<protocol::BlockHeader> _header,
         std::function<void(Error::Ptr)> _callback) = 0;
+    virtual void stop() = 0;
 };
 
 }  // namespace dispatcher
