@@ -39,6 +39,11 @@ public:
         m_to(_to)
     {}
 
+    TransactionSubmitResultImpl(
+        BlockHeader::Ptr _blockHeader, bcos::crypto::HashType const& _txHash)
+      : m_txHash(_txHash), m_blockHash(_blockHeader->hash())
+    {}
+
     TransactionSubmitResultImpl(TransactionReceipt::Ptr _receipt, Transaction::Ptr _tx,
         int64_t _transactionIndex, BlockHeader::Ptr _blockHeader)
       : TransactionSubmitResultImpl(_receipt, _tx->hash(), _transactionIndex, _blockHeader->hash(),

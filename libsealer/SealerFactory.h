@@ -19,8 +19,8 @@
  */
 #pragma once
 
-#include "SealerConfig.h"
 #include "../interfaces/sealer/SealerInterface.h"
+#include "SealerConfig.h"
 namespace bcos
 {
 namespace sealer
@@ -28,6 +28,7 @@ namespace sealer
 class SealerFactory
 {
 public:
+    using Ptr = std::shared_ptr<SealerFactory>;
     SealerFactory(bcos::protocol::BlockFactory::Ptr _blockFactory,
         bcos::txpool::TxPoolInterface::Ptr _txpool, unsigned _minSealTime);
     virtual ~SealerFactory() {}
