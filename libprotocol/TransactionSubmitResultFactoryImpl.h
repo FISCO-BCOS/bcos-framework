@@ -38,6 +38,12 @@ public:
         return std::make_shared<TransactionSubmitResultImpl>(_txHash, (TransactionStatus)_status);
     }
 
+    TransactionSubmitResult::Ptr createTxSubmitResult(
+        BlockHeader::Ptr _blockHeader, bcos::crypto::HashType const& _txHash) override
+    {
+        return std::make_shared<TransactionSubmitResultImpl>(_blockHeader, _txHash);
+    }
+
     TransactionSubmitResult::Ptr createTxSubmitResult(TransactionReceipt::Ptr _receipt,
         bcos::crypto::HashType _txHash, int64_t _txIndex, bcos::crypto::HashType _blockHash,
         bytesConstRef _sender, bytesConstRef _to) override

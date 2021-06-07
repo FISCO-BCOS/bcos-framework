@@ -27,9 +27,10 @@ using namespace bcos::protocol;
 
 void SealingManager::appendTransactions(HashListPtr _fetchedTxs)
 {
-    SEAL_LOG(DEBUG) << LOG_DESC("appendTransactions") << LOG_KV("size", _fetchedTxs->size());
     WriteGuard l(x_pendingTxs);
     m_pendingTxs->insert(m_pendingTxs->end(), _fetchedTxs->begin(), _fetchedTxs->end());
+    SEAL_LOG(DEBUG) << LOG_DESC("appendTransactions") << LOG_KV("size", _fetchedTxs->size())
+                    << LOG_KV("totalFetchedTxs", m_pendingTxs->size());
     m_onReady();
 }
 
@@ -88,7 +89,6 @@ void SealingManager::notifyResetTxsFlag(HashListPtr _txsHashList, bool _flag)
         _txsHashList, _flag, [this, _txsHashList, _flag](Error::Ptr _error) {
             if (_error == nullptr)
             {
-                SEAL_LOG(DEBUG) << LOG_DESC("asyncMarkTxs success");
                 return;
             }
             SEAL_LOG(DEBUG) << LOG_DESC("asyncMarkTxs failed, retry now");
@@ -108,10 +108,10 @@ Block::Ptr SealingManager::generateProposal()
     blockHeader->setNumber(m_sealingNumber);
     blockHeader->setTimestamp(utcTime());
     block->setBlockHeader(blockHeader);
-
-    for (size_t i = 0; i <= std::min((size_t)m_maxTxsPerBlock, m_pendingTxs->size()); i++)
+    auto txsSize = std::min((size_t)m_maxTxsPerBlock, m_pendingTxs->size());
+    for (size_t i = 0; i < txsSize; i++)
     {
-        block->setTransactionHash(i, m_pendingTxs->front());
+        block->appendTransactionHash(m_pendingTxs->front());
         m_pendingTxs->pop_front();
     }
     m_sealingNumber++;
@@ -136,7 +136,7 @@ bool SealingManager::reachMinSealTimeCondition()
 bool SealingManager::shouldFetchTransaction()
 {
     // fetching transactions currently
-    if (m_fetchingTxs || m_unsealedTxsSize == 0)
+    if (m_fetchingTxs.load() || m_unsealedTxsSize == 0)
     {
         return false;
     }

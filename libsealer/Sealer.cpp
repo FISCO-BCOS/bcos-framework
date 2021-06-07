@@ -67,8 +67,6 @@ void Sealer::asyncNoteUnSealedTxsSize(
 {
     m_sealingManager->setUnsealedTxsSize(_unsealedTxsSize);
     _onRecvResponse(nullptr);
-    SEAL_LOG(INFO) << LOG_DESC("asyncNoteUnSealedTxsSize")
-                   << LOG_KV("unsealedTxsSize", _unsealedTxsSize);
 }
 
 void Sealer::executeWorker()
@@ -83,11 +81,11 @@ void Sealer::executeWorker()
     if (m_sealingManager->shouldGenerateProposal())
     {
         auto proposal = m_sealingManager->generateProposal();
-        submitProposal(proposal);
-        SEAL_LOG(DEBUG) << LOG_DESC("Generate proposal")
+        SEAL_LOG(DEBUG) << LOG_DESC("++++++++++++++++ Generate proposal")
                         << LOG_KV("number", proposal->blockHeader()->number())
                         << LOG_KV("hash", proposal->blockHeader()->hash().abridged())
                         << LOG_KV("txsSize", proposal->transactionsHashSize());
+        submitProposal(proposal);
     }
     // try to fetch transactions
     if (m_sealingManager->shouldFetchTransaction())

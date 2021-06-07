@@ -21,6 +21,7 @@
 #pragma once
 #include "../../interfaces/protocol/CommonError.h"
 #include "../../interfaces/txpool/TxPoolInterface.h"
+#include "../../libutilities/ThreadPool.h"
 
 using namespace bcos;
 using namespace bcos::txpool;
@@ -36,7 +37,7 @@ class FakeTxPool : public TxPoolInterface
 {
 public:
     using Ptr = std::shared_ptr<FakeTxPool>;
-    FakeTxPool() = default;
+    FakeTxPool() { m_worker = std::make_shared<ThreadPool>("txpool", 1); }
     ~FakeTxPool() override {}
 
     void start() override {}
@@ -78,14 +79,16 @@ public:
     void asyncVerifyBlock(PublicPtr, bytesConstRef const&,
         std::function<void(Error::Ptr, bool)> _onVerifyFinished) override
     {
-        if (m_verifyResult)
-        {
-            _onVerifyFinished(nullptr, m_verifyResult);
-            return;
-        }
-        _onVerifyFinished(
-            std::make_shared<Error>(CommonError::TransactionsMissing, "TransactionsMissing"),
-            m_verifyResult);
+        m_worker->enqueue([this, _onVerifyFinished]() {
+            if (m_verifyResult)
+            {
+                _onVerifyFinished(nullptr, m_verifyResult);
+                return;
+            }
+            _onVerifyFinished(
+                std::make_shared<Error>(CommonError::TransactionsMissing, "TransactionsMissing"),
+                m_verifyResult);
+        });
     }
 
     void setVerifyResult(bool _verifyResult) { m_verifyResult = _verifyResult; }
@@ -93,6 +96,7 @@ public:
 
 private:
     bool m_verifyResult = true;
+    std::shared_ptr<ThreadPool> m_worker = nullptr;
 };
 }  // namespace test
 }  // namespace bcos

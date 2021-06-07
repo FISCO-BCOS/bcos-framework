@@ -22,6 +22,7 @@
 #include "../../interfaces/ledger/LedgerConfig.h"
 #include "../../interfaces/ledger/LedgerInterface.h"
 #include "../../interfaces/protocol/Block.h"
+#include "../../libutilities/ThreadPool.h"
 #include "../../testutils/protocol/FakeBlock.h"
 #include "../../testutils/protocol/FakeBlockHeader.h"
 
