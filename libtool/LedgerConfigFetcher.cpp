@@ -19,9 +19,9 @@
  * @date 2021-05-19
  */
 #include "LedgerConfigFetcher.h"
-#include "Exceptions.h"
 #include "../interfaces/ledger/LedgerTypeDef.h"
 #include "../libutilities/Common.h"
+#include "Exceptions.h"
 using namespace bcos::protocol;
 using namespace bcos::crypto;
 using namespace bcos::consensus;
@@ -68,7 +68,10 @@ void LedgerConfigFetcher::fetchBlockNumberAndHash()
                 TOOL_LOG(INFO) << LOG_DESC("fetchBlockNumber success, begin to fetchBlockHash")
                                << LOG_KV("number", _number);
                 fetcher->m_ledgerConfig->setBlockNumber(_number);
-                fetcher->fetchBlockHash(_number);
+                fetcher->fetchBlockHash(_number, [fetcher](HashType const& _hash) {
+                    fetcher->m_ledgerConfig->setHash(_hash);
+                    fetcher->m_fetchBlockInfoFinished = true;
+                });
                 return;
             }
             // retry to fetchBlockNumberAndHash
@@ -86,12 +89,11 @@ void LedgerConfigFetcher::fetchBlockNumberAndHash()
     });
 }
 
-
-void LedgerConfigFetcher::fetchBlockHash(BlockNumber _blockNumber)
+void LedgerConfigFetcher::fetchGenesisHash()
 {
+    m_fetchGenesisHashFinished = false;
     auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
-    m_ledger->asyncGetBlockHashByNumber(_blockNumber, [self, _blockNumber](Error::Ptr _error,
-                                                          HashType const& _hash) {
+    fetchBlockHash(0, [self](HashType const& _hash) {
         try
         {
             auto fetcher = self.lock();
@@ -99,29 +101,53 @@ void LedgerConfigFetcher::fetchBlockHash(BlockNumber _blockNumber)
             {
                 return;
             }
-            if (_error == nullptr)
-            {
-                TOOL_LOG(INFO) << LOG_DESC("LedgerConfigFetcher: fetchBlockHash success")
-                               << LOG_KV("number", _blockNumber)
-                               << LOG_KV("hash", _hash.abridged());
-                fetcher->m_ledgerConfig->setHash(_hash);
-                fetcher->m_fetchBlockInfoFinished = true;
-                fetcher->m_signalled.notify_all();
-                return;
-            }
-            // retry to  fetchBlockHash
-            TOOL_LOG(WARNING) << LOG_DESC("LedgerConfigFetcher: fetchBlockHash failed, retry again")
-                              << LOG_KV("errorCode", _error->errorCode())
-                              << LOG_KV("errorMessage", _error->errorMessage())
-                              << LOG_KV("number", _blockNumber);
-            fetcher->fetchBlockHash(_blockNumber);
+            fetcher->m_genesisHash = _hash;
+            fetcher->m_fetchGenesisHashFinished = true;
         }
         catch (std::exception const& e)
         {
-            TOOL_LOG(WARNING) << LOG_DESC("fetchBlockHash exception")
+            TOOL_LOG(WARNING) << LOG_DESC("fetchGenesisHash exception")
                               << LOG_KV("error", boost::diagnostic_information(e));
         }
     });
+}
+
+void LedgerConfigFetcher::fetchBlockHash(
+    BlockNumber _blockNumber, std::function<void(HashType const& _hash)> _callback)
+{
+    auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
+    m_ledger->asyncGetBlockHashByNumber(
+        _blockNumber, [self, _blockNumber, _callback](Error::Ptr _error, HashType const& _hash) {
+            try
+            {
+                auto fetcher = self.lock();
+                if (!fetcher)
+                {
+                    return;
+                }
+                if (_error == nullptr)
+                {
+                    TOOL_LOG(INFO)
+                        << LOG_DESC("LedgerConfigFetcher: fetchBlockHash success")
+                        << LOG_KV("number", _blockNumber) << LOG_KV("hash", _hash.abridged());
+                    _callback(_hash);
+                    fetcher->m_signalled.notify_all();
+                    return;
+                }
+                // retry to  fetchBlockHash
+                TOOL_LOG(WARNING) << LOG_DESC(
+                                         "LedgerConfigFetcher: fetchBlockHash failed, retry again")
+                                  << LOG_KV("errorCode", _error->errorCode())
+                                  << LOG_KV("errorMessage", _error->errorMessage())
+                                  << LOG_KV("number", _blockNumber);
+                fetcher->fetchBlockHash(_blockNumber, _callback);
+            }
+            catch (std::exception const& e)
+            {
+                TOOL_LOG(WARNING) << LOG_DESC("fetchBlockHash exception")
+                                  << LOG_KV("error", boost::diagnostic_information(e));
+            }
+        });
 }
 
 

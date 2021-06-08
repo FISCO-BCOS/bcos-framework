@@ -41,7 +41,7 @@ public:
     void stop() override {}
 
     void asyncNotifySealProposal(size_t _startIndex, size_t _endIndex, size_t _maxTxsToSeal,
-        std::function<void(Error::Ptr)> _onRecv) override
+        std::function<void(Error::Ptr)>) override
     {
         m_proposalStartIndex = _startIndex;
         m_proposalEndIndex = _endIndex;

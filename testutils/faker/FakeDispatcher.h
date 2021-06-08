@@ -37,8 +37,8 @@ public:
     FakeDispatcher() = default;
     ~FakeDispatcher() override {}
 
-    void asyncExecuteBlock(Block::Ptr _block, bool,
-        std::function<void(Error::Ptr, BlockHeader::Ptr)> _callback) override
+    void asyncExecuteBlock(const Block::Ptr& _block, bool,
+        std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback) override
     {
         if (m_blocks.empty())
         {
@@ -64,14 +64,15 @@ public:
     }
 
     // useless for PBFT, maybe useful for executors
-    void asyncGetLatestBlock(std::function<void(Error::Ptr, Block::Ptr)>) override {}
+    void asyncGetLatestBlock(std::function<void(const Error::Ptr&, const Block::Ptr&)>) override {}
 
     // useless for PBFT, maybe useful for executors
-    void asyncNotifyExecutionResult(
-        Error::Ptr, std::shared_ptr<BlockHeader>, std::function<void(Error::Ptr)>) override
+    void asyncNotifyExecutionResult(const Error::Ptr&, const std::shared_ptr<BlockHeader>&,
+        std::function<void(const Error::Ptr&)>) override
     {}
 
     void stop() override {}
+    void start() override {}
 
 private:
     std::vector<Block::Ptr> m_blocks;
