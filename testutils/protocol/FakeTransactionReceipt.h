@@ -52,7 +52,6 @@ inline void checkReceipts(Hash::Ptr hashImpl, TransactionReceipt::ConstPtr recei
 {
     // check the decodedReceipt
     BOOST_CHECK(decodedReceipt->version() == receipt->version());
-    BOOST_CHECK(decodedReceipt->stateRoot() == receipt->stateRoot());
     BOOST_CHECK(decodedReceipt->gasUsed() == receipt->gasUsed());
     BOOST_CHECK(
         decodedReceipt->contractAddress().toBytes() == receipt->contractAddress().toBytes());
@@ -72,8 +71,6 @@ inline void checkReceipts(Hash::Ptr hashImpl, TransactionReceipt::ConstPtr recei
 inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite)
 {
     auto hashImpl = _cryptoSuite->hashImpl();
-    int32_t version = 1;
-    auto stateRoot = hashImpl->hash((std::string) "stateRoot");
     u256 gasUsed = 12343242342;
     auto contractAddress = toAddress("5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
     auto logEntries = fakeLogEntries(hashImpl, 2);
@@ -84,8 +81,8 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
         output += contractAddress.asBytes();
     }
     auto factory = std::make_shared<PBTransactionReceiptFactory>(_cryptoSuite);
-    auto receipt = factory->createReceipt(version, stateRoot, gasUsed, contractAddress.asBytes(),
-        logEntries, (int32_t)status, output, 0);
+    auto receipt = factory->createReceipt(
+        gasUsed, contractAddress.asBytes(), logEntries, (int32_t)status, output, 0);
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     for (size_t i = 0; i < 2; i++)
@@ -96,7 +93,6 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
 #if 0
     std::cout << "##### testPBTransactionReceipt:"
               << "encodedData:" << *toHexString(*encodedData) << std::endl;
-    std::cout << "stateRoot:" << receipt->stateRoot().hex() << std::endl;
     std::cout << "receipt->output():" << *toHexString(receipt->output()) << std::endl;
     std::cout << "receipt->contractAddress():" << *toHexString(receipt->contractAddress())
               << std::endl;

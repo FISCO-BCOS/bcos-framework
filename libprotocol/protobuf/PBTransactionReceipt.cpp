@@ -37,11 +37,10 @@ PBTransactionReceipt::PBTransactionReceipt(
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
-    LogEntriesPtr _logEntries, int32_t _status, BlockNumber _blockNumber)
+    u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
+    BlockNumber _blockNumber)
   : TransactionReceipt(_cryptoSuite),
     m_receipt(std::make_shared<PBRawTransactionReceipt>()),
-    m_stateRoot(_stateRoot),
     m_gasUsed(_gasUsed),
     m_contractAddress(_contractAddress),
     m_logEntries(_logEntries),
@@ -54,19 +53,19 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
-    LogEntriesPtr _logEntries, int32_t _status, bytes const& _ouptput, BlockNumber _blockNumber)
-  : PBTransactionReceipt(_cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress,
-        _logEntries, _status, _blockNumber)
+    u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
+    bytes const& _ouptput, BlockNumber _blockNumber)
+  : PBTransactionReceipt(
+        _cryptoSuite, _version, _gasUsed, _contractAddress, _logEntries, _status, _blockNumber)
 {
     m_output = _ouptput;
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    HashType const& _stateRoot, u256 const& _gasUsed, bytes const& _contractAddress,
-    LogEntriesPtr _logEntries, int32_t _status, bytes&& _ouptput, BlockNumber _blockNumber)
-  : PBTransactionReceipt(_cryptoSuite, _version, _stateRoot, _gasUsed, _contractAddress,
-        _logEntries, _status, _blockNumber)
+    u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
+    bytes&& _ouptput, BlockNumber _blockNumber)
+  : PBTransactionReceipt(
+        _cryptoSuite, _version, _gasUsed, _contractAddress, _logEntries, _status, _blockNumber)
 {
     m_output = std::move(_ouptput);
 }
@@ -78,8 +77,8 @@ void PBTransactionReceipt::decode(bytesConstRef _data)
     decodePBObject(m_receipt, _data);
     ScaleDecoderStream stream(gsl::span<const byte>(
         (byte*)m_receipt->hashfieldsdata().data(), m_receipt->hashfieldsdata().size()));
-    stream >> m_status >> m_output >> m_contractAddress >> m_stateRoot >> m_gasUsed >> m_bloom >>
-        m_logEntries >> m_blockNumber;
+    stream >> m_status >> m_output >> m_contractAddress >> m_gasUsed >> m_bloom >> m_logEntries >>
+        m_blockNumber;
 }
 
 void PBTransactionReceipt::encode(bytes& _encodeReceiptData) const
@@ -115,8 +114,8 @@ void PBTransactionReceipt::encodeHashFields() const
     }
     // encode the hashFieldsData
     ScaleEncoderStream stream;
-    stream << m_status << m_output << m_contractAddress << m_stateRoot << m_gasUsed << m_bloom
-           << m_logEntries << m_blockNumber;
+    stream << m_status << m_output << m_contractAddress << m_gasUsed << m_bloom << m_logEntries
+           << m_blockNumber;
     auto hashFieldsData = stream.data();
     m_receipt->set_version(m_version);
     m_receipt->set_hashfieldsdata(hashFieldsData.data(), hashFieldsData.size());

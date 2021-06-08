@@ -37,14 +37,12 @@ public:
     {}
 
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-        bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
-        bytes const& _output, BlockNumber _blockNumber);
+        u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries,
+        int32_t _status, bytes const& _output, BlockNumber _blockNumber);
 
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-        bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status, bytes&& _output,
-        BlockNumber _blockNumber);
+        u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries,
+        int32_t _status, bytes&& _output, BlockNumber _blockNumber);
 
     ~PBTransactionReceipt() {}
 
@@ -56,7 +54,6 @@ public:
     int32_t status() const override { return m_status; }
     bytesConstRef output() const override { return ref(m_output); }
     bytesConstRef contractAddress() const override { return ref(m_contractAddress); }
-    bcos::crypto::HashType const& stateRoot() const override { return m_stateRoot; }
     u256 const& gasUsed() const override { return m_gasUsed; }
     gsl::span<const LogEntry> logEntries() const override
     {
@@ -68,9 +65,8 @@ public:
 
 private:
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-        bcos::crypto::HashType const& _stateRoot, u256 const& _gasUsed,
-        bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
-        BlockNumber _blockNumber);
+        u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries,
+        int32_t _status, BlockNumber _blockNumber);
     virtual void encodeHashFields() const;
 
 private:
@@ -78,7 +74,6 @@ private:
     bytesPointer m_dataCache;
 
     int32_t m_version;
-    bcos::crypto::HashType m_stateRoot;
     u256 m_gasUsed;
     bytes m_contractAddress;
     LogEntriesPtr m_logEntries;
