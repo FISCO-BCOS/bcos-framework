@@ -39,6 +39,7 @@ class FakeLedger : public LedgerInterface, public std::enable_shared_from_this<F
 {
 public:
     using Ptr = std::shared_ptr<FakeLedger>;
+    FakeLedger() = default;
     FakeLedger(BlockFactory::Ptr _blockFactory, size_t _blockNumber, size_t _txsSize,
         size_t _receiptsSize, std::vector<bytes> _sealerList)
       : m_blockFactory(_blockFactory),
@@ -150,6 +151,7 @@ public:
     void asyncStoreTransactions(std::shared_ptr<std::vector<bytesPointer>> _txToStore,
         HashListPtr _txHashList, std::function<void(Error::Ptr)> _onTxStored) override
     {
+        WriteGuard l(x_txsHashToData);
         size_t i = 0;
         for (auto const& hash : *_txHashList)
         {
@@ -193,6 +195,7 @@ public:
             Error::Ptr, TransactionsPtr, std::shared_ptr<std::map<std::string, MerkleProofPtr>>)>
             _onGetTx) override
     {
+        ReadGuard l(x_txsHashToData);
         auto txs = std::make_shared<Transactions>();
         for (auto const& hash : *_txHashList)
         {
@@ -290,8 +293,17 @@ public:
     BlockNumber blockNumber() { return m_ledgerConfig->blockNumber(); }
     std::vector<Block::Ptr> const& ledgerData() { return m_ledger; }
 
-    size_t storedTxsSize() { return m_txsHashToData.size(); }
-    std::map<HashType, bytesPointer> const& txsHashToData() { return m_txsHashToData; }
+    size_t storedTxsSize()
+    {
+        ReadGuard l(x_txsHashToData);
+        return m_txsHashToData.size();
+    }
+    // Note thread-safe
+    std::map<HashType, bytesPointer> txsHashToData()
+    {
+        ReadGuard l(x_txsHashToData);
+        return m_txsHashToData;
+    }
 
     std::vector<bytes> sealerList() { return m_sealerList; }
 
@@ -307,6 +319,8 @@ private:
     std::map<HashType, BlockNumber> m_hash2Block;
 
     std::map<HashType, bytesPointer> m_txsHashToData;
+    SharedMutex x_txsHashToData;
+
     std::map<std::string, std::string> m_systemConfig;
     std::vector<bytes> m_sealerList;
     std::shared_ptr<ThreadPool> m_worker = nullptr;

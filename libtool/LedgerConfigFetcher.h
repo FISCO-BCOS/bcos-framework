@@ -44,6 +44,7 @@ public:
     virtual void fetchObserverNodeList();
     virtual void fetchConsensusTimeout();
     virtual void fetchBlockTxCountLimit();
+    virtual void fetchGenesisHash();
     virtual void fetchNonceList(protocol::BlockNumber _startNumber, int64_t _offset);
 
     virtual bcos::ledger::LedgerConfig::Ptr ledgerConfig() { return m_ledgerConfig; }
@@ -51,7 +52,7 @@ public:
     {
         return m_nonceList;
     }
-
+    virtual bcos::crypto::HashType const& genesisHash() const { return m_genesisHash; }
     virtual void waitFetchFinished();
 
 protected:
@@ -59,10 +60,12 @@ protected:
     {
         return m_fetchBlockInfoFinished && m_fetchConsensusInfoFinished &&
                m_fetchObserverInfoFinshed && m_fetchConsensusTimeoutFinished &&
-               m_fetchBlockTxCountLimitFinished && m_fetchNonceListFinished;
+               m_fetchBlockTxCountLimitFinished && m_fetchNonceListFinished &&
+               m_fetchGenesisHashFinished;
     }
 
-    virtual void fetchBlockHash(bcos::protocol::BlockNumber _blockNumber);
+    virtual void fetchBlockHash(bcos::protocol::BlockNumber _blockNumber,
+        std::function<void(bcos::crypto::HashType const& _hash)> _callback);
     virtual void fetchSystemConfig(
         std::string const& _key, std::function<void(std::string const&)> _onRecvValue);
     virtual void fetchNodeListByNodeType(std::string const& _type,
@@ -71,6 +74,7 @@ protected:
     bcos::ledger::LedgerInterface::Ptr m_ledger;
     bcos::ledger::LedgerConfig::Ptr m_ledgerConfig;
     std::shared_ptr<std::map<int64_t, bcos::protocol::NonceListPtr>> m_nonceList;
+    bcos::crypto::HashType m_genesisHash;
 
     // assume this module can wait at most 10s
     uint64_t m_timeout = 10000;
@@ -85,6 +89,7 @@ private:
     std::atomic_bool m_fetchConsensusTimeoutFinished = {true};
     std::atomic_bool m_fetchBlockTxCountLimitFinished = {true};
     std::atomic_bool m_fetchNonceListFinished = {true};
+    std::atomic_bool m_fetchGenesisHashFinished = {true};
 };
 }  // namespace tool
 }  // namespace bcos

@@ -29,8 +29,6 @@ void SealingManager::appendTransactions(HashListPtr _fetchedTxs)
 {
     WriteGuard l(x_pendingTxs);
     m_pendingTxs->insert(m_pendingTxs->end(), _fetchedTxs->begin(), _fetchedTxs->end());
-    SEAL_LOG(DEBUG) << LOG_DESC("appendTransactions") << LOG_KV("size", _fetchedTxs->size())
-                    << LOG_KV("totalFetchedTxs", m_pendingTxs->size());
     m_onReady();
 }
 
