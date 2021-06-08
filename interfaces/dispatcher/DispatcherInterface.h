@@ -35,13 +35,14 @@ public:
     using Ptr = std::shared_ptr<DispatcherInterface>;
     DispatcherInterface() = default;
     virtual ~DispatcherInterface() {}
-    virtual void asyncExecuteBlock(protocol::Block::Ptr _block, bool _verify,
-        std::function<void(Error::Ptr, protocol::BlockHeader::Ptr)> _callback) = 0;
+    virtual void asyncExecuteBlock(const protocol::Block::Ptr& _block, bool _verify,
+        std::function<void(const Error::Ptr&, const protocol::BlockHeader::Ptr&)> _callback) = 0;
     virtual void asyncGetLatestBlock(
-        std::function<void(Error::Ptr, protocol::Block::Ptr)> _callback) = 0;
-    virtual void asyncNotifyExecutionResult(Error::Ptr _error,
-        std::shared_ptr<protocol::BlockHeader> _header,
-        std::function<void(Error::Ptr)> _callback) = 0;
+        std::function<void(const Error::Ptr&, const protocol::Block::Ptr&)> _callback) = 0;
+    virtual void asyncNotifyExecutionResult(const Error::Ptr& _error,
+        const protocol::BlockHeader::Ptr& _header,
+        std::function<void(const Error::Ptr&)> _callback) = 0;
+    virtual void start() = 0;
     virtual void stop() = 0;
 };
 

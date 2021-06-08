@@ -40,7 +40,7 @@ BOOST_FIXTURE_TEST_SUITE(ExecutorTest, ExecutorTestFixture)
 
 BOOST_AUTO_TEST_CASE(constructor)
 {
-    shared_ptr<ExecutorInterface> state = nullptr;
+    shared_ptr<ExecutorInterface> executor = nullptr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
