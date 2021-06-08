@@ -22,6 +22,7 @@
 
 #include "../../interfaces/consensus/ConsensusInterface.h"
 #include "../../interfaces/front/FrontServiceInterface.h"
+#include "../../interfaces/sync/BlockSyncInterface.h"
 #include "../../interfaces/txpool/TxPoolInterface.h"
 using namespace bcos;
 using namespace bcos::front;
@@ -29,6 +30,7 @@ using namespace bcos::crypto;
 using namespace bcos::protocol;
 using namespace bcos::txpool;
 using namespace bcos::consensus;
+using namespace bcos::sync;
 
 namespace bcos
 {
@@ -45,6 +47,12 @@ public:
     {
         m_nodeId2TxPool[_nodeId] = _txpool;
     }
+
+    void addSync(NodeIDPtr _nodeId, BlockSyncInterface::Ptr _sync)
+    {
+        m_nodeId2Sync[_nodeId] = _sync;
+    }
+
     void addConsensusInterface(NodeIDPtr _nodeId, ConsensusInterface::Ptr _consensusInterface)
     {
         m_nodeId2Consensus[_nodeId] = _consensusInterface;
@@ -61,7 +69,10 @@ public:
                 nullptr, _fromNode, bytesData,
                 [_responseCallback, _nodeId](bytesConstRef _respData) {
                     // called when receive response data
-                    _responseCallback(nullptr, _nodeId, _respData, "", nullptr);
+                    if (_responseCallback)
+                    {
+                        _responseCallback(nullptr, _nodeId, _respData, "", nullptr);
+                    }
                 },
                 nullptr);
         }
@@ -69,10 +80,27 @@ public:
         {
             auto consensus = m_nodeId2Consensus[_nodeId];
             consensus->asyncNotifyConsensusMessage(
-                nullptr, _nodeId, _data,
+                nullptr, _fromNode, _data,
                 [_responseCallback, _nodeId](bytesConstRef _respData) {
-                    // called when receive response data
-                    _responseCallback(nullptr, _nodeId, _respData, "", nullptr);
+                    if (_responseCallback)
+                    {
+                        // called when receive response data
+                        _responseCallback(nullptr, _nodeId, _respData, "", nullptr);
+                    }
+                },
+                nullptr);
+        }
+        if (_moduleId == ModuleID::BlockSync && m_nodeId2Sync.count(_nodeId))
+        {
+            auto sync = m_nodeId2Sync[_nodeId];
+            sync->asyncNotifyBlockSyncMessage(
+                nullptr, _fromNode, _data,
+                [_responseCallback, _nodeId](bytesConstRef _respData) {
+                    if (_responseCallback)
+                    {
+                        // called when receive response data
+                        _responseCallback(nullptr, _nodeId, _respData, "", nullptr);
+                    }
                 },
                 nullptr);
         }
@@ -81,6 +109,7 @@ public:
 private:
     std::map<NodeIDPtr, TxPoolInterface::Ptr, KeyCompare> m_nodeId2TxPool;
     std::map<NodeIDPtr, ConsensusInterface::Ptr, KeyCompare> m_nodeId2Consensus;
+    std::map<NodeIDPtr, BlockSyncInterface::Ptr, KeyCompare> m_nodeId2Sync;
 };
 
 class FakeFrontService : public FrontServiceInterface
