@@ -140,6 +140,7 @@ public:
             {
                 return;
             }
+            WriteGuard l(ledger->x_ledger);
             auto block = ledger->populateFromHeader(_blockHeader);
             ledger->m_ledger.push_back(block);
             ledger->updateLedgerConfig(_blockHeader);
@@ -169,9 +170,18 @@ public:
     }
 
     // maybe sync module or rpc module need this interface to return header/txs/receipts
-    void asyncGetBlockDataByNumber(
-        BlockNumber, int32_t, std::function<void(Error::Ptr, Block::Ptr)>) override
-    {}
+    void asyncGetBlockDataByNumber(BlockNumber _number, int32_t,
+        std::function<void(Error::Ptr, Block::Ptr)> _callback) override
+    {
+        ReadGuard l(x_ledger);
+        if (m_ledger.size() <= (size_t)(_number))
+        {
+            _callback(std::make_shared<Error>(-1, "block not found"), nullptr);
+            return;
+        }
+        auto block = m_ledger[_number];
+        _callback(nullptr, block);
+    }
 
     // TODO: maybe only RPC module need this interface
     void asyncGetBlockNumberByHash(
@@ -181,6 +191,7 @@ public:
     void asyncGetBlockHashByNumber(BlockNumber _blockNumber,
         std::function<void(Error::Ptr, crypto::HashType const&)> _onGetBlock) override
     {
+        ReadGuard l(x_ledger);
         auto const& hash = m_ledger[_blockNumber]->blockHeader()->hash();
         _onGetBlock(nullptr, hash);
     }
@@ -265,6 +276,7 @@ public:
         }
         auto endNumber = std::min(_startNumber + _offset - 1, m_ledgerConfig->blockNumber());
         auto nonceList = std::make_shared<std::map<BlockNumber, NonceListPtr>>();
+        ReadGuard l(x_ledger);
         for (auto index = _startNumber; index <= endNumber; index++)
         {
             auto nonces = m_ledger[index]->nonces();
@@ -291,7 +303,11 @@ public:
 
     LedgerConfig::Ptr ledgerConfig() { return m_ledgerConfig; }
     BlockNumber blockNumber() { return m_ledgerConfig->blockNumber(); }
-    std::vector<Block::Ptr> const& ledgerData() { return m_ledger; }
+    std::vector<Block::Ptr> const& ledgerData()
+    {
+        ReadGuard l(x_ledger);
+        return m_ledger;
+    }
 
     size_t storedTxsSize()
     {
@@ -317,6 +333,7 @@ private:
 
     std::vector<Block::Ptr> m_ledger;
     std::map<HashType, BlockNumber> m_hash2Block;
+    SharedMutex x_ledger;
 
     std::map<HashType, bytesPointer> m_txsHashToData;
     SharedMutex x_txsHashToData;
