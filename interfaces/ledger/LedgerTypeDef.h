@@ -34,8 +34,10 @@ static const int32_t TRANSACTIONS = 0x0004;
 static const int32_t RECEIPTS = 0x0002;
 
 // get system config key
+static const char* const SYSTEM_KEY_TX_GAS_LIMIT = "tx_gas_limit";
 static const char* const SYSTEM_KEY_TX_COUNT_LIMIT = "tx_count_limit";
 static const char* const SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
+static const char* const SYSTEM_KEY_CONSENSUS_LEADER_PERIOD = "consensus_leader_period";
 
 // get consensus node list type
 static const char* const CONSENSUS_SEALER = "consensus_sealer";
