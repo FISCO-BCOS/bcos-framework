@@ -103,10 +103,13 @@ public:
     /**
      * @brief: send response
      * @param _id: the request id
+     * @param _moduleID: moduleID
+     * @param _nodeID: the receiver nodeID
      * @param _data: message
      * @return void
      */
-    virtual void asyncSendResponse(const std::string& _id, bytesConstRef _data) = 0;
+    virtual void asyncSendResponse(const std::string& _id, int _moduleID,
+        bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data) = 0;
 
     /**
      * @brief: send messages to multiple nodes

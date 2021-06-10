@@ -150,7 +150,8 @@ public:
     void onReceiveBroadcastMessage(
         const std::string&, NodeIDPtr, bytesConstRef, ReceiveMsgFunc) override
     {}
-    void asyncSendResponse(const std::string&, bytesConstRef) override {}
+    void asyncSendResponse(const std::string&, int, bcos::crypto::NodeIDPtr, bytesConstRef) override
+    {}
 
     void asyncSendMessageByNodeID(int _moduleId, NodeIDPtr _nodeId, bytesConstRef _data,
         uint32_t _timeout, CallbackFunc _responseCallback) override
