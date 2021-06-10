@@ -46,7 +46,9 @@ public:
     virtual void fetchBlockTxCountLimit();
     virtual void fetchGenesisHash();
     virtual void fetchNonceList(protocol::BlockNumber _startNumber, int64_t _offset);
+    virtual void fetchConsensusLeaderPeriod();
 
+    // consensus_leader_period
     virtual bcos::ledger::LedgerConfig::Ptr ledgerConfig() { return m_ledgerConfig; }
     virtual std::shared_ptr<std::map<int64_t, bcos::protocol::NonceListPtr>> nonceList()
     {
@@ -61,7 +63,7 @@ protected:
         return m_fetchBlockInfoFinished && m_fetchConsensusInfoFinished &&
                m_fetchObserverInfoFinshed && m_fetchConsensusTimeoutFinished &&
                m_fetchBlockTxCountLimitFinished && m_fetchNonceListFinished &&
-               m_fetchGenesisHashFinished;
+               m_fetchGenesisHashFinished && m_fetchConsensusLeaderPeriod;
     }
 
     virtual void fetchBlockHash(bcos::protocol::BlockNumber _blockNumber,
@@ -90,6 +92,7 @@ private:
     std::atomic_bool m_fetchBlockTxCountLimitFinished = {true};
     std::atomic_bool m_fetchNonceListFinished = {true};
     std::atomic_bool m_fetchGenesisHashFinished = {true};
+    std::atomic_bool m_fetchConsensusLeaderPeriod = {true};
 };
 }  // namespace tool
 }  // namespace bcos

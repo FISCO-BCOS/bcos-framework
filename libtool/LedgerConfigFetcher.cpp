@@ -297,6 +297,32 @@ void LedgerConfigFetcher::fetchConsensusTimeout()
         });
 }
 
+void LedgerConfigFetcher::fetchConsensusLeaderPeriod()
+{
+    m_fetchConsensusLeaderPeriod = false;
+    auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
+    fetchSystemConfig(
+        SYSTEM_KEY_CONSENSUS_LEADER_PERIOD, [self](std::string const& _consensusLeaderPeriod) {
+            try
+            {
+                auto fetcher = self.lock();
+                if (!fetcher)
+                {
+                    return;
+                }
+                fetcher->m_ledgerConfig->setLeaderSwitchPeriod(
+                    boost::lexical_cast<uint64_t>(_consensusLeaderPeriod));
+                fetcher->m_fetchConsensusLeaderPeriod = true;
+                fetcher->m_signalled.notify_all();
+            }
+            catch (std::exception const& e)
+            {
+                TOOL_LOG(WARNING) << LOG_DESC("fetchConsensusLeaderPeriod exception")
+                                  << LOG_KV("error", boost::diagnostic_information(e))
+                                  << LOG_KV("consensusLeaderPeriod", _consensusLeaderPeriod);
+            }
+        });
+}
 void LedgerConfigFetcher::fetchBlockTxCountLimit()
 {
     m_fetchBlockTxCountLimitFinished = false;
