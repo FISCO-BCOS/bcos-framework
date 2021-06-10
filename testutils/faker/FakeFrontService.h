@@ -64,9 +64,8 @@ public:
         if (_moduleId == ModuleID::TxsSync && m_nodeId2TxPool.count(_nodeId))
         {
             auto txpool = m_nodeId2TxPool[_nodeId];
-            auto bytesData = std::make_shared<bytes>(_data.begin(), _data.end());
             txpool->asyncNotifyTxsSyncMessage(
-                nullptr, _fromNode, bytesData,
+                nullptr, _fromNode, _data,
                 [_responseCallback, _nodeId](bytesConstRef _respData) {
                     // called when receive response data
                     if (_responseCallback)

@@ -96,7 +96,7 @@ public:
 
     // called by frontService to dispatch message
     virtual void asyncNotifyTxsSyncMessage(bcos::Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
-        bytesPointer _data, std::function<void(bytesConstRef _respData)> _sendResponse,
+        bytesConstRef _data, std::function<void(bytesConstRef _respData)> _sendResponse,
         std::function<void(Error::Ptr _error)> _onRecv) = 0;
 
     // interface for frontService to notify the connectedNodes
