@@ -39,6 +39,11 @@ static const char* const SYSTEM_KEY_TX_COUNT_LIMIT = "tx_count_limit";
 static const char* const SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
 static const char* const SYSTEM_KEY_CONSENSUS_LEADER_PERIOD = "consensus_leader_period";
 
+const unsigned TX_GAS_LIMIT_MIN = 100000;
+
+const unsigned SYSTEM_CONSENSUS_TIMEOUT_MIN = 3;
+const unsigned SYSTEM_CONSENSUS_TIMEOUT_MAX = (UINT_MAX / 1000);
+
 // get consensus node list type
 static const char* const CONSENSUS_SEALER = "consensus_sealer";
 static const char* const CONSENSUS_OBSERVER = "consensus_observer";
