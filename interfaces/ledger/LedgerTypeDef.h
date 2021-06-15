@@ -34,10 +34,10 @@ static const int32_t TRANSACTIONS = 0x0004;
 static const int32_t RECEIPTS = 0x0002;
 
 // get system config key
-static const char* const SYSTEM_KEY_TX_GAS_LIMIT = "tx_gas_limit";
-static const char* const SYSTEM_KEY_TX_COUNT_LIMIT = "tx_count_limit";
-static const char* const SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
-static const char* const SYSTEM_KEY_CONSENSUS_LEADER_PERIOD = "consensus_leader_period";
+static const std::string SYSTEM_KEY_TX_GAS_LIMIT = "tx_gas_limit";
+static const std::string SYSTEM_KEY_TX_COUNT_LIMIT = "tx_count_limit";
+static const std::string SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
+static const std::string SYSTEM_KEY_CONSENSUS_LEADER_PERIOD = "consensus_leader_period";
 
 const unsigned TX_GAS_LIMIT_MIN = 100000;
 
@@ -45,25 +45,25 @@ const unsigned SYSTEM_CONSENSUS_TIMEOUT_MIN = 3;
 const unsigned SYSTEM_CONSENSUS_TIMEOUT_MAX = (UINT_MAX / 1000);
 
 // get consensus node list type
-static const char* const CONSENSUS_SEALER = "consensus_sealer";
-static const char* const CONSENSUS_OBSERVER = "consensus_observer";
-static const char* const CONSENSUS_WORKING_SEALER = "consensus_working_sealer";
+static const std::string CONSENSUS_SEALER = "consensus_sealer";
+static const std::string CONSENSUS_OBSERVER = "consensus_observer";
+static const std::string CONSENSUS_WORKING_SEALER = "consensus_working_sealer";
 
 // get current state key
-static const char* const SYS_KEY_CURRENT_NUMBER = "current_number";
-static const char* const SYS_KEY_TOTAL_TRANSACTION_COUNT = "total_transaction_count";
-static const char* const SYS_KEY_TOTAL_FAILED_TRANSACTION = "total_failed_transaction_count";
+static const std::string SYS_KEY_CURRENT_NUMBER = "current_number";
+static const std::string SYS_KEY_TOTAL_TRANSACTION_COUNT = "total_transaction_count";
+static const std::string SYS_KEY_TOTAL_FAILED_TRANSACTION = "total_failed_transaction_count";
 
 // sys table name
-static const char* const SYS_CONSENSUS = "s_consensus";
-static const char* const SYS_CONFIG = "s_config";
-static const char* const SYS_CURRENT_STATE = "s_current_state";
-static const char* const SYS_HASH_2_NUMBER = "s_hash_2_number";
-static const char* const SYS_NUMBER_2_HASH = "s_number_2_hash";
-static const char* const SYS_BLOCK_NUMBER_2_NONCES = "s_block_number_2_nonces";
-static const char* const SYS_NUMBER_2_BLOCK_HEADER = "s_number_2_header";
-static const char* const SYS_NUMBER_2_TXS = "s_number_2_txs";
-static const char* const SYS_HASH_2_TX = "s_hash_2_tx";
-static const char* const SYS_HASH_2_RECEIPT = "s_hash_2_receipt";
+static const std::string SYS_CONSENSUS = "s_consensus";
+static const std::string SYS_CONFIG = "s_config";
+static const std::string SYS_CURRENT_STATE = "s_current_state";
+static const std::string SYS_HASH_2_NUMBER = "s_hash_2_number";
+static const std::string SYS_NUMBER_2_HASH = "s_number_2_hash";
+static const std::string SYS_BLOCK_NUMBER_2_NONCES = "s_block_number_2_nonces";
+static const std::string SYS_NUMBER_2_BLOCK_HEADER = "s_number_2_header";
+static const std::string SYS_NUMBER_2_TXS = "s_number_2_txs";
+static const std::string SYS_HASH_2_TX = "s_hash_2_tx";
+static const std::string SYS_HASH_2_RECEIPT = "s_hash_2_receipt";
 }  // namespace ledger
 }  // namespace bcos
