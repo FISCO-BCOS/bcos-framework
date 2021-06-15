@@ -201,7 +201,7 @@ private:
     bcos::crypto::HashType m_stateRoot;
     BlockNumber m_number;
     u256 m_gasUsed;
-    int64_t m_timestamp;
+    int64_t m_timestamp = 0;
     int64_t m_sealer = InvalidSealerIndex;
     std::vector<bytes> m_sealerList;
     bytes m_extraData;

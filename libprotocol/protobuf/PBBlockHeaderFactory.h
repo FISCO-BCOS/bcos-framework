@@ -51,6 +51,13 @@ public:
         return std::make_shared<PBBlockHeader>(m_cryptoSuite, _data);
     }
 
+    BlockHeader::Ptr createBlockHeader(BlockNumber _number) override
+    {
+        auto header = std::make_shared<PBBlockHeader>(m_cryptoSuite);
+        header->setNumber(_number);
+        return header;
+    }
+
 private:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
 };

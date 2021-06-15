@@ -33,6 +33,7 @@ public:
     virtual BlockHeader::Ptr createBlockHeader() = 0;
     virtual BlockHeader::Ptr createBlockHeader(bytes const& _data) = 0;
     virtual BlockHeader::Ptr createBlockHeader(bytesConstRef _data) = 0;
+    virtual BlockHeader::Ptr createBlockHeader(BlockNumber _number) = 0;
 };
 }  // namespace protocol
 }  // namespace bcos
