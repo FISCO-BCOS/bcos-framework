@@ -38,7 +38,7 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     BOOST_CHECK(decodedBlockHeader->version() == blockHeader->version());
     BOOST_CHECK(decodedBlockHeader->parentInfo() == blockHeader->parentInfo());
     BOOST_CHECK(decodedBlockHeader->txsRoot() == blockHeader->txsRoot());
-    BOOST_CHECK(decodedBlockHeader->receiptRoot() == blockHeader->receiptRoot());
+    BOOST_CHECK(decodedBlockHeader->receiptsRoot() == blockHeader->receiptsRoot());
     BOOST_CHECK(decodedBlockHeader->stateRoot() == blockHeader->stateRoot());
     BOOST_CHECK(decodedBlockHeader->number() == blockHeader->number());
     BOOST_CHECK(decodedBlockHeader->gasUsed() == blockHeader->gasUsed());
@@ -64,7 +64,7 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     std::cout << "### PBBlockHeaderTest: version:" << decodedBlockHeader->version() << std::endl;
     std::cout << "### PBBlockHeaderTest: txsRoot:" << decodedBlockHeader->txsRoot().hex()
               << std::endl;
-    std::cout << "### PBBlockHeaderTest: receiptRoot:" << decodedBlockHeader->receiptRoot().hex()
+    std::cout << "### PBBlockHeaderTest: receiptsRoot:" << decodedBlockHeader->receiptsRoot().hex()
               << std::endl;
     std::cout << "### PBBlockHeaderTest: stateRoot:" << decodedBlockHeader->stateRoot().hex()
               << std::endl;
@@ -84,7 +84,7 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
 }
 
 inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    const ParentInfoList& _parentInfo, h256 const& _txsRoot, h256 const& _receiptRoot,
+    const ParentInfoList& _parentInfo, h256 const& _txsRoot, h256 const& _receiptsRoot,
     h256 const& _stateRoot, int64_t _number, u256 const& _gasUsed, int64_t _timestamp,
     int64_t _sealer, const std::vector<bytes>& _sealerList, bytes const& _extraData,
     SignatureList _signatureList)
@@ -95,7 +95,7 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
     blockHeader->setVersion(_version);
     blockHeader->setParentInfo(_parentInfo);
     blockHeader->setTxsRoot(_txsRoot);
-    blockHeader->setReceiptRoot(_receiptRoot);
+    blockHeader->setReceiptsRoot(_receiptsRoot);
     blockHeader->setStateRoot(_stateRoot);
     blockHeader->setNumber(_number);
     blockHeader->setGasUsed(_gasUsed);
@@ -191,7 +191,7 @@ inline BlockHeader::Ptr testPBBlockHeader(CryptoSuite::Ptr _cryptoSuite)
     int version = 10;
     auto parentInfo = fakeParentInfo(hashImpl, 3);
     auto txsRoot = hashImpl->hash((std::string) "txsRoot");
-    auto receiptRoot = hashImpl->hash((std::string) "receiptRoot");
+    auto receiptsRoot = hashImpl->hash((std::string) "receiptsRoot");
     auto stateRoot = hashImpl->hash((std::string) "stateRoot");
     int64_t number = 12312312412;
     u256 gasUsed = 3453456346534;
@@ -200,10 +200,10 @@ inline BlockHeader::Ptr testPBBlockHeader(CryptoSuite::Ptr _cryptoSuite)
     std::vector<KeyPairInterface::Ptr> keyPairVec;
     auto sealerList = fakeSealerList(keyPairVec, signImpl, 4);
     bytes extraData = stateRoot.asBytes();
-    auto signatureList = fakeSignatureList(signImpl, keyPairVec, receiptRoot);
+    auto signatureList = fakeSignatureList(signImpl, keyPairVec, receiptsRoot);
 
     auto blockHeader =
-        fakeAndTestBlockHeader(cryptoSuite, version, parentInfo, txsRoot, receiptRoot, stateRoot,
+        fakeAndTestBlockHeader(cryptoSuite, version, parentInfo, txsRoot, receiptsRoot, stateRoot,
             number, gasUsed, timestamp, sealer, sealerList, extraData, signatureList);
 
     // test verifySignatureList
@@ -211,7 +211,7 @@ inline BlockHeader::Ptr testPBBlockHeader(CryptoSuite::Ptr _cryptoSuite)
     blockHeader->setSignatureList(signatureList);
     blockHeader->verifySignatureList();
 
-    auto invalidSignatureList = fakeSignatureList(signImpl, keyPairVec, receiptRoot);
+    auto invalidSignatureList = fakeSignatureList(signImpl, keyPairVec, receiptsRoot);
     blockHeader->setSignatureList(invalidSignatureList);
     BOOST_CHECK_THROW(blockHeader->verifySignatureList(), InvalidSignatureList);
 

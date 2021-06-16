@@ -35,7 +35,7 @@ void PBBlockHeader::decode(bytesConstRef _data)
     auto hashFieldsPtr = m_blockHeader->mutable_hashfieldsdata();
     ScaleDecoderStream stream(
         gsl::span<byte const>((byte*)hashFieldsPtr->data(), hashFieldsPtr->size()));
-    stream >> m_parentInfo >> m_txsRoot >> m_receiptRoot >> m_stateRoot >> m_number >> m_gasUsed >>
+    stream >> m_parentInfo >> m_txsRoot >> m_receiptsRoot >> m_stateRoot >> m_number >> m_gasUsed >>
         m_timestamp >> m_sealer >> m_sealerList >> m_consensusWeights >> m_extraData;
 
     // decode signatureList
@@ -58,7 +58,7 @@ void PBBlockHeader::encodeHashFields() const
         return;
     }
     ScaleEncoderStream stream;
-    stream << m_parentInfo << m_txsRoot << m_receiptRoot << m_stateRoot << m_number << m_gasUsed
+    stream << m_parentInfo << m_txsRoot << m_receiptsRoot << m_stateRoot << m_number << m_gasUsed
            << m_timestamp << m_sealer << m_sealerList << m_consensusWeights << m_extraData;
     auto hashFieldsData = stream.data();
     m_blockHeader->set_hashfieldsdata(hashFieldsData.data(), hashFieldsData.size());
@@ -116,7 +116,7 @@ void PBBlockHeader::clear()
     m_blockHeader->clear_signaturelist();
     m_parentInfo.clear();
     m_txsRoot = bcos::crypto::HashType();
-    m_receiptRoot = bcos::crypto::HashType();
+    m_receiptsRoot = bcos::crypto::HashType();
     m_stateRoot = bcos::crypto::HashType();
     m_number = 0;
     m_gasUsed = u256(0);

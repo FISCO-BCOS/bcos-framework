@@ -19,9 +19,9 @@
  * @date: 2021-03-23
  */
 #pragma once
-#include "PBTransaction.h"
 #include "../../interfaces/crypto/CryptoSuite.h"
 #include "../../interfaces/protocol/TransactionFactory.h"
+#include "PBTransaction.h"
 
 namespace bcos
 {

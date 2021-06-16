@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(testRawPBBlockHeader)
     BOOST_CHECK(decodedBlockHeader->version() == 10);
     BOOST_CHECK(decodedBlockHeader->txsRoot().hex() ==
                 "8fc1d10c130a57800c446a858cf3bb4699c25d17f6318484814f18a9e1227f1b");
-    BOOST_CHECK(decodedBlockHeader->receiptRoot().hex() ==
+    BOOST_CHECK(decodedBlockHeader->receiptsRoot().hex() ==
                 "fbc6d2ca221fb45933acae4194e9c1f132bd6565e678e3a21d088b2545d11c24");
     BOOST_CHECK(decodedBlockHeader->stateRoot().hex() ==
                 "8ea407c24ec9663ee0e7a5f2d0e9afffec28087c25f296e68585bb292ed6c5e5");
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(testRawSMPBBlockHeader)
     BOOST_CHECK(decodedBlockHeader->version() == 10);
     BOOST_CHECK(decodedBlockHeader->txsRoot().hex() ==
                 "bcd22fd79b459e46e3fbe2d1c63eb0421ef14479c5f187fa1230459e4052215d");
-    BOOST_CHECK(decodedBlockHeader->receiptRoot().hex() ==
+    BOOST_CHECK(decodedBlockHeader->receiptsRoot().hex() ==
                 "36433bdcdf6144fa6abee2ffccf57897f633a1f45e0f82e7796f25fed1b2f94b");
     BOOST_CHECK(decodedBlockHeader->stateRoot().hex() ==
                 "0f000c0d3cf849632ed9aa2925251c0a13ee4f09f991b30bf396c15bf7ae8097");

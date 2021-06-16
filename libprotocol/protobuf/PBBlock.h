@@ -103,7 +103,6 @@ public:
         if (m_transactions->size() <= _index)
         {
             m_transactions->resize(_index + 1);
-            m_receipts->resize(_index + 1);
         }
         (*m_transactions)[_index] = _transaction;
         clearTransactionsCache();
@@ -111,7 +110,6 @@ public:
     void appendTransaction(Transaction::Ptr _transaction) override
     {
         m_transactions->push_back(_transaction);
-        m_receipts->push_back(nullptr);
         clearTransactionsCache();
     }
     // set receipts
@@ -124,6 +122,10 @@ public:
     // Note: the caller must ensure the allocated receipts size
     void setReceipt(size_t _index, TransactionReceipt::Ptr _receipt) override
     {
+        if (m_receipts->size() <= _index)
+        {
+            m_receipts->resize(_index + 1);
+        }
         (*m_receipts)[_index] = _receipt;
         clearReceiptsCache();
     }
