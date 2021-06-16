@@ -43,6 +43,12 @@ public:
     virtual bytesConstRef to() const = 0;
     // txIndex
     virtual int64_t transactionIndex() const = 0;
+
+    virtual void setNonce(NonceType const& _nonce) { m_nonce = _nonce; }
+    virtual NonceType const& nonce() { return m_nonce; }
+
+private:
+    NonceType m_nonce = NonceType(-1);
 };
 
 using TransactionSubmitResults = std::vector<TransactionSubmitResult::Ptr>;

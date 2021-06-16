@@ -164,7 +164,7 @@ public:
 
     // the dispatcher use this interface to store receipts
     void asyncStoreReceipts(storage::TableFactoryInterface::Ptr, Block::Ptr,
-        std::function<void(Error::Ptr)> _onReceiptStored) override
+        std::function<void(Error::Ptr)> _onReceiptStored, bool) override
     {
         _onReceiptStored(nullptr);
     }

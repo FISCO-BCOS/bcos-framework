@@ -20,11 +20,20 @@
 
  */
 #pragma once
+#include "../../interfaces/crypto/CryptoSuite.h"
 #include "../../interfaces/dispatcher/DispatcherInterface.h"
-
+#include "../../interfaces/ledger/LedgerInterface.h"
+#include "../../interfaces/storage/StorageInterface.h"
+#include "../../interfaces/txpool/TxPoolInterface.h"
+#include "../../libtable/TableFactory.h"
+#include "../protocol/FakeTransactionReceipt.h"
 using namespace bcos;
 using namespace bcos::dispatcher;
 using namespace bcos::protocol;
+using namespace bcos::txpool;
+using namespace bcos::ledger;
+using namespace bcos::storage;
+using namespace bcos::crypto;
 
 namespace bcos
 {
@@ -35,12 +44,67 @@ class FakeDispatcher : public DispatcherInterface
 public:
     using Ptr = std::shared_ptr<FakeDispatcher>;
     FakeDispatcher() = default;
+    FakeDispatcher(
+        LedgerInterface::Ptr _ledger, StorageInterface::Ptr _storage, CryptoSuite::Ptr _cryptoSuite)
+      : m_ledger(_ledger), m_storage(_storage), m_cryptoSuite(_cryptoSuite)
+    {}
     ~FakeDispatcher() override {}
 
-    void asyncExecuteBlock(const Block::Ptr& _block, bool,
+    void setTxPool(TxPoolInterface::Ptr _txpool) { m_txpool = _txpool; }
+
+    void asyncExecuteBlock(const Block::Ptr& _block, bool _verify,
         std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback) override
     {
-        _callback(nullptr, _block->blockHeader());
+        if (!m_txpool)
+        {
+            _callback(nullptr, _block->blockHeader());
+            return;
+        }
+        if (!_verify)
+        {
+            fillBlockAndPrecommit(_block, _callback);
+        }
+        else
+        {
+            preCommitBlock(_block, true);
+            _callback(nullptr, _block->blockHeader());
+        }
+    }
+
+    void preCommitBlock(const Block::Ptr& _block, bool _storeTxs = false)
+    {
+        auto tableFactory = std::make_shared<TableFactory>(
+            m_storage, m_cryptoSuite->hashImpl(), _block->blockHeader()->number());
+        for (size_t i = 0; i < _block->transactionsHashSize(); i++)
+        {
+            _block->appendReceipt(testPBTransactionReceipt(m_cryptoSuite));
+        }
+        m_ledger->asyncStoreReceipts(
+            tableFactory, _block, [](Error::Ptr) {}, _storeTxs);
+    }
+
+    void fillBlockAndPrecommit(const Block::Ptr& _block,
+        std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback)
+    {
+        auto txsHashList = std::make_shared<HashList>();
+        for (size_t i = 0; i < _block->transactionsHashSize(); i++)
+        {
+            txsHashList->push_back(_block->transactionHash(i));
+        }
+        m_txpool->asyncFillBlock(
+            txsHashList, [this, _block, _callback](Error::Ptr _error, TransactionsPtr _txs) {
+                if (_error)
+                {
+                    _callback(_error, _block->blockHeader());
+                    return;
+                }
+                for (auto tx : *_txs)
+                {
+                    _block->appendTransaction(tx);
+                }
+                preCommitBlock(_block);
+                _callback(nullptr, _block->blockHeader());
+            });
     }
 
     // useless for PBFT, maybe useful for executors
@@ -53,6 +117,12 @@ public:
 
     void stop() override {}
     void start() override {}
+
+private:
+    TxPoolInterface::Ptr m_txpool;
+    LedgerInterface::Ptr m_ledger;
+    StorageInterface::Ptr m_storage;
+    CryptoSuite::Ptr m_cryptoSuite;
 };
 }  // namespace test
 }  // namespace bcos
