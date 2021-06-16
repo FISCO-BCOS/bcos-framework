@@ -69,7 +69,8 @@ public:
      * @param _onReceiptStored
      */
     virtual void asyncStoreReceipts(storage::TableFactoryInterface::Ptr _tableFactory,
-        protocol::Block::Ptr _block, std::function<void(Error::Ptr)> _onReceiptStored) = 0;
+        protocol::Block::Ptr _block, std::function<void(Error::Ptr)> _onReceiptStored,
+        bool _storeTxs = false) = 0;
 
     /**
      * @brief async get block by blockNumber

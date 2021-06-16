@@ -132,6 +132,7 @@ public:
     virtual void appendTransaction(Transaction::Ptr _transaction) = 0;
     // set receipts
     virtual void setReceipt(size_t _index, TransactionReceipt::Ptr _receipt) = 0;
+    virtual void appendReceipt(TransactionReceipt::Ptr _receipt) = 0;
     // set transaction hash
     virtual void appendTransactionHash(bcos::crypto::HashType const& _txHash) = 0;
 

@@ -100,7 +100,7 @@ public:
     // Note: the caller must ensure the allocated transactions size
     void setTransaction(size_t _index, Transaction::Ptr _transaction) override
     {
-        if(m_transactions->size() <= _index)
+        if (m_transactions->size() <= _index)
         {
             m_transactions->resize(_index + 1);
             m_receipts->resize(_index + 1);
@@ -128,6 +128,11 @@ public:
         clearReceiptsCache();
     }
 
+    void appendReceipt(TransactionReceipt::Ptr _receipt) override
+    {
+        m_receipts->push_back(_receipt);
+        clearReceiptsCache();
+    }
     // set transaction hash
     void setTransactionsHash(HashListPtr _transactionsHash)  // removed
     {
