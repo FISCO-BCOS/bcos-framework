@@ -61,7 +61,6 @@ enum class TransactionStatus : int32_t
     InvalidSignature = 10008,
     RequestNotBelongToTheGroup = 10009,
 };
-TransactionStatus toTransactionStatus(Exception const& _e);
 std::ostream& operator<<(std::ostream& _out, TransactionStatus const& _er);
 inline std::string toString(protocol::TransactionStatus const& _i)
 {

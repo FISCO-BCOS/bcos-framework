@@ -24,40 +24,6 @@ using namespace std;
 using namespace bcos;
 using namespace bcos::protocol;
 
-TransactionStatus toTransactionStatus(Exception const& _e)
-{
-    if (!!dynamic_cast<OutOfGasLimit const*>(&_e))
-        return TransactionStatus::OutOfGasLimit;
-    if (!!dynamic_cast<NotEnoughCash const*>(&_e))
-        return TransactionStatus::NotEnoughCash;
-    if (!!dynamic_cast<BadInstruction const*>(&_e))
-        return TransactionStatus::BadInstruction;
-    if (!!dynamic_cast<BadJumpDestination const*>(&_e))
-        return TransactionStatus::BadJumpDestination;
-    if (!!dynamic_cast<OutOfGas const*>(&_e))
-        return TransactionStatus::OutOfGas;
-    if (!!dynamic_cast<OutOfStack const*>(&_e))
-        return TransactionStatus::OutOfStack;
-    if (!!dynamic_cast<StackUnderflow const*>(&_e))
-        return TransactionStatus::StackUnderflow;
-    if (!!dynamic_cast<ContractAddressAlreadyUsed const*>(&_e))
-        return TransactionStatus::ContractAddressAlreadyUsed;
-    if (!!dynamic_cast<PrecompiledError const*>(&_e))
-        return TransactionStatus::PrecompiledError;
-    if (!!dynamic_cast<RevertInstruction const*>(&_e))
-        return TransactionStatus::RevertInstruction;
-    if (!!dynamic_cast<PermissionDenied const*>(&_e))
-        return TransactionStatus::PermissionDenied;
-    if (!!dynamic_cast<CallAddressError const*>(&_e))
-        return TransactionStatus::CallAddressError;
-    if (!!dynamic_cast<GasOverflow const*>(&_e))
-        return TransactionStatus::GasOverflow;
-    if (!!dynamic_cast<ContractFrozen const*>(&_e))
-        return TransactionStatus::ContractFrozen;
-    if (!!dynamic_cast<AccountFrozen const*>(&_e))
-        return TransactionStatus::AccountFrozen;
-    return TransactionStatus::Unknown;
-}
 std::ostream& bcos::protocol::operator<<(std::ostream& _out, TransactionStatus const& _er)
 {
     switch (_er)
