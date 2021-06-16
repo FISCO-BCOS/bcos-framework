@@ -262,14 +262,14 @@ public:
         // FIXME: implement when we get permission control
         (void)_tableName;
         (void)_user;
-        return false;
+        return true;
     }
     virtual bool grantAccess(const std::string& _tableName, const std::string& _user)
     {
         // FIXME: implement when we get permission control
         (void)_tableName;
         (void)_user;
-        return false;
+        return true;
     }
 
 private:
