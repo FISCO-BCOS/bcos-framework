@@ -41,12 +41,12 @@ public:
     using Ptr = std::shared_ptr<FakeLedger>;
     FakeLedger() = default;
     FakeLedger(BlockFactory::Ptr _blockFactory, size_t _blockNumber, size_t _txsSize,
-        size_t _receiptsSize, std::vector<bytes> _sealerList)
+        size_t, std::vector<bytes> _sealerList)
       : m_blockFactory(_blockFactory),
         m_ledgerConfig(std::make_shared<LedgerConfig>()),
         m_sealerList(_sealerList)
     {
-        init(_blockNumber, _txsSize, _receiptsSize, 0);
+        init(_blockNumber, _txsSize, 0);
         m_worker = std::make_shared<ThreadPool>("worker", 1);
     }
 
@@ -61,16 +61,16 @@ public:
     }
 
     void init(
-        size_t _blockNumber, size_t _txsSize, size_t _receiptsSize, int64_t _timestamp = utcTime())
+        size_t _blockNumber, size_t _txsSize, int64_t _timestamp = utcTime())
     {
-        auto genesisBlock = init(nullptr, true, 0, 0, 0, 0);
+        auto genesisBlock = init(nullptr, true, 0, 0, 0);
         m_ledger.push_back(genesisBlock);
         m_hash2Block[genesisBlock->blockHeader()->hash()] = 0;
 
         auto parentHeader = genesisBlock->blockHeader();
         for (size_t i = 1; i < _blockNumber; i++)
         {
-            auto block = init(parentHeader, true, i, _txsSize, _receiptsSize, _timestamp);
+            auto block = init(parentHeader, true, i, _txsSize, _timestamp);
             parentHeader = block->blockHeader();
             m_ledger.push_back(block);
             m_hash2Block[block->blockHeader()->hash()] = i;
@@ -80,10 +80,10 @@ public:
     }
 
     Block::Ptr init(BlockHeader::Ptr _parentBlockHeader, bool _withHeader, BlockNumber _blockNumber,
-        size_t _txsSize, size_t _receiptSize, int64_t _timestamp = utcTime())
+        size_t _txsSize, int64_t _timestamp = utcTime())
     {
         auto block = fakeAndCheckBlock(
-            m_blockFactory->cryptoSuite(), m_blockFactory, false, _txsSize, _receiptSize, 0, 0);
+            m_blockFactory->cryptoSuite(), m_blockFactory, false, _txsSize, 0);
         if (!_withHeader)
         {
             return block;

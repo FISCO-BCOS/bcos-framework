@@ -36,10 +36,10 @@ BOOST_FIXTURE_TEST_SUITE(PBBlockTest, TestPromptFixture)
 void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
 {
     auto block1 = std::dynamic_pointer_cast<PBBlock>(
-        fakeAndCheckBlock(cryptoSuite, blockFactory, true, 10, 3, 7, 6));
+        fakeAndCheckBlock(cryptoSuite, blockFactory, true, 10, 7));
     // without blockHeader
     auto block2 = std::dynamic_pointer_cast<PBBlock>(
-        fakeAndCheckBlock(cryptoSuite, blockFactory, false, 10, 4, 8, 6));
+        fakeAndCheckBlock(cryptoSuite, blockFactory, false, 10, 8));
     // update transactions
     TransactionsPtr txs1 = std::make_shared<Transactions>();
     for (int i = 0; i < 5; i++)

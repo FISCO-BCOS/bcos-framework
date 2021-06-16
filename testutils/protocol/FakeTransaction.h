@@ -46,7 +46,7 @@ inline PBTransaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite,
     return pbTransaction;
 }
 
-inline void checkTransction(
+inline void checkTransaction(
     Transaction::ConstPtr pbTransaction, Transaction::ConstPtr decodedTransaction)
 {
     // check the fields
@@ -94,7 +94,7 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
 #endif
     // decode
     auto decodedTransaction = factory->createTransaction(encodedData, true);
-    checkTransction(pbTransaction, decodedTransaction);
+    checkTransaction(pbTransaction, decodedTransaction);
     return decodedTransaction;
 }
 
