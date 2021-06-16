@@ -40,26 +40,6 @@ public:
     void asyncExecuteBlock(const Block::Ptr& _block, bool,
         std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback) override
     {
-        if (m_blocks.empty())
-        {
-            m_blocks.push_back(_block);
-            _callback(nullptr, _block->blockHeader());
-            return;
-        }
-        auto latestBlock = m_blocks[m_blocks.size() - 1];
-        if (_block->blockHeader()->number() != latestBlock->blockHeader()->number() + 1)
-        {
-            _callback(std::make_shared<Error>(-1, "invalid block for not consistent"), nullptr);
-            return;
-        }
-        std::vector<ParentInfo> parentList;
-        if (_block->blockHeader()->parentInfo().size() == 0)
-        {
-            parentList.push_back(ParentInfo{
-                latestBlock->blockHeader()->number(), latestBlock->blockHeader()->hash()});
-            _block->blockHeader()->setParentInfo(parentList);
-        }
-        m_blocks.push_back(_block);
         _callback(nullptr, _block->blockHeader());
     }
 
@@ -73,9 +53,6 @@ public:
 
     void stop() override {}
     void start() override {}
-
-private:
-    std::vector<Block::Ptr> m_blocks;
 };
 }  // namespace test
 }  // namespace bcos
