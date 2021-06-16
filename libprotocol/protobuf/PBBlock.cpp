@@ -52,10 +52,6 @@ void PBBlock::decode(bytesConstRef _data, bool _calculateHash, bool _checkSig)
             // decode txsHashList
             decodeTxsHashList();
         },
-        [this]() {
-            // decode ReceiptHashList
-            decodeReceiptsHashList();
-        },
         [this]() { decodeNonceList(); });
 }
 
@@ -85,10 +81,6 @@ void PBBlock::encode(bytes& _encodedData) const
             encodeTransactionsHash();
         },
         [this]() {
-            // encode receipts hash
-            encodeReceiptsHash();
-        },
-        [this]() {
             // encode the nonceList
             encodeNonceList();
         });
@@ -111,22 +103,6 @@ void PBBlock::decodeTxsHashList()
                 HashType::ConstructorType::FromPointer));
     }
 }
-
-void PBBlock::decodeReceiptsHashList()
-{
-    auto receiptsHashNum = m_pbRawBlock->receiptshash_size();
-    if (receiptsHashNum == 0)
-    {
-        return;
-    }
-    // decode the transactionsHash
-    for (auto i = 0; i < receiptsHashNum; i++)
-    {
-        m_receiptsHash->push_back(HashType((byte const*)m_pbRawBlock->receiptshash(i).data(),
-            HashType::ConstructorType::FromPointer));
-    }
-}
-
 void PBBlock::decodeNonceList()
 {
     auto noncesNum = m_pbRawBlock->noncelist_size();
@@ -274,31 +250,6 @@ void PBBlock::encodeTransactionsHash() const
         m_pbRawBlock->set_transactionshash(index++, txHash.data(), HashType::size);
     }
 }
-
-void PBBlock::encodeReceiptsHash() const
-{
-    auto receiptsHashNum = m_receiptsHash->size();
-    if (receiptsHashNum == 0)
-    {
-        return;
-    }
-    // hit the cache
-    if (m_pbRawBlock->receiptshash_size() > 0)
-    {
-        return;
-    }
-    // extend receiptshash
-    for (size_t i = 0; i < receiptsHashNum; i++)
-    {
-        m_pbRawBlock->add_receiptshash();
-    }
-    int index = 0;
-    for (auto const& receiptHash : *m_receiptsHash)
-    {
-        m_pbRawBlock->set_receiptshash(index++, receiptHash.data(), HashType::size);
-    }
-}
-
 void PBBlock::encodeNonceList() const
 {
     auto nonceNum = m_nonceList->size();
@@ -343,9 +294,4 @@ TransactionReceipt::ConstPtr PBBlock::receipt(size_t _index) const
         return nullptr;
     }
     return (*m_receipts)[_index];
-}
-
-HashType const& PBBlock::receiptHash(size_t _index) const
-{
-    return (*m_receiptsHash)[_index];
 }

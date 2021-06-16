@@ -123,8 +123,6 @@ public:
     virtual TransactionReceipt::ConstPtr receipt(size_t _index) const = 0;
     // get transaction hash
     virtual bcos::crypto::HashType const& transactionHash(size_t _index) const = 0;
-    // get receipt hash
-    virtual bcos::crypto::HashType const& receiptHash(size_t _index) const = 0;
 
     virtual void setBlockType(BlockType _blockType) = 0;
     // setBlockHeader sets blockHeader
@@ -134,13 +132,8 @@ public:
     virtual void appendTransaction(Transaction::Ptr _transaction) = 0;
     // set receipts
     virtual void setReceipt(size_t _index, TransactionReceipt::Ptr _receipt) = 0;
-    virtual void appendReceipt(TransactionReceipt::Ptr _receipt) = 0;
     // set transaction hash
-    virtual void setTransactionHash(size_t _index, bcos::crypto::HashType const& _txHash) = 0;
     virtual void appendTransactionHash(bcos::crypto::HashType const& _txHash) = 0;
-    // set receipt hash
-    virtual void setReceiptHash(size_t _index, bcos::crypto::HashType const& _receptHash) = 0;
-    virtual void appendReceiptHash(bcos::crypto::HashType const& _receiptHash) = 0;
 
     virtual NonceListPtr nonces() const
     {
@@ -161,7 +154,6 @@ public:
     virtual size_t transactionsHashSize() const = 0;
     // get receipts size
     virtual size_t receiptsSize() const = 0;
-    virtual size_t receiptsHashSize() const = 0;
 
     // for nonceList
     virtual void setNonceList(NonceList const& _nonceList) = 0;

@@ -39,7 +39,6 @@ public:
         m_transactions(std::make_shared<Transactions>()),
         m_receipts(std::make_shared<Receipts>()),
         m_transactionsHash(std::make_shared<HashList>()),
-        m_receiptsHash(std::make_shared<HashList>()),
         m_nonceList(std::make_shared<NonceList>())
     {
         assert(m_blockHeaderFactory);
@@ -71,7 +70,6 @@ public:
     Transaction::ConstPtr transaction(size_t _index) const override;
     bcos::crypto::HashType const& transactionHash(size_t _index) const override;
     TransactionReceipt::ConstPtr receipt(size_t _index) const override;
-    bcos::crypto::HashType const& receiptHash(size_t _index) const override;
 
     int32_t version() const override { return m_pbRawBlock->version(); }
 
@@ -86,8 +84,6 @@ public:
     ReceiptsConstPtr receipts() const { return m_receipts; }  // removed
     // get transaction hash
     HashListConstPtr transactionsHash() const { return m_transactionsHash; }  // removed
-    // get receipt hash
-    HashListConstPtr receiptsHash() const { return m_receiptsHash; }  // removed
 
     void setBlockType(BlockType _blockType) override
     {
@@ -104,12 +100,18 @@ public:
     // Note: the caller must ensure the allocated transactions size
     void setTransaction(size_t _index, Transaction::Ptr _transaction) override
     {
+        if(m_transactions->size() <= _index)
+        {
+            m_transactions->resize(_index + 1);
+            m_receipts->resize(_index + 1);
+        }
         (*m_transactions)[_index] = _transaction;
         clearTransactionsCache();
     }
     void appendTransaction(Transaction::Ptr _transaction) override
     {
         m_transactions->push_back(_transaction);
+        m_receipts->push_back(nullptr);
         clearTransactionsCache();
     }
     // set receipts
@@ -125,20 +127,11 @@ public:
         (*m_receipts)[_index] = _receipt;
         clearReceiptsCache();
     }
-    void appendReceipt(TransactionReceipt::Ptr _receipt) override
-    {
-        m_receipts->push_back(_receipt);
-        clearReceiptsCache();
-    }
+
     // set transaction hash
     void setTransactionsHash(HashListPtr _transactionsHash)  // removed
     {
         m_transactionsHash = _transactionsHash;
-        clearTransactionsHashCache();
-    }
-    void setTransactionHash(size_t _index, bcos::crypto::HashType const& _txHash) override
-    {
-        (*m_transactionsHash)[_index] = _txHash;
         clearTransactionsHashCache();
     }
     void appendTransactionHash(bcos::crypto::HashType const& _txHash) override
@@ -146,31 +139,13 @@ public:
         m_transactionsHash->push_back(_txHash);
         clearTransactionsHashCache();
     }
-    // set receipt hash
-    void setReceiptsHash(HashListPtr _receiptsHash)  // removed
-    {
-        m_receiptsHash = _receiptsHash;
-        clearReceiptsHashCache();
-    }
 
-    void setReceiptHash(size_t _index, bcos::crypto::HashType const& _receiptHash) override
-    {
-        (*m_receiptsHash)[_index] = _receiptHash;
-        clearReceiptsHashCache();
-    }
-    void appendReceiptHash(bcos::crypto::HashType const& _receiptHash) override
-    {
-        m_receiptsHash->push_back(_receiptHash);
-        clearReceiptsHashCache();
-    }
     // get transactions size
     size_t transactionsSize() const override { return m_transactions->size(); }
     // get receipts size
     size_t receiptsSize() const override { return m_receipts->size(); }
 
     size_t transactionsHashSize() const override { return m_transactionsHash->size(); }
-    size_t receiptsHashSize() const override { return m_receiptsHash->size(); }
-
     void setNonceList(NonceList const& _nonceList) override
     {
         *m_nonceList = _nonceList;
@@ -188,13 +163,11 @@ private:
     void decodeTransactions(bool _calculateHash, bool _checkSig);
     void decodeReceipts(bool _calculateHash);
     void decodeTxsHashList();
-    void decodeReceiptsHashList();
     void decodeNonceList();
 
     void encodeTransactions() const;
     void encodeReceipts() const;
     void encodeTransactionsHash() const;
-    void encodeReceiptsHash() const;
     void encodeNonceList() const;
 
     void clearTransactionsCache()
@@ -221,7 +194,6 @@ private:
     TransactionsPtr m_transactions;
     ReceiptsPtr m_receipts;
     HashListPtr m_transactionsHash;
-    HashListPtr m_receiptsHash;
     NonceListPtr m_nonceList;
 };
 }  // namespace protocol

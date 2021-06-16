@@ -68,12 +68,12 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
     BOOST_CHECK_EQUAL(decodedBlock->transactionsSize(), block->transactionsSize());
     for (size_t i = 0; i < block->transactionsSize(); ++i)
     {
-        checkTransction(block->transaction(i), decodedBlock->transaction(i));
+        checkTransaction(block->transaction(i), decodedBlock->transaction(i));
     }
     /*
     for (auto transaction : *(block->transactions()))
     {
-        checkTransction(transaction, (*(decodedBlock->transactions()))[index++]);
+        checkTransaction(transaction, (*(decodedBlock->transactions()))[index++]);
     }
     */
     // check receipts
@@ -88,11 +88,6 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
         checkReceipts(_cryptoSuite->hashImpl(), receipt, (*(decodedBlock->receipts()))[index++]);
     }
     */
-    // checkHash
-    for (size_t i = 0; i < decodedBlock->receiptsHashSize(); i++)
-    {
-        BOOST_CHECK(decodedBlock->receiptHash(i) == block->receiptHash(i));
-    }
     for (size_t i = 0; i < decodedBlock->transactionsHashSize(); i++)
     {
         BOOST_CHECK(decodedBlock->transactionHash(i) == block->transactionHash(i));
@@ -135,8 +130,7 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
 }
 
 inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory::Ptr _blockFactory,
-    bool _withHeader, size_t _txsNum, size_t _receiptsNum, size_t _txsHashNum,
-    size_t _receiptsHashNum)
+    bool _withHeader, size_t _txsNum, size_t _txsHashNum)
 {
     auto block = _blockFactory->createBlock();
     if (_withHeader)
@@ -153,10 +147,10 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
         block->appendTransaction(tx);
     }
     // fake receipts
-    for (size_t i = 0; i < _receiptsNum; i++)
+    for (size_t i = 0; i < _txsNum; i++)
     {
         auto receipt = testPBTransactionReceipt(_cryptoSuite);
-        block->appendReceipt(receipt);
+        block->setReceipt(i, receipt);
     }
     // fake txsHash
     for (size_t i = 0; i < _txsHashNum; i++)
@@ -165,13 +159,7 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
         auto hash = _cryptoSuite->hashImpl()->hash(content);
         block->appendTransactionHash(hash);
     }
-    // fake receiptsHash
-    for (size_t i = 0; i < _receiptsHashNum; i++)
-    {
-        auto content = "receipt: " + std::to_string(i);
-        auto hash = _cryptoSuite->hashImpl()->hash(content);
-        block->appendReceiptHash(hash);
-    }
+
     // encode block
     auto encodedData = std::make_shared<bytes>();
     block->encode(*encodedData);
@@ -185,14 +173,6 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
         auto content = "transaction: " + std::to_string(i);
         auto hash = _cryptoSuite->hashImpl()->hash(content);
         BOOST_CHECK(decodedBlock->transactionHash(i) == hash);
-    }
-    // check receiptHash
-    BOOST_CHECK(decodedBlock->receiptsHashSize() == _receiptsHashNum);
-    for (size_t i = 0; i < _receiptsHashNum; i++)
-    {
-        auto content = "receipt: " + std::to_string(i);
-        auto hash = _cryptoSuite->hashImpl()->hash(content);
-        BOOST_CHECK(decodedBlock->receiptHash(i) == hash);
     }
 
     // exception test
