@@ -109,7 +109,8 @@ public:
      * @return void
      */
     virtual void asyncSendResponse(const std::string& _id, int _moduleID,
-        bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data) = 0;
+        bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data,
+        ReceiveMsgFunc _receiveMsgCallback) = 0;
 
     /**
      * @brief: send messages to multiple nodes
