@@ -60,8 +60,8 @@ public:
     gsl::span<const ParentInfo> parentInfo() const override { return m_parentInfo; }
     // the txsRoot of the current block
     bcos::crypto::HashType const& txsRoot() const override { return m_txsRoot; }
-    // the receiptRoot of the current block
-    bcos::crypto::HashType const& receiptRoot() const override { return m_receiptRoot; }
+    // the receiptsRoot of the current block
+    bcos::crypto::HashType const& receiptsRoot() const override { return m_receiptsRoot; }
     // the stateRoot of the current block
     bcos::crypto::HashType const& stateRoot() const override { return m_stateRoot; }
     // the number of the current block
@@ -95,9 +95,9 @@ public:
         noteDirty();
     }
 
-    void setReceiptRoot(bcos::crypto::HashType const& _receiptRoot) override
+    void setReceiptsRoot(bcos::crypto::HashType const& _receiptsRoot) override
     {
-        m_receiptRoot = _receiptRoot;
+        m_receiptsRoot = _receiptsRoot;
         noteDirty();
     }
     void setStateRoot(bcos::crypto::HashType const& _stateRoot) override
@@ -197,7 +197,7 @@ private:
     mutable std::shared_ptr<PBRawBlockHeader> m_blockHeader;
     ParentInfoList m_parentInfo;
     bcos::crypto::HashType m_txsRoot;
-    bcos::crypto::HashType m_receiptRoot;
+    bcos::crypto::HashType m_receiptsRoot;
     bcos::crypto::HashType m_stateRoot;
     BlockNumber m_number;
     u256 m_gasUsed;

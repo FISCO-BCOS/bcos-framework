@@ -114,8 +114,8 @@ public:
     virtual gsl::span<const ParentInfo> parentInfo() const = 0;
     // txsRoot returns the txsRoot of the current block
     virtual bcos::crypto::HashType const& txsRoot() const = 0;
-    // receiptRoot returns the receiptRoot of the current block
-    virtual bcos::crypto::HashType const& receiptRoot() const = 0;
+    // receiptsRoot returns the receiptsRoot of the current block
+    virtual bcos::crypto::HashType const& receiptsRoot() const = 0;
     // stateRoot returns the stateRoot of the current block
     virtual bcos::crypto::HashType const& stateRoot() const = 0;
     // number returns the number of the current block
@@ -135,7 +135,7 @@ public:
     virtual void setParentInfo(ParentInfoList&& _parentInfo) = 0;
 
     virtual void setTxsRoot(bcos::crypto::HashType const& _txsRoot) = 0;
-    virtual void setReceiptRoot(bcos::crypto::HashType const& _receiptRoot) = 0;
+    virtual void setReceiptsRoot(bcos::crypto::HashType const& _receiptsRoot) = 0;
     virtual void setStateRoot(bcos::crypto::HashType const& _stateRoot) = 0;
     virtual void setNumber(BlockNumber _blockNumber) = 0;
     virtual void setGasUsed(u256 const& _gasUsed) = 0;

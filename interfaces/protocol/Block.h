@@ -177,7 +177,7 @@ private:
         {
             return;
         }
-        blockHeader()->setReceiptRoot(_receiptsRoot);
+        blockHeader()->setReceiptsRoot(_receiptsRoot);
     }
 
     void encodeToCalculateRoot(std::vector<bytes>& _encodedList, size_t _listSize,

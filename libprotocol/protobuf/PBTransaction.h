@@ -21,10 +21,10 @@
 #pragma once
 #include "../../interfaces/crypto/CryptoSuite.h"
 #include "../../interfaces/protocol/Transaction.h"
-#include "libprotocol/bcos-proto/Transaction.pb.h"
 #include "../../libutilities/Common.h"
 #include "../../libutilities/FixedBytes.h"
 #include "../../libutilities/RefDataContainer.h"
+#include "libprotocol/bcos-proto/Transaction.pb.h"
 
 namespace bcos
 {

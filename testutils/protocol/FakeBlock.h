@@ -101,8 +101,8 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
     BOOST_CHECK(block->calculateReceiptRoot(true) == decodedBlock->calculateReceiptRoot(true));
     if (block->blockHeader())
     {
-        BOOST_CHECK(block->blockHeader()->receiptRoot() == block->calculateReceiptRoot(false));
-        BOOST_CHECK(decodedBlock->blockHeader()->receiptRoot() ==
+        BOOST_CHECK(block->blockHeader()->receiptsRoot() == block->calculateReceiptRoot(false));
+        BOOST_CHECK(decodedBlock->blockHeader()->receiptsRoot() ==
                     decodedBlock->calculateReceiptRoot(false));
         BOOST_CHECK(decodedBlock->blockHeader()->hash() != originHash);
         originHash = block->blockHeader()->hash();
