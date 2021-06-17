@@ -71,7 +71,8 @@ public:
 protected:
     virtual bool reachMinSealTimeCondition();
     virtual void clearPendingTxs();
-    virtual void notifyResetTxsFlag(bcos::crypto::HashListPtr _txsHash, bool _flag);
+    virtual void notifyResetTxsFlag(
+        bcos::crypto::HashListPtr _txsHash, bool _flag, size_t _retryTime = 0);
 
     virtual int64_t txsSizeExpectedToFetch();
 

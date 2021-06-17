@@ -51,11 +51,11 @@ void LedgerConfigFetcher::waitFetchFinished()
     TOOL_LOG(INFO) << LOG_DESC("LedgerConfigFetcher: fetch success");
 }
 
-void LedgerConfigFetcher::fetchBlockNumberAndHash()
+void LedgerConfigFetcher::fetchBlockNumberAndHash(size_t _fetchedTime)
 {
     m_fetchBlockInfoFinished = false;
     auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
-    m_ledger->asyncGetBlockNumber([self](Error::Ptr _error, BlockNumber _number) {
+    m_ledger->asyncGetBlockNumber([self, _fetchedTime](Error::Ptr _error, BlockNumber _number) {
         try
         {
             auto fetcher = self.lock();
@@ -75,11 +75,14 @@ void LedgerConfigFetcher::fetchBlockNumberAndHash()
                 return;
             }
             // retry to fetchBlockNumberAndHash
-            TOOL_LOG(WARNING) << LOG_DESC(
-                                     "LedgerConfigFetcher: fetchBlockNumber failed, retry again")
+            TOOL_LOG(WARNING) << LOG_DESC("LedgerConfigFetcher: fetchBlockNumber failed")
                               << LOG_KV("errorCode", _error->errorCode())
                               << LOG_KV("errorMessage", _error->errorMessage());
-            fetcher->fetchBlockNumberAndHash();
+            if (_fetchedTime >= fetcher->c_maxRetryTime)
+            {
+                return;
+            }
+            fetcher->fetchBlockNumberAndHash(_fetchedTime + 1);
         }
         catch (std::exception const& e)
         {
@@ -112,12 +115,12 @@ void LedgerConfigFetcher::fetchGenesisHash()
     });
 }
 
-void LedgerConfigFetcher::fetchBlockHash(
-    BlockNumber _blockNumber, std::function<void(HashType const& _hash)> _callback)
+void LedgerConfigFetcher::fetchBlockHash(BlockNumber _blockNumber,
+    std::function<void(HashType const& _hash)> _callback, size_t _fetchedTime)
 {
     auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
-    m_ledger->asyncGetBlockHashByNumber(
-        _blockNumber, [self, _blockNumber, _callback](Error::Ptr _error, HashType const& _hash) {
+    m_ledger->asyncGetBlockHashByNumber(_blockNumber,
+        [self, _blockNumber, _callback, _fetchedTime](Error::Ptr _error, HashType const& _hash) {
             try
             {
                 auto fetcher = self.lock();
@@ -134,13 +137,16 @@ void LedgerConfigFetcher::fetchBlockHash(
                     fetcher->m_signalled.notify_all();
                     return;
                 }
+                if (_fetchedTime >= fetcher->c_maxRetryTime)
+                {
+                    return;
+                }
                 // retry to  fetchBlockHash
-                TOOL_LOG(WARNING) << LOG_DESC(
-                                         "LedgerConfigFetcher: fetchBlockHash failed, retry again")
+                TOOL_LOG(WARNING) << LOG_DESC("LedgerConfigFetcher: fetchBlockHash failed")
                                   << LOG_KV("errorCode", _error->errorCode())
                                   << LOG_KV("errorMessage", _error->errorMessage())
                                   << LOG_KV("number", _blockNumber);
-                fetcher->fetchBlockHash(_blockNumber, _callback);
+                fetcher->fetchBlockHash(_blockNumber, _callback, (_fetchedTime + 1));
             }
             catch (std::exception const& e)
             {
@@ -151,48 +157,52 @@ void LedgerConfigFetcher::fetchBlockHash(
 }
 
 
-void LedgerConfigFetcher::fetchSystemConfig(
-    std::string const& _key, std::function<void(std::string const&)> _onRecvValue)
+void LedgerConfigFetcher::fetchSystemConfig(std::string const& _key,
+    std::function<void(std::string const&)> _onRecvValue, size_t _fetchedTime)
 {
     auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
-    m_ledger->asyncGetSystemConfigByKey(_key, [self, _key, _onRecvValue](Error::Ptr _error,
-                                                  std::string _sysValue, BlockNumber _blockNumber) {
-        try
-        {
-            auto fetcher = self.lock();
-            if (!fetcher)
+    m_ledger->asyncGetSystemConfigByKey(
+        _key, [self, _key, _onRecvValue, _fetchedTime](
+                  Error::Ptr _error, std::string _sysValue, BlockNumber _blockNumber) {
+            try
             {
-                return;
+                auto fetcher = self.lock();
+                if (!fetcher)
+                {
+                    return;
+                }
+                if (_error == nullptr)
+                {
+                    TOOL_LOG(INFO) << LOG_DESC("LedgerConfigFetcher: fetchSystemConfig success")
+                                   << LOG_KV("key", _key) << LOG_KV("value", _sysValue)
+                                   << LOG_KV("number", _blockNumber);
+                    _onRecvValue(_sysValue);
+                    return;
+                }
+                // retry to fetchSystemConfig
+                TOOL_LOG(WARNING) << LOG_DESC("LedgerConfigFetcher: fetchSystemConfig failed")
+                                  << LOG_KV("errorCode", _error->errorCode())
+                                  << LOG_KV("errorMessage", _error->errorMessage())
+                                  << LOG_KV("key", _key);
+                if (_fetchedTime >= fetcher->c_maxRetryTime)
+                {
+                    return;
+                }
+                fetcher->fetchSystemConfig(_key, _onRecvValue, (_fetchedTime + 1));
             }
-            if (_error == nullptr)
+            catch (std::exception const& e)
             {
-                TOOL_LOG(INFO) << LOG_DESC("LedgerConfigFetcher: fetchSystemConfig success")
-                               << LOG_KV("key", _key) << LOG_KV("value", _sysValue)
-                               << LOG_KV("number", _blockNumber);
-                _onRecvValue(_sysValue);
-                return;
+                TOOL_LOG(WARNING) << LOG_DESC("fetchSystemConfig exception")
+                                  << LOG_KV("error", boost::diagnostic_information(e));
             }
-            // retry to fetchSystemConfig
-            TOOL_LOG(WARNING) << LOG_DESC(
-                                     "LedgerConfigFetcher: fetchSystemConfig failed, retry again")
-                              << LOG_KV("errorCode", _error->errorCode())
-                              << LOG_KV("errorMessage", _error->errorMessage())
-                              << LOG_KV("key", _key);
-            fetcher->fetchSystemConfig(_key, _onRecvValue);
-        }
-        catch (std::exception const& e)
-        {
-            TOOL_LOG(WARNING) << LOG_DESC("fetchSystemConfig exception")
-                              << LOG_KV("error", boost::diagnostic_information(e));
-        }
-    });
+        });
 }
 
-void LedgerConfigFetcher::fetchNodeListByNodeType(
-    std::string const& _type, ConsensusNodeListPtr _nodeList, std::function<void()> _onRecvNodeList)
+void LedgerConfigFetcher::fetchNodeListByNodeType(std::string const& _type,
+    ConsensusNodeListPtr _nodeList, std::function<void()> _onRecvNodeList, size_t _fetchedTime)
 {
     auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
-    m_ledger->asyncGetNodeListByType(_type, [self, _type, _nodeList, _onRecvNodeList](
+    m_ledger->asyncGetNodeListByType(_type, [self, _type, _nodeList, _onRecvNodeList, _fetchedTime](
                                                 Error::Ptr _error, ConsensusNodeListPtr _nodes) {
         try
         {
@@ -210,11 +220,15 @@ void LedgerConfigFetcher::fetchNodeListByNodeType(
                 return;
             }
             // retry to  fetchNodeListByNodeType
-            TOOL_LOG(WARNING)
-                << LOG_DESC("LedgerConfigFetcher: fetchNodeListByNodeType failed, retry again")
-                << LOG_KV("errorCode", _error->errorCode())
-                << LOG_KV("errorMessage", _error->errorMessage()) << LOG_KV("type", _type);
-            fetcher->fetchNodeListByNodeType(_type, _nodeList, _onRecvNodeList);
+            TOOL_LOG(WARNING) << LOG_DESC("LedgerConfigFetcher: fetchNodeListByNodeType failed")
+                              << LOG_KV("errorCode", _error->errorCode())
+                              << LOG_KV("errorMessage", _error->errorMessage())
+                              << LOG_KV("type", _type);
+            if (_fetchedTime >= fetcher->c_maxRetryTime)
+            {
+                return;
+            }
+            fetcher->fetchNodeListByNodeType(_type, _nodeList, _onRecvNodeList, (_fetchedTime + 1));
         }
         catch (std::exception const& e)
         {
@@ -349,12 +363,13 @@ void LedgerConfigFetcher::fetchBlockTxCountLimit()
     });
 }
 
-void LedgerConfigFetcher::fetchNonceList(BlockNumber _startNumber, int64_t _offset)
+void LedgerConfigFetcher::fetchNonceList(
+    BlockNumber _startNumber, int64_t _offset, size_t _fetchedTime)
 {
     m_fetchNonceListFinished = false;
     auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
     m_ledger->asyncGetNonceList(_startNumber, _offset,
-        [self, _startNumber, _offset](
+        [self, _startNumber, _offset, _fetchedTime](
             Error::Ptr _error, std::shared_ptr<std::map<BlockNumber, NonceListPtr>> _nonceList) {
             try
             {
@@ -373,13 +388,16 @@ void LedgerConfigFetcher::fetchNonceList(BlockNumber _startNumber, int64_t _offs
                     fetcher->m_signalled.notify_all();
                     return;
                 }
-                TOOL_LOG(WARNING) << LOG_DESC(
-                                         "LedgerConfigFetcher: fetchNonceList failed, retry again")
+                TOOL_LOG(WARNING) << LOG_DESC("LedgerConfigFetcher: fetchNonceList failed")
                                   << LOG_KV("errorCode", _error->errorCode())
                                   << LOG_KV("errorMsg", _error->errorMessage())
                                   << LOG_KV("startNumber", _startNumber)
                                   << LOG_KV("offset", _offset);
-                fetcher->fetchNonceList(_startNumber, _offset);
+                if (_fetchedTime >= fetcher->c_maxRetryTime)
+                {
+                    return;
+                }
+                fetcher->fetchNonceList(_startNumber, _offset, (_fetchedTime + 1));
             }
             catch (std::exception const& e)
             {
