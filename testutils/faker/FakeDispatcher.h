@@ -73,14 +73,14 @@ public:
 
     void preCommitBlock(const Block::Ptr& _block, bool _storeTxs = false)
     {
+        (void)_storeTxs;
         auto tableFactory = std::make_shared<TableFactory>(
             m_storage, m_cryptoSuite->hashImpl(), _block->blockHeader()->number());
         for (size_t i = 0; i < _block->transactionsHashSize(); i++)
         {
             _block->appendReceipt(testPBTransactionReceipt(m_cryptoSuite));
         }
-        m_ledger->asyncStoreReceipts(
-            tableFactory, _block, [](Error::Ptr) {}, _storeTxs);
+        m_ledger->asyncStoreReceipts(tableFactory, _block, [](Error::Ptr) {});
     }
 
     void fillBlockAndPrecommit(const Block::Ptr& _block,

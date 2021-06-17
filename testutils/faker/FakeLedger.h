@@ -40,8 +40,8 @@ class FakeLedger : public LedgerInterface, public std::enable_shared_from_this<F
 public:
     using Ptr = std::shared_ptr<FakeLedger>;
     FakeLedger() = default;
-    FakeLedger(BlockFactory::Ptr _blockFactory, size_t _blockNumber, size_t _txsSize,
-        size_t, std::vector<bytes> _sealerList)
+    FakeLedger(BlockFactory::Ptr _blockFactory, size_t _blockNumber, size_t _txsSize, size_t,
+        std::vector<bytes> _sealerList)
       : m_blockFactory(_blockFactory),
         m_ledgerConfig(std::make_shared<LedgerConfig>()),
         m_sealerList(_sealerList)
@@ -60,8 +60,7 @@ public:
         m_worker = std::make_shared<ThreadPool>("worker", 1);
     }
 
-    void init(
-        size_t _blockNumber, size_t _txsSize, int64_t _timestamp = utcTime())
+    void init(size_t _blockNumber, size_t _txsSize, int64_t _timestamp = utcTime())
     {
         auto genesisBlock = init(nullptr, true, 0, 0, 0);
         m_ledger.push_back(genesisBlock);
@@ -82,8 +81,8 @@ public:
     Block::Ptr init(BlockHeader::Ptr _parentBlockHeader, bool _withHeader, BlockNumber _blockNumber,
         size_t _txsSize, int64_t _timestamp = utcTime())
     {
-        auto block = fakeAndCheckBlock(
-            m_blockFactory->cryptoSuite(), m_blockFactory, false, _txsSize, 0);
+        auto block =
+            fakeAndCheckBlock(m_blockFactory->cryptoSuite(), m_blockFactory, false, _txsSize, 0);
         if (!_withHeader)
         {
             return block;
@@ -164,7 +163,7 @@ public:
 
     // the dispatcher use this interface to store receipts
     void asyncStoreReceipts(storage::TableFactoryInterface::Ptr, Block::Ptr,
-        std::function<void(Error::Ptr)> _onReceiptStored, bool) override
+        std::function<void(Error::Ptr)> _onReceiptStored) override
     {
         _onReceiptStored(nullptr);
     }

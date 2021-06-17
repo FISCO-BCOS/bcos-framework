@@ -192,8 +192,6 @@ private:
 
     void clearTransactionsHashCache() { m_pbRawBlock->clear_transactionshash(); }
 
-    void clearReceiptsHashCache() { m_pbRawBlock->clear_receiptshash(); }
-
 private:
     BlockHeaderFactory::Ptr m_blockHeaderFactory;
     std::shared_ptr<PBRawBlock> m_pbRawBlock;
