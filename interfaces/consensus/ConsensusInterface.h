@@ -61,6 +61,10 @@ public:
         bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data,
         std::function<void(bytesConstRef _respData)> _sendResponse,
         std::function<void(Error::Ptr _error)> _onRecv) = 0;
+
+
+    // for the sync module to notify the syncing number
+    virtual void notifyHighestSyncingNumber(bcos::protocol::BlockNumber _number) = 0;
 };
 }  // namespace consensus
 }  // namespace bcos

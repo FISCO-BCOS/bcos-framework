@@ -81,16 +81,20 @@ void SealingManager::clearPendingTxs()
     m_pendingTxs->clear();
 }
 
-void SealingManager::notifyResetTxsFlag(HashListPtr _txsHashList, bool _flag)
+void SealingManager::notifyResetTxsFlag(HashListPtr _txsHashList, bool _flag, size_t _retryTime)
 {
     m_config->txpool()->asyncMarkTxs(
-        _txsHashList, _flag, [this, _txsHashList, _flag](Error::Ptr _error) {
+        _txsHashList, _flag, [this, _txsHashList, _flag, _retryTime](Error::Ptr _error) {
             if (_error == nullptr)
             {
                 return;
             }
             SEAL_LOG(DEBUG) << LOG_DESC("asyncMarkTxs failed, retry now");
-            this->notifyResetTxsFlag(_txsHashList, _flag);
+            if (_retryTime >= 3)
+            {
+                return;
+            }
+            this->notifyResetTxsFlag(_txsHashList, _flag, _retryTime + 1);
         });
 }
 

@@ -39,13 +39,14 @@ public:
 
     virtual ~LedgerConfigFetcher() {}
 
-    virtual void fetchBlockNumberAndHash();
+    virtual void fetchBlockNumberAndHash(size_t _fetchedTime = 0);
     virtual void fetchConsensusNodeList();
     virtual void fetchObserverNodeList();
     virtual void fetchConsensusTimeout();
     virtual void fetchBlockTxCountLimit();
     virtual void fetchGenesisHash();
-    virtual void fetchNonceList(protocol::BlockNumber _startNumber, int64_t _offset);
+    virtual void fetchNonceList(
+        protocol::BlockNumber _startNumber, int64_t _offset, size_t _fetchedTime = 0);
     virtual void fetchConsensusLeaderPeriod();
 
     // consensus_leader_period
@@ -67,11 +68,13 @@ protected:
     }
 
     virtual void fetchBlockHash(bcos::protocol::BlockNumber _blockNumber,
-        std::function<void(bcos::crypto::HashType const& _hash)> _callback);
-    virtual void fetchSystemConfig(
-        std::string const& _key, std::function<void(std::string const&)> _onRecvValue);
+        std::function<void(bcos::crypto::HashType const& _hash)> _callback,
+        size_t _fetchedTime = 0);
+    virtual void fetchSystemConfig(std::string const& _key,
+        std::function<void(std::string const&)> _onRecvValue, size_t _fetchedTime = 0);
     virtual void fetchNodeListByNodeType(std::string const& _type,
-        bcos::consensus::ConsensusNodeListPtr _nodeList, std::function<void()> _onRecvNodeList);
+        bcos::consensus::ConsensusNodeListPtr _nodeList, std::function<void()> _onRecvNodeList,
+        size_t _fetchedTime = 0);
 
     bcos::ledger::LedgerInterface::Ptr m_ledger;
     bcos::ledger::LedgerConfig::Ptr m_ledgerConfig;
@@ -93,6 +96,8 @@ private:
     std::atomic_bool m_fetchNonceListFinished = {true};
     std::atomic_bool m_fetchGenesisHashFinished = {true};
     std::atomic_bool m_fetchConsensusLeaderPeriod = {true};
+
+    size_t c_maxRetryTime = 5;
 };
 }  // namespace tool
 }  // namespace bcos
