@@ -76,14 +76,14 @@ public:
         }
         else
         {
-            preCommitBlock(_block, true);
+            preCommitBlock(_block, blockHeader, _callback);
             _callback(nullptr, blockHeader);
         }
     }
 
-    void preCommitBlock(const Block::Ptr& _block, bool _storeTxs = false)
+    void preCommitBlock(const Block::Ptr& _block, BlockHeader::Ptr _header,
+        std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback)
     {
-        (void)_storeTxs;
         auto tableFactory = std::make_shared<TableFactory>(
             m_storage, m_cryptoSuite->hashImpl(), _block->blockHeader()->number());
         for (size_t i = 0; i < _block->transactionsHashSize(); i++)
@@ -91,6 +91,9 @@ public:
             _block->appendReceipt(testPBTransactionReceipt(m_cryptoSuite));
         }
         m_ledger->asyncStoreReceipts(tableFactory, _block, [](Error::Ptr) {});
+        auto txsRoot = _block->calculateTransactionRoot(false);
+        _header->setTxsRoot(txsRoot);
+        _callback(nullptr, _header);
     }
 
     void fillBlockAndPrecommit(const Block::Ptr& _block,
@@ -113,8 +116,7 @@ public:
                 {
                     _block->appendTransaction(tx);
                 }
-                preCommitBlock(_block);
-                _callback(nullptr, _header);
+                preCommitBlock(_block, _header, _callback);
             });
     }
 
