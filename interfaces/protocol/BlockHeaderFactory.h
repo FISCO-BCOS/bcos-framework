@@ -34,6 +34,26 @@ public:
     virtual BlockHeader::Ptr createBlockHeader(bytes const& _data) = 0;
     virtual BlockHeader::Ptr createBlockHeader(bytesConstRef _data) = 0;
     virtual BlockHeader::Ptr createBlockHeader(BlockNumber _number) = 0;
+
+    virtual BlockHeader::Ptr populateBlockHeader(BlockHeader::Ptr _blockHeader)
+    {
+        auto header = createBlockHeader();
+        header->setVersion(_blockHeader->version());
+        header->setTxsRoot(_blockHeader->txsRoot());
+        header->setReceiptsRoot(_blockHeader->receiptsRoot());
+        header->setStateRoot(_blockHeader->stateRoot());
+        header->setNumber(_blockHeader->number());
+        header->setGasUsed(_blockHeader->gasUsed());
+        header->setTimestamp(_blockHeader->timestamp());
+        header->setSealer(_blockHeader->sealer());
+        header->setSealerList(_blockHeader->sealerList());
+        header->setSignatureList(_blockHeader->signatureList());
+        header->setConsensusWeights(_blockHeader->consensusWeights());
+        header->setParentInfo(_blockHeader->parentInfo());
+        auto extraData = _blockHeader->extraData().toBytes();
+        header->setExtraData(std::move(extraData));
+        return header;
+    }
 };
 }  // namespace protocol
 }  // namespace bcos

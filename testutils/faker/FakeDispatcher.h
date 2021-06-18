@@ -23,6 +23,7 @@
 #include "../../interfaces/crypto/CryptoSuite.h"
 #include "../../interfaces/dispatcher/DispatcherInterface.h"
 #include "../../interfaces/ledger/LedgerInterface.h"
+#include "../../interfaces/protocol/BlockFactory.h"
 #include "../../interfaces/storage/StorageInterface.h"
 #include "../../interfaces/txpool/TxPoolInterface.h"
 #include "../../libtable/TableFactory.h"
@@ -44,9 +45,12 @@ class FakeDispatcher : public DispatcherInterface
 public:
     using Ptr = std::shared_ptr<FakeDispatcher>;
     FakeDispatcher() = default;
-    FakeDispatcher(
-        LedgerInterface::Ptr _ledger, StorageInterface::Ptr _storage, CryptoSuite::Ptr _cryptoSuite)
-      : m_ledger(_ledger), m_storage(_storage), m_cryptoSuite(_cryptoSuite)
+    FakeDispatcher(LedgerInterface::Ptr _ledger, StorageInterface::Ptr _storage,
+        CryptoSuite::Ptr _cryptoSuite, BlockFactory::Ptr _blockFactory)
+      : m_ledger(_ledger),
+        m_storage(_storage),
+        m_cryptoSuite(_cryptoSuite),
+        m_blockFactory(_blockFactory)
     {}
     ~FakeDispatcher() override {}
 
@@ -55,19 +59,25 @@ public:
     void asyncExecuteBlock(const Block::Ptr& _block, bool _verify,
         std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback) override
     {
+        auto blockHeader = _block->blockHeader();
+        if (m_blockFactory)
+        {
+            blockHeader =
+                m_blockFactory->blockHeaderFactory()->populateBlockHeader(_block->blockHeader());
+        }
         if (!m_txpool)
         {
-            _callback(nullptr, _block->blockHeader());
+            _callback(nullptr, blockHeader);
             return;
         }
         if (!_verify)
         {
-            fillBlockAndPrecommit(_block, _callback);
+            fillBlockAndPrecommit(_block, _callback, blockHeader);
         }
         else
         {
             preCommitBlock(_block, true);
-            _callback(nullptr, _block->blockHeader());
+            _callback(nullptr, blockHeader);
         }
     }
 
@@ -84,18 +94,19 @@ public:
     }
 
     void fillBlockAndPrecommit(const Block::Ptr& _block,
-        std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback)
+        std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback,
+        BlockHeader::Ptr _header)
     {
         auto txsHashList = std::make_shared<HashList>();
         for (size_t i = 0; i < _block->transactionsHashSize(); i++)
         {
             txsHashList->push_back(_block->transactionHash(i));
         }
-        m_txpool->asyncFillBlock(
-            txsHashList, [this, _block, _callback](Error::Ptr _error, TransactionsPtr _txs) {
+        m_txpool->asyncFillBlock(txsHashList,
+            [this, _block, _callback, _header](Error::Ptr _error, TransactionsPtr _txs) {
                 if (_error)
                 {
-                    _callback(_error, _block->blockHeader());
+                    _callback(_error, _header);
                     return;
                 }
                 for (auto tx : *_txs)
@@ -103,7 +114,7 @@ public:
                     _block->appendTransaction(tx);
                 }
                 preCommitBlock(_block);
-                _callback(nullptr, _block->blockHeader());
+                _callback(nullptr, _header);
             });
     }
 
@@ -123,6 +134,7 @@ private:
     LedgerInterface::Ptr m_ledger;
     StorageInterface::Ptr m_storage;
     CryptoSuite::Ptr m_cryptoSuite;
+    BlockFactory::Ptr m_blockFactory;
 };
 }  // namespace test
 }  // namespace bcos
