@@ -19,7 +19,7 @@
  */
 
 #pragma once
-#include <vector>
+#include "../../libutilities/Common.h"
 namespace bcos
 {
 namespace ledger
