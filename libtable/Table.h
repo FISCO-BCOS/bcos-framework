@@ -49,7 +49,8 @@ public:
     void asyncGetRow(const std::string& _key,
         std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback) override;
     void asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
-        std::function<void(const Error::Ptr&, const std::map<std::string, Entry::Ptr>&)> _callback) override;
+        std::function<void(const Error::Ptr&, const std::map<std::string, Entry::Ptr>&)> _callback)
+        override;
 
     TableInfo::Ptr tableInfo() const override { return m_tableInfo; }
     Entry::Ptr newEntry() override { return std::make_shared<Entry>(m_blockNumber); }
@@ -59,7 +60,7 @@ public:
     {
         auto ret = std::make_shared<std::map<std::string, Entry::Ptr>>();
 
-        for (auto& it : m_dirty)
+        for (auto& it : m_cache)
         {
             if (!it.second->rollbacked() && it.second->dirty())
             {
@@ -70,7 +71,17 @@ public:
         }
         return ret;
     }
-
+    void importCache(const std::shared_ptr<std::map<std::string, Entry::Ptr>>& _tableData) override
+    {
+        for (auto& item : *_tableData)
+        {
+            if (item.second->getStatus() != Entry::Status::DELETED)
+            {
+                m_cache[item.first] = item.second;
+                item.second->setDirty(false);
+            }
+        }
+    }
     void rollback(Change::Ptr) override;
     bool dirty() const override { return m_dataDirty; }
     void setRecorder(RecorderType _recorder) override { m_recorder = _recorder; }
@@ -79,7 +90,7 @@ protected:
     RecorderType m_recorder;
     std::shared_ptr<StorageInterface> m_DB;
     TableInfo::Ptr m_tableInfo;
-    tbb::concurrent_unordered_map<std::string, Entry::Ptr> m_dirty;
+    tbb::concurrent_unordered_map<std::string, Entry::Ptr> m_cache;
     std::shared_ptr<crypto::Hash> m_hashImpl;
     protocol::BlockNumber m_blockNumber = 0;
     crypto::HashType m_hash;

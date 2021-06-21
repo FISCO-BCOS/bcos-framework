@@ -91,6 +91,7 @@ public:
     virtual crypto::HashType hash() = 0;
 
     virtual std::shared_ptr<std::map<std::string, Entry::Ptr>> dump() = 0;
+    virtual void importCache(const std::shared_ptr<std::map<std::string, Entry::Ptr>>&) = 0;
 
     virtual void rollback(Change::Ptr _change) = 0;
     virtual bool dirty() const = 0;
@@ -117,7 +118,7 @@ public:
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
     exportData() = 0;
     virtual void importData(std::vector<TableInfo::Ptr>&,
-        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>&) = 0;
+        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>&, bool) = 0;
     virtual protocol::BlockNumber blockNumber() const = 0;
     virtual bool checkAuthority(const std::string& _tableName, const std::string& _user) const = 0;
 };

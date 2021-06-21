@@ -238,23 +238,35 @@ public:
     }
 
     void importData(std::vector<TableInfo::Ptr>& _tableInfos,
-        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>& _tableDatas) override
+        std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>& _tableDatas,
+        bool _dirty = true) override
     {
-        for (size_t i = 0; i < _tableInfos.size(); ++i)
-        {
-            auto table = std::make_shared<Table>(m_DB, _tableInfos[i], m_hashImpl, m_blockNumber);
-            table->setRecorder([&](TableInterface::Change::Ptr _change) {
-                auto& changeLog = getChangeLog();
-                changeLog.emplace_back(_change);
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, _tableDatas.size()),
+            [&](const tbb::blocked_range<size_t>& range) {
+                for (auto i = range.begin(); i != range.end(); ++i)
+                {
+                    auto table =
+                        std::make_shared<Table>(m_DB, _tableInfos[i], m_hashImpl, m_blockNumber);
+                    table->setRecorder([&](TableInterface::Change::Ptr _change) {
+                        auto& changeLog = getChangeLog();
+                        changeLog.emplace_back(_change);
+                    });
+                    if (_dirty)
+                    {
+                        for (auto& item : *(_tableDatas[i]))
+                        {
+                            table->setRow(item.first, item.second);
+                        }
+                    }
+                    else
+                    {
+                        table->importCache(_tableDatas[i]);
+                    }
+                    m_name2Table.insert({_tableInfos[i]->name, table});
+                }
             });
-
-            for (auto& item : *(_tableDatas[i]))
-            {
-                table->setRow(item.first, item.second);
-            }
-            m_name2Table.insert({_tableInfos[i]->name, table});
-        }
     }
+
     protocol::BlockNumber blockNumber() const override { return m_blockNumber; }
 
     bool checkAuthority(const std::string& _tableName, const std::string& _user) const override
