@@ -34,8 +34,8 @@ namespace storage
 {
 Entry::Ptr Table::getRow(const std::string& _key)
 {
-    auto entryIt = m_dirty.find(_key);
-    if (entryIt != m_dirty.end() && !entryIt->second->rollbacked())
+    auto entryIt = m_cache.find(_key);
+    if (entryIt != m_cache.end() && !entryIt->second->rollbacked())
     {
         if (entryIt->second->getStatus() != Entry::Status::DELETED)
         {
@@ -57,8 +57,8 @@ std::map<std::string, Entry::Ptr> Table::getRows(const std::vector<std::string>&
         [&]() {
             for (auto& key : _keys)
             {
-                auto entryIt = m_dirty.find(key);
-                if (entryIt != m_dirty.end() && !entryIt->second->rollbacked())
+                auto entryIt = m_cache.find(key);
+                if (entryIt != m_cache.end() && !entryIt->second->rollbacked())
                 {
                     if (entryIt->second->getStatus() != Entry::Status::DELETED)
                     {  // copy from
@@ -83,7 +83,7 @@ std::vector<std::string> Table::getPrimaryKeys(const Condition::Ptr& _condition)
 {
     std::vector<std::string> ret;
     std::set<std::string> deleted;
-    for (auto item : m_dirty)
+    for (auto item : m_cache)
     {
         if (!item.second->rollbacked() && (!_condition || _condition->isValid(item.first)))
         {
@@ -134,17 +134,17 @@ bool Table::setRow(const std::string& _key, const Entry::Ptr& _entry)
     }
     _entry->setNum(m_blockNumber);
     _entry->setField(m_tableInfo->key, _key);
-    // get the old value, if the entry is not in m_dirty, dont query db
+    // get the old value, if the entry is not in m_cache, dont query db
     Entry::Ptr entry = nullptr;
-    auto entryIt = m_dirty.find(_key);
-    if (entryIt != m_dirty.end())
+    auto entryIt = m_cache.find(_key);
+    if (entryIt != m_cache.end())
     {
         entry = entryIt->second;
         entryIt->second = _entry;
     }
     else
     {
-        m_dirty.insert(std::make_pair(_key, _entry));
+        m_cache.insert(std::make_pair(_key, _entry));
     }
 
     m_recorder(make_shared<Change>(shared_from_this(), Change::Set, _key, entry, m_dataDirty));
@@ -157,8 +157,8 @@ bool Table::remove(const std::string& _key)
 {
     Entry::Ptr oldEntry = nullptr;
 
-    auto entryIt = m_dirty.find(_key);
-    if (entryIt != m_dirty.end())
+    auto entryIt = m_cache.find(_key);
+    if (entryIt != m_cache.end())
     {
         // find in dirty, rollbacked means not exist in DB, Status::DELETED means it is deleted,
         // others mean the entry was modified
@@ -175,7 +175,7 @@ bool Table::remove(const std::string& _key)
         STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove") << LOG_KV("key", _key);
         auto entry = std::make_shared<Entry>();
         entry->setStatus(Entry::Status::DELETED);
-        m_dirty.insert(std::make_pair(_key, entry));
+        m_cache.insert(std::make_pair(_key, entry));
     }
 
     m_recorder(
@@ -191,7 +191,7 @@ void Table::asyncGetPrimaryKeys(const Condition::Ptr& _condition,
 {
     auto ret = make_shared<vector<string>>();
     auto deleted = make_shared<set<string>>();
-    for (auto item : m_dirty)
+    for (auto item : m_cache)
     {
         if (!item.second->rollbacked() && (!_condition || _condition->isValid(item.first)))
         {
@@ -225,8 +225,8 @@ void Table::asyncGetRow(
     const std::string& _key, std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback)
 {
     Entry::Ptr entry = nullptr;
-    auto entryIt = m_dirty.find(_key);
-    if (entryIt != m_dirty.end() && !entryIt->second->rollbacked())
+    auto entryIt = m_cache.find(_key);
+    if (entryIt != m_cache.end() && !entryIt->second->rollbacked())
     {
         if (entryIt->second->getStatus() != Entry::Status::DELETED)
         {
@@ -248,8 +248,8 @@ void Table::asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
 
     for (auto& key : *_keys)
     {
-        auto entryIt = m_dirty.find(key);
-        if (entryIt != m_dirty.end() && !entryIt->second->rollbacked())
+        auto entryIt = m_cache.find(key);
+        if (entryIt != m_cache.end() && !entryIt->second->rollbacked())
         {
             if (entryIt->second->getStatus() != Entry::Status::DELETED)
             {  // copy from
@@ -343,13 +343,13 @@ void Table::rollback(Change::Ptr _change)
     {
         if (_change->entry)
         {
-            m_dirty[_change->key] = _change->entry;
+            m_cache[_change->key] = _change->entry;
         }
         else
-        {  // nullptr means the key is not exist in m_dirty
+        {  // nullptr means the key is not exist in m_cache
             auto oldEntry = std::make_shared<Entry>();
             oldEntry->setRollbacked(true);
-            m_dirty[_change->key] = oldEntry;
+            m_cache[_change->key] = oldEntry;
         }
         m_hashDirty = true;
         m_dataDirty = _change->tableDirty;
@@ -357,14 +357,14 @@ void Table::rollback(Change::Ptr _change)
     }
     case Change::Remove:
     {
-        m_dirty[_change->key]->setStatus(Entry::Status::NORMAL);
+        m_cache[_change->key]->setStatus(Entry::Status::NORMAL);
         if (_change->entry)
         {
-            m_dirty[_change->key] = _change->entry;
+            m_cache[_change->key] = _change->entry;
         }
         else
         {
-            m_dirty[_change->key]->setRollbacked(true);
+            m_cache[_change->key]->setRollbacked(true);
         }
         m_hashDirty = true;
         m_dataDirty = _change->tableDirty;

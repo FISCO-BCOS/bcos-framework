@@ -169,6 +169,13 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(entry != nullptr);
     BOOST_TEST(table->dirty() == true);
     auto dbHash0 = tableFactory->hash();
+    auto data0 = tableFactory->exportData();
+    auto tableFactory0 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
+    tableFactory0->importData(data0.first, data0.second);
+    BOOST_TEST(dbHash0 == tableFactory0->hash());
+    tableFactory0 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
+    tableFactory0->importData(data0.first, data0.second, false);
+    BOOST_TEST(crypto::HashType() == tableFactory0->hash());
 
     entry = table->newEntry();
     entry->setField("key", "id");
@@ -184,15 +191,26 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(keys.size() == 2);
     auto entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 2);
+    auto data1 = tableFactory->exportData();
     auto dbHash1 = tableFactory->hash();
     BOOST_TEST(dbHash1 != dbHash0);
+    auto tableFactory1 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
+    tableFactory1->importData(data1.first, data1.second);
+    BOOST_TEST(dbHash1 == tableFactory1->hash());
+    tableFactory1 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
+    tableFactory1->importData(data0.first, data0.second, false);
+    BOOST_TEST(crypto::HashType() == tableFactory1->hash());
 
     auto savePoint = tableFactory->savepoint();
     ret = table->remove("id");
     BOOST_TEST(ret == true);
     entry = table->getRow("id");
     BOOST_TEST(entry == nullptr);
+    auto data2 = tableFactory->exportData();
     auto dbHash2 = tableFactory->hash();
+    auto tableFactory2 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
+    tableFactory2->importData(data2.first, data2.second);
+    BOOST_TEST(dbHash2 == tableFactory2->hash());
     cout << LOG_KV("dbHash1", dbHash1) << LOG_KV("dbHash2", dbHash2);
 
     BOOST_TEST(dbHash1 != dbHash2);
@@ -204,9 +222,13 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(entry == nullptr);
     BOOST_TEST(table->dirty() == true);
 
+    auto data3 = tableFactory->exportData();
     auto dbHash3 = tableFactory->hash();
     cout << LOG_KV("dbHash3", dbHash3) << LOG_KV("dbHash1", dbHash1);
     BOOST_TEST(dbHash3 == dbHash1);
+    auto tableFactory3 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
+    tableFactory3->importData(data3.first, data3.second);
+    BOOST_TEST(dbHash3 == tableFactory3->hash());
     tableFactory->commit();
     tableFactory = make_shared<TableFactory>(memoryStorage, hashImpl, 1);
     table = tableFactory->openTable(testTableName);

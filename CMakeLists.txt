@@ -39,6 +39,7 @@ FetchContent_Declare(bcos-cmake-scripts
 set(HUNTER_PACKAGE_LOG_BUILD ON CACHE STRING "Hunter output build info to log")
 set(HUNTER_PACKAGE_LOG_INSTALL ON CACHE STRING "Hunter output install info to log")
 set(HUNTER_STATUS_DEBUG OFF CACHE STRING "Hunter debug output")
+set(HUNTER_USE_CACHE_SERVERS NO CACHE STRING "Download cache from cache server" FORCE)
 # set(HUNTER_STATUS_PRINT OFF CACHE STRING "Hunter status output")
 # set(HUNTER_CONFIGURATION_TYPES Release CACHE STRING "Build type of Hunter packages")
 
@@ -63,8 +64,8 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 # init hunter
 include(HunterGate)
 HunterGate(
-    URL "https://${URL_BASE}/FISCO-BCOS/hunter/archive/60389000be6e74983b8790e695ba1bd10e88fab7.tar.gz"
-    SHA1 "8477caf1a595856cdc2c3b09568bbf9bf15f1f35"
+    URL "https://${URL_BASE}/FISCO-BCOS/hunter/archive/854dccf88d5adf34ace2439fb168947a11a17b49.tar.gz"
+    SHA1 "afb72a59b5b38e596824d5f0c48bd8c9630747f1"
     FILEPATH "${BCOS_FRAMEWORK_CMAKE_DIR}/config.cmake"
 )
 # set CMP0074 to NEW to suppress warnning, https://cmake.org/cmake/help/latest/policy/CMP0074.html
