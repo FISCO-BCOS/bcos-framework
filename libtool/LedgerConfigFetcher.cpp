@@ -298,7 +298,7 @@ void LedgerConfigFetcher::fetchConsensusTimeout()
                     return;
                 }
                 fetcher->m_ledgerConfig->setConsensusTimeout(
-                    boost::lexical_cast<uint64_t>(_consensusTimeoutStr) * 1000);
+                    boost::lexical_cast<uint64_t>(_consensusTimeoutStr));
                 fetcher->m_fetchConsensusTimeoutFinished = true;
                 fetcher->m_signalled.notify_all();
             }
