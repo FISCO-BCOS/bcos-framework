@@ -62,6 +62,12 @@ void Sealer::asyncNotifySealProposal(size_t _proposalStartIndex, size_t _proposa
                    << LOG_KV("maxTxsPerBlock", _maxTxsPerBlock);
 }
 
+void Sealer::asyncNoteLatestBlockNumber(int64_t _blockNumber)
+{
+    m_sealingManager->resetCurrentNumber(_blockNumber);
+    SEAL_LOG(INFO) << LOG_DESC("asyncNoteLatestBlockNumber") << LOG_KV("number", _blockNumber);
+}
+
 void Sealer::asyncNoteUnSealedTxsSize(
     size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse)
 {
@@ -82,7 +88,8 @@ void Sealer::executeWorker()
     {
         auto proposal = m_sealingManager->generateProposal();
         SEAL_LOG(DEBUG) << LOG_DESC("++++++++++++++++ Generate proposal")
-                        << LOG_KV("number", proposal->blockHeader()->number())
+                        << LOG_KV("index", proposal->blockHeader()->number())
+                        << LOG_KV("curNum", m_sealingManager->currentNumber())
                         << LOG_KV("hash", proposal->blockHeader()->hash().abridged())
                         << LOG_KV("txsSize", proposal->transactionsHashSize());
         submitProposal(proposal);
@@ -100,17 +107,12 @@ void Sealer::submitProposal(bcos::protocol::Block::Ptr _proposal)
     _proposal->encode(*encodedData);
     m_sealerConfig->consensus()->asyncSubmitProposal(ref(*encodedData),
         _proposal->blockHeader()->number(), _proposal->blockHeader()->hash(),
-        [this, _proposal](Error::Ptr _error) {
+        [_proposal](Error::Ptr _error) {
             if (_error == nullptr)
             {
                 return;
             }
-            SEAL_LOG(WARNING) << LOG_DESC("asyncSubmitProposal failed: put back the transactions");
-            auto txsHash = std::make_shared<HashList>();
-            for (size_t i = 0; i < _proposal->transactionsHashSize(); i++)
-            {
-                txsHash->emplace_back(_proposal->transactionHash(i));
-            }
-            this->m_sealingManager->appendTransactions(txsHash);
+            SEAL_LOG(WARNING) << LOG_DESC("asyncSubmitProposal failed: put back the transactions")
+                              << LOG_KV("txsSize", _proposal->transactionsHashSize());
         });
 }

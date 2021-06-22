@@ -61,11 +61,15 @@ public:
     size_t proposalEndIndex() const { return m_proposalEndIndex; }
     size_t maxTxsToSeal() const { return m_maxTxsToSeal; }
 
+    void asyncNoteLatestBlockNumber(int64_t _blockNumber) override { m_blockNumber = _blockNumber; }
+    int64_t blockNumber() const { return m_blockNumber; }
+
 private:
     std::atomic<size_t> m_unSealedTxsSize = {0};
     size_t m_proposalStartIndex = 0;
     size_t m_proposalEndIndex = 0;
     size_t m_maxTxsToSeal = 0;
+    int64_t m_blockNumber;
 };
 }  // namespace test
 }  // namespace bcos

@@ -21,6 +21,7 @@
 #include "../interfaces/protocol/BlockFactory.h"
 #include "../libutilities/CallbackCollectionHandler.h"
 #include "../libutilities/ThreadPool.h"
+#include "Common.h"
 #include "SealerConfig.h"
 namespace bcos
 {
@@ -35,6 +36,7 @@ public:
     explicit SealingManager(SealerConfig::Ptr _config)
       : m_config(_config),
         m_pendingTxs(std::make_shared<TxsHashQueue>()),
+        m_pendingSysTxs(std::make_shared<TxsHashQueue>()),
         m_worker(std::make_shared<ThreadPool>("sealerWorker", 1))
     {}
 
@@ -47,6 +49,15 @@ public:
     virtual void setUnsealedTxsSize(size_t _unsealedTxsSize)
     {
         m_unsealedTxsSize = _unsealedTxsSize;
+        m_config->consensus()->asyncNoteUnSealedTxsSize(_unsealedTxsSize, [](Error::Ptr _error) {
+            if (_error)
+            {
+                SEAL_LOG(WARNING) << LOG_DESC(
+                                         "asyncNoteUnSealedTxsSize to the consensus module failed")
+                                  << LOG_KV("code", _error->errorCode())
+                                  << LOG_KV("msg", _error->errorMessage());
+            }
+        });
     }
 
     virtual void resetSealingInfo(
@@ -58,6 +69,9 @@ public:
         m_sealingNumber = _startSealingNumber;
         m_lastSealTime = utcSteadyTime();
     }
+
+    virtual void resetCurrentNumber(int64_t _currentNumber) { m_currentNumber = _currentNumber; }
+    virtual int64_t currentNumber() const { return m_currentNumber; }
     virtual void fetchTransactions();
 
     template <class T>
@@ -66,7 +80,7 @@ public:
         return m_onReady.add(_t);
     }
 
-    virtual void appendTransactions(bcos::crypto::HashListPtr _fetchedTxs);
+    virtual void appendTransactions(bcos::crypto::HashListPtr _fetchedTxs, bool _systemTx);
 
 protected:
     virtual bool reachMinSealTimeCondition();
@@ -75,10 +89,12 @@ protected:
         bcos::crypto::HashListPtr _txsHash, bool _flag, size_t _retryTime = 0);
 
     virtual int64_t txsSizeExpectedToFetch();
+    virtual size_t pendingTxsSize();
 
 private:
     SealerConfig::Ptr m_config;
     std::shared_ptr<TxsHashQueue> m_pendingTxs;
+    std::shared_ptr<TxsHashQueue> m_pendingSysTxs;
     SharedMutex x_pendingTxs;
 
     ThreadPool::Ptr m_worker;
@@ -93,10 +109,13 @@ private:
     std::atomic<ssize_t> m_endSealingNumber = {0};
     std::atomic<size_t> m_maxTxsPerBlock = {0};
 
+    std::atomic<int64_t> m_waitUntil = {0};
 
     bcos::CallbackCollectionHandler<> m_onReady;
 
     std::atomic_bool m_fetchingTxs = {false};
+
+    std::atomic<int64_t> m_currentNumber = {0};
 };
 }  // namespace sealer
 }  // namespace bcos

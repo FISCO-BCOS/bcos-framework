@@ -65,6 +65,9 @@ public:
 
     // for the sync module to notify the syncing number
     virtual void notifyHighestSyncingNumber(bcos::protocol::BlockNumber _number) = 0;
+
+    virtual void asyncNoteUnSealedTxsSize(
+        size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse) = 0;
 };
 }  // namespace consensus
 }  // namespace bcos

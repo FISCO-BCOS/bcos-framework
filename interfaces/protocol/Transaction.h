@@ -124,6 +124,9 @@ public:
         return m_knownNodeList.count(_node);
     }
 
+    virtual void setSystemTx(bool _systemTx) const { m_systemTx = _systemTx; }
+    virtual bool systemTx() const { return m_systemTx; }
+
 protected:
     mutable bcos::bytes m_sender;
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
@@ -135,6 +138,9 @@ protected:
     mutable std::atomic_bool m_sealed = {false};
     // the tx is invalid for verify failed
     mutable std::atomic_bool m_invalid = {false};
+
+    // the transaction is the system transaction or not
+    mutable std::atomic_bool m_systemTx = {false};
 
     // Record the list of nodes containing the transaction and provide related query interfaces.
     mutable bcos::SharedMutex x_knownNodeList;

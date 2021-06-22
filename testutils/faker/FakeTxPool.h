@@ -70,7 +70,8 @@ public:
     {}
 
     // TODO: fake this interface for libsealer
-    void asyncSealTxs(size_t, TxsHashSetPtr, std::function<void(Error::Ptr, HashListPtr)>) override
+    void asyncSealTxs(
+        size_t, TxsHashSetPtr, std::function<void(Error::Ptr, HashListPtr, HashListPtr)>) override
     {}
 
     // TODO: fake this interface for libsealer
