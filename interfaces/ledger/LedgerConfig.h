@@ -83,6 +83,10 @@ public:
         m_leaderSwitchPeriod = _leaderSwitchPeriod;
     }
 
+    // Note enforce to set this field
+    void setSealerId(int64_t _sealerId) { m_sealerId = _sealerId; }
+    int64_t sealerId() const { return m_sealerId; }
+
 protected:
     bcos::consensus::ConsensusNodeListPtr m_consensusNodeList;
     bcos::consensus::ConsensusNodeListPtr m_observerNodeList;
@@ -91,6 +95,7 @@ protected:
     uint64_t m_consensusTimeout;
     uint64_t m_blockTxCountLimit;
     uint64_t m_leaderSwitchPeriod = 1;
+    int64_t m_sealerId = -1;
 };
 }  // namespace ledger
 }  // namespace bcos
