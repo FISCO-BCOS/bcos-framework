@@ -77,7 +77,6 @@ public:
         else
         {
             preCommitBlock(_block, blockHeader, _callback);
-            _callback(nullptr, blockHeader);
         }
     }
 

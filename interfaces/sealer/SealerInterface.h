@@ -40,6 +40,8 @@ public:
         size_t _maxTxsToSeal, std::function<void(Error::Ptr)> onRecvResponse) = 0;
     virtual void asyncNoteUnSealedTxsSize(
         size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse) = 0;
+    
+    virtual void asyncNoteLatestBlockNumber(int64_t _blockNumber) = 0;
 };
 }  // namespace sealer
 }  // namespace bcos

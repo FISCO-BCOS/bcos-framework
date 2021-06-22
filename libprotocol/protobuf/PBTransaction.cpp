@@ -34,7 +34,7 @@ PBTransaction::PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_
     // set receiver address
     if (_to != bytes())
     {
-        m_transactionHashFields->set_to(_to.data(), Address::size);
+        m_transactionHashFields->set_to(_to.data(), _to.size());
     }
     // set input data
     m_transactionHashFields->set_input(_input.data(), _input.size());

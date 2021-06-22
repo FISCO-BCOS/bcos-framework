@@ -124,7 +124,7 @@ public:
         return m_knownNodeList.count(_node);
     }
 
-    virtual void setSystemTx(bool _systemTx) { m_systemTx = _systemTx; }
+    virtual void setSystemTx(bool _systemTx) const { m_systemTx = _systemTx; }
     virtual bool systemTx() const { return m_systemTx; }
 
 protected:

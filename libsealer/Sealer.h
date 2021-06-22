@@ -47,6 +47,8 @@ public:
     void asyncNoteUnSealedTxsSize(
         size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse) override;
 
+    void asyncNoteLatestBlockNumber(int64_t _blockNumber) override;
+
 protected:
     void executeWorker() override;
     virtual void noteGenerateProposal() { m_signalled.notify_all(); }
