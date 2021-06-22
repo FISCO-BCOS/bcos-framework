@@ -57,7 +57,8 @@ public:
      * @param _sealCallback after the  txpool responds to the sealed txs, the callback is triggered
      */
     virtual void asyncSealTxs(size_t _txsLimit, TxsHashSetPtr _avoidTxs,
-        std::function<void(Error::Ptr, bcos::crypto::HashListPtr)> _sealCallback) = 0;
+        std::function<void(Error::Ptr, bcos::crypto::HashListPtr, bcos::crypto::HashListPtr)>
+            _sealCallback) = 0;
 
     virtual void asyncMarkTxs(bcos::crypto::HashListPtr _txsHash, bool _sealedFlag,
         std::function<void(Error::Ptr)> _onRecvResponse) = 0;
