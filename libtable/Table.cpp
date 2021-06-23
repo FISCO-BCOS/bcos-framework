@@ -46,6 +46,10 @@ Entry::Ptr Table::getRow(const std::string& _key)
         // deleted
         return nullptr;
     }
+    if (m_tableInfo->newTable)
+    {  // new table has no data in DB
+        return nullptr;
+    }
     return m_DB->getRow(m_tableInfo, _key);
 }
 
@@ -71,9 +75,18 @@ std::map<std::string, Entry::Ptr> Table::getRows(const std::vector<std::string>&
                         ret[key] = nullptr;
                     }
                 }
+                if (m_tableInfo->newTable)
+                {  // new table has no data in DB
+                    ret[key] = nullptr;
+                }
             }
         },
-        [&]() { queryRet = m_DB->getRows(m_tableInfo, _keys); });
+        [&]() {
+            if (!m_tableInfo->newTable)
+            {  // new table has no data in DB
+                queryRet = m_DB->getRows(m_tableInfo, _keys);
+            }
+        });
 
     ret.merge(queryRet);
     return ret;
@@ -96,6 +109,10 @@ std::vector<std::string> Table::getPrimaryKeys(const Condition::Ptr& _condition)
                 deleted.insert(item.first);
             }
         }
+    }
+    if (m_tableInfo->newTable)
+    {  // new table has no data in DB
+        return ret;
     }
     auto len = ret.size();
     auto temp = m_DB->getPrimaryKeys(m_tableInfo, _condition);
@@ -205,7 +222,11 @@ void Table::asyncGetPrimaryKeys(const Condition::Ptr& _condition,
             }
         }
     }
-
+    if (m_tableInfo->newTable)
+    {  // new table has no data in DB
+        _callback(nullptr, *ret);
+        return;
+    }
     m_DB->asyncGetPrimaryKeys(m_tableInfo, _condition,
         [ret, deleted, _callback](const Error::Ptr& error, std::vector<std::string> keys) {
             auto len = ret->size();
@@ -238,6 +259,11 @@ void Table::asyncGetRow(
         _callback(make_shared<Error>(StorageErrorCode::NotFound, "the key was deleted"), entry);
         return;
     }
+    if (m_tableInfo->newTable)
+    {  // new table has no data in DB
+        _callback(make_shared<Error>(StorageErrorCode::NotFound, "not found"), entry);
+        return;
+    }
     m_DB->asyncGetRow(m_tableInfo, _key, _callback);
 }
 
@@ -262,6 +288,15 @@ void Table::asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
                 (*ret)[key] = nullptr;
             }
         }
+        if (m_tableInfo->newTable)
+        {  // new table has no data in DB
+            (*ret)[key] = nullptr;
+        }
+    }
+    if (m_tableInfo->newTable)
+    {  // new table has no data in DB
+        _callback(nullptr, *ret);
+        return;
     }
     m_DB->asyncGetRows(m_tableInfo, _keys,
         [ret, _callback](const Error::Ptr& error, std::map<std::string, Entry::Ptr> queryRet) {
@@ -322,7 +357,7 @@ crypto::HashType Table::hash()
             startT = utcTime();
             m_hash = m_hashImpl->hash(bR);
             auto getHashT = utcTime() - startT;
-            STORAGE_LOG(DEBUG) << LOG_BADGE("Table hash calculate")
+            STORAGE_LOG(TRACE) << LOG_BADGE("Table hash calculate")
                                << LOG_KV("table", m_tableInfo->name)
                                << LOG_KV("writeDataT", writeDataT)
                                << LOG_KV("transDataT", transDataT) << LOG_KV("getHashT", getHashT)
