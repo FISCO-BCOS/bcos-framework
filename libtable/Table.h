@@ -81,6 +81,7 @@ public:
                 item.second->setDirty(false);
             }
         }
+        m_tableInfo->newTable = false;
     }
     void rollback(Change::Ptr) override;
     bool dirty() const override { return m_dataDirty; }
