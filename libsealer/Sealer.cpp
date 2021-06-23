@@ -51,6 +51,11 @@ void Sealer::stop()
     }
 }
 
+void Sealer::init(bcos::consensus::ConsensusInterface::Ptr _consensus)
+{
+    m_sealerConfig->setConsensusInterface(_consensus);
+}
+
 void Sealer::asyncNotifySealProposal(size_t _proposalStartIndex, size_t _proposalEndIndex,
     size_t _maxTxsPerBlock, std::function<void(Error::Ptr)> _onRecvResponse)
 {
