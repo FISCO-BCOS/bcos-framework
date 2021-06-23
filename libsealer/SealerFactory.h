@@ -18,8 +18,7 @@
  * @date: 2021-05-20
  */
 #pragma once
-
-#include "../interfaces/sealer/SealerInterface.h"
+#include "Sealer.h"
 #include "SealerConfig.h"
 namespace bcos
 {
@@ -31,15 +30,14 @@ public:
     using Ptr = std::shared_ptr<SealerFactory>;
     SealerFactory(bcos::protocol::BlockFactory::Ptr _blockFactory,
         bcos::txpool::TxPoolInterface::Ptr _txpool, unsigned _minSealTime);
+
     virtual ~SealerFactory() {}
-
-    virtual void init(bcos::consensus::ConsensusInterface::Ptr _consensus);
-
-    virtual SealerInterface::Ptr sealer() { return m_sealer; }
+    Sealer::Ptr createSealer();
 
 protected:
-    SealerInterface::Ptr m_sealer;
-    SealerConfig::Ptr m_sealerConfig;
+    bcos::protocol::BlockFactory::Ptr m_blockFactory;
+    bcos::txpool::TxPoolInterface::Ptr m_txpool;
+    unsigned m_minSealTime;
 };
 }  // namespace sealer
 }  // namespace bcos

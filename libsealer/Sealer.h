@@ -49,6 +49,8 @@ public:
 
     void asyncNoteLatestBlockNumber(int64_t _blockNumber) override;
 
+    virtual void init(bcos::consensus::ConsensusInterface::Ptr _consensus);
+
 protected:
     void executeWorker() override;
     virtual void noteGenerateProposal() { m_signalled.notify_all(); }

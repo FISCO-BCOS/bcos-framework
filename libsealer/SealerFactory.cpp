@@ -24,13 +24,12 @@ using namespace bcos::sealer;
 
 SealerFactory::SealerFactory(bcos::protocol::BlockFactory::Ptr _blockFactory,
     bcos::txpool::TxPoolInterface::Ptr _txpool, unsigned _minSealTime)
-{
-    m_sealerConfig = std::make_shared<SealerConfig>(_blockFactory, _txpool);
-    m_sealerConfig->setMinSealTime(_minSealTime);
-    m_sealer = std::make_shared<Sealer>(m_sealerConfig);
-}
+  : m_blockFactory(_blockFactory), m_txpool(_txpool), m_minSealTime(_minSealTime)
+{}
 
-void SealerFactory::init(bcos::consensus::ConsensusInterface::Ptr _consensus)
+Sealer::Ptr SealerFactory::createSealer()
 {
-    m_sealerConfig->setConsensusInterface(_consensus);
+    auto sealerConfig = std::make_shared<SealerConfig>(m_blockFactory, m_txpool);
+    sealerConfig->setMinSealTime(m_minSealTime);
+    return std::make_shared<Sealer>(sealerConfig);
 }
