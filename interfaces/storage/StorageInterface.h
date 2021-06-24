@@ -96,6 +96,7 @@ public:
         std::function<void(const Error::Ptr&, const std::shared_ptr<std::vector<std::string> >&)>
             callback) = 0;
     virtual void stop(){};
+    virtual void start(){};
 };
 
 }  // namespace storage
