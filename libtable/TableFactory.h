@@ -125,12 +125,24 @@ public:
                     crypto::HashType hash = table.second->hash();
                     if (hash == crypto::HashType())
                     {
+#if FISCO_DEBUG
+                        STORAGE_LOG(DEBUG)
+                            << LOG_BADGE("FISCO_DEBUG") << LOG_BADGE("TableFactory hash continued ")
+                            << it + 1 << "/" << tables.size() << LOG_KV("tableName", table.first)
+                            << LOG_KV("blockNumber", m_blockNumber);
+#endif
                         continue;
                     }
 
                     bytes tableHash = hash.asBytes();
                     memcpy(
                         &data[it * crypto::HashType::size], &tableHash[0], crypto::HashType::size);
+#if FISCO_DEBUG
+                    STORAGE_LOG(DEBUG)
+                        << LOG_BADGE("FISCO_DEBUG") << LOG_BADGE("TableFactory hash ")
+                        << it + 1 << "/" << tables.size() << LOG_KV("tableName", table.first)
+                        << LOG_KV("hash", hash) << LOG_KV("blockNumber", m_blockNumber);
+#endif
                 }
             });
 
