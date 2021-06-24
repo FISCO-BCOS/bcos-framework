@@ -27,7 +27,10 @@ namespace protocol
 enum CommonError : int32_t
 {
     SUCCESS = 0,
-    TIMEOUT = 1000,
+    TIMEOUT = 1000,  // for gateway
+    NotFoundFrontServiceSendMsg = 1001,
+    NotFoundFrontServiceDispatchMsg = 1002,
+    GatewaySendMsgFailed = 1003,
     TransactionsMissing = 2000,  // for transaction sync
     InconsistentTransactions = 2001,
     TxsSignatureVerifyFailed = 2002,
