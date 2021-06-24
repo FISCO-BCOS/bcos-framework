@@ -313,6 +313,24 @@ crypto::HashType Table::hash()
         vector<Entry::Ptr> entryVec;
         bytes allData;
         auto data = dump();
+#if FISCO_DEBUG
+        stringstream ss;
+        for (auto & entryIt : *data)
+        {
+            auto key = entryIt.first;
+            auto entry = entryIt.second;
+            ss << endl
+               << " [ status=" << entry->getStatus() << " ]"
+               << " [ num=" << entry->num() << " ]"
+               << "***" << key << endl;
+            for (auto& it : *entry)
+            {
+                ss << "[ " << it.first << "=" << it.second << " ]";
+            }
+        }
+        STORAGE_LOG(DEBUG) << LOG_BADGE("FISCO_DEBUG") << LOG_KV("TableName", m_tableInfo->name)
+                           << ss.str();
+#endif
         if (data->size() != 0)
         {
             std::vector<size_t> entriesOffset;
