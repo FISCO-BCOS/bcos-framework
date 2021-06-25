@@ -21,7 +21,7 @@
 #include "../../interfaces/crypto/KeyInterface.h"
 #include "../../libutilities/Log.h"
 
-#define TXPOOL_LOG(LEVEL) LOG(LEVEL) << LOG_BADGE("TXPOOL")
+#define TXPOOL_LOG(LEVEL) BCOS_LOG(LEVEL) << LOG_BADGE("TXPOOL")
 
 namespace bcos
 {
