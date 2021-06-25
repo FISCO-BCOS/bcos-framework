@@ -79,10 +79,11 @@ public:
 
     virtual void asyncGetPrimaryKeys(const Condition::Ptr& _condition,
         std::function<void(const Error::Ptr&, const std::vector<std::string>&)> _callback) = 0;
-    virtual void asyncGetRow(
-        const std::string& _key, std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback) = 0;
+    virtual void asyncGetRow(const std::string& _key,
+        std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback) = 0;
     virtual void asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
-        std::function<void(const Error::Ptr&, const std::map<std::string, Entry::Ptr>&)> _callback) = 0;
+        std::function<void(const Error::Ptr&, const std::map<std::string, Entry::Ptr>&)>
+            _callback) = 0;
 
     virtual bool remove(const std::string& _key) = 0;
     virtual TableInfo::Ptr tableInfo() const = 0;

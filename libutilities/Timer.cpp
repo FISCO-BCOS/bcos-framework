@@ -47,7 +47,7 @@ void Timer::startTimer()
         }
         if (error)
         {
-            LOG(WARNING) << LOG_DESC("Timer async_wait error") << LOG_KV("error", error);
+            BCOS_LOG(WARNING) << LOG_DESC("Timer async_wait error") << LOG_KV("error", error);
             return;
         }
         try
@@ -61,8 +61,8 @@ void Timer::startTimer()
         }
         catch (std::exception const& e)
         {
-            LOG(WARNING) << LOG_DESC("calls timeout handler failed")
-                         << LOG_KV("errorInfo", boost::diagnostic_information(e));
+            BCOS_LOG(WARNING) << LOG_DESC("calls timeout handler failed")
+                              << LOG_KV("errorInfo", boost::diagnostic_information(e));
         }
     });
     m_running = true;
