@@ -48,5 +48,5 @@ const std::string KV_TABLE_FACTORY_ADDRESS = "0x1009";
 const std::string CRYPTO_ADDRESS = "0x100a";
 const std::string WORKING_SEALER_MGR_ADDRESS = "0x100b";
 const std::string DAG_TRANSFER_ADDRESS = "0x100c";
-}
-}
+}  // namespace precompiled
+}  // namespace bcos

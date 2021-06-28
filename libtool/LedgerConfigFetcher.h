@@ -23,7 +23,7 @@
 #include "../interfaces/ledger/LedgerInterface.h"
 #include "../libutilities/Log.h"
 
-#define TOOL_LOG(LEVEL) LOG(LEVEL) << LOG_BADGE("TOOL")
+#define TOOL_LOG(LEVEL) BCOS_LOG(LEVEL) << LOG_BADGE("TOOL")
 
 namespace bcos
 {

@@ -70,7 +70,7 @@ std::string getCurrentDateTime()
 
 void errorExit(std::stringstream& _exitInfo, Exception const& _exception)
 {
-    LOG(ERROR) << _exitInfo.str();
+    BCOS_LOG(ERROR) << _exitInfo.str();
     std::cerr << _exitInfo.str();
     raise(SIGTERM);
     BOOST_THROW_EXCEPTION(_exception << errinfo_comment(_exitInfo.str()));
@@ -130,9 +130,9 @@ TimeRecorder::~TimeRecorder()
         }
 
         std::chrono::duration<double> totalElapsed = end - m_record[0].second;
-        LOG(DEBUG) << "[TIME RECORDER]-" << m_function
-                   << ": [TOTAL]: " << std::setiosflags(std::ios::fixed) << std::setprecision(4)
-                   << totalElapsed.count() << ss.str();
+        BCOS_LOG(DEBUG) << "[TIME RECORDER]-" << m_function
+                        << ": [TOTAL]: " << std::setiosflags(std::ios::fixed)
+                        << std::setprecision(4) << totalElapsed.count() << ss.str();
 
         m_name = "";
         m_timePoint = std::chrono::steady_clock::time_point();

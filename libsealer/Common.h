@@ -19,4 +19,4 @@
  */
 #pragma once
 #include "../libutilities/Log.h"
-#define SEAL_LOG(LEVEL) LOG(LEVEL) << LOG_BADGE("CONSENSUS") << LOG_BADGE("SEALER")
+#define SEAL_LOG(LEVEL) BCOS_LOG(LEVEL) << LOG_BADGE("CONSENSUS") << LOG_BADGE("SEALER")
