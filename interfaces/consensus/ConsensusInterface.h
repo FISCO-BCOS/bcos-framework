@@ -57,9 +57,8 @@ public:
         bcos::ledger::LedgerConfig::Ptr _ledgerConfig, std::function<void(Error::Ptr)> _onRecv) = 0;
 
     // called by frontService to dispatch message
-    virtual void asyncNotifyConsensusMessage(bcos::Error::Ptr _error,
+    virtual void asyncNotifyConsensusMessage(bcos::Error::Ptr _error, std::string const& _id,
         bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data,
-        std::function<void(bytesConstRef _respData)> _sendResponse,
         std::function<void(Error::Ptr _error)> _onRecv) = 0;
 
 

@@ -61,54 +61,65 @@ public:
     virtual void asyncSendMessageByNodeID(int _moduleId, NodeIDPtr _fromNode, NodeIDPtr _nodeId,
         bytesConstRef _data, uint32_t, CallbackFunc _responseCallback)
     {
+        m_uuid++;
+        auto id = std::to_string(m_uuid);
+        insertCallback(_moduleId, id, _responseCallback);
+
         if (_moduleId == ModuleID::TxsSync && m_nodeId2TxPool.count(_nodeId))
         {
             auto txpool = m_nodeId2TxPool[_nodeId];
-            txpool->asyncNotifyTxsSyncMessage(
-                nullptr, _fromNode, _data,
-                [_responseCallback, _nodeId](bytesConstRef _respData) {
-                    // called when receive response data
-                    if (_responseCallback)
-                    {
-                        _responseCallback(nullptr, _nodeId, _respData, "", nullptr);
-                    }
-                },
-                nullptr);
+            txpool->asyncNotifyTxsSyncMessage(nullptr, id, _fromNode, _data, nullptr);
         }
         if (_moduleId == ModuleID::PBFT && m_nodeId2Consensus.count(_nodeId))
         {
             auto consensus = m_nodeId2Consensus[_nodeId];
-            consensus->asyncNotifyConsensusMessage(
-                nullptr, _fromNode, _data,
-                [_responseCallback, _nodeId](bytesConstRef _respData) {
-                    if (_responseCallback)
-                    {
-                        // called when receive response data
-                        _responseCallback(nullptr, _nodeId, _respData, "", nullptr);
-                    }
-                },
-                nullptr);
+            consensus->asyncNotifyConsensusMessage(nullptr, id, _fromNode, _data, nullptr);
         }
         if (_moduleId == ModuleID::BlockSync && m_nodeId2Sync.count(_nodeId))
         {
             auto sync = m_nodeId2Sync[_nodeId];
-            sync->asyncNotifyBlockSyncMessage(
-                nullptr, _fromNode, _data,
-                [_responseCallback, _nodeId](bytesConstRef _respData) {
-                    if (_responseCallback)
-                    {
-                        // called when receive response data
-                        _responseCallback(nullptr, _nodeId, _respData, "", nullptr);
-                    }
-                },
-                nullptr);
+            sync->asyncNotifyBlockSyncMessage(nullptr, id, _fromNode, _data, nullptr);
+        }
+    }
+
+    virtual void asyncSendResponse(const std::string& _id, int _moduleId,
+        bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _responseData, ReceiveMsgFunc)
+    {
+        if (m_uuidToCallback.count(_moduleId) && m_uuidToCallback[_moduleId].count(_id))
+        {
+            auto callback = m_uuidToCallback[_moduleId][_id];
+            removeCallback(_moduleId, _id);
+            if (callback)
+            {
+                callback(nullptr, _nodeID, _responseData, "", nullptr);
+            }
+        }
+    }
+
+    void insertCallback(int _moduleID, std::string const& _id, CallbackFunc _callback)
+    {
+        Guard l(m_mutex);
+        m_uuidToCallback[_moduleID][_id] = _callback;
+    }
+
+    void removeCallback(int _moduleId, std::string const& _id)
+    {
+        Guard l(m_mutex);
+        m_uuidToCallback[_moduleId].erase(_id);
+        if (m_uuidToCallback.count(_moduleId) && m_uuidToCallback[_moduleId].size() == 0)
+        {
+            m_uuidToCallback.erase(_moduleId);
         }
     }
 
 private:
+    std::map<int, std::map<std::string, CallbackFunc>> m_uuidToCallback;
+    Mutex m_mutex;
+
     std::map<NodeIDPtr, TxPoolInterface::Ptr, KeyCompare> m_nodeId2TxPool;
     std::map<NodeIDPtr, ConsensusInterface::Ptr, KeyCompare> m_nodeId2Consensus;
     std::map<NodeIDPtr, BlockSyncInterface::Ptr, KeyCompare> m_nodeId2Sync;
+    std::atomic<int64_t> m_uuid = 0;
 };
 
 class FakeFrontService : public FrontServiceInterface
@@ -150,9 +161,13 @@ public:
     void onReceiveBroadcastMessage(
         const std::string&, NodeIDPtr, bytesConstRef, ReceiveMsgFunc) override
     {}
-    void asyncSendResponse(
-        const std::string&, int, bcos::crypto::NodeIDPtr, bytesConstRef, ReceiveMsgFunc) override
-    {}
+
+    void asyncSendResponse(const std::string& _id, int _moduleId, bcos::crypto::NodeIDPtr _nodeID,
+        bytesConstRef _responseData, ReceiveMsgFunc _responseCallback) override
+    {
+        return m_fakeGateWay->asyncSendResponse(
+            _id, _moduleId, _nodeID, _responseData, _responseCallback);
+    }
 
     void asyncSendMessageByNodeID(int _moduleId, NodeIDPtr _nodeId, bytesConstRef _data,
         uint32_t _timeout, CallbackFunc _responseCallback) override
