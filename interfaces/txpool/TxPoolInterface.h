@@ -46,8 +46,8 @@ public:
      * @param _onChainCallback trigger this callback when receive the notification of transaction
      * on-chain
      */
-    virtual void asyncSubmit(bytesPointer _tx, bcos::protocol::TxSubmitCallback _txSubmitCallback,
-        std::function<void(Error::Ptr)> _onRecv) = 0;
+    virtual void asyncSubmit(
+        bytesPointer _tx, bcos::protocol::TxSubmitCallback _txSubmitCallback) = 0;
 
     /**
      * @brief fetch transactions from the txpool

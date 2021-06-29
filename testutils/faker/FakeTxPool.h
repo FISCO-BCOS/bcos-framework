@@ -44,7 +44,7 @@ public:
     void stop() override {}
 
     // useless for PBFT, maybe needed by RPC
-    void asyncSubmit(bytesPointer, TxSubmitCallback, std::function<void(Error::Ptr)>) override {}
+    void asyncSubmit(bytesPointer, TxSubmitCallback) override {}
     // useless for PBFT, needed by dispatcher to fetch block transactions
     void asyncFillBlock(HashListPtr, std::function<void(Error::Ptr, TransactionsPtr)>) override {}
 
