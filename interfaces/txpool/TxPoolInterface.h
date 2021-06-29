@@ -96,8 +96,8 @@ public:
         std::function<void(Error::Ptr)> _onNotifyFinished) = 0;
 
     // called by frontService to dispatch message
-    virtual void asyncNotifyTxsSyncMessage(bcos::Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
-        bytesConstRef _data, std::function<void(bytesConstRef _respData)> _sendResponse,
+    virtual void asyncNotifyTxsSyncMessage(bcos::Error::Ptr _error, std::string const& _id,
+        bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data,
         std::function<void(Error::Ptr _error)> _onRecv) = 0;
 
     // interface for frontService to notify the connectedNodes

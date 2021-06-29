@@ -55,8 +55,7 @@ public:
 
     // called by frontService to dispatch message
     // useless for PBFT
-    void asyncNotifyTxsSyncMessage(Error::Ptr, NodeIDPtr, bytesConstRef,
-        std::function<void(bytesConstRef _respData)>,
+    void asyncNotifyTxsSyncMessage(Error::Ptr, std::string const&, NodeIDPtr, bytesConstRef,
         std::function<void(Error::Ptr _error)>) override
     {}
 

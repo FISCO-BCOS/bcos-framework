@@ -42,8 +42,8 @@ public:
         bcos::ledger::LedgerConfig::Ptr _ledgerConfig, std::function<void(Error::Ptr)> _onRecv) = 0;
 
     // called by the frontService to dispatch message
-    virtual void asyncNotifyBlockSyncMessage(Error::Ptr _error, bcos::crypto::NodeIDPtr _nodeID,
-        bytesConstRef _data, std::function<void(bytesConstRef _respData)> _sendResponse,
+    virtual void asyncNotifyBlockSyncMessage(Error::Ptr _error, std::string const& _uuid,
+        bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data,
         std::function<void(Error::Ptr _error)> _onRecv) = 0;
 };
 }  // namespace sync
