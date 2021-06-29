@@ -32,6 +32,12 @@ namespace bcos
 {
 namespace executor
 {
+enum ExecutorErrorCode
+{
+    DiscontinuousBlockNumber = -51000,
+    ExecuteException = -51001,
+};
+
 class ExecutorInterface : public std::enable_shared_from_this<ExecutorInterface>
 {
 public:

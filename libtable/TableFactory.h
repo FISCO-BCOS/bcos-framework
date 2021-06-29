@@ -139,8 +139,8 @@ public:
                         &data[it * crypto::HashType::size], &tableHash[0], crypto::HashType::size);
 #if FISCO_DEBUG
                     STORAGE_LOG(DEBUG)
-                        << LOG_BADGE("FISCO_DEBUG") << LOG_BADGE("TableFactory hash ")
-                        << it + 1 << "/" << tables.size() << LOG_KV("tableName", table.first)
+                        << LOG_BADGE("FISCO_DEBUG") << LOG_BADGE("TableFactory hash") << it + 1
+                        << "/" << tables.size() << LOG_KV("tableName", table.first)
                         << LOG_KV("hash", hash) << LOG_KV("blockNumber", m_blockNumber);
 #endif
                 }
@@ -187,11 +187,14 @@ public:
         m_name2Table.clear();
         auto clear_time_cost = utcTime() - record_time;
         getChangeLog().clear();
-        STORAGE_LOG(DEBUG) << LOG_BADGE("Commit") << LOG_DESC("Commit db time record")
-                           << LOG_KV("getDataTimeCost", getData_time_cost)
-                           << LOG_KV("commitTimeCost", commit_time_cost)
-                           << LOG_KV("clearTimeCost", clear_time_cost)
-                           << LOG_KV("totalTimeCost", utcTime() - start_time);
+        if (m_blockNumber >= 0)
+        {
+            STORAGE_LOG(DEBUG) << LOG_BADGE("Commit") << LOG_DESC("Commit db time record")
+                               << LOG_KV("getDataTimeCost", getData_time_cost)
+                               << LOG_KV("commitTimeCost", commit_time_cost)
+                               << LOG_KV("clearTimeCost", clear_time_cost)
+                               << LOG_KV("totalTimeCost", utcTime() - start_time);
+        }
         return ret;
     }
 
@@ -212,10 +215,13 @@ public:
             m_DB->asyncCommitBlock(m_blockNumber, infoPtr, dataPtr, _callback);
         }
         auto commit_time_cost = utcTime() - record_time;
-        STORAGE_LOG(DEBUG) << LOG_BADGE("Commit") << LOG_DESC("Commit db time record")
-                           << LOG_KV("getDataTimeCost", getData_time_cost)
-                           << LOG_KV("commitTimeCost", commit_time_cost)
-                           << LOG_KV("totalTimeCost", utcTime() - start_time);
+        if (m_blockNumber >= 0)
+        {
+            STORAGE_LOG(DEBUG) << LOG_BADGE("Commit") << LOG_DESC("Commit db time record")
+                               << LOG_KV("getDataTimeCost", getData_time_cost)
+                               << LOG_KV("commitTimeCost", commit_time_cost)
+                               << LOG_KV("totalTimeCost", utcTime() - start_time);
+        }
     }
     std::pair<std::vector<TableInfo::Ptr>,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
