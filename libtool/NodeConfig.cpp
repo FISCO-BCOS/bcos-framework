@@ -34,12 +34,11 @@ using namespace bcos::tool;
 using namespace bcos::consensus;
 using namespace bcos::ledger;
 
-NodeConfig::NodeConfig(bcos::crypto::KeyFactory::Ptr _keyFactory)
-  : m_keyFactory(_keyFactory), m_ledgerConfig(std::make_shared<bcos::ledger::LedgerConfig>())
+NodeConfig::NodeConfig(KeyFactory::Ptr _keyFactory)
+  : m_keyFactory(_keyFactory), m_ledgerConfig(std::make_shared<LedgerConfig>())
 {}
 
-void NodeConfig::loadConfig(
-    boost::property_tree::ptree const& _pt, boost::property_tree::ptree const& _genesisConfig)
+void NodeConfig::loadConfig(boost::property_tree::ptree const& _pt)
 {
     loadTxPoolConfig(_pt);
     loadChainConfig(_pt);
@@ -47,8 +46,12 @@ void NodeConfig::loadConfig(
     loadSealerConfig(_pt);
     loadConsensusConfig(_pt);
     loadStorageConfig(_pt);
-    loadLedgerConfig(_genesisConfig);
     loadExecutorConfig(_pt);
+}
+
+void NodeConfig::loadGenesisConfig(boost::property_tree::ptree const& _genesisConfig)
+{
+    loadLedgerConfig(_genesisConfig);
 }
 
 // load the txpool related params
