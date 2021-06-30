@@ -35,13 +35,8 @@ public:
 
     virtual void start() = 0;
     virtual void stop() = 0;
-
-    virtual void asyncNotifySealProposal(size_t _proposalIndex, size_t _proposalEndIndex,
-        size_t _maxTxsToSeal, std::function<void(Error::Ptr)> onRecvResponse) = 0;
     virtual void asyncNoteUnSealedTxsSize(
         size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse) = 0;
-
-    virtual void asyncNoteLatestBlockNumber(int64_t _blockNumber) = 0;
 };
 }  // namespace sealer
 }  // namespace bcos

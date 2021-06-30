@@ -37,10 +37,6 @@ public:
     virtual void start() = 0;
     virtual void stop() = 0;
 
-    // called by the consensus module when commit a new block
-    virtual void asyncNotifyNewBlock(
-        bcos::ledger::LedgerConfig::Ptr _ledgerConfig, std::function<void(Error::Ptr)> _onRecv) = 0;
-
     // called by the frontService to dispatch message
     virtual void asyncNotifyBlockSyncMessage(Error::Ptr _error, std::string const& _uuid,
         bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data,

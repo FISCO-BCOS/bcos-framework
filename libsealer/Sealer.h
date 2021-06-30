@@ -42,12 +42,13 @@ public:
     void start() override;
     void stop() override;
 
-    void asyncNotifySealProposal(size_t _proposalStartIndex, size_t _proposalEndIndex,
-        size_t _maxTxsPerBlock, std::function<void(Error::Ptr)> _onRecvResponse) override;
     void asyncNoteUnSealedTxsSize(
         size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse) override;
 
-    void asyncNoteLatestBlockNumber(int64_t _blockNumber) override;
+    virtual void asyncNotifySealProposal(size_t _proposalStartIndex, size_t _proposalEndIndex,
+        size_t _maxTxsPerBlock, std::function<void(Error::Ptr)> _onRecvResponse);
+
+    virtual void asyncNoteLatestBlockNumber(int64_t _blockNumber);
 
     virtual void init(bcos::consensus::ConsensusInterface::Ptr _consensus);
 
