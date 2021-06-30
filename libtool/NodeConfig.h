@@ -35,11 +35,26 @@ class NodeConfig
 {
 public:
     using Ptr = std::shared_ptr<NodeConfig>;
+    NodeConfig() : m_ledgerConfig(std::make_shared<bcos::ledger::LedgerConfig>()) {}
+
     explicit NodeConfig(bcos::crypto::KeyFactory::Ptr _keyFactory);
     virtual ~NodeConfig() {}
 
-    virtual void loadConfig(
-        boost::property_tree::ptree const& _pt, boost::property_tree::ptree const& _genesisConfig);
+    virtual void loadConfig(std::string const& _configPath)
+    {
+        boost::property_tree::ptree iniConfig;
+        boost::property_tree::read_ini(_configPath, iniConfig);
+        loadConfig(iniConfig);
+    }
+
+    virtual void loadGenesisConfig(std::string const& _genesisConfigPath)
+    {
+        boost::property_tree::ptree genesisConfig;
+        boost::property_tree::read_ini(_genesisConfigPath, genesisConfig);
+        loadGenesisConfig(genesisConfig);
+    }
+    virtual void loadConfig(boost::property_tree::ptree const& _pt);
+    virtual void loadGenesisConfig(boost::property_tree::ptree const& _genesisConfig);
 
     size_t txpoolLimit() const { return m_txpoolLimit; }
     size_t notifyWorkerNum() const { return m_notifyWorkerNum; }
