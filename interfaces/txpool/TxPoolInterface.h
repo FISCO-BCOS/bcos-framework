@@ -108,6 +108,10 @@ public:
         std::function<void(Error::Ptr)> _onRecvResponse) = 0;
     virtual void notifyObserverNodeList(bcos::consensus::ConsensusNodeList const& _observerNodeList,
         std::function<void(Error::Ptr)> _onRecvResponse) = 0;
+
+    // for RPC to get pending transactions
+    virtual void asyncGetPendingTransactionSize(
+        std::function<void(Error::Ptr, size_t)> _onGetTxsSize) = 0;
 };
 }  // namespace txpool
 }  // namespace bcos

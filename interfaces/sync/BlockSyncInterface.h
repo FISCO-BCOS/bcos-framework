@@ -45,6 +45,11 @@ public:
     virtual void asyncNotifyBlockSyncMessage(Error::Ptr _error, std::string const& _uuid,
         bcos::crypto::NodeIDPtr _nodeID, bytesConstRef _data,
         std::function<void(Error::Ptr _error)> _onRecv) = 0;
+    // called by the RPC to get the sync status
+    virtual void asyncGetSyncInfo(std::function<void(Error::Ptr, std::string)> _onGetSyncInfo) = 0;
+
+    virtual void asyncNotifyCommittedIndex(
+        bcos::protocol::BlockNumber _number, std::function<void(Error::Ptr _error)> _onRecv) = 0;
 };
 }  // namespace sync
 }  // namespace bcos
