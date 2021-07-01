@@ -92,7 +92,7 @@ public:
 
             m_name2Table.insert({_tableName, table});
             // FIXME: write permission info of table
-            STORAGE_LOG(INFO) << LOG_BADGE("TableFactory") << LOG_DESC("createTable")
+            STORAGE_LOG(DEBUG) << LOG_BADGE("TableFactory") << LOG_DESC("createTable")
                               << LOG_KV("table name", _tableName) << LOG_KV("keyField", _keyField)
                               << LOG_KV("valueFields", _valueFields);
         }
@@ -278,6 +278,7 @@ public:
                     }
                     else
                     {
+                        _tableInfos[i]->newTable = false;
                         table->importCache(_tableDatas[i]);
                     }
                     m_name2Table.insert({_tableInfos[i]->name, table});
