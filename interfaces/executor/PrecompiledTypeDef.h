@@ -33,7 +33,7 @@ const std::string CNS_NAME = "/bin/cns";
 const std::string PERMISSION_NAME = "/bin/permission";
 const std::string PARALLEL_CONFIG_NAME = "/bin/parallel_config";
 const std::string KV_TABLE_FACTORY_NAME = "/bin/kv_storage";
-const std::string DEPLOY_WASM_NAME = "/bin/deploy_wasm"
+const std::string DEPLOY_WASM_NAME = "/bin/deploy_wasm";
 
 /// precompiled contract for solidity
 const std::string SYS_CONFIG_ADDRESS = "0x1000";
@@ -49,6 +49,6 @@ const std::string KV_TABLE_FACTORY_ADDRESS = "0x1009";
 const std::string CRYPTO_ADDRESS = "0x100a";
 const std::string WORKING_SEALER_MGR_ADDRESS = "0x100b";
 const std::string DAG_TRANSFER_ADDRESS = "0x100c";
-const std::string DEPLOY_WASM_ADDRESS = "0x100d"
+const std::string DEPLOY_WASM_ADDRESS = "0x100d";
 }  // namespace precompiled
 }  // namespace bcos
