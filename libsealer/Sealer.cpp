@@ -59,15 +59,6 @@ void Sealer::init(bcos::consensus::ConsensusInterface::Ptr _consensus)
 void Sealer::asyncNotifySealProposal(size_t _proposalStartIndex, size_t _proposalEndIndex,
     size_t _maxTxsPerBlock, std::function<void(Error::Ptr)> _onRecvResponse)
 {
-    if (!m_running)
-    {
-        if (_onRecvResponse)
-        {
-            _onRecvResponse(
-                std::make_shared<Error>(-1, "The sealer module has not been initialized finished"));
-        }
-        return;
-    }
     m_sealingManager->resetSealingInfo(_proposalStartIndex, _proposalEndIndex, _maxTxsPerBlock);
     if (_onRecvResponse)
     {
@@ -88,15 +79,6 @@ void Sealer::asyncNoteLatestBlockNumber(int64_t _blockNumber)
 void Sealer::asyncNoteUnSealedTxsSize(
     size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse)
 {
-    if (!m_running)
-    {
-        if (_onRecvResponse)
-        {
-            _onRecvResponse(
-                std::make_shared<Error>(-1, "The sealer module has not been initialized finished"));
-        }
-        return;
-    }
     m_sealingManager->setUnsealedTxsSize(_unsealedTxsSize);
     if (_onRecvResponse)
     {

@@ -94,6 +94,8 @@ public:
     void setVerifyResult(bool _verifyResult) { m_verifyResult = _verifyResult; }
     bool verifyResult() const { return m_verifyResult; }
 
+    void asyncGetPendingTransactionSize(std::function<void(Error::Ptr, size_t)>) override {}
+
 private:
     bool m_verifyResult = true;
     std::shared_ptr<ThreadPool> m_worker = nullptr;
