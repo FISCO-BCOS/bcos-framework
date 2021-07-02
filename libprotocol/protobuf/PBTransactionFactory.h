@@ -22,6 +22,7 @@
 #include "../../interfaces/crypto/CryptoSuite.h"
 #include "../../interfaces/protocol/TransactionFactory.h"
 #include "PBTransaction.h"
+#include <memory>
 
 namespace bcos
 {
@@ -55,6 +56,21 @@ public:
     {
         return std::make_shared<PBTransaction>(m_cryptoSuite, _version, _to, _input, _nonce,
             _blockLimit, _chainId, _groupId, _importTime);
+    }
+
+    Transaction::Ptr createTransaction(int32_t const& _version, bytes const& _to,
+        bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
+        std::string const& _chainId, std::string const& _groupId, int64_t const& _importTime,
+        bcos::crypto::KeyPairInterface::Ptr keyPair) override
+    {
+        auto tx = createTransaction(
+            _version, _to, _input, _nonce, _blockLimit, _chainId, _groupId, _importTime);
+        auto sign = m_cryptoSuite->signatureImpl()->sign(keyPair, tx->hash(), true);
+
+        std::dynamic_pointer_cast<PBTransaction>(tx)->updateSignature(
+            bcos::ref(*sign), keyPair->publicKey()->data());
+
+        return tx;
     }
 
     bcos::crypto::CryptoSuite::Ptr cryptoSuite() override { return m_cryptoSuite; }
