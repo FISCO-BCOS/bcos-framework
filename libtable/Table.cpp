@@ -312,7 +312,7 @@ crypto::HashType Table::hash()
         size_t totalBytes = 0;
         vector<Entry::Ptr> entryVec;
         bytes allData;
-        auto data = dump();
+        auto data = dump(m_blockNumber);
 #if FISCO_DEBUG
         stringstream ss;
         for (auto& entryIt : *data)

@@ -56,21 +56,27 @@ public:
     Entry::Ptr newEntry() override { return std::make_shared<Entry>(m_blockNumber); }
     crypto::HashType hash() override;
 
-    std::shared_ptr<std::map<std::string, Entry::Ptr>> dump() override
+    std::shared_ptr<std::map<std::string, Entry::Ptr>> dump(
+        protocol::BlockNumber blockNumber) override
     {
         auto ret = std::make_shared<std::map<std::string, Entry::Ptr>>();
-
+        bool onlyDirty = (m_blockNumber == blockNumber);
         for (auto& it : m_cache)
         {
-            if (!it.second->rollbacked() && it.second->dirty())
+            if (!it.second->rollbacked())
             {
-                auto entry = std::make_shared<Entry>();
-                entry->copyFrom(it.second);
-                (*ret)[it.first] = entry;
+                if ((onlyDirty && it.second->dirty()) ||
+                    (!onlyDirty && it.second->num() >= blockNumber))
+                {
+                    auto entry = std::make_shared<Entry>();
+                    entry->copyFrom(it.second);
+                    (*ret)[it.first] = entry;
+                }
             }
         }
         return ret;
     }
+
     void importCache(const std::shared_ptr<std::map<std::string, Entry::Ptr>>& _tableData) override
     {
         for (auto& item : *_tableData)

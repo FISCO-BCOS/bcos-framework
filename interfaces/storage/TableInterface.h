@@ -91,7 +91,7 @@ public:
 
     virtual crypto::HashType hash() = 0;
 
-    virtual std::shared_ptr<std::map<std::string, Entry::Ptr>> dump() = 0;
+    virtual std::shared_ptr<std::map<std::string, Entry::Ptr>> dump(protocol::BlockNumber blockNumber) = 0;
     virtual void importCache(const std::shared_ptr<std::map<std::string, Entry::Ptr>>&) = 0;
 
     virtual void rollback(Change::Ptr _change) = 0;
@@ -117,7 +117,7 @@ public:
     virtual void asyncCommit(std::function<void(const Error::Ptr&, size_t)> _callback) = 0;
     virtual std::pair<std::vector<TableInfo::Ptr>,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
-    exportData() = 0;
+    exportData(protocol::BlockNumber blockNumber) = 0;
     virtual void importData(std::vector<TableInfo::Ptr>&,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>&, bool) = 0;
     virtual protocol::BlockNumber blockNumber() const = 0;
