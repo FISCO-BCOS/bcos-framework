@@ -247,7 +247,6 @@ public:
                 for (auto it = range.begin(); it != range.end(); ++it)
                 {
                     auto table = m_name2Table[infos[it]->name];
-                    STORAGE_LOG(TRACE) << "Dumping table: " << infos[it]->name;
                     auto tableData = table->dump();
                     datas[it] = (tableData);
                 }
