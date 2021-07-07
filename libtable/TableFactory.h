@@ -174,7 +174,7 @@ public:
     {
         auto start_time = utcTime();
         auto record_time = utcTime();
-        auto data = exportData();
+        auto data = exportData(m_blockNumber);
         auto getData_time_cost = utcTime() - record_time;
         record_time = utcTime();
         std::pair<size_t, Error::Ptr> ret{0, nullptr};
@@ -202,7 +202,7 @@ public:
     {
         auto start_time = utcTime();
         auto record_time = utcTime();
-        auto data = exportData();
+        auto data = exportData(m_blockNumber);
         auto getData_time_cost = utcTime() - record_time;
         record_time = utcTime();
         if (!data.second.empty())
@@ -223,9 +223,10 @@ public:
                                << LOG_KV("totalTimeCost", utcTime() - start_time);
         }
     }
+
     std::pair<std::vector<TableInfo::Ptr>,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
-    exportData() override
+    exportData(protocol::BlockNumber blockNumber) override
     {
         std::pair<std::vector<TableInfo::Ptr>,
             std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
@@ -247,7 +248,7 @@ public:
                 for (auto it = range.begin(); it != range.end(); ++it)
                 {
                     auto table = m_name2Table[infos[it]->name];
-                    auto tableData = table->dump();
+                    auto tableData = table->dump(blockNumber);
                     datas[it] = (tableData);
                 }
             });

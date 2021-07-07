@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(entry != nullptr);
     BOOST_TEST(table->dirty() == true);
     auto dbHash0 = tableFactory->hash();
-    auto data0 = tableFactory->exportData();
+    auto data0 = tableFactory->exportData(m_blockNumber);
     auto tableFactory0 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
     tableFactory0->importData(data0.first, data0.second);
     BOOST_TEST(dbHash0 == tableFactory0->hash());
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(keys.size() == 2);
     auto entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 2);
-    auto data1 = tableFactory->exportData();
+    auto data1 = tableFactory->exportData(m_blockNumber);
     auto dbHash1 = tableFactory->hash();
     BOOST_TEST(dbHash1 != dbHash0);
     auto tableFactory1 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(ret == true);
     entry = table->getRow("id");
     BOOST_TEST(entry == nullptr);
-    auto data2 = tableFactory->exportData();
+    auto data2 = tableFactory->exportData(m_blockNumber);
     auto dbHash2 = tableFactory->hash();
     auto tableFactory2 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
     tableFactory2->importData(data2.first, data2.second);
@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(entry == nullptr);
     BOOST_TEST(table->dirty() == true);
 
-    auto data3 = tableFactory->exportData();
+    auto data3 = tableFactory->exportData(m_blockNumber);
     auto dbHash3 = tableFactory->hash();
     cout << LOG_KV("dbHash3", dbHash3) << LOG_KV("dbHash1", dbHash1);
     BOOST_TEST(dbHash3 == dbHash1);

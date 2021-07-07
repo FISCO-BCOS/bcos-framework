@@ -74,14 +74,14 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     table->setRow("name", entry);
     auto tableinfo = table->tableInfo();
     BOOST_TEST(tableinfo->name == tableName);
-    auto data = table->dump();
+    auto data = table->dump(m_blockNumber);
     auto hash = table->hash();
     BOOST_TEST(data->size() == 1);
     entry = table->newEntry();
     entry->setField("key", "name2");
     entry->setField("value", "WW");
     table->setRow("name2", entry);
-    data = table->dump();
+    data = table->dump(m_blockNumber);
     BOOST_TEST(data->size() == 2);
     hash = table->hash();
     BOOST_TEST(table->dirty() == true);
