@@ -315,14 +315,13 @@ crypto::HashType Table::hash()
         auto data = dump();
 #if FISCO_DEBUG
         stringstream ss;
-        for (auto & entryIt : *data)
+        for (auto& entryIt : *data)
         {
             auto key = entryIt.first;
             auto entry = entryIt.second;
-            ss << endl
-               << " [ status=" << entry->getStatus() << " ]"
-               << " [ num=" << entry->num() << " ]"
-               << "***" << key << endl;
+            ss << "[ status=" << entry->getStatus() << " ]"
+               << "[ num=" << entry->num() << " ]"
+               << "[ *key=" << key << " ]";
             for (auto& it : *entry)
             {
                 ss << "[ " << it.first << "=" << it.second << " ]";
