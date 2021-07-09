@@ -73,6 +73,9 @@ public:
 
     unsigned getLogLevel(std::string const& levelStr);
 
+    void setLogPath(std::string const& _logPath) { m_logPath = _logPath; }
+    std::string logPath() const { return m_logPath; }
+
 private:
     bool canRotate(size_t const& _index);
 
@@ -84,5 +87,6 @@ private:
     void stopLogging(boost::shared_ptr<sink_t> sink);
     std::vector<boost::shared_ptr<sink_t>> m_sinks;
     std::vector<int> m_currentHourVec;
+    std::string m_logPath;
 };
 }  // namespace bcos
