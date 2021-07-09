@@ -42,6 +42,14 @@ public:
 
     virtual ~SealingManager() {}
 
+    virtual void stop()
+    {
+        if (m_worker)
+        {
+            m_worker->stop();
+        }
+    }
+
     virtual bool shouldGenerateProposal();
     virtual bool shouldFetchTransaction();
 
