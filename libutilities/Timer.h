@@ -51,7 +51,9 @@ public:
         });
     }
 
-    virtual ~Timer()
+    virtual ~Timer() { destroy(); }
+
+    virtual void destroy()
     {
         if (!m_working)
         {
@@ -62,7 +64,6 @@ public:
         m_ioService->stop();
         m_worker->join();
     }
-
     virtual void start();
     virtual void stop();
     virtual void restart()

@@ -40,7 +40,7 @@ public:
         m_worker(std::make_shared<ThreadPool>("sealerWorker", 1))
     {}
 
-    virtual ~SealingManager() {}
+    virtual ~SealingManager() { stop(); }
 
     virtual void stop()
     {
