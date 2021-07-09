@@ -48,11 +48,14 @@ bool BoostLogInitializer::canRotate(size_t const& _index)
 void BoostLogInitializer::initStatLog(boost::property_tree::ptree const& _pt,
     std::string const& _logger, std::string const& _logPrefix)
 {
-    std::string logPath = "./stat";
-
+    // not set the log path before init
+    if (m_logPath.size() == 0)
+    {
+        m_logPath = _pt.get<std::string>("log.log_path", "log");
+    }
     /// set log level
     unsigned logLevel = getLogLevel(_pt.get<std::string>("log.level", "info"));
-    auto sink = initLogSink(_pt, logLevel, logPath, _logPrefix, _logger);
+    auto sink = initLogSink(_pt, logLevel, m_logPath, _logPrefix, _logger);
 
     setStatLogLevel((LogLevel)logLevel);
 
@@ -76,10 +79,14 @@ void BoostLogInitializer::initStatLog(boost::property_tree::ptree const& _pt,
 void BoostLogInitializer::initLog(boost::property_tree::ptree const& _pt,
     std::string const& _logger, std::string const& _logPrefix)
 {
-    std::string logPath = _pt.get<std::string>("log.log_path", "log");
+    // not set the log path before init
+    if (m_logPath.size() == 0)
+    {
+        m_logPath = _pt.get<std::string>("log.log_path", "log");
+    }
     /// set log level
     unsigned logLevel = getLogLevel(_pt.get<std::string>("log.level", "info"));
-    auto sink = initLogSink(_pt, logLevel, logPath, _logPrefix, _logger);
+    auto sink = initLogSink(_pt, logLevel, m_logPath, _logPrefix, _logger);
 
     setFileLogLevel((LogLevel)logLevel);
 
