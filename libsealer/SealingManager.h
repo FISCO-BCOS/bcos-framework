@@ -40,7 +40,15 @@ public:
         m_worker(std::make_shared<ThreadPool>("sealerWorker", 1))
     {}
 
-    virtual ~SealingManager() {}
+    virtual ~SealingManager() { stop(); }
+
+    virtual void stop()
+    {
+        if (m_worker)
+        {
+            m_worker->stop();
+        }
+    }
 
     virtual bool shouldGenerateProposal();
     virtual bool shouldFetchTransaction();

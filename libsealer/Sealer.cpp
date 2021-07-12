@@ -42,6 +42,9 @@ void Sealer::stop()
         SEAL_LOG(INFO) << LOG_DESC("the sealer has already been stopped");
         return;
     }
+    SEAL_LOG(INFO) << LOG_DESC("stop the sealer");
+    m_running = false;
+    m_sealingManager->stop();
     finishWorker();
     if (isWorking())
     {
