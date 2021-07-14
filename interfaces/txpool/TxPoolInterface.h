@@ -112,6 +112,9 @@ public:
     // for RPC to get pending transactions
     virtual void asyncGetPendingTransactionSize(
         std::function<void(Error::Ptr, size_t)> _onGetTxsSize) = 0;
+
+    // notify to reset the txpool when the consensus module startup
+    virtual void asyncResetTxPool(std::function<void(Error::Ptr)> _onRecvResponse) = 0;
 };
 }  // namespace txpool
 }  // namespace bcos
