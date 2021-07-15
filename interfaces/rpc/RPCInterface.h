@@ -19,31 +19,33 @@
  */
 #pragma once
 
-#include <bcos-framework/interfaces/protocol/ProtocolTypeDef.h>
-#include <bcos-framework/libutilities/Common.h>
+#include "../../interfaces/protocol/ProtocolTypeDef.h"
+#include "../../libutilities/Error.h"
 
-namespace bcos {
-namespace rpc {
-class RPCInterface {
+namespace bcos
+{
+namespace rpc
+{
+class RPCInterface
+{
 public:
-  using Ptr = std::shared_ptr<RPCInterface>;
+    using Ptr = std::shared_ptr<RPCInterface>;
 
-  virtual ~RPCInterface() = 0;
-
-public:
-  virtual void start() = 0;
-  virtual void stop() = 0;
+    virtual ~RPCInterface() {}
 
 public:
-  /**
-   * @brief: notify blockNumber to rpc
-   * @param _blockNumber: blockNumber
-   * @param _callback: resp callback
-   * @return void
-   */
-  virtual void
-  asyncNotifyBlockNumber(bcos::protocol::BlockNumber _blockNumber,
-                         std::function<void(Error::Ptr)> _callback) = 0;
+    virtual void start() = 0;
+    virtual void stop() = 0;
+
+public:
+    /**
+     * @brief: notify blockNumber to rpc
+     * @param _blockNumber: blockNumber
+     * @param _callback: resp callback
+     * @return void
+     */
+    virtual void asyncNotifyBlockNumber(
+        bcos::protocol::BlockNumber _blockNumber, std::function<void(Error::Ptr)> _callback) = 0;
 };
-} // namespace rpc
-} // namespace bcos
+}  // namespace rpc
+}  // namespace bcos
