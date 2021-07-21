@@ -61,6 +61,7 @@ public:
             _sealCallback) = 0;
 
     virtual void asyncMarkTxs(bcos::crypto::HashListPtr _txsHash, bool _sealedFlag,
+        bcos::protocol::BlockNumber _batchId, bcos::crypto::HashType const& _batchHash,
         std::function<void(Error::Ptr)> _onRecvResponse) = 0;
     /**
      * @brief verify transactions in Block for the consensus module

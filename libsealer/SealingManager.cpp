@@ -24,6 +24,15 @@ using namespace bcos::sealer;
 using namespace bcos::crypto;
 using namespace bcos::protocol;
 
+void SealingManager::resetSealing()
+{
+    SEAL_LOG(INFO) << LOG_DESC("resetSealing") << LOG_KV("startNum", m_startSealingNumber)
+                   << LOG_KV("endNum", m_endSealingNumber) << LOG_KV("sealingNum", m_sealingNumber)
+                   << LOG_KV("pendingTxs", pendingTxsSize());
+    m_sealingNumber = m_endSealingNumber + 1;
+    clearPendingTxs();
+}
+
 void SealingManager::appendTransactions(HashListPtr _fetchedTxs, bool _systemTx)
 {
     WriteGuard l(x_pendingTxs);
@@ -100,8 +109,8 @@ void SealingManager::clearPendingTxs()
 
 void SealingManager::notifyResetTxsFlag(HashListPtr _txsHashList, bool _flag, size_t _retryTime)
 {
-    m_config->txpool()->asyncMarkTxs(
-        _txsHashList, _flag, [this, _txsHashList, _flag, _retryTime](Error::Ptr _error) {
+    m_config->txpool()->asyncMarkTxs(_txsHashList, _flag, 0, bcos::crypto::HashType(),
+        [this, _txsHashList, _flag, _retryTime](Error::Ptr _error) {
             if (_error == nullptr)
             {
                 return;
@@ -148,6 +157,7 @@ Block::Ptr SealingManager::generateProposal()
         m_pendingTxs->pop_front();
     }
     m_sealingNumber++;
+
     m_lastSealTime = utcSteadyTime();
     return block;
 }

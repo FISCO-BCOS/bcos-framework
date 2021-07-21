@@ -63,6 +63,7 @@ public:
 
     void asyncNoteLatestBlockNumber(int64_t _blockNumber) override { m_blockNumber = _blockNumber; }
     int64_t blockNumber() const { return m_blockNumber; }
+    void asyncResetSealing(std::function<void(Error::Ptr)>) override {}
 
 private:
     std::atomic<size_t> m_unSealedTxsSize = {0};

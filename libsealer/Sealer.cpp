@@ -130,3 +130,12 @@ void Sealer::submitProposal(bcos::protocol::Block::Ptr _proposal)
                               << LOG_KV("txsSize", _proposal->transactionsHashSize());
         });
 }
+
+void Sealer::asyncResetSealing(std::function<void(Error::Ptr)> _onRecvResponse)
+{
+    m_sealingManager->resetSealing();
+    if (_onRecvResponse)
+    {
+        _onRecvResponse(nullptr);
+    }
+}

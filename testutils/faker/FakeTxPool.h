@@ -75,7 +75,9 @@ public:
     {}
 
     // TODO: fake this interface for libsealer
-    void asyncMarkTxs(HashListPtr, bool, std::function<void(Error::Ptr)>) override {}
+    void asyncMarkTxs(HashListPtr, bool, bcos::protocol::BlockNumber, bcos::crypto::HashType const&,
+        std::function<void(Error::Ptr)>) override
+    {}
 
     void asyncVerifyBlock(PublicPtr, bytesConstRef const&,
         std::function<void(Error::Ptr, bool)> _onVerifyFinished) override

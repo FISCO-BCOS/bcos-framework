@@ -68,9 +68,12 @@ public:
         });
     }
 
+    // the consensus module notify the sealer to reset sealing when viewchange
+    virtual void resetSealing();
     virtual void resetSealingInfo(
         ssize_t _startSealingNumber, ssize_t _endSealingNumber, size_t _maxTxsPerBlock)
     {
+        clearPendingTxs();
         m_startSealingNumber = _startSealingNumber;
         m_endSealingNumber = _endSealingNumber;
         m_maxTxsPerBlock = _maxTxsPerBlock;

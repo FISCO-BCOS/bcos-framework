@@ -48,6 +48,8 @@ public:
         size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse) override;
 
     void asyncNoteLatestBlockNumber(int64_t _blockNumber) override;
+    // interface for the consensus module to notify reset the sealing transactions
+    void asyncResetSealing(std::function<void(Error::Ptr)> _onRecvResponse) override;
 
     virtual void init(bcos::consensus::ConsensusInterface::Ptr _consensus);
 
