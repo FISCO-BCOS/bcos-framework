@@ -17,8 +17,8 @@
  * @file Base64.cpp
  */
 #include "libutilities/Base64.h"
-#include "libutilities/DataConvertUtility.h"
 #include "../../../testutils/TestPromptFixture.h"
+#include "libutilities/DataConvertUtility.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
@@ -61,6 +61,24 @@ BOOST_AUTO_TEST_CASE(testBase64Encode)
 {
     const std::string decodeStr = "1234ABcd";
     BOOST_CHECK(base64Encode(decodeStr) == "MTIzNEFCY2Q=");
+}
+
+BOOST_AUTO_TEST_CASE(testBase64Codec)
+{
+    std::string org =
+        "aabbddeejlaskdjfaksldfjaksdjflkasdjfkasldjfkasdjfkalsdjfkaljfdk98qe9r8eq-"
+        "9r0qw0eriq0wepotlasadf";
+    for (int i = 0; i < 100; ++i)
+    {
+        std::string s = org + std::to_string(i);
+        auto base64 = base64Encode(s);
+
+        auto s0 = base64Decode(base64);
+        auto bytes = base64DecodeBytes(base64);
+        auto s1 = std::string(bytes->begin(), bytes->end());
+        BOOST_CHECK_EQUAL(s, s0);
+        BOOST_CHECK_EQUAL(s, s1);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
