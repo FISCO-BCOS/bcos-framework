@@ -28,6 +28,8 @@ namespace bcos
 namespace gateway
 {
 using ErrorRespFunc = std::function<void(Error::Ptr)>;
+using PeerRespFunc = std::function<void(Error::Ptr, const std::string&)>;
+
 /**
  * @brief: A list of interfaces provided by the gateway which are called by the front service.
  */
@@ -44,6 +46,12 @@ public:
     virtual void stop() = 0;
 
 public:
+    /**
+     * @brief: get connected peers
+     * @param _peerRespFunc:
+     * @return void
+     */
+    virtual void asyncGetPeers(PeerRespFunc _peerRespFunc) = 0;
     /**
      * @brief: send message to a single node
      * @param _groupID: groupID
