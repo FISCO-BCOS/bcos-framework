@@ -43,20 +43,15 @@ std::string bcos::base64Encode(bytesConstRef _data)
     return base64Encode(_data.data(), _data.size());
 }
 
-std::shared_ptr<bcos::bytes> bcos::base64DecodeBytes(std::string const& _data)
-{
-    using It = transform_width<binary_from_base64<bcos::byte*>, 8, 6>;
-    size_t dataEndPos = _data.find_first_of('=');
-    size_t dataSize = _data.size();
-    if (dataEndPos > 0)
-    {
-        dataSize = dataEndPos;
-    }
-    return std::make_shared<bcos::bytes>(It(_data.data()), It(_data.data() + dataSize));
-}
-
 std::string bcos::base64Decode(std::string const& _data)
 {
-    auto decodedData = base64DecodeBytes(_data);
-    return std::string(decodedData->begin(), decodedData->end());
+    using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
+    return boost::algorithm::trim_right_copy_if(
+        std::string(It(std::begin(_data)), It(std::end(_data))), [](char c) { return c == '\0'; });
+}
+
+std::shared_ptr<bcos::bytes> bcos::base64DecodeBytes(std::string const& _data)
+{
+    auto s = base64Decode(_data);
+    return std::make_shared<bcos::bytes>(s.begin(), s.end());
 }
