@@ -40,7 +40,7 @@ public:
     virtual void asyncGetLatestBlock(
         std::function<void(const Error::Ptr&, const protocol::Block::Ptr&)> _callback) = 0;
     virtual void asyncNotifyExecutionResult(const Error::Ptr& _error,
-        const protocol::BlockHeader::Ptr& _header,
+        bcos::crypto::HashType const& _orgHash, const protocol::BlockHeader::Ptr& _header,
         std::function<void(const Error::Ptr&)> _callback) = 0;
     virtual void start() = 0;
     virtual void stop() = 0;

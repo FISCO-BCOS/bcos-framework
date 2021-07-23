@@ -123,8 +123,8 @@ public:
     void asyncGetLatestBlock(std::function<void(const Error::Ptr&, const Block::Ptr&)>) override {}
 
     // useless for PBFT, maybe useful for executors
-    void asyncNotifyExecutionResult(const Error::Ptr&, const std::shared_ptr<BlockHeader>&,
-        std::function<void(const Error::Ptr&)>) override
+    void asyncNotifyExecutionResult(const Error::Ptr&, bcos::crypto::HashType const&,
+        const std::shared_ptr<BlockHeader>&, std::function<void(const Error::Ptr&)>) override
     {}
 
     void stop() override {}
