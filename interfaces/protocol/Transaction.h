@@ -127,6 +127,12 @@ public:
     virtual void setSystemTx(bool _systemTx) const { m_systemTx = _systemTx; }
     virtual bool systemTx() const { return m_systemTx; }
 
+    virtual void setBatchId(bcos::protocol::BlockNumber _batchId) const { m_batchId = _batchId; }
+    virtual bcos::protocol::BlockNumber batchId() const { return m_batchId; }
+
+    virtual void setBatchHash(bcos::crypto::HashType const& _hash) const { m_batchHash = _hash; }
+    virtual bcos::crypto::HashType const& batchHash() const { return m_batchHash; }
+
 protected:
     mutable bcos::bytes m_sender;
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
@@ -136,6 +142,11 @@ protected:
     mutable std::atomic_bool m_synced = {false};
     // the tx has been sealed by the leader of not
     mutable std::atomic_bool m_sealed = {false};
+    // the number of proposal that the tx batched into
+    mutable bcos::protocol::BlockNumber m_batchId = {-1};
+    // the hash of the proposal that the tx batched into
+    mutable bcos::crypto::HashType m_batchHash;
+
     // the tx is invalid for verify failed
     mutable std::atomic_bool m_invalid = {false};
 

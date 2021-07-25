@@ -44,10 +44,12 @@ inline void checkBlockHeader(BlockHeader::Ptr blockHeader, BlockHeader::Ptr deco
     BOOST_CHECK(decodedBlockHeader->gasUsed() == blockHeader->gasUsed());
     BOOST_CHECK(decodedBlockHeader->timestamp() == blockHeader->timestamp());
     BOOST_CHECK(decodedBlockHeader->sealer() == blockHeader->sealer());
-    BOOST_CHECK(decodedBlockHeader->sealerList().size() == blockHeader->sealerList().size());
-    for (auto i = 0; i < decodedBlockHeader->sealerList().size(); i++)
+
+    auto decodedSealerList = decodedBlockHeader->sealerList();
+    BOOST_CHECK(decodedSealerList.size() == blockHeader->sealerList().size());
+    for (auto i = 0; i < decodedSealerList.size(); i++)
     {
-        BOOST_CHECK(decodedBlockHeader->sealerList()[i] == blockHeader->sealerList()[i]);
+        BOOST_CHECK(decodedSealerList[i] == blockHeader->sealerList()[i]);
     }
     BOOST_CHECK(decodedBlockHeader->extraData().toBytes() == blockHeader->extraData().toBytes());
     BOOST_CHECK((decodedBlockHeader->consensusWeights()) == (blockHeader->consensusWeights()));
