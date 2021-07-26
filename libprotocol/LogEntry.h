@@ -41,18 +41,6 @@ public:
     bytesConstRef address() const { return ref(m_address); }
     gsl::span<const h256> topics() const { return gsl::span(m_topics.data(), m_topics.size()); }
     bytesConstRef data() const { return ref(m_data); }
-
-    LogBloom bloom(bcos::crypto::CryptoSuite::Ptr _cryptoSuite) const
-    {
-        LogBloom logBloom;
-        logBloom.shiftBloom<3>(_cryptoSuite->hash(m_address));
-        for (auto const& topic : m_topics)
-        {
-            logBloom.shiftBloom<3>(_cryptoSuite->hash(topic.ref()));
-        }
-        return logBloom;
-    }
-
     // Define the scale decode method, which cannot be modified at will
     template <class Stream, typename = std::enable_if_t<Stream::is_decoder_stream>>
     friend Stream& operator>>(Stream& _stream, LogEntry& _logEntry)
@@ -75,16 +63,5 @@ private:
 
 using LogEntries = std::vector<LogEntry>;
 using LogEntriesPtr = std::shared_ptr<std::vector<LogEntry>>;
-
-inline LogBloom generateBloom(
-    LogEntriesPtr _logEntries, bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
-{
-    LogBloom logBloom;
-    for (auto const& logEntry : *_logEntries)
-    {
-        logBloom |= logEntry.bloom(_cryptoSuite);
-    }
-    return logBloom;
-}
 }  // namespace protocol
 }  // namespace bcos

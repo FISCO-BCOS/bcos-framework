@@ -45,7 +45,6 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
     m_contractAddress(_contractAddress),
     m_logEntries(_logEntries),
     m_status(_status),
-    m_bloom(generateBloom(_logEntries, _cryptoSuite)),
     m_blockNumber(_blockNumber)
 {
     m_dataCache = std::make_shared<bytes>();
@@ -77,7 +76,7 @@ void PBTransactionReceipt::decode(bytesConstRef _data)
     decodePBObject(m_receipt, _data);
     ScaleDecoderStream stream(gsl::span<const byte>(
         (byte*)m_receipt->hashfieldsdata().data(), m_receipt->hashfieldsdata().size()));
-    stream >> m_status >> m_output >> m_contractAddress >> m_gasUsed >> m_bloom >> m_logEntries >>
+    stream >> m_status >> m_output >> m_contractAddress >> m_gasUsed >> m_logEntries >>
         m_blockNumber;
 }
 
@@ -114,7 +113,7 @@ void PBTransactionReceipt::encodeHashFields() const
     }
     // encode the hashFieldsData
     ScaleEncoderStream stream;
-    stream << m_status << m_output << m_contractAddress << m_gasUsed << m_bloom << m_logEntries
+    stream << m_status << m_output << m_contractAddress << m_gasUsed << m_logEntries
            << m_blockNumber;
     auto hashFieldsData = stream.data();
     m_receipt->set_version(m_version);
