@@ -59,8 +59,6 @@ public:
     {
         return gsl::span<const LogEntry>(m_logEntries->data(), m_logEntries->size());
     }
-    LogBloom const& bloom() const override { return m_bloom; }
-
     BlockNumber blockNumber() const override { return m_blockNumber; }
 
 private:
@@ -79,7 +77,6 @@ private:
     LogEntriesPtr m_logEntries;
     int32_t m_status;
     bytes m_output;
-    LogBloom m_bloom;
     BlockNumber m_blockNumber;
 };
 }  // namespace protocol

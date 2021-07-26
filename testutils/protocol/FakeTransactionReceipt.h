@@ -58,7 +58,6 @@ inline void checkReceipts(Hash::Ptr hashImpl, TransactionReceipt::ConstPtr recei
     BOOST_CHECK(decodedReceipt->status() == receipt->status());
     BOOST_CHECK(decodedReceipt->output().toBytes() == receipt->output().toBytes());
     // BOOST_CHECK(decodedReceipt->hash() == receipt->hash());
-    BOOST_CHECK(decodedReceipt->bloom() == receipt->bloom());
     // check LogEntries
     BOOST_CHECK(decodedReceipt->logEntries().size() == 2);
     BOOST_CHECK(decodedReceipt->logEntries().size() == receipt->logEntries().size());
@@ -89,7 +88,6 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
     {
         receipt->encode(*encodedData);
     }
-
 #if 0
     std::cout << "##### testPBTransactionReceipt:"
               << "encodedData:" << *toHexString(*encodedData) << std::endl;
@@ -97,7 +95,6 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
     std::cout << "receipt->contractAddress():" << *toHexString(receipt->contractAddress())
               << std::endl;
     std::cout << "receipt->hash().hex(): " << receipt->hash().hex() << std::endl;
-    std::cout << "receipt->bloom().hex():" << receipt->bloom().hex() << std::endl;
     auto& logEntry = (receipt->logEntries())[1];
     std::cout << "(logEntry.topics()[0]).hex():" << (logEntry.topics()[0]).hex() << std::endl;
     std::cout << "*toHexString(logEntry.address()):" << *toHexString(logEntry.address())
@@ -107,6 +104,7 @@ inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _crypto
     std::cout << "##### ScaleReceipt encodeT: " << (utcTime() - start)
               << ", encodedData size:" << encodedData->size() << std::endl;
 #endif
+
     auto encodedDataCache = receipt->encode();
     BOOST_CHECK(*encodedData == encodedDataCache.toBytes());
 
