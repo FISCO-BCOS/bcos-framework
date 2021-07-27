@@ -34,6 +34,7 @@ namespace dispatcher
 class SchedulerInterface
 {
 public:
+    // batch interface
     virtual void begin(long batchID, bcos::protocol::BlockNumber beginNumber,
         std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Batch&)> callback) noexcept = 0;
 
@@ -43,11 +44,14 @@ public:
     virtual void status(long batchID,
         std::function<void(const Error::ConstPtr&, const bcos::protocol::Batch&)> callback) noexcept = 0;
 
+    // execute interface
     virtual void executeBlock(long batchID,
         const gsl::span<bcos::protocol::Block::ConstPtr>& blocks, bool verify,
         std::function<void(
             const bcos::Error::ConstPtr&, const gsl::span<bcos::protocol::BlockHeader::ConstPtr>&)>
             callback) noexcept = 0;
+
+    // manage interface
 };
 }  // namespace dispatcher
 }  // namespace bcos

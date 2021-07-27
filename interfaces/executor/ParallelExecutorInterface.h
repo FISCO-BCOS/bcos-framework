@@ -44,7 +44,6 @@ public:
     struct Args
     {
         long contextID;
-        bcos::bytes to;
         bcos::bytes input;
     };
 
@@ -62,6 +61,8 @@ public:
     virtual void execute(const Args& args,
         std::function<void(const bcos::Error::ConstPtr&, Status status, std::optional<Args>)>
             callback) noexcept = 0;
+
+    virtual void dagExecute(const gsl::span<Args> argsList, std::function<void(const bcos::Error::ConstPtr&)> callback) = 0;
 };
 }  // namespace executor
 }  // namespace bcos
