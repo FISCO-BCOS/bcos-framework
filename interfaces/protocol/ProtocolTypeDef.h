@@ -82,5 +82,21 @@ using WeightList = std::vector<uint64_t>;
 using WeightListPtr = std::shared_ptr<WeightList>;
 
 int64_t constexpr InvalidSealerIndex = INT64_MAX;
+
+struct Batch
+{
+    enum Status
+    {
+        START = 0,
+        EXECUTING,
+        EXECUTED,
+    };
+
+    long batchID;
+    bcos::protocol::BlockNumber beginNumber;  // [
+    bcos::protocol::BlockNumber endNumber;    // )
+    Status status;
+};
+
 }  // namespace protocol
 }  // namespace bcos

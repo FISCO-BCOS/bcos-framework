@@ -13,41 +13,55 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief interface of Scheduler
- * @file SchedulerInterface.h
+ * @brief interface of Executor
+ * @file ParallelExecutorInterface.h
  * @author: ancelmo
  * @date: 2021-07-27
  */
 
 #pragma once
-#include "../../libutilities/Error.h"
+
+#include "../../libutilities/Common.h"
+#include "../../libutilities/FixedBytes.h"
 #include "../crypto/CommonType.h"
-#include "../protocol/Block.h"
-#include "interfaces/protocol/ProtocolTypeDef.h"
-#include <functional>
+#include "../protocol/ProtocolTypeDef.h"
+#include "../protocol/Transaction.h"
+#include "../protocol/TransactionReceipt.h"
 #include <memory>
 
 namespace bcos
 {
-namespace dispatcher
+namespace executor
 {
-class SchedulerInterface
+class ParallelExecutorInterface
 {
 public:
+    enum Status {
+        FINISHED,
+        PAUSE
+    };
+
+    struct Args
+    {
+        long contextID;
+        bcos::bytes to;
+        bcos::bytes input;
+    };
+
     virtual void begin(long batchID, bcos::protocol::BlockNumber beginNumber,
-        std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Batch&)> callback) noexcept = 0;
+        std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Batch&)>
+            callback) noexcept = 0;
 
     virtual void end(long batchID, bool commit, bcos::protocol::BlockNumber endNumber,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 
     virtual void status(long batchID,
-        std::function<void(const Error::ConstPtr&, const bcos::protocol::Batch&)> callback) noexcept = 0;
+        std::function<void(const Error::ConstPtr&, const bcos::protocol::Batch&)>
+            callback) noexcept = 0;
 
-    virtual void executeBlock(long batchID,
-        const gsl::span<bcos::protocol::Block::ConstPtr>& blocks, bool verify,
-        std::function<void(
-            const bcos::Error::ConstPtr&, const gsl::span<bcos::protocol::BlockHeader::ConstPtr>&)>
+    virtual void execute(const Args& args,
+        std::function<void(const bcos::Error::ConstPtr&, Status status, std::optional<Args>)>
             callback) noexcept = 0;
 };
-}  // namespace dispatcher
+}  // namespace executor
 }  // namespace bcos
