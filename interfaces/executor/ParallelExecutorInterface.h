@@ -51,11 +51,11 @@ public:
         } status;
 
         // for finish
-        std::optional<bcos::bytes> output;
+        bcos::bytes output;
 
         // for pause
-        std::optional<bcos::bytes> to;
-        std::optional<bcos::bytes> input;
+        bcos::bytes to;
+        bcos::bytes input;
     };
 
     // session interfaces

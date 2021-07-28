@@ -61,7 +61,8 @@ public:
             const Error::ConstPtr&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
 
     // manage interfaces
-    // TODO: add manage interfaces
+    virtual void registerExecutor(const bytesConstRef& contract,
+        std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 };
 }  // namespace dispatcher
 }  // namespace bcos
