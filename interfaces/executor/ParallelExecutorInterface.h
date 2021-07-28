@@ -36,33 +36,50 @@ namespace executor
 class ParallelExecutorInterface
 {
 public:
-    enum Status {
-        FINISHED,
-        PAUSE
-    };
+    using Ptr = std::shared_ptr<ParallelExecutorInterface>;
+    using ConstPtr = std::shared_ptr<const ParallelExecutorInterface>;
 
-    struct Args
+    struct ExecuteResult
     {
-        long contextID;
-        bcos::bytes input;
+        using Ptr = std::shared_ptr<ExecuteResult>;
+        using ConstPtr = std::shared_ptr<const ExecuteResult>;
+
+        enum
+        {
+            FINISHED = 0,
+            PAUSE
+        } status;
+
+        // for finish
+        std::optional<bcos::bytes> output;
+
+        // for pause
+        std::optional<bcos::bytes> to;
+        std::optional<bcos::bytes> input;
     };
 
-    virtual void begin(long batchID, bcos::protocol::BlockNumber beginNumber,
-        std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Batch&)>
+    // session interfaces
+    virtual void start(long sessionID, bcos::protocol::BlockNumber beginNumber,
+        std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Session::ConstPtr&)>
             callback) noexcept = 0;
 
-    virtual void end(long batchID, bool commit, bcos::protocol::BlockNumber endNumber,
+    virtual void commit(long sessionID, bcos::protocol::BlockNumber endNumber,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 
-    virtual void status(long batchID,
-        std::function<void(const Error::ConstPtr&, const bcos::protocol::Batch&)>
+    virtual void rollback(
+        long sessionID, std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+
+    virtual void status(long sessionID,
+        std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
             callback) noexcept = 0;
 
-    virtual void execute(const Args& args,
-        std::function<void(const bcos::Error::ConstPtr&, Status status, std::optional<Args>)>
+    // execute interfaces
+    virtual void execute(long contextID, bcos::bytesConstPtr input,
+        std::function<void(const bcos::Error::ConstPtr&, ExecuteResult::Ptr&&)>
             callback) noexcept = 0;
 
-    virtual void dagExecute(const gsl::span<Args> argsList, std::function<void(const bcos::Error::ConstPtr&)> callback) = 0;
+    // manage interfaces
+    virtual void shutdown(std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 };
 }  // namespace executor
 }  // namespace bcos

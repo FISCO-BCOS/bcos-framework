@@ -83,19 +83,23 @@ using WeightListPtr = std::shared_ptr<WeightList>;
 
 int64_t constexpr InvalidSealerIndex = INT64_MAX;
 
-struct Batch
+struct Session
 {
+    using Ptr = std::shared_ptr<Session>;
+    using ConstPtr = std::shared_ptr<const Session>;
+
     enum Status
     {
-        START = 0,
-        EXECUTING,
-        EXECUTED,
+        STARTED = 0,
+        DIRTY,
+        COMMITTED,
+        ROLLBACKED
     };
 
-    long batchID;
+    long sessionID;
+    Status status;
     bcos::protocol::BlockNumber beginNumber;  // [
     bcos::protocol::BlockNumber endNumber;    // )
-    Status status;
 };
 
 }  // namespace protocol

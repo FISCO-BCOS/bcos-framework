@@ -48,6 +48,7 @@ using namespace boost::multiprecision::literals;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
 using bytesPointer = std::shared_ptr<std::vector<byte>>;
+using bytesConstPtr = std::shared_ptr<const bytes>;
 using bytesRef = RefDataContainer<byte>;
 using bytesConstRef = RefDataContainer<byte const>;
 

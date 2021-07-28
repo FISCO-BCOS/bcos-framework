@@ -34,24 +34,34 @@ namespace dispatcher
 class SchedulerInterface
 {
 public:
-    // batch interface
-    virtual void begin(long batchID, bcos::protocol::BlockNumber beginNumber,
-        std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Batch&)> callback) noexcept = 0;
-
-    virtual void end(long batchID, bool commit, bcos::protocol::BlockNumber endNumber,
-        std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
-
-    virtual void status(long batchID,
-        std::function<void(const Error::ConstPtr&, const bcos::protocol::Batch&)> callback) noexcept = 0;
-
-    // execute interface
-    virtual void executeBlock(long batchID,
-        const gsl::span<bcos::protocol::Block::ConstPtr>& blocks, bool verify,
-        std::function<void(
-            const bcos::Error::ConstPtr&, const gsl::span<bcos::protocol::BlockHeader::ConstPtr>&)>
+    // session interfaces
+    virtual void start(long sessionID, bcos::protocol::BlockNumber beginNumber,
+        std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Session::ConstPtr&)>
             callback) noexcept = 0;
 
-    // manage interface
+    virtual void commit(long sessionID, bcos::protocol::BlockNumber endNumber,
+        std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+
+    virtual void rollback(
+        long sessionID, std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+
+    virtual void status(long sessionID,
+        std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
+            callback) noexcept = 0;
+
+    // execute interfaces
+    virtual void executeBlock(long sessionID,
+        const gsl::span<bcos::protocol::Block::ConstPtr>& blocks, bool verify,
+        std::function<void(const bcos::Error::ConstPtr&,
+            std::shared_ptr<std::vector<bcos::protocol::BlockHeader::Ptr>>&&)>
+            callback) noexcept = 0;
+
+    virtual void executeTransaction(const protocol::Transaction::ConstPtr& tx,
+        std::function<void(
+            const Error::ConstPtr&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
+
+    // manage interfaces
+    // TODO: add manage interfaces
 };
 }  // namespace dispatcher
 }  // namespace bcos
