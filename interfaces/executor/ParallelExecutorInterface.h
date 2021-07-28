@@ -39,10 +39,10 @@ public:
     using Ptr = std::shared_ptr<ParallelExecutorInterface>;
     using ConstPtr = std::shared_ptr<const ParallelExecutorInterface>;
 
-    struct ExecuteResult
+    struct ExecutionResult
     {
-        using Ptr = std::shared_ptr<ExecuteResult>;
-        using ConstPtr = std::shared_ptr<const ExecuteResult>;
+        using Ptr = std::shared_ptr<ExecutionResult>;
+        using ConstPtr = std::shared_ptr<const ExecutionResult>;
 
         enum
         {
@@ -75,7 +75,7 @@ public:
 
     // execute interfaces
     virtual void execute(long contextID, bcos::bytesConstPtr input,
-        std::function<void(const bcos::Error::ConstPtr&, ExecuteResult::Ptr&&)>
+        std::function<void(const bcos::Error::ConstPtr&, ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 
     // manage interfaces
