@@ -53,8 +53,7 @@ inline void checkReceipts(Hash::Ptr hashImpl, TransactionReceipt::ConstPtr recei
     // check the decodedReceipt
     BOOST_CHECK(decodedReceipt->version() == receipt->version());
     BOOST_CHECK(decodedReceipt->gasUsed() == receipt->gasUsed());
-    BOOST_CHECK(
-        decodedReceipt->contractAddress().toBytes() == receipt->contractAddress().toBytes());
+    BOOST_CHECK(decodedReceipt->contractAddress() == receipt->contractAddress());
     BOOST_CHECK(decodedReceipt->status() == receipt->status());
     BOOST_CHECK(decodedReceipt->output().toBytes() == receipt->output().toBytes());
     // BOOST_CHECK(decodedReceipt->hash() == receipt->hash());
@@ -64,24 +63,26 @@ inline void checkReceipts(Hash::Ptr hashImpl, TransactionReceipt::ConstPtr recei
     auto& logEntry = (decodedReceipt->logEntries())[1];
     auto expectedTopic = hashImpl->hash(std::to_string(1));
     BOOST_CHECK(logEntry.topics()[0] == expectedTopic);
-    BOOST_CHECK(logEntry.address().toBytes() == right160(expectedTopic).asBytes());
+    BOOST_CHECK(logEntry.address() == std::string_view((char*)right160(expectedTopic).data(), 20));
     BOOST_CHECK(logEntry.data().toBytes() == expectedTopic.asBytes());
 }
+
 inline TransactionReceipt::Ptr testPBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite)
 {
     auto hashImpl = _cryptoSuite->hashImpl();
     u256 gasUsed = 12343242342;
-    auto contractAddress = toAddress("5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
+    auto contractAddress = std::string("5fe3c4c3e2079879a0dba1937aca95ac16e68f0f");
     auto logEntries = fakeLogEntries(hashImpl, 2);
     TransactionStatus status = TransactionStatus::BadJumpDestination;
-    bytes output = contractAddress.asBytes();
+    bytes output = toAddress(contractAddress).asBytes();
     for (int i = 0; i < 10; i++)
     {
-        output += contractAddress.asBytes();
+        output += toAddress(contractAddress).asBytes();
     }
     auto factory = std::make_shared<PBTransactionReceiptFactory>(_cryptoSuite);
-    auto receipt = factory->createReceipt(
-        gasUsed, contractAddress.asBytes(), logEntries, (int32_t)status, output, 0);
+    auto receipt =
+        factory->createReceipt(gasUsed, std::string_view((char*)contractAddress.data(), 20),
+            logEntries, (int32_t)status, output, 0);
     // encode
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     for (size_t i = 0; i < 2; i++)

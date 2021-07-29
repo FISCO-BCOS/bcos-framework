@@ -38,7 +38,10 @@ public:
 
     ~LogEntry() {}
 
-    bytesConstRef address() const { return ref(m_address); }
+    std::string_view address() const
+    {
+        return std::string_view((char*)m_address.data(), m_address.size());
+    }
     gsl::span<const h256> topics() const { return gsl::span(m_topics.data(), m_topics.size()); }
     bytesConstRef data() const { return ref(m_data); }
     // Define the scale decode method, which cannot be modified at will
