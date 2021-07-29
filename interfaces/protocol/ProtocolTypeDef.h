@@ -82,5 +82,25 @@ using WeightList = std::vector<uint64_t>;
 using WeightListPtr = std::shared_ptr<WeightList>;
 
 int64_t constexpr InvalidSealerIndex = INT64_MAX;
+
+struct Session
+{
+    using Ptr = std::shared_ptr<Session>;
+    using ConstPtr = std::shared_ptr<const Session>;
+
+    enum Status
+    {
+        STARTED = 0,
+        DIRTY,
+        COMMITTED,
+        ROLLBACKED
+    };
+
+    long sessionID;
+    Status status;
+    bcos::protocol::BlockNumber beginNumber;  // [
+    bcos::protocol::BlockNumber endNumber;    // )
+};
+
 }  // namespace protocol
 }  // namespace bcos

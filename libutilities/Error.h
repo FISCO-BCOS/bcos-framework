@@ -26,6 +26,7 @@ class Error
 {
 public:
     using Ptr = std::shared_ptr<Error>;
+    using ConstPtr = std::shared_ptr<const Error>;
     Error() = default;
     Error(int32_t _errorCode, std::string const& _errorMessage)
       : m_errorCode(_errorCode), m_errorMessage(_errorMessage)
