@@ -18,8 +18,11 @@
  * @date: 2021-04-07
  */
 #pragma once
+#include "../interfaces/protocol/BlockHeader.h"
+#include "../interfaces/protocol/Transaction.h"
 #include "../interfaces/protocol/TransactionSubmitResult.h"
 #include "../libprotocol/TransactionStatus.h"
+
 namespace bcos
 {
 namespace protocol
@@ -58,18 +61,15 @@ public:
 
     // get transaction status
     uint32_t status() const override { return m_status; }
-    // get transaction receipt
-    TransactionReceipt::Ptr receipt() const override { return m_receipt; }
     // get transactionHash
     bcos::crypto::HashType const& txHash() const override { return m_txHash; }
     // get blockHash
     bcos::crypto::HashType const& blockHash() const override { return m_blockHash; }
-    // the sender
-    bytesConstRef from() const override { return m_sender; }
-    // to
-    bytesConstRef to() const override { return m_to; }
     // txIndex
     int64_t transactionIndex() const override { return m_transactionIndex; }
+
+    void setNonce(NonceType const& _nonce) override { m_nonce = _nonce; }
+    NonceType const& nonce() override { return m_nonce; }
 
 private:
     uint32_t m_status = (uint32_t)TransactionStatus::None;
@@ -79,6 +79,7 @@ private:
     bcos::crypto::HashType m_blockHash;
     bytesConstRef m_sender;
     bytesConstRef m_to;
+    NonceType m_nonce = -1;
 };
 }  // namespace protocol
 }  // namespace bcos
