@@ -56,12 +56,12 @@ public:
             std::shared_ptr<std::vector<bcos::protocol::BlockHeader::Ptr>>&&)>
             callback) noexcept = 0;
 
-    virtual void executeTransaction(const protocol::Transaction::ConstPtr& tx,
+    virtual void callTransaction(const protocol::Transaction::ConstPtr& tx,
         std::function<void(
             const Error::ConstPtr&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
 
     // manage interfaces
-    virtual void registerExecutor(const bytesConstRef& contract,
+    virtual void registerParallelExecutor(const bytesConstRef& contract,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 };
 }  // namespace dispatcher

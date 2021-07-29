@@ -27,6 +27,7 @@
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/Transaction.h"
 #include "../protocol/TransactionReceipt.h"
+#include "../protocol/ExecutionResult.h"
 #include <memory>
 
 namespace bcos
@@ -38,25 +39,6 @@ class ParallelExecutorInterface
 public:
     using Ptr = std::shared_ptr<ParallelExecutorInterface>;
     using ConstPtr = std::shared_ptr<const ParallelExecutorInterface>;
-
-    struct ExecutionResult
-    {
-        using Ptr = std::shared_ptr<ExecutionResult>;
-        using ConstPtr = std::shared_ptr<const ExecutionResult>;
-
-        enum
-        {
-            FINISHED = 0,
-            PAUSE
-        } status;
-
-        // for finish
-        bcos::bytes output;
-
-        // for pause
-        bcos::bytes to;
-        bcos::bytes input;
-    };
 
     // session interfaces
     virtual void start(long sessionID, bcos::protocol::BlockNumber beginNumber,
@@ -75,7 +57,7 @@ public:
 
     // execute interfaces
     virtual void execute(long contextID, bcos::bytesConstPtr input,
-        std::function<void(const bcos::Error::ConstPtr&, ExecutionResult::Ptr&&)>
+        std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 
     // manage interfaces
