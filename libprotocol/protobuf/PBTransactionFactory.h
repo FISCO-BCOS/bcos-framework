@@ -49,16 +49,15 @@ public:
         return std::make_shared<PBTransaction>(m_cryptoSuite, _txData, _checkSig);
     }
 
-    Transaction::Ptr createTransaction(int32_t _version, bytes const& _to,
+    Transaction::Ptr createTransaction(int32_t _version, const std::string_view& _to,
         bytes const& _input, u256 const& _nonce, int64_t _blockLimit,
-        std::string const& _chainId, std::string const& _groupId,
-        int64_t _importTime) override
+        std::string const& _chainId, std::string const& _groupId, int64_t _importTime) override
     {
         return std::make_shared<PBTransaction>(m_cryptoSuite, _version, _to, _input, _nonce,
             _blockLimit, _chainId, _groupId, _importTime);
     }
 
-    Transaction::Ptr createTransaction(int32_t _version, bytes const& _to,
+    Transaction::Ptr createTransaction(int32_t _version, const std::string_view& _to,
         bytes const& _input, u256 const& _nonce, int64_t _blockLimit,
         std::string const& _chainId, std::string const& _groupId, int64_t _importTime,
         bcos::crypto::KeyPairInterface::Ptr keyPair) override

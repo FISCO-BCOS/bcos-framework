@@ -48,7 +48,8 @@ BOOST_AUTO_TEST_CASE(testNormalTransaction)
     std::string chainId = "chainId";
     std::string groupId = "groupId";
 
-    testTransaction(cryptoSuite, keyPair, to.asBytes(), input, nonce, blockLimit, chainId, groupId);
+    testTransaction(cryptoSuite, keyPair, std::string_view((char*)to.asBytes().data(), 20), input,
+        nonce, blockLimit, chainId, groupId);
 }
 BOOST_AUTO_TEST_CASE(testSMTransaction)
 {
@@ -64,7 +65,8 @@ BOOST_AUTO_TEST_CASE(testSMTransaction)
     std::string chainId = "chainId";
     std::string groupId = "groupId";
 
-    testTransaction(cryptoSuite, keyPair, to.asBytes(), input, nonce, blockLimit, chainId, groupId);
+    testTransaction(cryptoSuite, keyPair, std::string_view((char*)to.data(), 20), input, nonce,
+        blockLimit, chainId, groupId);
 }
 
 void testBlock(CryptoSuite::Ptr cryptoSuite)
@@ -73,8 +75,8 @@ void testBlock(CryptoSuite::Ptr cryptoSuite)
     std::string input =
         "616e73616374696f6e1241e4dd502f6f5f3dbc0639e8587f2a9d6227dddac55e4c40b098fd3e3c4a60cabe6cd"
         "7";
-    PBTransaction tx(cryptoSuite, 100, *fromHexString(to), *fromHexString(input), u256(10086), 1000,
-        "testChain", "testGroup", 888);
+    PBTransaction tx(cryptoSuite, 100, to, *fromHexString(input), u256(10086), 1000, "testChain",
+        "testGroup", 888);
 
     auto keyPair = cryptoSuite->signatureImpl()->generateKeyPair();
     auto sign = cryptoSuite->signatureImpl()->sign(keyPair, tx.hash());
@@ -85,7 +87,7 @@ void testBlock(CryptoSuite::Ptr cryptoSuite)
     PBTransaction decodedTx(cryptoSuite, buffer, false);
 
     BOOST_CHECK_EQUAL(tx.version(), decodedTx.version());
-    BOOST_CHECK_EQUAL(tx.to().toString(), decodedTx.to().toString());
+    BOOST_CHECK_EQUAL(tx.to(), decodedTx.to());
     BOOST_CHECK_EQUAL(tx.input().toString(), decodedTx.input().toString());
     BOOST_CHECK_EQUAL(tx.nonce().convert_to<int>(), decodedTx.nonce().convert_to<int>());
     BOOST_CHECK_EQUAL(tx.blockLimit(), decodedTx.blockLimit());
@@ -153,8 +155,8 @@ BOOST_AUTO_TEST_CASE(testSMTransactionWithRawData)
     auto decodedTransaction = std::make_shared<PBTransaction>(cryptoSuite, *encodedBytes, true);
     BOOST_CHECK(decodedTransaction->hash().hex() == hashData);
     BOOST_CHECK(*toHexString(decodedTransaction->sender()) == sender);
-    BOOST_CHECK(decodedTransaction->to().toBytes() == bytes());
-    BOOST_CHECK(decodedTransaction->to().toBytes() == bytes());
+    BOOST_CHECK(decodedTransaction->to().empty());
+    BOOST_CHECK(decodedTransaction->to().empty());
     BOOST_CHECK(decodedTransaction->type() == TransactionType::ContractCreation);
     BOOST_CHECK(decodedTransaction->groupId() == "groupId");
     BOOST_CHECK(decodedTransaction->chainId() == "chainId");

@@ -34,9 +34,9 @@ class PBTransaction : public Transaction
 {
 public:
     using Ptr = std::shared_ptr<PBTransaction>;
-    PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t const& _version,
-        bytes const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
-        std::string const& _chainId, std::string const& _groupId, int64_t const& _importTime);
+    PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
+        const std::string_view& _to, bytes const& _input, u256 const& _nonce, int64_t _blockLimit,
+        std::string const& _chainId, std::string const& _groupId, int64_t _importTime);
 
     explicit PBTransaction(
         bcos::crypto::CryptoSuite::Ptr _cryptoSuite, bytesConstRef _txData, bool _checkSig);
@@ -63,10 +63,9 @@ public:
     std::string_view chainId() const override { return m_transactionHashFields->chainid(); }
     std::string_view groupId() const override { return m_transactionHashFields->groupid(); }
     int64_t blockLimit() const override { return m_transactionHashFields->blocklimit(); }
-    bytesConstRef to() const override
+    std::string_view to() const override
     {
-        auto const& _receiver = m_transactionHashFields->to();
-        return bytesConstRef((byte const*)_receiver.c_str(), _receiver.size());
+        return m_transactionHashFields->to();
     }
 
     bytesConstRef input() const override;

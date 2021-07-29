@@ -43,6 +43,7 @@ public:
     {
         return std::make_shared<TransactionSubmitResultImpl>(_blockHeader, _txHash);
     }
+
 };
 }  // namespace protocol
 }  // namespace bcos

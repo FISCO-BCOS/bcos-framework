@@ -32,14 +32,11 @@ class TransactionSubmitResultImpl : public TransactionSubmitResult
 public:
     using Ptr = std::shared_ptr<TransactionSubmitResultImpl>;
     TransactionSubmitResultImpl(TransactionReceipt::Ptr _receipt, bcos::crypto::HashType _txHash,
-        int64_t _transactionIndex, bcos::crypto::HashType _blockHash, bytesConstRef _sender,
-        bytesConstRef _to)
+        int64_t _transactionIndex, bcos::crypto::HashType _blockHash)
       : m_receipt(_receipt),
         m_txHash(_txHash),
         m_transactionIndex(_transactionIndex),
-        m_blockHash(_blockHash),
-        m_sender(_sender),
-        m_to(_to)
+        m_blockHash(_blockHash)
     {}
 
     TransactionSubmitResultImpl(
@@ -49,14 +46,14 @@ public:
 
     TransactionSubmitResultImpl(TransactionReceipt::Ptr _receipt, Transaction::Ptr _tx,
         int64_t _transactionIndex, BlockHeader::Ptr _blockHeader)
-      : TransactionSubmitResultImpl(_receipt, _tx->hash(), _transactionIndex, _blockHeader->hash(),
-            _tx->sender(), _tx->to())
+      : TransactionSubmitResultImpl(_receipt, _tx->hash(), _transactionIndex, _blockHeader->hash())
     {}
 
     explicit TransactionSubmitResultImpl(
         bcos::crypto::HashType const& _txHash, TransactionStatus _status)
       : m_status((uint32_t)_status), m_txHash(_txHash)
     {}
+
     virtual ~TransactionSubmitResultImpl() {}
 
     // get transaction status

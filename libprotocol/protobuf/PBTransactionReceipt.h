@@ -37,11 +37,11 @@ public:
     {}
 
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-        u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries,
+        u256 const& _gasUsed, const std::string_view& _contractAddress, LogEntriesPtr _logEntries,
         int32_t _status, bytes const& _output, BlockNumber _blockNumber);
 
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-        u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries,
+        u256 const& _gasUsed, const std::string_view& _contractAddress, LogEntriesPtr _logEntries,
         int32_t _status, bytes&& _output, BlockNumber _blockNumber);
 
     ~PBTransactionReceipt() {}
@@ -53,7 +53,10 @@ public:
     int32_t version() const override { return m_receipt->version(); }
     int32_t status() const override { return m_status; }
     bytesConstRef output() const override { return ref(m_output); }
-    bytesConstRef contractAddress() const override { return ref(m_contractAddress); }
+    std::string_view contractAddress() const override
+    {
+        return std::string_view((char*)m_contractAddress.data(), m_contractAddress.size());
+    }
     u256 const& gasUsed() const override { return m_gasUsed; }
     gsl::span<const LogEntry> logEntries() const override
     {
@@ -63,7 +66,7 @@ public:
 
 private:
     PBTransactionReceipt(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-        u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries,
+        u256 const& _gasUsed, const std::string_view& _contractAddress, LogEntriesPtr _logEntries,
         int32_t _status, BlockNumber _blockNumber);
     virtual void encodeHashFields() const;
 
