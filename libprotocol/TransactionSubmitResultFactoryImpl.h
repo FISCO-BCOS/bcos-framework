@@ -43,20 +43,6 @@ public:
     {
         return std::make_shared<TransactionSubmitResultImpl>(_blockHeader, _txHash);
     }
-
-    TransactionSubmitResult::Ptr createTxSubmitResult(TransactionReceipt::Ptr _receipt,
-        bcos::crypto::HashType _txHash, int64_t _txIndex, bcos::crypto::HashType _blockHash,
-        bytesConstRef _sender, bytesConstRef _to) override
-    {
-        return std::make_shared<TransactionSubmitResultImpl>(
-            _receipt, _txHash, _txIndex, _blockHash, _sender, _to);
-    }
-
-    TransactionSubmitResult::Ptr createTxSubmitResult(TransactionReceipt::Ptr _receipt,
-        Transaction::Ptr _tx, int64_t _txIndex, BlockHeader::Ptr _blockHeader) override
-    {
-        return std::make_shared<TransactionSubmitResultImpl>(_receipt, _tx, _txIndex, _blockHeader);
-    }
 };
 }  // namespace protocol
 }  // namespace bcos

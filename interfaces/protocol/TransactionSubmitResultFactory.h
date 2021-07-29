@@ -38,11 +38,6 @@ public:
         BlockHeader::Ptr _blockHeader, bcos::crypto::HashType const& _txHash) = 0;
     virtual TransactionSubmitResult::Ptr createTxSubmitResult(
         bcos::crypto::HashType const& _txHash, int32_t _status) = 0;
-    virtual TransactionSubmitResult::Ptr createTxSubmitResult(TransactionReceipt::Ptr _receipt,
-        bcos::crypto::HashType _txHash, int64_t _txIndex, bcos::crypto::HashType _blockHash,
-        bytesConstRef _sender, bytesConstRef _to) = 0;
-    virtual TransactionSubmitResult::Ptr createTxSubmitResult(TransactionReceipt::Ptr _receipt,
-        Transaction::Ptr _tx, int64_t _txIndex, BlockHeader::Ptr _blockHeader) = 0;
 };
 }  // namespace protocol
 }  // namespace bcos

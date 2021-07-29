@@ -31,24 +31,13 @@ public:
     TransactionSubmitResult() = default;
     virtual ~TransactionSubmitResult() {}
 
-    // status gets transaction status
     virtual uint32_t status() const = 0;
-    // receipt gets transaction receipt
-    virtual TransactionReceipt::Ptr receipt() const = 0;
-    // txHash gets transactionHash
     virtual bcos::crypto::HashType const& txHash() const = 0;
-    virtual bytesConstRef from() const = 0;
     virtual bcos::crypto::HashType const& blockHash() const = 0;
-    // to
-    virtual bytesConstRef to() const = 0;
-    // txIndex
     virtual int64_t transactionIndex() const = 0;
 
-    virtual void setNonce(NonceType const& _nonce) { m_nonce = _nonce; }
-    virtual NonceType const& nonce() { return m_nonce; }
-
-private:
-    NonceType m_nonce = NonceType(-1);
+    virtual void setNonce(NonceType const& _nonce) = 0;
+    virtual NonceType const& nonce() = 0;
 };
 
 using TransactionSubmitResults = std::vector<TransactionSubmitResult::Ptr>;
