@@ -24,10 +24,10 @@
 #include "../../libutilities/Common.h"
 #include "../../libutilities/FixedBytes.h"
 #include "../crypto/CommonType.h"
+#include "../protocol/ExecutionResult.h"
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/Transaction.h"
 #include "../protocol/TransactionReceipt.h"
-#include "../protocol/ExecutionResult.h"
 #include <memory>
 
 namespace bcos
@@ -56,7 +56,7 @@ public:
             callback) noexcept = 0;
 
     // execute interfaces
-    virtual void execute(long contextID, bcos::bytesConstPtr input,
+    virtual void execute(long contextID, const bcos::protocol::Transaction::ConstPtr& tx,
         std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 

@@ -21,6 +21,7 @@
 
 #pragma once
 #include "ProtocolTypeDef.h"
+#include "TransactionReceipt.h"
 #include <memory>
 
 namespace bcos
@@ -38,17 +39,15 @@ public:
     enum Status
     {
         FINISHED = 0,
-        PAUSE
+        EXTERNAL_CALL
     };
 
     virtual Status status() const noexcept = 0;
 
-    // for finish
-    virtual bcos::bytesConstRef output() const noexcept = 0;
+    virtual bcos::protocol::TransactionReceipt::ConstPtr receipt() const noexcept = 0;
 
-    // for pause
+    // for external call
     virtual bcos::bytesConstRef to() const noexcept = 0;
-    virtual bcos::bytesConstRef input() const noexcept = 0;
 };
 
 class ExecutionResultFactory
@@ -60,10 +59,10 @@ public:
     virtual ~ExecutionResultFactory(){};
 
     virtual ExecutionResult::Ptr createExecutionResult(ExecutionResult::Status status,
-        const bcos::bytesConstRef& output, const bcos::bytesConstRef& to,
+        const bcos::protocol::TransactionReceipt::ConstPtr& receipt,
         const bcos::bytesConstRef& input) = 0;
     virtual ExecutionResult::Ptr createExecutionResult(ExecutionResult::Status status,
-        bcos::bytes&& output, bcos::bytes&& to, bcos::bytes&& input) = 0;
+        bcos::protocol::TransactionReceipt::ConstPtr&& receipt, bcos::bytes&& input) = 0;
 };
 }  // namespace protocol
 }  // namespace bcos
