@@ -33,9 +33,12 @@ namespace bcos
 {
 namespace executor
 {
-class ParallelManagerInterface
+class ContractManagerInterface
 {
 public:
+    using Ptr = std::shared_ptr<ContractManagerInterface>;
+    using ConstPtr = std::shared_ptr<const ContractManagerInterface>;
+
     struct SystemStatus
     {
         using Ptr = std::shared_ptr<SystemStatus>;

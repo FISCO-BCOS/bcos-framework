@@ -61,7 +61,7 @@ public:
             const Error::ConstPtr&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
 
     // manage interfaces
-    virtual void registerParallelExecutor(const bytesConstRef& contract,
+    virtual void registerExecutor(const std::string_view& contract,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 };
 }  // namespace dispatcher

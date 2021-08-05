@@ -34,11 +34,11 @@ namespace bcos
 {
 namespace executor
 {
-class ParallelExecutorInterface
+class ContractContainerInterface
 {
 public:
-    using Ptr = std::shared_ptr<ParallelExecutorInterface>;
-    using ConstPtr = std::shared_ptr<const ParallelExecutorInterface>;
+    using Ptr = std::shared_ptr<ContractContainerInterface>;
+    using ConstPtr = std::shared_ptr<const ContractContainerInterface>;
 
     // session interfaces
     virtual void start(long sessionID, bcos::protocol::BlockNumber beginNumber,
@@ -59,6 +59,9 @@ public:
     virtual void execute(long contextID, const bcos::protocol::Transaction::ConstPtr& tx,
         std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
+
+    // cache interfaces
+    virtual void clear(std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
 
     // manage interfaces
     virtual void shutdown(std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
