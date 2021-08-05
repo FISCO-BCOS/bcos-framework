@@ -31,7 +31,7 @@ class AMOPInterface
 public:
     using Ptr = std::shared_ptr<AMOPInterface>;
 
-    virtual ~AMOPInterface() = 0;
+    virtual ~AMOPInterface() {}
 
 public:
     virtual void start() = 0;
