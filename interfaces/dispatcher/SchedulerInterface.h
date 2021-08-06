@@ -34,7 +34,7 @@ namespace dispatcher
 class SchedulerInterface
 {
 public:
-    // session interfaces
+    // Session interfaces
     virtual void start(long sessionID, bcos::protocol::BlockNumber beginNumber,
         std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Session::ConstPtr&)>
             callback) noexcept = 0;
@@ -49,20 +49,21 @@ public:
         std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
             callback) noexcept = 0;
 
-    // execute interfaces
-    virtual void executeBlock(long sessionID,
-        const gsl::span<bcos::protocol::Block::ConstPtr>& blocks, bool verify,
-        std::function<void(const bcos::Error::ConstPtr&,
-            std::shared_ptr<std::vector<bcos::protocol::BlockHeader::Ptr>>&&)>
+    // Execute interfaces
+    virtual void executeBlock(long sessionID, const bcos::protocol::Block::ConstPtr& blocks,
+        bool verify,
+        std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::BlockHeader::Ptr&&)>
             callback) noexcept = 0;
 
     virtual void callTransaction(const protocol::Transaction::ConstPtr& tx,
         std::function<void(
             const Error::ConstPtr&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
 
-    // manage interfaces
+    // Manage interfaces
     virtual void registerExecutor(const std::string_view& contract,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+
+    virtual void reset(std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 };
 }  // namespace dispatcher
 }  // namespace bcos

@@ -24,6 +24,7 @@
 #include "../../libutilities/Common.h"
 #include "../../libutilities/FixedBytes.h"
 #include "../crypto/CommonType.h"
+#include "../protocol/BlockHeader.h"
 #include "../protocol/ExecutionResult.h"
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/Transaction.h"
@@ -40,30 +41,39 @@ public:
     using Ptr = std::shared_ptr<ContractContainerInterface>;
     using ConstPtr = std::shared_ptr<const ContractContainerInterface>;
 
-    // session interfaces
-    virtual void start(long sessionID, bcos::protocol::BlockNumber beginNumber,
+    // Session interfaces
+    virtual void start(int64_t sessionID, bcos::protocol::BlockNumber beginNumber,
         std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Session::ConstPtr&)>
             callback) noexcept = 0;
 
-    virtual void commit(long sessionID, bcos::protocol::BlockNumber endNumber,
+    virtual void commit(int64_t sessionID, bcos::protocol::BlockNumber endNumber,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 
     virtual void rollback(
-        long sessionID, std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+        int64_t sessionID, std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 
-    virtual void status(long sessionID,
+    virtual void status(int64_t sessionID,
         std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
             callback) noexcept = 0;
 
-    // execute interfaces
-    virtual void execute(long contextID, const bcos::protocol::Transaction::ConstPtr& tx,
+    // Execute interfaces
+    virtual void setBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
+        std::function<void(const bcos::Error::ConstPtr&)> callback);
+
+    virtual void executeByTxHash(int64_t sessionID, const bcos::crypto::HashType& txHash,
         std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 
-    // cache interfaces
-    virtual void clear(std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
+    // When the contextID is equal to 0, it means that the transaction will be executed from an
+    // empty context, When the contextID is not equal to 0, it means to continue to execute an
+    // existing context, and the input parameter is the return value of the previous call
+    virtual void executeByInput(int64_t sessionID, int64_t contextID, const bytesConstRef& input,
+        std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
+            callback) noexcept = 0;
 
-    // manage interfaces
+    // Manage interfaces
+    virtual void reset(std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
+
     virtual void shutdown(std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 };
 }  // namespace executor

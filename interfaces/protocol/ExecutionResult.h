@@ -42,12 +42,20 @@ public:
         EXTERNAL_CALL
     };
 
-    virtual Status status() const noexcept = 0;
+    virtual Status status() const = 0;
 
-    virtual bcos::protocol::TransactionReceipt::ConstPtr receipt() const noexcept = 0;
+    // Only when status is EXTERNAL_CALL, it is not 0
+    virtual int64_t contextID() const = 0;
 
-    // for external call
-    virtual bcos::bytesConstRef to() const noexcept = 0;
+    // When the status is FINISH, it means that the transaction is executed and output is the return
+    // value of the transaction. When the status is EXTERNAL_CALL, output is the input parameter of
+    // the next call
+    virtual bcos::bytesConstRef output() const = 0;
+    
+    virtual bcos::u256 gasUsed() const = 0;
+
+    // Only when status is EXTERNAL_CALL, it is not empty
+    virtual bcos::bytesConstRef to() const = 0;
 };
 
 class ExecutionResultFactory
@@ -59,10 +67,11 @@ public:
     virtual ~ExecutionResultFactory(){};
 
     virtual ExecutionResult::Ptr createExecutionResult(ExecutionResult::Status status,
-        const bcos::protocol::TransactionReceipt::ConstPtr& receipt,
+        long contextID, const bcos::protocol::TransactionReceipt::ConstPtr& receipt,
         const bcos::bytesConstRef& input) = 0;
     virtual ExecutionResult::Ptr createExecutionResult(ExecutionResult::Status status,
-        bcos::protocol::TransactionReceipt::ConstPtr&& receipt, bcos::bytes&& input) = 0;
+        long contextID, bcos::protocol::TransactionReceipt::ConstPtr&& receipt,
+        bcos::bytes&& input) = 0;
 };
 }  // namespace protocol
 }  // namespace bcos
