@@ -26,6 +26,7 @@
 #include "interfaces/protocol/ProtocolTypeDef.h"
 #include <functional>
 #include <memory>
+#include <string_view>
 
 namespace bcos
 {
@@ -34,35 +35,35 @@ namespace dispatcher
 class SchedulerInterface
 {
 public:
-    // Session interfaces
-    virtual void start(long sessionID, bcos::protocol::BlockNumber beginNumber,
-        std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Session::ConstPtr&)>
-            callback) noexcept = 0;
-
-    virtual void commit(long sessionID, bcos::protocol::BlockNumber endNumber,
-        std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
-
-    virtual void rollback(
-        long sessionID, std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
-
-    virtual void status(long sessionID,
-        std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
-            callback) noexcept = 0;
-
     // Execute interfaces
-    virtual void executeBlock(long sessionID, const bcos::protocol::Block::ConstPtr& blocks,
-        bool verify,
+    // TODO: to be rename
+    virtual void executeBlock(const bcos::protocol::Block::ConstPtr& block, bool verify,
         std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::BlockHeader::Ptr&&)>
             callback) noexcept = 0;
 
+    virtual void commitBlock(const bcos::protocol::BlockHeader::ConstPtr& header,
+        std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
+
+    // from console, query commited commiting executing
+    virtual void status(
+        std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
+            callback) noexcept = 0;
+
+    // call by rpc
     virtual void callTransaction(const protocol::Transaction::ConstPtr& tx,
         std::function<void(
             const Error::ConstPtr&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
 
-    // Manage interfaces
-    virtual void registerExecutor(const std::string_view& contract,
+    // by executor
+    virtual void registerExecutor(std::function<void(const Error::ConstPtr&)> callback,
+        std::string&& executorID) noexcept = 0;
+
+    // executor ExecutorID
+    virtual void notifyWriteResult(const std::string_view& executorID,
+        bcos::protocol::BlockNumber blockNumber,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 
+    // clear all status
     virtual void reset(std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 };
 }  // namespace dispatcher
