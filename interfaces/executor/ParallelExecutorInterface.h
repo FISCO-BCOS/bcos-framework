@@ -25,11 +25,12 @@
 #include "../../libutilities/FixedBytes.h"
 #include "../crypto/CommonType.h"
 #include "../protocol/BlockHeader.h"
-#include "ExecutionParams.h"
-#include "ExecutionResult.h"
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/Transaction.h"
 #include "../protocol/TransactionReceipt.h"
+#include "ExecutionParams.h"
+#include "ExecutionResult.h"
+#include "ContractStatus.h"
 #include <memory>
 
 namespace bcos
@@ -52,7 +53,9 @@ public:
 
     // Write data to storage, return all contract's change hash
     virtual void commit(bcos::protocol::BlockNumber blockNumber,
-        std::function<const bcos::Error::ConstPtr&> callback) noexcept = 0;
+        std::function<void(const bcos::Error::ConstPtr&,
+            std::vector<ContractStatus::Ptr>&&)>
+            callback) noexcept = 0;
 
     // drop current changes
     virtual void rollback(bcos::protocol::BlockNumber blockNumber,
