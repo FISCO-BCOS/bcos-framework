@@ -20,7 +20,7 @@
  */
 
 #pragma once
-#include "ProtocolTypeDef.h"
+#include "../protocol/ProtocolTypeDef.h"
 #include <memory>
 
 namespace bcos

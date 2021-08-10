@@ -20,8 +20,8 @@
  */
 
 #pragma once
-#include "ProtocolTypeDef.h"
-#include "TransactionReceipt.h"
+#include "../protocol/ProtocolTypeDef.h"
+#include "../protocol/TransactionReceipt.h"
 #include <memory>
 
 namespace bcos
