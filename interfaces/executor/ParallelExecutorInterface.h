@@ -28,9 +28,9 @@
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/Transaction.h"
 #include "../protocol/TransactionReceipt.h"
+#include "ContractStatus.h"
 #include "ExecutionParams.h"
 #include "ExecutionResult.h"
-#include "ContractStatus.h"
 #include <memory>
 
 namespace bcos
@@ -53,8 +53,7 @@ public:
 
     // Write data to storage, return all contract's change hash
     virtual void commit(bcos::protocol::BlockNumber blockNumber,
-        std::function<void(const bcos::Error::ConstPtr&,
-            std::vector<ContractStatus::Ptr>&&)>
+        std::function<void(const bcos::Error::ConstPtr&, std::vector<ContractStatus::Ptr>&&)>
             callback) noexcept = 0;
 
     // drop current changes

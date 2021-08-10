@@ -23,5 +23,16 @@ public:
     virtual void setDBHash(const bcos::bytesConstRef& dbHash) = 0;
     virtual void setDBHash(bcos::bytes&& dbHash) = 0;
 };
+
+class ContractStatusFactory
+{
+public:
+    using Ptr = std::shared_ptr<ContractStatusFactory>;
+    using ConstPtr = std::shared_ptr<const ContractStatusFactory>;
+
+    virtual ~ContractStatusFactory() {};
+
+    virtual ContractStatus::Ptr createContractStatus() = 0;
+};
 }  // namespace executor
 }  // namespace bcos
