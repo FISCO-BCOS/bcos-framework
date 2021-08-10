@@ -36,26 +36,36 @@ public:
 
     virtual ~ExecutionResult(){};
 
-    enum Status
+    enum Type
     {
-        FINISHED = 0,
-        EXTERNAL_CALL
+        FINISHED = 0,   // Finish the execution, whether from scheduler or another contract
+        EXTERNAL_CALL,  // Generate an external call
     };
 
-    virtual Status status() const = 0;
+    virtual Type type() const = 0;
+    virtual void setType(Type type) = 0;
 
-    // Only when status is EXTERNAL_CALL, it is not 0
+    // Only when type is EXTERNAL_CALL, it is not 0
     virtual int64_t contextID() const = 0;
+    virtual void setContextID(int64_t contextID) = 0;
 
-    // When the status is FINISH, it means that the transaction is executed and output is the return
-    // value of the transaction. When the status is EXTERNAL_CALL, output is the input parameter of
+    virtual int64_t status() const = 0;
+    virtual void setStatus(int64_t status) = 0;
+
+    // When the type is FINISH, it means that the transaction is executed and output is the return
+    // value of the transaction. When the type is EXTERNAL_CALL, output is the input parameter of
     // the next call
     virtual bcos::bytesConstRef output() const = 0;
-    
+    virtual void setOutput(const bcos::bytesConstRef& output) = 0;
+    virtual void setOutput(bytes&& output) = 0;
+
     virtual bcos::u256 gasUsed() const = 0;
+    virtual void setGasUsed(bcos::u256 gasUsed) = 0;
 
     // Only when status is EXTERNAL_CALL, it is not empty
-    virtual bcos::bytesConstRef to() const = 0;
+    virtual std::string_view to() const = 0;
+    virtual void setTo(const std::string_view &to) = 0;
+    virtual void setTo(std::string&& to) = 0;
 };
 
 class ExecutionResultFactory
@@ -66,12 +76,7 @@ public:
 
     virtual ~ExecutionResultFactory(){};
 
-    virtual ExecutionResult::Ptr createExecutionResult(ExecutionResult::Status status,
-        long contextID, const bcos::protocol::TransactionReceipt::ConstPtr& receipt,
-        const bcos::bytesConstRef& input) = 0;
-    virtual ExecutionResult::Ptr createExecutionResult(ExecutionResult::Status status,
-        long contextID, bcos::protocol::TransactionReceipt::ConstPtr&& receipt,
-        bcos::bytes&& input) = 0;
+    virtual ExecutionResult::Ptr createExecutionResult() = 0;
 };
 }  // namespace protocol
 }  // namespace bcos

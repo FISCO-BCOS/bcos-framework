@@ -25,6 +25,7 @@
 #include "../../libutilities/FixedBytes.h"
 #include "../crypto/CommonType.h"
 #include "../protocol/BlockHeader.h"
+#include "../protocol/ExecutionParams.h"
 #include "../protocol/ExecutionResult.h"
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/Transaction.h"
@@ -41,30 +42,23 @@ public:
     using Ptr = std::shared_ptr<ParallelExecutorInterface>;
     using ConstPtr = std::shared_ptr<const ParallelExecutorInterface>;
 
-    virtual void setBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
+    virtual void start(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 
-    virtual void executeByTxHash(const gsl::span<bcos::crypto::HashType>& txHash, int64_t contextID,
+    virtual void executeTransaction(const std::string_view& to,
+        const bcos::protocol::ExecutionParams::ConstPtr& input,
         std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 
-    // contextID type, unique
-    virtual void executeByInput(const std::string_view& to, int64_t contextID,
-        const bytesConstRef& input,
-        std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
-            callback) noexcept = 0;
+    // Write data to storage, return all contract's change hash
+    virtual void commit(bcos::protocol::BlockNumber blockNumber,
+        std::function<const bcos::Error::ConstPtr&> callback) noexcept = 0;
 
-    virtual void continueExecution(int64_t contextID, const bytesConstRef& returnValue,
-        std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
-            callback) noexcept = 0;
-
-    virtual void getExecuteResultAndWrite(bcos::protocol::BlockNumber blockNumber,
-        std::function<const bcos::Error::ConstPtr&>()) noexcept = 0;
-
+    // drop current changes
     virtual void rollback(bcos::protocol::BlockNumber blockNumber,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 
-    // Manage interfaces
+    // drop all status
     virtual void reset(std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
 };
 }  // namespace executor
