@@ -43,6 +43,7 @@ public:
     using Ptr = std::shared_ptr<ParallelExecutorInterface>;
     using ConstPtr = std::shared_ptr<const ParallelExecutorInterface>;
 
+    // Prepare block header
     virtual void start(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 

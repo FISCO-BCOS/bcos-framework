@@ -35,21 +35,21 @@ namespace dispatcher
 class SchedulerInterface
 {
 public:
-    // Execute interfaces
-    // TODO: to be rename
+    // by pbft & sync
     virtual void executeBlock(const bcos::protocol::Block::ConstPtr& block, bool verify,
         std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::BlockHeader::Ptr&&)>
             callback) noexcept = 0;
 
+    // by pbft & sync
     virtual void commitBlock(const bcos::protocol::BlockHeader::ConstPtr& header,
         std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
 
-    // from console, query commited commiting executing
+    // by console, query commited commiting executing
     virtual void status(
         std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
             callback) noexcept = 0;
 
-    // call by rpc
+    // by rpc
     virtual void callTransaction(const protocol::Transaction::ConstPtr& tx,
         std::function<void(
             const Error::ConstPtr&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
@@ -58,8 +58,8 @@ public:
     virtual void registerExecutor(std::function<void(const Error::ConstPtr&)> callback,
         std::string&& executorID) noexcept = 0;
 
-    // executor ExecutorID
-    virtual void notifyWriteResult(const std::string_view& executorID,
+    // by executor
+    virtual void notifyCommitResult(const std::string_view& executorID,
         bcos::protocol::BlockNumber blockNumber,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 
