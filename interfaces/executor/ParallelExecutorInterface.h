@@ -24,10 +24,13 @@
 #include "../../libutilities/Common.h"
 #include "../../libutilities/FixedBytes.h"
 #include "../crypto/CommonType.h"
-#include "../protocol/ExecutionResult.h"
+#include "../protocol/BlockHeader.h"
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/Transaction.h"
 #include "../protocol/TransactionReceipt.h"
+#include "ContractStatus.h"
+#include "ExecutionParams.h"
+#include "ExecutionResult.h"
 #include <memory>
 
 namespace bcos
@@ -40,28 +43,26 @@ public:
     using Ptr = std::shared_ptr<ParallelExecutorInterface>;
     using ConstPtr = std::shared_ptr<const ParallelExecutorInterface>;
 
-    // session interfaces
-    virtual void start(long sessionID, bcos::protocol::BlockNumber beginNumber,
-        std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Session::ConstPtr&)>
-            callback) noexcept = 0;
+    // Prepare block header
+    virtual void start(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
+        std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 
-    virtual void commit(long sessionID, bcos::protocol::BlockNumber endNumber,
-        std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
-
-    virtual void rollback(
-        long sessionID, std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
-
-    virtual void status(long sessionID,
-        std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
-            callback) noexcept = 0;
-
-    // execute interfaces
-    virtual void execute(long contextID, const bcos::protocol::Transaction::ConstPtr& tx,
+    virtual void executeTransaction(const std::string_view& to,
+        const bcos::protocol::ExecutionParams::ConstPtr& input,
         std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 
-    // manage interfaces
-    virtual void shutdown(std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
+    // Write data to storage, return all contract's change hash
+    virtual void commit(bcos::protocol::BlockNumber blockNumber,
+        std::function<void(const bcos::Error::ConstPtr&, std::vector<ContractStatus::Ptr>&&)>
+            callback) noexcept = 0;
+
+    // drop current changes
+    virtual void rollback(bcos::protocol::BlockNumber blockNumber,
+        std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
+
+    // drop all status
+    virtual void reset(std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
 };
 }  // namespace executor
 }  // namespace bcos

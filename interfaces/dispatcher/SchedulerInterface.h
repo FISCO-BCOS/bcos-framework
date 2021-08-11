@@ -26,6 +26,7 @@
 #include "interfaces/protocol/ProtocolTypeDef.h"
 #include <functional>
 #include <memory>
+#include <string_view>
 
 namespace bcos
 {
@@ -34,35 +35,36 @@ namespace dispatcher
 class SchedulerInterface
 {
 public:
-    // session interfaces
-    virtual void start(long sessionID, bcos::protocol::BlockNumber beginNumber,
-        std::function<void(const Error::ConstPtr&, bool, const bcos::protocol::Session::ConstPtr&)>
+    // by pbft & sync
+    virtual void executeBlock(const bcos::protocol::Block::ConstPtr& block, bool verify,
+        std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::BlockHeader::Ptr&&)>
             callback) noexcept = 0;
 
-    virtual void commit(long sessionID, bcos::protocol::BlockNumber endNumber,
-        std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+    // by pbft & sync
+    virtual void commitBlock(const bcos::protocol::BlockHeader::ConstPtr& header,
+        std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
 
-    virtual void rollback(
-        long sessionID, std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
-
-    virtual void status(long sessionID,
+    // by console, query committed committing executing
+    virtual void status(
         std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
             callback) noexcept = 0;
 
-    // execute interfaces
-    virtual void executeBlock(long sessionID,
-        const gsl::span<bcos::protocol::Block::ConstPtr>& blocks, bool verify,
-        std::function<void(const bcos::Error::ConstPtr&,
-            std::shared_ptr<std::vector<bcos::protocol::BlockHeader::Ptr>>&&)>
-            callback) noexcept = 0;
-
+    // by rpc
     virtual void callTransaction(const protocol::Transaction::ConstPtr& tx,
         std::function<void(
             const Error::ConstPtr&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
 
-    // manage interfaces
-    virtual void registerParallelExecutor(const bytesConstRef& contract,
+    // by executor
+    virtual void registerExecutor(std::function<void(const Error::ConstPtr&)> callback,
+        std::string&& executorID) noexcept = 0;
+
+    // by executor
+    virtual void notifyCommitResult(const std::string_view& executorID,
+        bcos::protocol::BlockNumber blockNumber,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+
+    // clear all status
+    virtual void reset(std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 };
 }  // namespace dispatcher
 }  // namespace bcos
