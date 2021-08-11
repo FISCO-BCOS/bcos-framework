@@ -44,7 +44,7 @@ public:
     virtual void commitBlock(const bcos::protocol::BlockHeader::ConstPtr& header,
         std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
 
-    // by console, query commited commiting executing
+    // by console, query committed commiting executing
     virtual void status(
         std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
             callback) noexcept = 0;
