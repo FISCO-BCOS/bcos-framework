@@ -37,7 +37,7 @@ public:
     {
         TXHASH = 0,     // Received an new transaction from scheduler
         EXTERN_CALL,    // Received an external call from another contract
-        EXTERN_RETURN,  // Received a return value from pervious external call
+        EXTERN_RETURN,  // Received a return value from previous external call
     };
 
     virtual Type type() const = 0;
