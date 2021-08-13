@@ -25,6 +25,7 @@
 #include "libutilities/ThreadPool.h"
 #include "testutils/faker/FakeStorage.h"
 #include <boost/test/unit_test.hpp>
+#include <future>
 #include <iostream>
 #include <string>
 
@@ -276,6 +277,57 @@ BOOST_AUTO_TEST_CASE(hash)
     entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 1);
     tableFactory->asyncCommit([](Error::Ptr, size_t) {});
+}
+
+BOOST_AUTO_TEST_CASE(openAndCommit)
+{
+    auto hashImpl2 = make_shared<Header256Hash>();
+    auto memoryStorage2 = make_shared<FakeStorage>();
+    auto tableFactory2 = make_shared<TableFactory>(memoryStorage2, hashImpl2, 10);
+
+    for (int i = 10; i < 20; ++i)
+    {
+        BOOST_TEST(tableFactory2 != nullptr);
+
+        std::string tableName = "testTable" + boost::lexical_cast<std::string>(i);
+        // std::string tableName = "testTable" + boost::lexical_cast<std::string>(10);
+        tableFactory2->createTable(tableName, "key", "value");
+        auto table = tableFactory2->openTable(tableName);
+
+        auto entry = table->newEntry();
+        entry->setField("value", "hello world!");
+        table->setRow("i am a key", entry);
+
+        std::promise<bool> getRow;
+        table->asyncGetRow("i am a key", [&](const Error::Ptr& error, const Entry::Ptr& result) {
+            BOOST_CHECK_EQUAL(error, nullptr);
+            BOOST_CHECK_EQUAL(result->count("value"), 1);
+            BOOST_CHECK_EQUAL(result->getField("value"), "hello world!");
+
+            getRow.set_value(true);
+        });
+
+        getRow.get_future().get();
+
+        // auto data = tableFactory2->exportData(i);
+        auto data = tableFactory2->exportData(10);
+
+        auto tableFactory3 = make_shared<TableFactory>(memoryStorage2, hashImpl2, i + 1);
+        // auto tableFactory3 = make_shared<TableFactory>(memoryStorage2, hashImpl2, 10);
+        tableFactory3->importData(data.first, data.second);
+
+        for (int j = i; j >= 10; --j)
+        // for (int j = 10; j >= 10; --j)
+        {
+            std::string queryTableName = "testTable" + boost::lexical_cast<std::string>(j);
+            auto table2 = tableFactory3->openTable(queryTableName);
+            auto entry2 = table2->getRow("i am a key");
+            BOOST_CHECK_EQUAL(entry2->getField("value"), "hello world!");
+        }
+
+
+        tableFactory2 = tableFactory3;
+    }
 }
 
 BOOST_AUTO_TEST_CASE(parallel_openTable)
