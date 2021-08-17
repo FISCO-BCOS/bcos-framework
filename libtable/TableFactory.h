@@ -168,6 +168,12 @@ public:
             // Public Table API cannot be used here because it will add another change log entry.
             change->table->rollback(change);
             changeLog.pop_back();
+            if (change->table->tableInfo()->name == SYS_TABLE)
+            {  // if rollback s_tables then should delete the table from m_name2Table
+                // the createTable is first option
+                tbb::spin_mutex::scoped_lock l(x_name2Table);
+                m_name2Table.unsafe_erase(change->key);
+            }
         }
     }
     std::pair<size_t, Error::Ptr> commit() override
