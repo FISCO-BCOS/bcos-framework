@@ -78,8 +78,8 @@ public:
     virtual std::string_view groupId() const = 0;
     virtual int64_t blockLimit() const = 0;
     virtual u256 const& nonce() const = 0;
-    virtual bytesConstRef to() const = 0;
-    virtual bytesConstRef sender() const { return bytesConstRef(m_sender.data(), m_sender.size()); }
+    virtual std::string_view to() const = 0;
+    virtual std::string_view sender() const { return std::string_view((char*)m_sender.data(), m_sender.size()); }
 
     virtual bytesConstRef input() const = 0;
     virtual int64_t importTime() const = 0;

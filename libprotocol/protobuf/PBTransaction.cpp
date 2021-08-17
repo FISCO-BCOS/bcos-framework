@@ -21,18 +21,20 @@
 #include "PBTransaction.h"
 #include "../../interfaces/protocol/Exceptions.h"
 #include "../Common.h"
+
 using namespace bcos;
 using namespace bcos::protocol;
 using namespace bcos::crypto;
 
-PBTransaction::PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t const& _version,
-    bytes const& _to, bytes const& _input, u256 const& _nonce, int64_t const& _blockLimit,
-    std::string const& _chainId, std::string const& _groupId, int64_t const& _importTime)
+PBTransaction::PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
+    const std::string_view& _to, bytes const& _input, u256 const& _nonce,
+    int64_t _blockLimit, std::string const& _chainId, std::string const& _groupId,
+    int64_t _importTime)
   : PBTransaction(_cryptoSuite)
 {
     m_transactionHashFields->set_version(_version);
     // set receiver address
-    if (_to != bytes())
+    if (!_to.empty())
     {
         m_transactionHashFields->set_to(_to.data(), _to.size());
     }

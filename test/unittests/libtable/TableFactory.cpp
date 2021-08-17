@@ -431,6 +431,58 @@ BOOST_AUTO_TEST_CASE(open_sysTables)
     BOOST_TEST(table != nullptr);
 }
 
+BOOST_AUTO_TEST_CASE(openAndCommit)
+{
+    auto hashImpl2 = make_shared<Header256Hash>();
+    auto memoryStorage2 = make_shared<FakeStorage>();
+    auto tableFactory2 = make_shared<TableFactory>(memoryStorage2, hashImpl2, 10);
+
+    for (int i = 10; i < 20; ++i)
+    {
+        BOOST_TEST(tableFactory2 != nullptr);
+
+        std::string tableName = "testTable" + boost::lexical_cast<std::string>(i);
+        auto key = "testKey" + boost::lexical_cast<std::string>(i);
+        tableFactory2->createTable(tableName, "key", "value");
+        auto table = tableFactory2->openTable(tableName);
+
+        auto entry = table->newEntry();
+        entry->setField("value", "hello world!");
+        table->setRow(key, entry);
+
+        std::promise<bool> getRow;
+        table->asyncGetRow(key, [&](const Error::Ptr& error, const Entry::Ptr& result) {
+            BOOST_CHECK_EQUAL(error, nullptr);
+            BOOST_CHECK_EQUAL(result->count("value"), 1);
+            BOOST_CHECK_EQUAL(result->getField("value"), "hello world!");
+
+            getRow.set_value(true);
+        });
+
+        getRow.get_future().get();
+
+        // auto data = tableFactory2->exportData(i);
+        auto data = tableFactory2->exportData(9);
+
+        auto tableFactory3 = make_shared<TableFactory>(memoryStorage2, hashImpl2, i + 1);
+        // auto tableFactory3 = make_shared<TableFactory>(memoryStorage2, hashImpl2, 10 + 1); // without commit, always current height + 1
+        tableFactory3->importData(data.first, data.second, false);
+
+        for (int j = i; j >= 10; --j)
+        // for (int j = 10; j >= 10; --j)
+        {
+            std::string queryTableName = "testTable" + boost::lexical_cast<std::string>(j);
+            auto queryKey = "testKey" + boost::lexical_cast<std::string>(j);
+            auto table2 = tableFactory3->openTable(queryTableName);
+            BOOST_CHECK_NE(table2, nullptr);
+            auto entry2 = table2->getRow(queryKey);
+            BOOST_CHECK_NE(entry2, nullptr);
+            BOOST_CHECK_EQUAL(entry2->getField("value"), "hello world!");
+        }
+        tableFactory2 = tableFactory3;
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
 }  // namespace bcos

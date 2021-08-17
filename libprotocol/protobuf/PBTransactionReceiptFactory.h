@@ -46,7 +46,7 @@ public:
         return std::make_shared<PBTransactionReceipt>(m_cryptoSuite, _receiptData);
     }
 
-    TransactionReceipt::Ptr createReceipt(u256 const& _gasUsed, bytes const& _contractAddress,
+    TransactionReceipt::Ptr createReceipt(u256 const& _gasUsed, const std::string_view& _contractAddress,
         LogEntriesPtr _logEntries, int32_t _status, bytes const& _output,
         BlockNumber _blockNumber) override
     {
@@ -54,7 +54,7 @@ public:
             _logEntries, _status, _output, _blockNumber);
     }
 
-    TransactionReceipt::Ptr createReceipt(u256 const& _gasUsed, bytes const& _contractAddress,
+    TransactionReceipt::Ptr createReceipt(u256 const& _gasUsed, const std::string_view& _contractAddress,
         LogEntriesPtr _logEntries, int32_t _status, bytes&& _output,
         BlockNumber _blockNumber) override
     {

@@ -31,7 +31,7 @@ class AMOPInterface
 public:
     using Ptr = std::shared_ptr<AMOPInterface>;
 
-    virtual ~AMOPInterface() = 0;
+    virtual ~AMOPInterface() {}
 
 public:
     virtual void start() = 0;
@@ -45,8 +45,8 @@ public:
      * @param _data: the message data
      * @return void
      */
-    virtual void asyncNotifyAmopMessage(
-        bcos::crypto::NodeIDPtr _nodeID, const std::string& _id, bcos::bytesConstRef _data) = 0;
+    virtual void asyncNotifyAmopMessage(bcos::crypto::NodeIDPtr _nodeID, const std::string& _id,
+        bcos::bytesConstRef _data, std::function<void(Error::Ptr _error)> _onRecv) = 0;
     /**
      * @brief: async receive nodeIDs from front service
      * @param _nodeIDs: the nodeIDs

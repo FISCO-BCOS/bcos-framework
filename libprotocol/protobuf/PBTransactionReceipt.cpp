@@ -37,12 +37,13 @@ PBTransactionReceipt::PBTransactionReceipt(
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
-    BlockNumber _blockNumber)
+    u256 const& _gasUsed, const std::string_view& _contractAddress, LogEntriesPtr _logEntries,
+    int32_t _status, BlockNumber _blockNumber)
   : TransactionReceipt(_cryptoSuite),
     m_receipt(std::make_shared<PBRawTransactionReceipt>()),
     m_gasUsed(_gasUsed),
-    m_contractAddress(_contractAddress),
+    m_contractAddress(
+        (byte*)_contractAddress.data(), (byte*)(_contractAddress.data() + _contractAddress.size())),
     m_logEntries(_logEntries),
     m_status(_status),
     m_blockNumber(_blockNumber)
@@ -52,8 +53,8 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
-    bytes const& _ouptput, BlockNumber _blockNumber)
+    u256 const& _gasUsed, const std::string_view& _contractAddress, LogEntriesPtr _logEntries,
+    int32_t _status, bytes const& _ouptput, BlockNumber _blockNumber)
   : PBTransactionReceipt(
         _cryptoSuite, _version, _gasUsed, _contractAddress, _logEntries, _status, _blockNumber)
 {
@@ -61,8 +62,8 @@ PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_
 }
 
 PBTransactionReceipt::PBTransactionReceipt(CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    u256 const& _gasUsed, bytes const& _contractAddress, LogEntriesPtr _logEntries, int32_t _status,
-    bytes&& _ouptput, BlockNumber _blockNumber)
+    u256 const& _gasUsed, const std::string_view& _contractAddress, LogEntriesPtr _logEntries,
+    int32_t _status, bytes&& _ouptput, BlockNumber _blockNumber)
   : PBTransactionReceipt(
         _cryptoSuite, _version, _gasUsed, _contractAddress, _logEntries, _status, _blockNumber)
 {
