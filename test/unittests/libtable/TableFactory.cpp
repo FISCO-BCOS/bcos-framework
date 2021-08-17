@@ -155,6 +155,51 @@ BOOST_AUTO_TEST_CASE(rollback)
     // TODO: add some ut, setRow remove rollback getRow setRow, setRow setRow remove rollback getRow
 }
 
+BOOST_AUTO_TEST_CASE(rollback2)
+{
+    auto hash0 = tableFactory->hash();
+    auto savePoint0 = tableFactory->savepoint();
+    auto ret = createDefaultTable();
+    BOOST_TEST(ret == true);
+    auto table = tableFactory->openTable(testTableName);
+    table->remove("name");
+    auto entry = table->newEntry();
+    entry->setField("key", "name");
+    entry->setField("value", "Lili");
+    table->setRow("name", entry);
+    entry = table->getRow("name");
+    BOOST_TEST(entry != nullptr);
+    BOOST_TEST(table->dirty() == true);
+    BOOST_TEST(entry->dirty() == true);
+    BOOST_TEST(entry->getField("value") == "Lili");
+
+    auto savePoint = tableFactory->savepoint();
+
+    entry = table->newEntry();
+    entry->setField("key", "id");
+    entry->setField("value", "12345");
+    table->setRow("id", entry);
+    entry = table->getRow("id");
+    BOOST_TEST(entry != nullptr);
+    entry = table->getRow("name");
+    BOOST_TEST(entry != nullptr);
+    BOOST_TEST(table->dirty() == true);
+
+    tableFactory->rollback(savePoint);
+    entry = table->getRow("name");
+    BOOST_TEST(entry != nullptr);
+    entry = table->getRow("balance");
+    BOOST_TEST(entry == nullptr);
+    entry = table->getRow("id");
+    BOOST_TEST(entry == nullptr);
+    BOOST_TEST(table->dirty() == true);
+    tableFactory->rollback(savePoint0);
+    auto hash00 = tableFactory->hash();
+    BOOST_TEST(hash00 == hash0);
+    table = tableFactory->openTable(testTableName);
+    BOOST_TEST(table == nullptr);
+}
+
 BOOST_AUTO_TEST_CASE(hash)
 {
     auto ret = createDefaultTable();
@@ -408,7 +453,8 @@ BOOST_AUTO_TEST_CASE(openAndCommit)
         auto data = tableFactory2->exportData(9);
 
         auto tableFactory3 = make_shared<TableFactory>(memoryStorage2, hashImpl2, i + 1);
-        // auto tableFactory3 = make_shared<TableFactory>(memoryStorage2, hashImpl2, 10 + 1); // without commit, always current height + 1
+        // auto tableFactory3 = make_shared<TableFactory>(memoryStorage2, hashImpl2, 10 + 1); //
+        // without commit, always current height + 1
         tableFactory3->importData(data.first, data.second, false);
 
         for (int j = i; j >= 10; --j)
