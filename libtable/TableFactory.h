@@ -125,24 +125,20 @@ public:
                     crypto::HashType hash = table.second->hash();
                     if (hash == crypto::HashType())
                     {
-#if FISCO_DEBUG
                         STORAGE_LOG(DEBUG)
                             << LOG_BADGE("FISCO_DEBUG") << LOG_BADGE("TableFactory hash continued ")
                             << it + 1 << "/" << tables.size() << LOG_KV("tableName", table.first)
                             << LOG_KV("blockNumber", m_blockNumber);
-#endif
                         continue;
                     }
 
                     bytes tableHash = hash.asBytes();
                     memcpy(
                         &data[it * crypto::HashType::size], &tableHash[0], crypto::HashType::size);
-#if FISCO_DEBUG
                     STORAGE_LOG(DEBUG)
                         << LOG_BADGE("FISCO_DEBUG") << LOG_BADGE("TableFactory hash") << it + 1
                         << "/" << tables.size() << LOG_KV("tableName", table.first)
                         << LOG_KV("hash", hash) << LOG_KV("blockNumber", m_blockNumber);
-#endif
                 }
             });
 
@@ -168,6 +164,12 @@ public:
             // Public Table API cannot be used here because it will add another change log entry.
             change->table->rollback(change);
             changeLog.pop_back();
+            if (change->table->tableInfo()->name == SYS_TABLE)
+            {  // if rollback s_tables then should delete the table from m_name2Table
+                // the createTable is first option
+                tbb::spin_mutex::scoped_lock l(x_name2Table);
+                m_name2Table.unsafe_erase(change->key);
+            }
         }
     }
     std::pair<size_t, Error::Ptr> commit() override

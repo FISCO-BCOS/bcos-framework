@@ -55,6 +55,7 @@ enum StorageErrorCode
     NotFound = -50001,
     InvalidArgument = -50002,
     StateCacheNotFound = -50003,
+    LogicError = -50004,
 };
 
 struct Condition : public std::enable_shared_from_this<Condition>

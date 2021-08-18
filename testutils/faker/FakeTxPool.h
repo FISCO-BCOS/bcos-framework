@@ -61,8 +61,6 @@ public:
     {}
 
     // notify related interfaces: useless for the PBFT module
-    void notifyConnectedNodes(NodeIDSet const&, std::function<void(Error::Ptr)>) override {}
-    // notify related interfaces: useless for the PBFT module
     void notifyConsensusNodeList(ConsensusNodeList const&, std::function<void(Error::Ptr)>) override
     {}
     // notify related interfaces: useless for the PBFT module
