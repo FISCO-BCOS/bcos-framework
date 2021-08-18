@@ -34,8 +34,9 @@ namespace bcos
 namespace test
 {
 inline PBTransaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite,
-    KeyPairInterface::Ptr _keyPair, bytes const& _to, bytes const& _input, u256 const& _nonce,
-    int64_t const& _blockLimit, std::string const& _chainId, std::string const& _groupId)
+    KeyPairInterface::Ptr _keyPair, const std::string_view& _to, bytes const& _input,
+    u256 const& _nonce, int64_t _blockLimit, std::string const& _chainId,
+    std::string const& _groupId)
 {
     auto pbTransaction = std::make_shared<PBTransaction>(
         _cryptoSuite, 1, _to, _input, _nonce, _blockLimit, _chainId, _groupId, utcTime());
@@ -51,9 +52,9 @@ inline void checkTransaction(
 {
     // check the fields
     BOOST_CHECK(decodedTransaction->hash() == pbTransaction->hash());
-    BOOST_CHECK(decodedTransaction->sender().toBytes() == pbTransaction->sender().toBytes());
+    BOOST_CHECK(decodedTransaction->sender() == pbTransaction->sender());
     BOOST_CHECK(decodedTransaction->type() == pbTransaction->type());
-    BOOST_CHECK(decodedTransaction->to().toBytes() == pbTransaction->to().toBytes());
+    BOOST_CHECK(decodedTransaction->to() == pbTransaction->to());
     // check the transaction hash fields
     BOOST_CHECK(decodedTransaction->input().toBytes() == pbTransaction->input().toBytes());
     BOOST_CHECK(decodedTransaction->nonce() == pbTransaction->nonce());
@@ -63,13 +64,14 @@ inline void checkTransaction(
 }
 
 inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
-    KeyPairInterface::Ptr _keyPair, bytes const& _to, bytes const& _input, u256 const& _nonce,
-    int64_t const& _blockLimit, std::string const& _chainId, std::string const& _groupId)
+    KeyPairInterface::Ptr _keyPair, const std::string_view& _to, bytes const& _input,
+    u256 const& _nonce, int64_t _blockLimit, std::string const& _chainId,
+    std::string const& _groupId)
 {
     auto factory = std::make_shared<PBTransactionFactory>(_cryptoSuite);
     auto pbTransaction = fakeTransaction(
         _cryptoSuite, _keyPair, _to, _input, _nonce, _blockLimit, _chainId, _groupId);
-    if (_to == bytes())
+    if (_to.empty())
     {
         BOOST_CHECK(pbTransaction->type() == TransactionType::ContractCreation);
     }
@@ -77,9 +79,8 @@ inline Transaction::Ptr testTransaction(CryptoSuite::Ptr _cryptoSuite,
     {
         BOOST_CHECK(pbTransaction->type() == TransactionType::MessageCall);
     }
-
-    BOOST_CHECK(
-        pbTransaction->sender().toBytes() == _keyPair->address(_cryptoSuite->hashImpl()).asBytes());
+    auto addr = _keyPair->address(_cryptoSuite->hashImpl());
+    BOOST_CHECK(pbTransaction->sender() == std::string_view((char*)addr.data(), 20));
     // encode
     // std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     auto encodedData = pbTransaction->encode(false);
@@ -110,7 +111,8 @@ inline Transaction::Ptr fakeTransaction(CryptoSuite::Ptr _cryptoSuite, u256 nonc
     }
     std::string inputStr = "testTransaction";
     bytes input = asBytes(inputStr);
-    return testTransaction(_cryptoSuite, keyPair, to, input, nonce, blockLimit, chainId, groupId);
+    return testTransaction(_cryptoSuite, keyPair, std::string_view((char*)to.data(), to.size()),
+        input, nonce, blockLimit, chainId, groupId);
 }
 }  // namespace test
 }  // namespace bcos

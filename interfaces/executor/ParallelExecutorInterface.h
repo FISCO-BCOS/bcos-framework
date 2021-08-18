@@ -43,8 +43,8 @@ public:
     using Ptr = std::shared_ptr<ParallelExecutorInterface>;
     using ConstPtr = std::shared_ptr<const ParallelExecutorInterface>;
 
-    // Prepare block header
-    virtual void start(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
+    // Set next block header
+    virtual void nextBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 
     virtual void executeTransaction(const std::string_view& to,
@@ -52,14 +52,25 @@ public:
         std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 
-    // Write data to storage, return all contract's change hash
-    virtual void commit(bcos::protocol::BlockNumber blockNumber,
+    virtual void contractStatus(bcos::crypto::HashType blockHash,
         std::function<void(const bcos::Error::ConstPtr&, std::vector<ContractStatus::Ptr>&&)>
             callback) noexcept = 0;
 
-    // drop current changes
-    virtual void rollback(bcos::protocol::BlockNumber blockNumber,
+    /* ----- XA Transaction interface Start ----- */
+
+    // Write data to storage uncommitted
+    virtual void prepare(bcos::crypto::HashType blockHash,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
+
+    // Commit uncommitted data
+    virtual void commit(bcos::crypto::HashType blockHash,
+        std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
+
+    // Rollback the changes
+    virtual void rollback(bcos::crypto::HashType blockHash,
+        std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
+
+    /* ----- XA Transaction interface End ----- */
 
     // drop all status
     virtual void reset(std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;

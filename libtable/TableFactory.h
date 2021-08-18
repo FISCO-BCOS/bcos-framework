@@ -93,8 +93,8 @@ public:
             m_name2Table.insert({_tableName, table});
             // FIXME: write permission info of table
             STORAGE_LOG(DEBUG) << LOG_BADGE("TableFactory") << LOG_DESC("createTable")
-                              << LOG_KV("table name", _tableName) << LOG_KV("keyField", _keyField)
-                              << LOG_KV("valueFields", _valueFields);
+                               << LOG_KV("table name", _tableName) << LOG_KV("keyField", _keyField)
+                               << LOG_KV("valueFields", _valueFields);
         }
         return true;
     }
@@ -237,7 +237,7 @@ public:
         for (auto& dbIt : m_name2Table)
         {
             auto table = dbIt.second;
-            if (table->dirty())
+            if (blockNumber < m_blockNumber || table->dirty())
             {
                 infos.push_back(table->tableInfo());
             }

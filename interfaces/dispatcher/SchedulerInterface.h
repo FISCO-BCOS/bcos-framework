@@ -23,14 +23,13 @@
 #include "../../libutilities/Error.h"
 #include "../crypto/CommonType.h"
 #include "../protocol/Block.h"
+#include "interfaces/executor/ParallelExecutorInterface.h"
 #include "interfaces/protocol/ProtocolTypeDef.h"
 #include <functional>
 #include <memory>
 #include <string_view>
 
-namespace bcos
-{
-namespace dispatcher
+namespace bcos::dispatcher
 {
 class SchedulerInterface
 {
@@ -50,21 +49,19 @@ public:
             callback) noexcept = 0;
 
     // by rpc
-    virtual void callTransaction(const protocol::Transaction::ConstPtr& tx,
+    virtual void call(const protocol::Transaction::ConstPtr& tx,
         std::function<void(
             const Error::ConstPtr&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
 
     // by executor
-    virtual void registerExecutor(std::function<void(const Error::ConstPtr&)> callback,
-        std::string&& executorID) noexcept = 0;
-
-    // by executor
-    virtual void notifyCommitResult(const std::string_view& executorID,
-        bcos::protocol::BlockNumber blockNumber,
+    virtual void registerExecutor(const std::string& name,
+        const bcos::executor::ParallelExecutorInterface::Ptr& executor,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+
+    virtual void unregisterExecutor(
+        const std::string& name, std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 
     // clear all status
     virtual void reset(std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 };
-}  // namespace dispatcher
-}  // namespace bcos
+}  // namespace bcos::dispatcher
