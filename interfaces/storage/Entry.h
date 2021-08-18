@@ -267,7 +267,7 @@ public:
     using ConstPtr = std::shared_ptr<const Entry>;
 
     explicit Entry(protocol::BlockNumber _num = 0)
-      : m_num(_num), m_data(std::map<std::string, std::string, std::less<>>())
+      : m_num(_num), m_data(std::map<std::string, std::string>())
     {}
 
     virtual ~Entry() {}
@@ -321,11 +321,11 @@ public:
     }
     virtual std::map<std::string, std::string>::const_iterator begin() const
     {
-        return m_data.get()->begin();
+        return m_data.get()->cbegin();
     }
     virtual std::map<std::string, std::string>::const_iterator end() const
     {
-        return m_data.get()->end();
+        return m_data.get()->cend();
     }
     size_t size() const { return m_data.get()->size(); }
 
@@ -375,16 +375,23 @@ public:
     }
     ssize_t refCount() const { return m_data.refCount(); }
 
-private:
-    ssize_t m_capacityOfHashField = 0;
-    bool m_dirty = false;
-    bool m_rollbacked = false;
+    std::map<std::string, std::string>&& exportData() { return std::move(*m_data.mutableGet()); }
 
+    void importData(std::map<std::string, std::string>&& input)
+    {
+        m_data.mutableGet()->swap(input);
+    }
+
+private:
     // should serialization
     protocol::BlockNumber m_num = 0;
     Status m_status = Status::NORMAL;
-    // EntryData::Ptr m_data;
-    bcos::ConcurrentCOW<std::map<std::string, std::string, std::less<>>> m_data;
+    bcos::ConcurrentCOW<std::map<std::string, std::string>> m_data;
+
+    // no need to serialization
+    ssize_t m_capacityOfHashField = 0;
+    bool m_dirty = false;
+    bool m_rollbacked = false;
 };
 #endif
 }  // namespace bcos::storage
