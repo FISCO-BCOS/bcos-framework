@@ -22,6 +22,7 @@
 #include "../../interfaces/crypto/Hash.h"
 #include "../../interfaces/storage/Common.h"
 #include "../../libutilities/Error.h"
+#include "Entry.h"
 #include <functional>
 #include <map>
 #include <memory>
@@ -91,7 +92,8 @@ public:
 
     virtual crypto::HashType hash() = 0;
 
-    virtual std::shared_ptr<std::map<std::string, Entry::Ptr>> dump(protocol::BlockNumber blockNumber) = 0;
+    virtual std::shared_ptr<std::map<std::string, Entry::Ptr>> dump(
+        protocol::BlockNumber blockNumber) = 0;
     virtual void importCache(const std::shared_ptr<std::map<std::string, Entry::Ptr>>&) = 0;
 
     virtual void rollback(Change::Ptr _change) = 0;

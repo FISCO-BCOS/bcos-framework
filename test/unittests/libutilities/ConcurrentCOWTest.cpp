@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(cow)
     BOOST_CHECK_EQUAL(c2.refCount(), 4);
     BOOST_CHECK_EQUAL(c3.refCount(), 4);
 
-    c3.mutableGet().value = 100;
+    c3.mutableGet()->value = 100;
 
     BOOST_CHECK_EQUAL(c3.refCount(), 1);
     BOOST_CHECK_EQUAL(c2.refCount(), 3);
