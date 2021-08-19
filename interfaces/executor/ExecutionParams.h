@@ -35,7 +35,7 @@ public:
 
     enum Type
     {
-        TXHASH = 0,       // Received an new transaction from scheduler
+        TXHASH = 0,     // Received an new transaction from scheduler
         EXTERNAL_CALL,    // Received an external call from another contract
         EXTERNAL_RETURN,  // Received a return value from previous external call
     };
