@@ -37,13 +37,12 @@ namespace bcos
 {
 namespace executor
 {
-class ParallelExecutorInterface
+class ParallelTransactionExecutorInterface
 {
 public:
-    using Ptr = std::shared_ptr<ParallelExecutorInterface>;
-    using ConstPtr = std::shared_ptr<const ParallelExecutorInterface>;
+    using Ptr = std::shared_ptr<ParallelTransactionExecutorInterface>;
+    using ConstPtr = std::shared_ptr<const ParallelTransactionExecutorInterface>;
 
-    // Set next block header
     virtual void nextBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 
@@ -52,22 +51,27 @@ public:
         std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 
-    virtual void contractStatus(bcos::crypto::HashType blockHash,
+    virtual void call(const std::string_view& to,
+        const bcos::protocol::ExecutionParams::ConstPtr& input,
+        std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
+            callback) noexcept = 0;
+
+    virtual void contractStatus(bcos::protocol::BlockNumber number,
         std::function<void(const bcos::Error::ConstPtr&, std::vector<ContractStatus::Ptr>&&)>
             callback) noexcept = 0;
 
     /* ----- XA Transaction interface Start ----- */
 
     // Write data to storage uncommitted
-    virtual void prepare(bcos::crypto::HashType blockHash,
+    virtual void prepare(bcos::protocol::BlockNumber number,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 
     // Commit uncommitted data
-    virtual void commit(bcos::crypto::HashType blockHash,
+    virtual void commit(bcos::protocol::BlockNumber number,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 
     // Rollback the changes
-    virtual void rollback(bcos::crypto::HashType blockHash,
+    virtual void rollback(bcos::protocol::BlockNumber number,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 
     /* ----- XA Transaction interface End ----- */

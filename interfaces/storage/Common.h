@@ -135,6 +135,8 @@ const char* const STATUS = "_status_";
 struct TableInfo : public std::enable_shared_from_this<TableInfo>
 {
     using Ptr = std::shared_ptr<TableInfo>;
+    using ConstPtr = std::shared_ptr<const TableInfo>;
+
     explicit TableInfo(
         const std::string& _tableName, const std::string& _key, const std::string& _fields)
       : name(_tableName), key(_key)
