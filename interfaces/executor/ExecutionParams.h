@@ -36,8 +36,8 @@ public:
     enum Type
     {
         TXHASH = 0,     // Received an new transaction from scheduler
-        EXTERN_CALL,    // Received an external call from another contract
-        EXTERN_RETURN,  // Received a return value from previous external call
+        EXTERNAL_CALL,    // Received an external call from another contract
+        EXTERNAL_RETURN,  // Received a return value from previous external call
     };
 
     virtual Type type() const = 0;
@@ -52,6 +52,14 @@ public:
     virtual bcos::bytesConstRef input() const = 0;
     virtual void setInput(const bcos::bytesConstRef& input) = 0;
     virtual void setInput(bcos::bytes&& input) = 0;
+
+    // for extern call return
+    virtual int64_t status() const = 0;
+    virtual void setStatus(int64_t status) = 0;
+
+    virtual std::string_view message() const = 0;
+    virtual void setMessage(const std::string& message) = 0;
+    virtual void setMessage(std::string&& message) = 0;
 };
 
 class ExecutionParamsFactory
@@ -60,9 +68,9 @@ public:
     using Ptr = std::shared_ptr<ExecutionParams>;
     using ConstPtr = std::shared_ptr<const ExecutionParams>;
 
-    virtual ~ExecutionParamsFactory() {};
+    virtual ~ExecutionParamsFactory(){};
 
     virtual ExecutionParams::Ptr createExecutionParams() = 0;
 };
 }  // namespace protocol
-}  // namespace 
+}  // namespace bcos
