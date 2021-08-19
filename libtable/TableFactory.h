@@ -290,21 +290,6 @@ public:
 
     protocol::BlockNumber blockNumber() const override { return m_blockNumber; }
 
-    bool checkAuthority(const std::string& _tableName, const std::string& _user) const override
-    {
-        // FIXME: implement when we get permission control
-        (void)_tableName;
-        (void)_user;
-        return true;
-    }
-    virtual bool grantAccess(const std::string& _tableName, const std::string& _user)
-    {
-        // FIXME: implement when we get permission control
-        (void)_tableName;
-        (void)_user;
-        return true;
-    }
-
 private:
     virtual Table::Ptr openTableWithoutLock(const std::string& tableName)
     {

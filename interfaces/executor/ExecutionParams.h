@@ -35,7 +35,7 @@ public:
 
     enum Type
     {
-        TXHASH = 0,     // Received an new transaction from scheduler
+        TXHASH = 0,       // Received an new transaction from scheduler
         EXTERNAL_CALL,    // Received an external call from another contract
         EXTERNAL_RETURN,  // Received a return value from previous external call
     };
@@ -54,8 +54,8 @@ public:
     virtual void setInput(bcos::bytes&& input) = 0;
 
     // for extern call return
-    virtual int32_t status() const = 0;
-    virtual void setStatus() = 0;
+    virtual int64_t status() const = 0;
+    virtual void setStatus(int64_t status) = 0;
 
     virtual std::string_view message() const = 0;
     virtual void setMessage(const std::string& message) = 0;

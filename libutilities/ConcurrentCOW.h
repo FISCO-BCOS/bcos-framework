@@ -11,7 +11,7 @@ class ConcurrentCOW
 public:
     ConcurrentCOW(){};
     explicit ConcurrentCOW(T&& obj) { reset(std::forward<T>(obj)); };
-    explicit ConcurrentCOW(std::shared_ptr<T>&& obj) { m_obj = std::move(obj); }
+    explicit ConcurrentCOW(std::shared_ptr<T>&& obj) noexcept { m_obj = std::move(obj); }
     ConcurrentCOW(const ConcurrentCOW& cow) noexcept { m_obj = cow.m_obj; }
     ConcurrentCOW(ConcurrentCOW&& cow) noexcept { m_obj = std::move(cow.m_obj); }
     void operator=(const ConcurrentCOW& cow) noexcept { m_obj = cow.m_obj; }
@@ -19,6 +19,7 @@ public:
     ~ConcurrentCOW() noexcept {}
 
     void reset(T&& obj) { m_obj = std::make_shared<T>(std::forward<T>(obj)); }
+    void clear() noexcept { m_obj.reset(); }
 
     bool empty() const noexcept { return m_obj.get() == nullptr; }
 

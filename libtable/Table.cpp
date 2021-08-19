@@ -39,9 +39,7 @@ Entry::Ptr Table::getRow(const std::string& _key)
     {
         if (entryIt->second->getStatus() != Entry::Status::DELETED)
         {
-            auto entry = std::make_shared<Entry>();
-            entry->copyFrom(entryIt->second);
-            return entry;
+            return std::make_shared<Entry>(*(entryIt->second));
         }
         // deleted
         return nullptr;
@@ -65,10 +63,8 @@ std::map<std::string, Entry::Ptr> Table::getRows(const std::vector<std::string>&
                 if (entryIt != m_cache.end() && !entryIt->second->rollbacked())
                 {
                     if (entryIt->second->getStatus() != Entry::Status::DELETED)
-                    {  // copy from
-                        auto entry = std::make_shared<Entry>();
-                        entry->copyFrom(entryIt->second);
-                        ret[key] = entry;
+                    {  // copy entry
+                        ret[key] = std::make_shared<Entry>(*(entryIt->second));
                     }
                     else
                     {  // deleted
@@ -136,19 +132,7 @@ bool Table::setRow(const std::string& _key, const Entry::Ptr& _entry)
         STORAGE_LOG(ERROR) << LOG_BADGE("Table setRow empty entry") << LOG_KV("key", _key);
         return false;
     }
-    // check entry fields
-    for (auto& it : *_entry)
-    {
-        if (it.first != m_tableInfo->key &&
-            m_tableInfo->fields.end() ==
-                find(m_tableInfo->fields.begin(), m_tableInfo->fields.end(), it.first))
-        {
-            STORAGE_LOG(ERROR) << LOG_BADGE("Table") << LOG_DESC("invalid field")
-                               << LOG_KV("table name", m_tableInfo->name)
-                               << LOG_KV("field", it.first);
-            return false;
-        }
-    }
+
     _entry->setNum(m_blockNumber);
     _entry->setField(m_tableInfo->key, _key);
     // get the old value, if the entry is not in m_cache, dont query db
@@ -190,7 +174,7 @@ bool Table::remove(const std::string& _key)
     else
     {
         STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove") << LOG_KV("key", _key);
-        auto entry = std::make_shared<Entry>();
+        auto entry = newEntry();
         entry->setStatus(Entry::Status::DELETED);
         m_cache.insert(std::make_pair(_key, entry));
     }
@@ -251,8 +235,7 @@ void Table::asyncGetRow(
     {
         if (entryIt->second->getStatus() != Entry::Status::DELETED)
         {
-            entry = std::make_shared<Entry>();
-            entry->copyFrom(entryIt->second);
+            entry = std::make_shared<Entry>(*(entryIt->second));
             _callback(nullptr, entry);
             return;
         }
@@ -279,9 +262,7 @@ void Table::asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
         {
             if (entryIt->second->getStatus() != Entry::Status::DELETED)
             {  // copy from
-                auto entry = std::make_shared<Entry>();
-                entry->copyFrom(entryIt->second);
-                (*ret)[key] = entry;
+                (*ret)[key] = std::make_shared<Entry>(*(entryIt->second));
             }
             else
             {  // deleted
@@ -350,20 +331,18 @@ crypto::HashType Table::hash()
                     {
                         auto entry = entryVec[i];
                         auto startOffSet = entriesOffset[i];
-                        for (auto& fieldIt : *(entry))
+
+                        for (auto& value : *(entry))
                         {
-                            if (isHashField(fieldIt.first))
+                            if (!value.empty())
                             {
-                                memcpy(
-                                    &allData[startOffSet], &fieldIt.first[0], fieldIt.first.size());
-                                startOffSet += fieldIt.first.size();
-                                memcpy(&allData[startOffSet], &fieldIt.second[0],
-                                    fieldIt.second.size());
-                                startOffSet += fieldIt.second.size();
+                                memcpy(&allData[startOffSet], value.data(), value.size());
+                                startOffSet += value.size();
                             }
                         }
+
                         char status = (char)entry->getStatus();
-                        memcpy(&allData[startOffSet], &status, sizeof(status));
+                        allData[startOffSet] = status;
                     }
                 });
 
@@ -399,7 +378,7 @@ void Table::rollback(Change::Ptr _change)
         }
         else
         {  // nullptr means the key is not exist in m_cache
-            auto oldEntry = std::make_shared<Entry>();
+            auto oldEntry = newEntry();
             oldEntry->setRollbacked(true);
             m_cache[_change->key] = oldEntry;
         }

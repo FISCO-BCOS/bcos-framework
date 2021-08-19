@@ -1,12 +1,16 @@
 #pragma once
 
+#include "../../libutilities/Common.h"
 #include "../../libutilities/ConcurrentCOW.h"
 #include "../protocol/ProtocolTypeDef.h"
 #include "Common.h"
+#include <boost/exception/diagnostic_information.hpp>
+#include <boost/throw_exception.hpp>
+#include <exception>
 
 namespace bcos::storage
 {
-class Entry : public std::enable_shared_from_this<Entry>
+class Entry
 {
 public:
     enum Status
@@ -17,11 +21,18 @@ public:
     using Ptr = std::shared_ptr<Entry>;
     using ConstPtr = std::shared_ptr<const Entry>;
 
-    explicit Entry(protocol::BlockNumber _num = 0)
-      : m_num(_num), m_data(std::map<std::string, std::string>())
+    explicit Entry(const TableInfo::ConstPtr& tableInfo, protocol::BlockNumber _num = 0) noexcept
+      : m_num(_num),
+        m_data(std::vector<std::string>(tableInfo->field2Index.size())),
+        m_tableInfo(tableInfo)
     {}
 
-    virtual ~Entry() {}
+    explicit Entry(const Entry& entry) noexcept = default;
+    explicit Entry(Entry&& entry) noexcept = default;
+    bcos::storage::Entry& operator=(const Entry& entry) noexcept = default;
+    bcos::storage::Entry& operator=(Entry&& entry) noexcept = default;
+
+    virtual ~Entry() noexcept {}
 
     std::string getField(const std::string_view& key) const
     {
@@ -30,117 +41,130 @@ public:
 
     std::string_view getFieldConst(const std::string_view& key) const
     {
-        auto data = m_data.get();
-        auto it = data->find(key);
-        if (it != data->end())
+        try
         {
-            return it->second;
+            auto& field = constField(key);
+            return field;
         }
-        STORAGE_LOG(ERROR) << LOG_BADGE("Entry") << LOG_DESC("can't find key")
-                           << LOG_KV("key", key);
+        catch (const std::exception& e)
+        {
+            STORAGE_LOG(ERROR) << "getFieldConst failed " << boost::diagnostic_information(e);
+        }
+
         return "";
     }
-    void setField(const std::string& key, const std::string& value)
-    {
-        setField(std::string(key), std::string(value));
-    }
 
-    void setField(std::string&& key, std::string&& value)
+    const std::string& constField(const std::string_view& key) const
     {
-        ssize_t updatedCapacity = 0;
-        auto data = m_data.mutableGet();
-        auto it = data->find(key);
-        if (it != data->end())
+        size_t index;
+        auto indexIt = m_tableInfo->field2Index.find(key);
+        if (indexIt != m_tableInfo->field2Index.end())
         {
-            updatedCapacity = value.size() - it->second.size();
-            it->second = value;
+            index = indexIt->second;
+            auto& field = (*(m_data.get()))[index];
+            return field;
         }
         else
         {
-            updatedCapacity = key.size() + value.size();
-            data->insert(
-                std::make_pair(std::forward<std::string>(key), std::forward<std::string>(value)));
+            BOOST_THROW_EXCEPTION(bcos::Exception("Can't find field: " + std::string(key)));
         }
-        m_capacityOfHashField += updatedCapacity;
-        m_dirty = true;
     }
 
-    virtual std::map<std::string, std::string>::const_iterator find(
-        const std::string_view& key) const
+    void setField(const std::string_view& key, const std::string& value)
     {
-        return m_data.get()->find(key);
+        setField(key, std::string(value));
     }
-    virtual std::map<std::string, std::string>::const_iterator begin() const
+
+    void setField(const std::string_view& key, std::string&& value)
+    {
+        try
+        {
+            ssize_t updatedCapacity = 0;
+
+            auto& field = mutableField(key);
+            updatedCapacity = value.size() - field.size();
+            field = std::move(value);
+            m_capacityOfHashField += updatedCapacity;
+            m_dirty = true;
+        }
+        catch (const std::exception& e)
+        {
+            STORAGE_LOG(ERROR) << "setField failed " << boost::diagnostic_information(e);
+        }
+    }
+
+    std::string& mutableField(const std::string_view& key)
+    {
+        size_t index;
+        auto indexIt = m_tableInfo->field2Index.find(key);
+        if (indexIt != m_tableInfo->field2Index.end())
+        {
+            index = indexIt->second;
+            auto& field = (*(m_data.mutableGet()))[index];
+            return field;
+        }
+        else
+        {
+            BOOST_THROW_EXCEPTION(bcos::Exception("Can't find field: " + std::string(key)));
+        }
+    }
+
+    virtual std::vector<std::string>::const_iterator begin() const noexcept
     {
         return m_data.get()->cbegin();
     }
-    virtual std::map<std::string, std::string>::const_iterator end() const
+    virtual std::vector<std::string>::const_iterator end() const noexcept
     {
         return m_data.get()->cend();
     }
-    size_t size() const { return m_data.get()->size(); }
 
-    bool rollbacked() const { return m_rollbacked; }
-    void setRollbacked(bool _rollbacked) { m_rollbacked = _rollbacked; }
-    Status getStatus() const { return m_status; }
+    bool rollbacked() const noexcept { return m_rollbacked; }
+    void setRollbacked(bool _rollbacked) noexcept { m_rollbacked = _rollbacked; }
+    Status getStatus() const noexcept { return m_status; }
 
-    void setStatus(Status status)
+    void setStatus(Status status) noexcept
     {
         (void)m_data.mutableGet();
         m_status = status;
         m_dirty = true;
     }
 
-    bool count(const std::string_view& key) const
-    {
-        auto data = m_data.get();
-        if (data->find(key) == data->end())
-        {
-            return false;
-        }
-        return true;
-    }
-
-    protocol::BlockNumber num() const { return m_num; }
-    void setNum(protocol::BlockNumber num)
+    protocol::BlockNumber num() const noexcept { return m_num; }
+    void setNum(protocol::BlockNumber num) noexcept
     {
         m_num = num;
         m_dirty = true;
     }
 
-    void copyFrom(Entry::ConstPtr entry)
-    {
-        m_data = entry->m_data;
-        m_num = entry->m_num;
-        m_status = entry->m_status;
-        m_dirty = entry->m_dirty;
-        m_rollbacked = entry->m_rollbacked;
-        m_capacityOfHashField = entry->m_capacityOfHashField;
-    }
+    void copyFrom(Entry::ConstPtr entry) noexcept { *this = *entry; }
 
-    bool dirty() const { return m_dirty; }
-    void setDirty(bool dirty) { m_dirty = dirty; }
-    ssize_t capacityOfHashField() const
+    bool dirty() const noexcept { return m_dirty; }
+    void setDirty(bool dirty) noexcept { m_dirty = dirty; }
+
+    ssize_t capacityOfHashField() const noexcept
     {  // the capacity is used to calculate gas, must return the same value in different DB
         return m_capacityOfHashField;
     }
-    ssize_t refCount() const { return m_data.refCount(); }
 
-    std::map<std::string, std::string>&& exportData() { return std::move(*m_data.mutableGet()); }
+    size_t version() const noexcept { return m_version; }
+    void setVersion(size_t version) noexcept { m_version = version; }
 
-    void importData(std::map<std::string, std::string>&& input)
-    {
-        m_data.mutableGet()->swap(input);
-    }
+    ssize_t refCount() const noexcept { return m_data.refCount(); }
+
+    std::vector<std::string>&& exportData() noexcept { return std::move(*m_data.mutableGet()); }
+
+    void importData(std::vector<std::string>&& input) noexcept { m_data.mutableGet()->swap(input); }
 
 private:
     // should serialization
     protocol::BlockNumber m_num = 0;
     Status m_status = Status::NORMAL;
-    bcos::ConcurrentCOW<std::map<std::string, std::string>> m_data;
+    bcos::ConcurrentCOW<std::vector<std::string>> m_data;
 
     // no need to serialization
+    TableInfo::ConstPtr m_tableInfo;
     ssize_t m_capacityOfHashField = 0;
+    size_t m_version = 0;
     bool m_dirty = false;
     bool m_rollbacked = false;
 };

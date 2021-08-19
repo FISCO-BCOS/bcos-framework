@@ -444,7 +444,6 @@ BOOST_AUTO_TEST_CASE(openAndCommit)
         std::promise<bool> getRow;
         table->asyncGetRow(key, [&](const Error::Ptr& error, const Entry::Ptr& result) {
             BOOST_CHECK_EQUAL(error, nullptr);
-            BOOST_CHECK_EQUAL(result->count("value"), 1);
             BOOST_CHECK_EQUAL(result->getField("value"), "hello world!");
 
             getRow.set_value(true);

@@ -26,6 +26,7 @@
 #include "tbb/spin_mutex.h"
 #include "tbb/spin_rw_mutex.h"
 #include "tbb/tbb_thread.h"
+#include <boost/throw_exception.hpp>
 #include <map>
 #include <memory>
 #include <string>
@@ -142,16 +143,34 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
       : name(_tableName), key(_key)
     {  // the fields must ordered in key value_fields status num_field
         boost::split(fields, _fields, boost::is_any_of(","));
+        generateFieldsIndex();
     }
     explicit TableInfo(const std::string& _tableName, const std::string& _key,
         const std::vector<std::string>& _fields)
       : name(_tableName), key(_key), fields(_fields)
-    {}
+    {
+        generateFieldsIndex();
+    }
+
+    void generateFieldsIndex()
+    {
+        size_t i = 0;
+        field2Index.emplace(key, i++);
+
+        for (auto& field : fields)
+        {
+            auto [it, success] = field2Index.emplace(field, i++);
+            if (!success)
+            {
+                BOOST_THROW_EXCEPTION(bcos::Exception("Field exists! " + field));
+            }
+        }
+    }
+
     std::string name;
     std::string key;
     std::vector<std::string> fields;
-    // std::vector<Address> authorizedAddress;
-    std::vector<std::string> indices;
+    std::map<std::string, size_t, std::less<>> field2Index;
 
     bool enableConsensus = true;
     bool newTable = false;

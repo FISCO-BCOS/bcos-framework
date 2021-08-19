@@ -123,7 +123,6 @@ public:
     virtual void importData(std::vector<TableInfo::Ptr>&,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>&, bool) = 0;
     virtual protocol::BlockNumber blockNumber() const = 0;
-    virtual bool checkAuthority(const std::string& _tableName, const std::string& _user) const = 0;
 };
 }  // namespace storage
 }  // namespace bcos
