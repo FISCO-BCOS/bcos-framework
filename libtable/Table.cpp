@@ -305,7 +305,7 @@ crypto::HashType Table::hash()
                << "[ *key=" << key << " ]";
             for (auto& it : *entry)
             {
-                ss << "[ " << it.first << "=" << it.second << " ]";
+                ss <<  it << ", ";
             }
         }
         STORAGE_LOG(DEBUG) << LOG_BADGE("FISCO_DEBUG") << LOG_KV("TableName", m_tableInfo->name)
