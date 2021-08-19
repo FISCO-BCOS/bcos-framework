@@ -160,6 +160,7 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
         for (auto& field : fields)
         {
             auto [it, success] = field2Index.emplace(field, i++);
+            (void)it;
             if (!success)
             {
                 BOOST_THROW_EXCEPTION(bcos::Exception("Field exists! " + field));
