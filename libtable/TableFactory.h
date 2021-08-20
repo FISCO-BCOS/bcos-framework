@@ -138,7 +138,7 @@ public:
                     STORAGE_LOG(DEBUG)
                         << LOG_BADGE("FISCO_DEBUG") << LOG_BADGE("TableFactory hash") << it + 1
                         << "/" << tables.size() << LOG_KV("tableName", table.first)
-                        << LOG_KV("hash", hash) << LOG_KV("blockNumber", m_blockNumber);
+                        << LOG_KV("hash", hash.abridged()) << LOG_KV("blockNumber", m_blockNumber);
                 }
             });
 
