@@ -191,6 +191,7 @@ bool Table::remove(const std::string& _key)
     {
         STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove") << LOG_KV("key", _key);
         auto entry = std::make_shared<Entry>();
+        entry->setNum(m_blockNumber);
         entry->setStatus(Entry::Status::DELETED);
         m_cache.insert(std::make_pair(_key, entry));
     }
@@ -400,6 +401,7 @@ void Table::rollback(Change::Ptr _change)
         else
         {  // nullptr means the key is not exist in m_cache
             auto oldEntry = std::make_shared<Entry>();
+            oldEntry->setNum(m_blockNumber);
             oldEntry->setRollbacked(true);
             m_cache[_change->key] = oldEntry;
         }
