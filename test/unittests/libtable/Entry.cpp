@@ -17,10 +17,10 @@
  * @file Entry.cpp
  */
 
+#include "../../../testutils/TestPromptFixture.h"
 #include "interfaces/storage/TableInterface.h"
 #include "libtable/Table.h"
 #include "libtable/TableFactory.h"
-#include "../../../testutils/TestPromptFixture.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
@@ -34,28 +34,54 @@ namespace test
 {
 struct EntryFixture
 {
-    EntryFixture() {}
+    EntryFixture() { tableInfo = std::make_shared<TableInfo>("testTable", "key", "key2,value"); }
 
     ~EntryFixture() {}
+
+    std::shared_ptr<TableInfo> tableInfo;
 };
 BOOST_FIXTURE_TEST_SUITE(EntryTest, EntryFixture)
 
 BOOST_AUTO_TEST_CASE(copyFrom)
 {
-    auto entry1 = std::make_shared<Entry>();
-    auto entry2 = std::make_shared<Entry>();
-    BOOST_TEST(entry1->dirty() == false);
-    BOOST_TEST(entry1->count("key") == false);
-    BOOST_TEST(entry1->size() == 0);
+    auto entry1 = std::make_shared<Entry>(tableInfo);
+    auto entry2 = std::make_shared<Entry>(tableInfo);
+    BOOST_CHECK_EQUAL(entry1->dirty(), false);
     entry1->setField("key", "value");
-    BOOST_TEST(entry1->count("key") == true);
-    BOOST_TEST(entry1->size() == 1);
     BOOST_TEST(entry1->dirty() == true);
-    BOOST_TEST(entry1->capacityOfHashField() == 8);
+    BOOST_TEST(entry1->capacityOfHashField() == 5);
 
     entry2->copyFrom(entry1);
     BOOST_TEST(entry1->refCount() == 2);
     BOOST_TEST(entry2->refCount() == 2);
+
+    {
+        auto entry3 = Entry(*entry1);
+
+        BOOST_CHECK_EQUAL(entry3.refCount(), 3);
+        BOOST_CHECK_EQUAL(entry2->refCount(), 3);
+        BOOST_CHECK_EQUAL(entry1->refCount(), 3);
+
+        entry3.setField("key2", "i am key2");
+        BOOST_CHECK_EQUAL(entry3.refCount(), 1);
+        BOOST_CHECK_EQUAL(entry2->refCount(), 2);
+        BOOST_CHECK_EQUAL(entry1->refCount(), 2);
+
+        auto entry4(std::move(entry3));
+        BOOST_CHECK_EQUAL(entry4.refCount(), 1);
+        BOOST_CHECK_EQUAL(entry3.refCount(), 0);
+
+        auto entry5(*entry2);
+        BOOST_CHECK_EQUAL(entry5.refCount(), 3);
+        BOOST_CHECK_EQUAL(entry2->refCount(), 3);
+        BOOST_CHECK_EQUAL(entry1->refCount(), 3);
+
+        auto entry6(std::move(entry5));
+        BOOST_CHECK_EQUAL(entry6.refCount(), 3);
+        BOOST_CHECK_EQUAL(entry5.refCount(), 0);
+        BOOST_CHECK_EQUAL(entry2->refCount(), 3);
+        BOOST_CHECK_EQUAL(entry1->refCount(), 3);
+    }
 
     BOOST_TEST(entry2->getField("key") == "value");
 
@@ -66,16 +92,9 @@ BOOST_AUTO_TEST_CASE(copyFrom)
     BOOST_TEST(entry1->getFieldConst("key") == "value");
     BOOST_TEST(entry1->getFieldConst("key2") == "");
     BOOST_TEST(entry1->getField("key2") == "");
-    if (entry1->find("key2") != entry1->end())
-    {
-        BOOST_TEST(false);
-    }
-    if (entry1->find("key") != entry1->begin())
-    {
-        BOOST_TEST(false);
-    }
+
     entry2->setField("key", "value3");
-    BOOST_TEST(entry2->capacityOfHashField() == 9);
+    BOOST_TEST(entry2->capacityOfHashField() == 6);
     BOOST_TEST(entry2->getFieldConst("key") == "value3");
     BOOST_TEST(entry1->refCount() == 1);
     BOOST_TEST(entry2->refCount() == 1);
@@ -88,14 +107,14 @@ BOOST_AUTO_TEST_CASE(copyFrom)
     entry2->setField(key2, string("value2"));
     BOOST_TEST(entry2->dirty() == true);
     BOOST_TEST(entry2->refCount() == 1);
-    BOOST_TEST(entry2->capacityOfHashField() == 19);
+    BOOST_TEST(entry2->capacityOfHashField() == 12);
     auto value2 = "value2";
     entry2->setField(key2, value2);
 }
 
 BOOST_AUTO_TEST_CASE(functions)
 {
-    auto entry = std::make_shared<Entry>();
+    auto entry = std::make_shared<Entry>(tableInfo);
     BOOST_TEST(entry->dirty() == false);
     entry->setNum(1);
     BOOST_TEST(entry->num() == 1);

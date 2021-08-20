@@ -110,10 +110,27 @@ public:
         return m_nodeList->count(_nodeId);
     }
 
+    virtual bool connected(bcos::crypto::NodeIDPtr _nodeId)
+    {
+        ReadGuard l(x_connectedNodeList);
+        return m_connectedNodeList->count(_nodeId);
+    }
+
     bcos::crypto::NodeIDSet groupNodeList()
     {
         ReadGuard l(x_nodeList);
         return *m_nodeList;
+    }
+
+    virtual void notifyConnectedNodes(bcos::crypto::NodeIDSet const& _connectedNodes,
+        std::function<void(Error::Ptr)> _onRecvResponse)
+    {
+        setConnectedNodeList(_connectedNodes);
+        if (!_onRecvResponse)
+        {
+            return;
+        }
+        _onRecvResponse(nullptr);
     }
 
 private:

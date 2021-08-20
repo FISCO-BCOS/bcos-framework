@@ -53,7 +53,7 @@ public:
         override;
 
     TableInfo::Ptr tableInfo() const override { return m_tableInfo; }
-    Entry::Ptr newEntry() override { return std::make_shared<Entry>(m_blockNumber); }
+    Entry::Ptr newEntry() override { return std::make_shared<Entry>(m_tableInfo, m_blockNumber); }
     crypto::HashType hash() override;
 
     std::shared_ptr<std::map<std::string, Entry::Ptr>> dump(
@@ -68,8 +68,7 @@ public:
                 if ((onlyDirty && it.second->dirty()) ||
                     (!onlyDirty && it.second->num() >= blockNumber))
                 {
-                    auto entry = std::make_shared<Entry>();
-                    entry->copyFrom(it.second);
+                    auto entry = std::make_shared<Entry>(*(it.second));
                     (*ret)[it.first] = entry;
                 }
             }

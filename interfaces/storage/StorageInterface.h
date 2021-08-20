@@ -22,6 +22,7 @@
 #include "../../interfaces/protocol/Block.h"
 #include "../../libutilities/Error.h"
 #include "Common.h"
+#include "Entry.h"
 #include <map>
 #include <memory>
 #include <string>
