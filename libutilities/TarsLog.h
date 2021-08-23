@@ -24,8 +24,7 @@ public:
     template <class Message>
     EndlHelper& operator<<(Message message)
     {
-        m_logger << message;
-        return *this;
+        return m_logger << message;
     }
 
     ~EndlHelper() { m_logger << std::endl; }
