@@ -144,6 +144,7 @@ public:
 
     virtual crypto::HashType hash() = 0;
 
+    /*
     virtual std::shared_ptr<std::map<std::string, Entry::Ptr>> dump(
         protocol::BlockNumber blockNumber) = 0;
     virtual void importCache(const std::shared_ptr<std::map<std::string, Entry::Ptr>>&) = 0;
@@ -151,6 +152,7 @@ public:
     virtual void rollback(Change::Ptr _change) = 0;
     virtual bool dirty() const = 0;
     virtual void setRecorder(RecorderType _recorder) = 0;
+    */
 };
 
 class TableFactoryInterface : public std::enable_shared_from_this<TableFactoryInterface>

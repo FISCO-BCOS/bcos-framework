@@ -30,7 +30,7 @@ namespace bcos
 {
 namespace storage
 {
-class TableFactory : public TableFactoryInterface
+class TableFactory
 {
 public:
     typedef std::shared_ptr<TableFactory> Ptr;
@@ -46,14 +46,18 @@ public:
         getChangeLog().clear();
     }
 
-    std::shared_ptr<TableInterface> openTable(const std::string& _tableName) override
+    std::shared_ptr<Table> openTable(const std::string& _tableName)
     {
         tbb::spin_mutex::scoped_lock l(x_name2Table);
         return openTableWithoutLock(_tableName);
     }
 
     bool createTable(const std::string& _tableName, const std::string& _keyField,
-        const std::string& _valueFields) override
+        const std::string& _valueFields)
+    {}
+
+    void asyncCreateTable(const std::string& _tableName, const std::string& _keyField,
+        const std::string& _valueFields)
     {
         // TODO: check tablename and column name characters are permitted
         auto sysTable = openTable(SYS_TABLE);
@@ -99,7 +103,7 @@ public:
         return true;
     }
 
-    crypto::HashType hash() override
+    crypto::HashType hash()
     {
         std::vector<std::pair<std::string, Table::Ptr>> tables;
         for (auto& it : m_name2Table)
@@ -150,12 +154,12 @@ public:
         m_hash = m_hashImpl->hash(&data);
         return m_hash;
     }
-    size_t savepoint() override
+    size_t savepoint()
     {
         auto& changeLog = getChangeLog();
         return changeLog.size();
     }
-    void rollback(size_t _savepoint) override
+    void rollback(size_t _savepoint)
     {
         auto& changeLog = getChangeLog();
         while (_savepoint < changeLog.size())
@@ -172,7 +176,7 @@ public:
             }
         }
     }
-    std::pair<size_t, Error::Ptr> commit() override
+    std::pair<size_t, Error::Ptr> commit()
     {
         auto start_time = utcTime();
         auto record_time = utcTime();
@@ -200,7 +204,7 @@ public:
         return ret;
     }
 
-    void asyncCommit(std::function<void(const Error::Ptr&, size_t)> _callback) override
+    void asyncCommit(std::function<void(const Error::Ptr&, size_t)> _callback)
     {
         auto start_time = utcTime();
         auto record_time = utcTime();
@@ -258,7 +262,7 @@ public:
         return ret;
     }
 
-    
+
     void importData(std::vector<TableInfo::Ptr>& _tableInfos,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>& _tableDatas,
         bool _dirty = true) override
@@ -291,10 +295,10 @@ public:
     }
     */
 
-    protocol::BlockNumber blockNumber() const override { return m_blockNumber; }
+    protocol::BlockNumber blockNumber() const { return m_blockNumber; }
 
 private:
-    virtual Table::Ptr openTableWithoutLock(const std::string& tableName)
+    virtual Table::Ptr asyncOpenTableWithoutLock(const std::string& tableName)
     {
         auto it = m_name2Table.find(tableName);
         if (it != m_name2Table.end())
