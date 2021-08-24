@@ -49,13 +49,15 @@ public:
 
     virtual void asyncGetPrimaryKeys(const TableInfo::Ptr& _tableInfo,
         const Condition::Ptr& _condition,
-        std::function<void(const Error::Ptr&, const std::vector<std::string>&)> _callback) = 0;
+        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) = 0;
+
     virtual void asyncGetRow(const TableInfo::Ptr& _tableInfo, const std::string_view& _key,
-        std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback) = 0;
+        std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback) = 0;
+
     virtual void asyncGetRows(const TableInfo::Ptr& _tableInfo,
         const std::shared_ptr<std::vector<std::string> >& _keys,
-        std::function<void(const Error::Ptr&, const std::map<std::string, Entry::Ptr>&)>
-            _callback) = 0;
+        std::function<void(Error::Ptr&&, std::map<std::string, Entry::Ptr>&&)> _callback) = 0;
+
     virtual void asyncCommitBlock(protocol::BlockNumber _blockNumber,
         const std::shared_ptr<std::vector<TableInfo::Ptr> >& _infos,
         const std::shared_ptr<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr> > > >&

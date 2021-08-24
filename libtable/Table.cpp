@@ -32,97 +32,6 @@ namespace bcos
 {
 namespace storage
 {
-Entry::Ptr Table::getRow(const std::string& _key)
-{
-    auto entryIt = m_cache.find(_key);
-    if (entryIt != m_cache.end() && !entryIt->second->rollbacked())
-    {
-        if (entryIt->second->getStatus() != Entry::Status::DELETED)
-        {
-            return std::make_shared<Entry>(*(entryIt->second));
-        }
-        // deleted
-        return nullptr;
-    }
-    if (m_tableInfo->newTable)
-    {  // new table has no data in DB
-        return nullptr;
-    }
-    return m_DB->getRow(m_tableInfo, _key);
-}
-
-std::map<std::string, Entry::Ptr> Table::getRows(const std::vector<std::string>& _keys)
-{
-    std::map<std::string, Entry::Ptr> ret;
-    std::map<std::string, Entry::Ptr> queryRet;
-    tbb::parallel_invoke(
-        [&]() {
-            for (auto& key : _keys)
-            {
-                auto entryIt = m_cache.find(key);
-                if (entryIt != m_cache.end() && !entryIt->second->rollbacked())
-                {
-                    if (entryIt->second->getStatus() != Entry::Status::DELETED)
-                    {  // copy entry
-                        ret[key] = std::make_shared<Entry>(*(entryIt->second));
-                    }
-                    else
-                    {  // deleted
-                        ret[key] = nullptr;
-                    }
-                }
-                if (m_tableInfo->newTable)
-                {  // new table has no data in DB
-                    ret[key] = nullptr;
-                }
-            }
-        },
-        [&]() {
-            if (!m_tableInfo->newTable)
-            {  // new table has no data in DB
-                queryRet = m_DB->getRows(m_tableInfo, _keys);
-            }
-        });
-
-    ret.merge(queryRet);
-    return ret;
-}
-
-std::vector<std::string> Table::getPrimaryKeys(const Condition::Ptr& _condition) const
-{
-    std::vector<std::string> ret;
-    std::set<std::string> deleted;
-    for (auto item : m_cache)
-    {
-        if (!item.second->rollbacked() && (!_condition || _condition->isValid(item.first)))
-        {
-            if (item.second->getStatus() != Entry::Status::DELETED)
-            {
-                ret.push_back(item.first);
-            }
-            else
-            {
-                deleted.insert(item.first);
-            }
-        }
-    }
-    if (m_tableInfo->newTable)
-    {  // new table has no data in DB
-        return ret;
-    }
-    auto len = ret.size();
-    auto temp = m_DB->getPrimaryKeys(m_tableInfo, _condition);
-    for (size_t i = 0; i < temp.size(); ++i)
-    {
-        if (!deleted.count(temp[i]) &&
-            find(ret.begin(), ret.begin() + len, temp[i]) == ret.begin() + len)
-        {
-            ret.emplace_back(move(temp[i]));
-        }
-    }
-    return ret;
-}
-
 bool Table::setRow(const std::string& _key, const Entry::Ptr& _entry)
 {  // For concurrent_unordered_map, insert and emplace methods may create a temporary item that
     // is destroyed if another thread inserts an item with the same key concurrently.
@@ -188,7 +97,7 @@ bool Table::remove(const std::string& _key)
 }
 
 void Table::asyncGetPrimaryKeys(const Condition::Ptr& _condition,
-    std::function<void(const Error::Ptr&, const std::vector<std::string>&)> _callback)
+    std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback)
 {
     auto ret = make_shared<vector<string>>();
     auto deleted = make_shared<set<string>>();
@@ -208,7 +117,7 @@ void Table::asyncGetPrimaryKeys(const Condition::Ptr& _condition,
     }
     if (m_tableInfo->newTable)
     {  // new table has no data in DB
-        _callback(nullptr, *ret);
+        _callback(nullptr, std::move(*ret));
         return;
     }
     m_DB->asyncGetPrimaryKeys(m_tableInfo, _condition,
@@ -222,12 +131,14 @@ void Table::asyncGetPrimaryKeys(const Condition::Ptr& _condition,
                     ret->emplace_back(move(keys[i]));
                 }
             }
-            _callback(error, *ret);
+
+            auto errorOut = error;
+            _callback(std::move(errorOut), std::move(*ret));
         });
 }
 
 void Table::asyncGetRow(
-    const std::string& _key, std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback)
+    const std::string& _key, std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback)
 {
     Entry::Ptr entry = nullptr;
     auto entryIt = m_cache.find(_key);
@@ -236,22 +147,25 @@ void Table::asyncGetRow(
         if (entryIt->second->getStatus() != Entry::Status::DELETED)
         {
             entry = std::make_shared<Entry>(*(entryIt->second));
-            _callback(nullptr, entry);
+            _callback(nullptr, std::move(entry));
             return;
         }
-        _callback(make_shared<Error>(StorageErrorCode::NotFound, "the key was deleted"), entry);
+        _callback(make_shared<Error>(StorageErrorCode::NotFound, "the key was deleted"),
+            std::move(entry));
         return;
     }
+    
     if (m_tableInfo->newTable)
     {  // new table has no data in DB
-        _callback(make_shared<Error>(StorageErrorCode::NotFound, "not found"), entry);
+        _callback(make_shared<Error>(StorageErrorCode::NotFound, "not found"), std::move(entry));
         return;
     }
+
     m_DB->asyncGetRow(m_tableInfo, _key, _callback);
 }
 
 void Table::asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
-    std::function<void(const Error::Ptr&, const std::map<std::string, Entry::Ptr>&)> _callback)
+    std::function<void(Error::Ptr&&, std::map<std::string, Entry::Ptr>&&)> _callback)
 {
     auto ret = make_shared<std::map<std::string, Entry::Ptr>>();
 
@@ -276,13 +190,13 @@ void Table::asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
     }
     if (m_tableInfo->newTable)
     {  // new table has no data in DB
-        _callback(nullptr, *ret);
+        _callback(nullptr, std::move(*ret));
         return;
     }
     m_DB->asyncGetRows(m_tableInfo, _keys,
-        [ret, _callback](const Error::Ptr& error, std::map<std::string, Entry::Ptr> queryRet) {
+        [ret, _callback](Error::Ptr&& error, std::map<std::string, Entry::Ptr>&& queryRet) {
             ret->merge(queryRet);
-            _callback(error, *ret);
+            _callback(std::move(error), std::move(*ret));
         });
 }
 
@@ -305,7 +219,7 @@ crypto::HashType Table::hash()
                << "[ *key=" << key << " ]";
             for (auto& it : *entry)
             {
-                ss <<  it << ", ";
+                ss << it << ", ";
             }
         }
         STORAGE_LOG(DEBUG) << LOG_BADGE("FISCO_DEBUG") << LOG_KV("TableName", m_tableInfo->name)

@@ -18,18 +18,20 @@
  * @date: 2021-04-07
  */
 #pragma once
+#include "Common.h"
+#include "Exceptions.h"
 #include <memory>
 #include <string>
 namespace bcos
 {
-class Error
+class Error : public bcos::Exception
 {
 public:
     using Ptr = std::shared_ptr<Error>;
     using ConstPtr = std::shared_ptr<const Error>;
     Error() = default;
     Error(int32_t _errorCode, std::string const& _errorMessage)
-      : m_errorCode(_errorCode), m_errorMessage(_errorMessage)
+      : bcos::Exception(_errorMessage), m_errorCode(_errorCode), m_errorMessage(_errorMessage)
     {}
 
     virtual ~Error() {}

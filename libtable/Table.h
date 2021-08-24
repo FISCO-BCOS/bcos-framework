@@ -38,24 +38,22 @@ public:
       : m_DB(_db), m_tableInfo(_tableInfo), m_hashImpl(_hashImpl), m_blockNumber(_blockNum)
     {}
     virtual ~Table() {}
-    Entry::Ptr getRow(const std::string& _key) override;
-    std::map<std::string, Entry::Ptr> getRows(const std::vector<std::string>& _keys) override;
-    std::vector<std::string> getPrimaryKeys(const Condition::Ptr& _condition) const override;
+
     bool setRow(const std::string& _key, const Entry::Ptr& _entry) override;
     bool remove(const std::string& _key) override;
 
     void asyncGetPrimaryKeys(const Condition::Ptr& _condition,
-        std::function<void(const Error::Ptr&, const std::vector<std::string>&)> _callback) override;
+        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) override;
     void asyncGetRow(const std::string& _key,
-        std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback) override;
+        std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback) override;
     void asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
-        std::function<void(const Error::Ptr&, const std::map<std::string, Entry::Ptr>&)> _callback)
-        override;
+        std::function<void(Error::Ptr&&, std::map<std::string, Entry::Ptr>&&)> _callback) override;
 
     TableInfo::Ptr tableInfo() const override { return m_tableInfo; }
     Entry::Ptr newEntry() override { return std::make_shared<Entry>(m_tableInfo, m_blockNumber); }
     crypto::HashType hash() override;
 
+    /*
     std::shared_ptr<std::map<std::string, Entry::Ptr>> dump(
         protocol::BlockNumber blockNumber) override
     {
@@ -80,14 +78,13 @@ public:
     {
         for (auto& item : *_tableData)
         {
-            if (item.second->getStatus() != Entry::Status::DELETED)
-            {
-                m_cache[item.first] = item.second;
-                item.second->setDirty(false);
-            }
+            m_cache[item.first] = item.second;
+            item.second->setDirty(false);
         }
         m_tableInfo->newTable = false;
     }
+    */
+
     void rollback(Change::Ptr) override;
     bool dirty() const override { return m_dataDirty; }
     void setRecorder(RecorderType _recorder) override { m_recorder = _recorder; }

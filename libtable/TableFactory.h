@@ -45,13 +45,13 @@ public:
         m_name2Table.clear();
         getChangeLog().clear();
     }
-    // virtual void init();
 
     std::shared_ptr<TableInterface> openTable(const std::string& _tableName) override
     {
         tbb::spin_mutex::scoped_lock l(x_name2Table);
         return openTableWithoutLock(_tableName);
     }
+
     bool createTable(const std::string& _tableName, const std::string& _keyField,
         const std::string& _valueFields) override
     {
@@ -226,6 +226,7 @@ public:
         }
     }
 
+    /*
     std::pair<std::vector<TableInfo::Ptr>,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>>
     exportData(protocol::BlockNumber blockNumber) override
@@ -257,6 +258,7 @@ public:
         return ret;
     }
 
+    
     void importData(std::vector<TableInfo::Ptr>& _tableInfos,
         std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr>>>& _tableDatas,
         bool _dirty = true) override
@@ -287,6 +289,7 @@ public:
                 }
             });
     }
+    */
 
     protocol::BlockNumber blockNumber() const override { return m_blockNumber; }
 
@@ -327,6 +330,7 @@ private:
     }
 
     std::vector<Table::Change::Ptr>& getChangeLog() { return s_changeLog.local(); }
+
     // this map can't be changed, hash() need ordered data
     tbb::concurrent_unordered_map<std::string, Table::Ptr> m_name2Table;
     tbb::enumerable_thread_specific<std::vector<Table::Change::Ptr>> s_changeLog;
