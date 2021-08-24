@@ -81,11 +81,8 @@ public:
     {
         for (auto& item : *_tableData)
         {
-            if (item.second->getStatus() != Entry::Status::DELETED)
-            {
-                m_cache[item.first] = item.second;
-                item.second->setDirty(false);
-            }
+            m_cache[item.first] = item.second;
+            item.second->setDirty(false);
         }
         m_tableInfo->newTable = false;
     }
