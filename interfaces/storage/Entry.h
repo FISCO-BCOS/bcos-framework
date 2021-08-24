@@ -23,8 +23,7 @@ public:
 
     explicit Entry(const TableInfo::ConstPtr& tableInfo, protocol::BlockNumber _num = 0) noexcept
       : m_num(_num),
-        m_data(std::vector<std::string>(tableInfo->field2Index.size())),
-        m_tableInfo(tableInfo)
+        m_data(Data{tableInfo, std::vector<std::string>(tableInfo->field2Index.size()), 0})
     {}
 
     explicit Entry(const Entry& entry) noexcept = default;
@@ -57,11 +56,12 @@ public:
     const std::string& constField(const std::string_view& key) const
     {
         size_t index;
-        auto indexIt = m_tableInfo->field2Index.find(key);
-        if (indexIt != m_tableInfo->field2Index.end())
+        auto& tableInfo = m_data.get()->tableInfo;
+        auto indexIt = tableInfo->field2Index.find(key);
+        if (indexIt != tableInfo->field2Index.end())
         {
             index = indexIt->second;
-            auto& field = (*(m_data.get()))[index];
+            auto& field = (m_data.get()->fields)[index];
             return field;
         }
         else
@@ -84,7 +84,7 @@ public:
             auto& field = mutableField(key);
             updatedCapacity = value.size() - field.size();
             field = std::move(value);
-            m_capacityOfHashField += updatedCapacity;
+            m_data.mutableGet()->capacityOfHashField += updatedCapacity;
             m_dirty = true;
         }
         catch (const std::exception& e)
@@ -95,12 +95,12 @@ public:
 
     std::string& mutableField(const std::string_view& key)
     {
-        size_t index;
-        auto indexIt = m_tableInfo->field2Index.find(key);
-        if (indexIt != m_tableInfo->field2Index.end())
+        auto& tableInfo = m_data.get()->tableInfo;
+        auto indexIt = tableInfo->field2Index.find(key);
+        if (indexIt != tableInfo->field2Index.end())
         {
-            index = indexIt->second;
-            auto& field = (*(m_data.mutableGet()))[index];
+            size_t index = indexIt->second;
+            auto& field = (m_data.mutableGet()->fields)[index];
             return field;
         }
         else
@@ -111,11 +111,11 @@ public:
 
     virtual std::vector<std::string>::const_iterator begin() const noexcept
     {
-        return m_data.get()->cbegin();
+        return m_data.get()->fields.cbegin();
     }
     virtual std::vector<std::string>::const_iterator end() const noexcept
     {
-        return m_data.get()->cend();
+        return m_data.get()->fields.cend();
     }
 
     bool rollbacked() const noexcept { return m_rollbacked; }
@@ -136,14 +136,12 @@ public:
         m_dirty = true;
     }
 
-    void copyFrom(Entry::ConstPtr entry) noexcept { *this = *entry; }
-
     bool dirty() const noexcept { return m_dirty; }
     void setDirty(bool dirty) noexcept { m_dirty = dirty; }
 
     ssize_t capacityOfHashField() const noexcept
     {  // the capacity is used to calculate gas, must return the same value in different DB
-        return m_capacityOfHashField;
+        return m_data.get()->capacityOfHashField;
     }
 
     size_t version() const noexcept { return m_version; }
@@ -151,19 +149,30 @@ public:
 
     ssize_t refCount() const noexcept { return m_data.refCount(); }
 
-    std::vector<std::string>&& exportData() noexcept { return std::move(*m_data.mutableGet()); }
+    std::vector<std::string>&& exportData() noexcept
+    {
+        return std::move(m_data.mutableGet()->fields);
+    }
 
-    void importData(std::vector<std::string>&& input) noexcept { m_data.mutableGet()->swap(input); }
+    void importData(std::vector<std::string>&& input) noexcept
+    {
+        m_data.mutableGet()->fields = std::move(input);
+    }
 
 private:
+    struct Data
+    {
+        TableInfo::ConstPtr tableInfo;
+        std::vector<std::string> fields;
+        ssize_t capacityOfHashField;
+    };
+
     // should serialization
     protocol::BlockNumber m_num = 0;
     Status m_status = Status::NORMAL;
-    bcos::ConcurrentCOW<std::vector<std::string>> m_data;
+    bcos::ConcurrentCOW<Data> m_data;
 
     // no need to serialization
-    TableInfo::ConstPtr m_tableInfo;
-    ssize_t m_capacityOfHashField = 0;
     size_t m_version = 0;
     bool m_dirty = false;
     bool m_rollbacked = false;

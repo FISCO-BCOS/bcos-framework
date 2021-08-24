@@ -25,7 +25,6 @@
 #include "libutilities/ThreadPool.h"
 #include "testutils/faker/FakeStorage.h"
 #include <boost/lexical_cast.hpp>
-#include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <future>
 #include <iostream>

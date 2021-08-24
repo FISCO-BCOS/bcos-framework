@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(copyFrom)
     BOOST_TEST(entry1->dirty() == true);
     BOOST_TEST(entry1->capacityOfHashField() == 5);
 
-    entry2->copyFrom(entry1);
+    *entry2 = *entry1;
     BOOST_TEST(entry1->refCount() == 2);
     BOOST_TEST(entry2->refCount() == 2);
 
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(copyFrom)
     BOOST_TEST(entry2->getFieldConst("key") == "value3");
     BOOST_TEST(entry1->refCount() == 1);
     BOOST_TEST(entry2->refCount() == 1);
-    entry2->copyFrom(entry2);
+    *entry2 = *entry2;
     BOOST_TEST(entry2->dirty() == true);
     entry2->setDirty(false);
     BOOST_TEST(entry2->dirty() == false);
