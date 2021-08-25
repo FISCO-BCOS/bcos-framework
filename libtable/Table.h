@@ -49,14 +49,14 @@ public:
     bool remove(const std::string& _key);
 
     void asyncGetPrimaryKeys(const Condition::Ptr& _condition,
-        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback);
-    void asyncGetRow(
-        const std::string& _key, std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback);
+        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept;
+    void asyncGetRow(const std::string& _key,
+        std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback) noexcept;
     void asyncGetRows(const gsl::span<std::string>& _keys,
-        std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback);
+        std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback) noexcept;
 
     void asyncSetRow(const std::string_view& key, const Entry::Ptr& entry,
-        std::function<void(Error::Ptr&&, bool)> callback);
+        std::function<void(Error::Ptr&&, bool)> callback) noexcept;
 
     TableInfo::Ptr tableInfo() const { return m_tableInfo; }
     Entry::Ptr newEntry() { return std::make_shared<Entry>(m_tableInfo, m_blockNumber); }

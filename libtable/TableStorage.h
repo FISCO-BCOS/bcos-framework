@@ -36,7 +36,6 @@ class TableStorage : public storage::StorageInterface,
 public:
     struct Change
     {
-        using Ptr = std::shared_ptr<Change>;
         enum Kind : int
         {
             Set,
@@ -125,8 +124,8 @@ public:
     protocol::BlockNumber blockNumber() const { return m_blockNumber; }
 
 private:
-    std::vector<Change::Ptr>& getChangeLog() { return s_changeLog.local(); }
-    tbb::enumerable_thread_specific<std::vector<Change::Ptr>> s_changeLog;
+    std::vector<Change>& getChangeLog() { return s_changeLog.local(); }
+    tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
 
     struct TableData
     {

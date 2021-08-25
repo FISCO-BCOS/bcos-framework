@@ -118,19 +118,19 @@ bool Table::remove(const std::string& _key)
 }
 
 void Table::asyncGetPrimaryKeys(const Condition::Ptr& _condition,
-    std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback)
+    std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept
 {
     m_storage->asyncGetPrimaryKeys(m_tableInfo, _condition, _callback);
 }
 
 void Table::asyncGetRow(
-    const std::string& _key, std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback)
+    const std::string& _key, std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback) noexcept
 {
     m_storage->asyncGetRow(m_tableInfo, _key, _callback);
 }
 
 void Table::asyncGetRows(const gsl::span<std::string>& _keys,
-    std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback)
+    std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback) noexcept
 {
     m_storage->asyncGetRows(m_tableInfo, _keys, _callback);
 }

@@ -7,7 +7,53 @@ using namespace bcos::stroage;
 void TableStorage::asyncGetPrimaryKeys(const bcos::storage::TableInfo::Ptr& _tableInfo,
     const bcos::storage::Condition::Ptr& _condition,
     std::function<void(bcos::Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept
-{}
+{
+    std::map<std::string, storage::Entry::Status> localKeys;
+
+    auto tableIt = m_data.find(_tableInfo->name);
+    if (tableIt != m_data.end())
+    {
+        for (auto& entryIt : tableIt->second.entries)
+        {
+            if (_condition->isValid(entryIt.first))
+            {
+                localKeys.insert({entryIt.first, entryIt.second->getStatus()});
+            }
+        }
+    }
+
+    m_prev->asyncGetPrimaryKeys(_tableInfo, _condition,
+        [localKeys = std::move(localKeys), _callback](
+            Error::Ptr&& error, std::vector<std::string>&& remoteKeys) mutable {
+            if (error)
+            {
+                _callback(BCOS_ERROR_WITH_PREV(-1, "Get primary keys from prev failed!", error),
+                    std::vector<std::string>());
+                return;
+            }
+
+            for (auto it = remoteKeys.begin(); it != remoteKeys.end(); ++it)
+            {
+                auto localIt = localKeys.find(*it);
+                if (localIt != localKeys.end())
+                {
+                    if (localIt->second == storage::Entry::DELETED)
+                    {
+                        it = remoteKeys.erase(it);
+                    }
+
+                    localKeys.erase(localIt);
+                }
+            }
+
+            for (auto& localIt : localKeys)
+            {
+                remoteKeys.push_back(localIt.first);
+            }
+
+            _callback(nullptr, std::move(remoteKeys));
+        });
+}
 
 void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
     const std::string& _key,
@@ -102,6 +148,8 @@ void TableStorage::asyncSetRow(const bcos::storage::TableInfo::Ptr& tableInfo,
         {
             tableIt->second.entries.insert({key, entry});
         }
+
+        getChangeLog().push_back(Change(tableInfo, Change::Set, key, entry, m_dirty));
     }
     else
     {
@@ -137,6 +185,87 @@ void TableStorage::asyncSetRow(const bcos::storage::TableInfo::Ptr& tableInfo,
                 {
                     tableIt->second.entries.insert({key, entry});
                 }
+
+                callback(nullptr, true);
+            }
+            else
+            {
+                callback(BCOS_ERROR(-1, "Async set row failed, table: " + tableInfo->name +
+                                            " does not exists"),
+                    false);
+            }
+        });
+    }
+}
+
+void TableStorage::asyncRemove(const storage::TableInfo::Ptr& tableInfo, const std::string& key,
+    std::function<void(Error::Ptr&&, bool)> callback) noexcept
+{
+    auto tableIt = m_data.find(tableInfo->name);
+    if (tableIt != m_data.end())
+    {
+        storage::Entry::Ptr oldEntry;
+        auto entryIt = tableIt->second.entries.find(key);
+        if (entryIt != tableIt->second.entries.end())
+        {
+            oldEntry = entryIt->second;
+            entryIt->second->setStatus(storage::Entry::DELETED);
+        }
+        else
+        {
+            auto entry = std::make_shared<storage::Entry>(tableInfo, m_blockNumber);
+            entry->setStatus(storage::Entry::Status::DELETED);
+            tableIt->second.entries.insert({key, entry});
+        }
+
+        getChangeLog().push_back(
+            Change(tableInfo, Change::Set, key, oldEntry, tableIt->second.dirty));
+        tableIt->second.dirty = true;
+
+        callback(nullptr, true);
+    }
+    else
+    {
+        asyncOpenTable(tableInfo->name, [this, tableInfo, key, callback](
+                                            Error::Ptr&& error, storage::Table::Ptr&& table) {
+            if (error)
+            {
+                callback(
+                    BCOS_ERROR_WITH_PREV(-1, "Open table: " + tableInfo->name + " failed", error),
+                    false);
+                return;
+            }
+
+            if (table)
+            {
+                auto [tableIt, inserted] = m_data.insert({tableInfo->name,
+                    {tbb::concurrent_unordered_map<std::string, storage::Entry::Ptr>(), false}});
+
+                if (!inserted)
+                {
+                    callback(BCOS_ERROR(-1,
+                                 "Insert table: " + tableInfo->name + " into tableFactory failed!"),
+                        false);
+                    return;
+                }
+
+                storage::Entry::Ptr oldEntry;
+                auto entryIt = tableIt->second.entries.find(key);
+                if (entryIt != tableIt->second.entries.end())
+                {
+                    oldEntry = entryIt->second;
+                    entryIt->second->setStatus(storage::Entry::DELETED);
+                }
+                else
+                {
+                    auto entry = std::make_shared<storage::Entry>(tableInfo, m_blockNumber);
+                    entry->setStatus(storage::Entry::Status::DELETED);
+                    tableIt->second.entries.insert({key, entry});
+                }
+
+                getChangeLog().push_back(
+                    Change(tableInfo, Change::Set, key, oldEntry, tableIt->second.dirty));
+                tableIt->second.dirty = true;
 
                 callback(nullptr, true);
             }
@@ -266,47 +395,47 @@ void TableStorage::rollback(size_t _savepoint)
     auto& changeLog = getChangeLog();
     while (_savepoint < changeLog.size())
     {
-        auto change = changeLog.back();
+        auto& change = changeLog.back();
         // Public Table API cannot be used here because it will add another change log entry.
 
         // change->table->rollback(change);
-        auto tableIt = m_data.find(change->tableInfo->name);
+        auto tableIt = m_data.find(change.tableInfo->name);
         if (tableIt != m_data.end())
         {
             auto& tableMap = tableIt->second.entries;
-            switch (change->kind)
+            switch (change.kind)
             {
             case Change::Set:
             {
-                if (change->entry)
+                if (change.entry)
                 {
-                    tableMap[change->key] = change->entry;
+                    tableMap[change.key] = change.entry;
                 }
                 else
                 {  // nullptr means the key is not exist in m_cache
                     auto oldEntry = std::make_shared<storage::Entry>(nullptr, m_blockNumber);
                     ;
                     oldEntry->setRollbacked(true);
-                    tableMap[change->key] = oldEntry;
+                    tableMap[change.key] = oldEntry;
                 }
 
                 m_hash.clear();
-                m_dirty = change->tableDirty;
+                m_dirty = change.tableDirty;
                 break;
             }
             case Change::Remove:
             {
-                tableMap[change->key]->setStatus(storage::Entry::Status::NORMAL);
-                if (change->entry)
+                tableMap[change.key]->setStatus(storage::Entry::Status::NORMAL);
+                if (change.entry)
                 {
-                    tableMap[change->key] = change->entry;
+                    tableMap[change.key] = change.entry;
                 }
                 else
                 {
-                    tableMap[change->key]->setRollbacked(true);
+                    tableMap[change.key]->setRollbacked(true);
                 }
                 m_hash.clear();
-                m_dirty = change->tableDirty;
+                m_dirty = change.tableDirty;
                 break;
             }
             default:
