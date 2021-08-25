@@ -58,6 +58,13 @@ public:
 
     virtual void asyncRemove(const TableInfo::Ptr& tableInfo, const std::string& key,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
+};
+
+class TransactionStorageInterface : public StorageInterface
+{
+public:
+    using Ptr = std::shared_ptr<TransactionStorageInterface>;
+    virtual ~TransactionStorageInterface() = default;
 
     virtual void asyncPrepare(protocol::BlockNumber blockNumber,
         const std::shared_ptr<std::vector<TableInfo::Ptr> >& _infos,

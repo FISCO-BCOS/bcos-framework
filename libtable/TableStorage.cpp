@@ -315,27 +315,6 @@ void TableStorage::asyncRemove(const storage::TableInfo::Ptr& tableInfo, const s
     }
 }
 
-void TableStorage::asyncPrepare(protocol::BlockNumber,
-    const std::shared_ptr<std::vector<storage::TableInfo::Ptr>>&,
-    const std::shared_ptr<
-        std::vector<std::shared_ptr<std::map<std::string, storage::Entry::Ptr>>>>&,
-    std::function<void(Error::Ptr&&)> callback) noexcept
-{
-    callback(BCOS_ERROR(-1, "Unsupport method"));
-}
-
-void TableStorage::aysncCommit(
-    protocol::BlockNumber, std::function<void(Error::Ptr&&)> callback) noexcept
-{
-    callback(BCOS_ERROR(-1, "Unsupport method"));
-}
-
-void TableStorage::aysncRollback(
-    protocol::BlockNumber, std::function<void(Error::Ptr&&)> callback) noexcept
-{
-    callback(BCOS_ERROR(-1, "Unsupport method"));
-}
-
 void TableStorage::asyncOpenTable(const std::string& tableName,
     std::function<void(Error::Ptr&&, storage::Table::Ptr&&)> callback) noexcept
 {
@@ -343,7 +322,7 @@ void TableStorage::asyncOpenTable(const std::string& tableName,
     if (sysTableInfo)
     {
         auto table = std::make_shared<storage::Table>(
-            shared_from_this(), sysTableInfo, m_hashImpl, m_blockNumber);
+            shared_from_this(), sysTableInfo, m_blockNumber);
         callback(nullptr, std::move(table));
 
         return;
@@ -375,7 +354,7 @@ void TableStorage::asyncOpenTable(const std::string& tableName,
                 auto tableInfo = std::make_shared<storage::TableInfo>(tableName,
                     entry->getField(SYS_TABLE_KEY_FIELDS), entry->getField(SYS_TABLE_VALUE_FIELDS));
                 auto table = std::make_shared<storage::Table>(
-                    shared_from_this(), tableInfo, m_hashImpl, m_blockNumber);
+                    shared_from_this(), tableInfo, m_blockNumber);
 
                 callback(nullptr, std::move(table));
             });
@@ -386,7 +365,7 @@ void TableStorage::asyncOpenTable(const std::string& tableName,
 void TableStorage::asyncCreateTable(const std::string& _tableName, const std::string& _keyField,
     const std::string& _valueFields, std::function<void(Error::Ptr&&, bool)> callback) noexcept
 {
-    asyncOpenTable(SYS_TABLES, [this, _tableName, callback, _keyField, _valueFields](
+    asyncOpenTable(SYS_TABLES, [_tableName, callback, _keyField, _valueFields](
                                    Error::Ptr&& error, storage::Table::Ptr&& sysTable) {
         if (error)
         {
@@ -395,7 +374,7 @@ void TableStorage::asyncCreateTable(const std::string& _tableName, const std::st
         }
 
         sysTable->asyncGetRow(
-            _tableName, [this, _tableName, callback, sysTable, _keyField, _valueFields](
+            _tableName, [_tableName, callback, sysTable, _keyField, _valueFields](
                             Error::Ptr&& error, storage::Entry::Ptr&& entry) {
                 if (error)
                 {

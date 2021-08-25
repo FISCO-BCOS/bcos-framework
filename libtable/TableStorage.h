@@ -21,11 +21,14 @@
 #pragma once
 
 #include "../interfaces/storage/StorageInterface.h"
+#include "../libutilities/Error.h"
 #include "Table.h"
 #include "tbb/concurrent_unordered_map.h"
 #include "tbb/enumerable_thread_specific.h"
 #include "tbb/parallel_for.h"
 #include "tbb/parallel_sort.h"
+#include <boost/throw_exception.hpp>
+#include <future>
 #include <memory>
 
 namespace bcos::storage
@@ -52,10 +55,10 @@ public:
         {}
     };
 
-    const char* const SYS_TABLES = "s_tables";
-    const char* const SYS_TABLE_KEY = "table_name";
-    const char* const SYS_TABLE_VALUE_FIELDS = "value_fields";
-    const char* const SYS_TABLE_KEY_FIELDS = "key_field";
+    static constexpr const char* SYS_TABLES = "s_tables";
+    static constexpr const char* const SYS_TABLE_KEY = "table_name";
+    static constexpr const char* const SYS_TABLE_VALUE_FIELDS = "value_fields";
+    static constexpr const char* const SYS_TABLE_KEY_FIELDS = "key_field";
 
     inline storage::TableInfo::Ptr getSysTableInfo(const std::string& tableName)
     {
@@ -94,23 +97,48 @@ public:
     void asyncRemove(const storage::TableInfo::Ptr& tableInfo, const std::string& key,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
 
-    void asyncPrepare(protocol::BlockNumber blockNumber,
-        const std::shared_ptr<std::vector<storage::TableInfo::Ptr>>& _infos,
-        const std::shared_ptr<
-            std::vector<std::shared_ptr<std::map<std::string, storage::Entry::Ptr>>>>& _datas,
-        std::function<void(Error::Ptr&&)> callback) noexcept override;
-
-    void aysncCommit(protocol::BlockNumber blockNumber,
-        std::function<void(Error::Ptr&&)> callback) noexcept override;
-
-    virtual void aysncRollback(protocol::BlockNumber blockNumber,
-        std::function<void(Error::Ptr&&)> callback) noexcept override;
-
     void asyncOpenTable(const std::string& tableName,
-        std::function<void(Error::Ptr&&, storage::Table::Ptr&&)> callback) noexcept;
+        std::function<void(Error::Ptr&&, Table::Ptr&&)> callback) noexcept;
 
     void asyncCreateTable(const std::string& _tableName, const std::string& _keyField,
         const std::string& _valueFields, std::function<void(Error::Ptr&&, bool)> callback) noexcept;
+
+    Table::Ptr openTable(const std::string& tableName)
+    {
+        std::promise<std::tuple<Error::Ptr, Table::Ptr>> openPromise;
+        asyncOpenTable(tableName, [&](Error::Ptr&& error, Table::Ptr&& table) {
+            openPromise.set_value({std::move(error), std::move(table)});
+        });
+
+        auto [error, table] = openPromise.get_future().get();
+        if (error)
+        {
+            BOOST_THROW_EXCEPTION(
+                *(BCOS_ERROR_WITH_PREV(-1, "Open table: " + tableName + " failed", error)));
+        }
+
+        return table;
+    }
+
+    bool createTable(const std::string& _tableName, const std::string& _keyField,
+        const std::string& _valueFields)
+    {
+        std::promise<std::tuple<Error::Ptr, bool>> createPromise;
+        asyncCreateTable(
+            _tableName, _keyField, _valueFields, [&](Error::Ptr&& error, bool success) {
+                createPromise.set_value({std::move(error), success});
+            });
+        auto [error, success] = createPromise.get_future().get();
+        if (error)
+        {
+            BOOST_THROW_EXCEPTION(*(BCOS_ERROR_WITH_PREV(-1,
+                "Create table: " + _tableName + " with keyField: " + _keyField +
+                    " valueFields: " + _valueFields + " failed",
+                error)));
+        }
+
+        return success;
+    }
 
     std::vector<std::tuple<std::string, crypto::HashType>> tablesHash();
 

@@ -19,7 +19,6 @@
 
 #include "../../../testutils/TestPromptFixture.h"
 #include "libtable/Table.h"
-#include "libtable/TableFactory.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>

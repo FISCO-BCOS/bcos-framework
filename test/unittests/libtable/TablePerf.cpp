@@ -1,26 +1,28 @@
 #include "../../../testutils/TestPromptFixture.h"
 #include "Hash.h"
-#include "libtable/TableFactory.h"
+#include "libtable/TableStorage.h"
 #include "libutilities/Common.h"
-#include "testutils/faker/FakeStorage.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/test/unit_test.hpp>
 #include <future>
 
 namespace bcos::test
 {
+
+using namespace bcos::storage;
+
 struct TablePerfFixture
 {
     TablePerfFixture()
     {
         auto hashImpl = std::make_shared<bcos::crypto::Header256Hash>();
-        auto memoryStorage = std::make_shared<FakeStorage>();
+        auto memoryStorage = std::make_shared<TableStorage>(nullptr, hashImpl, 0);
         BOOST_TEST(memoryStorage != nullptr);
-        tableFactory = std::make_shared<TableFactory>(memoryStorage, hashImpl, 0);
+        tableFactory = std::make_shared<TableStorage>(memoryStorage, hashImpl, 0);
         BOOST_TEST(tableFactory != nullptr);
     }
 
-    std::vector<Entry::Ptr> createTestData(TableInterface::Ptr table)
+    std::vector<Entry::Ptr> createTestData(Table::Ptr table)
     {
         std::vector<Entry::Ptr> entries;
         entries.reserve(count);
@@ -38,7 +40,7 @@ struct TablePerfFixture
         return entries;
     }
 
-    std::shared_ptr<TableFactory> tableFactory;
+    std::shared_ptr<TableStorage> tableFactory;
     size_t count = 100 * 10000;
 };
 

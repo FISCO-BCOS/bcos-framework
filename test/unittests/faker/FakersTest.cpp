@@ -22,7 +22,6 @@
 #include <testutils/faker/FakeFrontService.h>
 #include <testutils/faker/FakeLedger.h>
 #include <testutils/faker/FakeSealer.h>
-#include <testutils/faker/FakeStorage.h>
 #include <testutils/faker/FakeTxPool.h>
 #include <boost/test/unit_test.hpp>
 #include <string>
@@ -50,7 +49,7 @@ BOOST_AUTO_TEST_CASE(fakeLedgerConstructor)
 
 BOOST_AUTO_TEST_CASE(fakeStorageConstructor)
 {
-    std::make_shared<FakeStorage>();
+    // std::make_shared<FakeStorage>();
 }
 
 BOOST_AUTO_TEST_CASE(fakeSealerConstructor)

@@ -161,12 +161,14 @@ public:
         _onTxStored(nullptr);
     }
 
+    /*
     // the dispatcher use this interface to store receipts
     void asyncStoreReceipts(storage::TableFactoryInterface::Ptr, Block::Ptr,
         std::function<void(Error::Ptr)> _onReceiptStored) override
     {
         _onReceiptStored(nullptr);
     }
+    */
 
     // maybe sync module or rpc module need this interface to return header/txs/receipts
     void asyncGetBlockDataByNumber(BlockNumber _number, int32_t,

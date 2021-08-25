@@ -135,5 +135,11 @@ void Table::asyncGetRows(const gsl::span<std::string>& _keys,
     m_storage->asyncGetRows(m_tableInfo, _keys, _callback);
 }
 
+void Table::asyncSetRow(const std::string& key, const Entry::Ptr& entry,
+    std::function<void(Error::Ptr&&, bool)> callback) noexcept
+{
+    m_storage->asyncSetRow(m_tableInfo, key, entry, callback);
+}
+
 }  // namespace storage
 }  // namespace bcos

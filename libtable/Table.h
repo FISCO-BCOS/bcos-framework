@@ -55,7 +55,7 @@ public:
     void asyncGetRows(const gsl::span<std::string>& _keys,
         std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback) noexcept;
 
-    void asyncSetRow(const std::string_view& key, const Entry::Ptr& entry,
+    void asyncSetRow(const std::string& key, const Entry::Ptr& entry,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept;
 
     TableInfo::Ptr tableInfo() const { return m_tableInfo; }
