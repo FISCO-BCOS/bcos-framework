@@ -183,8 +183,9 @@ bool Table::remove(const std::string& _key)
             entryIt->second->getStatus() != Entry::Status::DELETED)
         {
             entryIt->second->setStatus(Entry::Status::DELETED);
+            entryIt->second->setNum(m_blockNumber);
             oldEntry = entryIt->second;
-            STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove in dirty") << LOG_KV("key", _key);
+            STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove in cache") << LOG_KV("key", _key);
         }
     }
     else
@@ -339,11 +340,18 @@ crypto::HashType Table::hash()
             for (auto& it : *data)
             {
                 entryVec.push_back(it.second);
-                totalBytes += it.second->capacityOfHashField() + 1;  // 1 for status field
+                if (it.second->getStatus() != Entry::Status::DELETED)
+                {
+                    totalBytes += it.second->capacityOfHashField() + 1;  // 1 for status field
+                }
+                else
+                {
+                    totalBytes += it.first.size() + 1;
+                }
                 entriesOffset.push_back(totalBytes);
             }
             auto startT = utcTime();
-            allData.resize(totalBytes);
+            allData.resize(totalBytes, 0);
             // Parallel processing entries
             tbb::parallel_for(tbb::blocked_range<uint64_t>(0, entryVec.size()),
                 [&](const tbb::blocked_range<uint64_t>& range) {
@@ -351,17 +359,25 @@ crypto::HashType Table::hash()
                     {
                         auto entry = entryVec[i];
                         auto startOffSet = entriesOffset[i];
-                        for (auto& fieldIt : *(entry))
+                        if (entry->getStatus() != Entry::Status::DELETED)
                         {
-                            if (isHashField(fieldIt.first))
+                            for (auto& fieldIt : *(entry))
                             {
-                                memcpy(
-                                    &allData[startOffSet], &fieldIt.first[0], fieldIt.first.size());
-                                startOffSet += fieldIt.first.size();
-                                memcpy(&allData[startOffSet], &fieldIt.second[0],
-                                    fieldIt.second.size());
-                                startOffSet += fieldIt.second.size();
+                                if (isHashField(fieldIt.first))
+                                {
+                                    memcpy(&allData[startOffSet], &fieldIt.first[0],
+                                        fieldIt.first.size());
+                                    startOffSet += fieldIt.first.size();
+                                    memcpy(&allData[startOffSet], &fieldIt.second[0],
+                                        fieldIt.second.size());
+                                    startOffSet += fieldIt.second.size();
+                                }
                             }
+                        }
+                        else
+                        {
+                            auto key = entry->getFieldConst(m_tableInfo->key);
+                            memcpy(&allData[startOffSet], key.data(), key.size());
                         }
                         char status = (char)entry->getStatus();
                         memcpy(&allData[startOffSet], &status, sizeof(status));

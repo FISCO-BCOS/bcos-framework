@@ -116,6 +116,37 @@ BOOST_AUTO_TEST_CASE(setRow)
     BOOST_TEST(table->tableInfo()->fields[1] == SYS_TABLE_VALUE_FIELDS);
     BOOST_TEST(table->tableInfo()->key == SYS_TABLE_KEY);
 }
+
+BOOST_AUTO_TEST_CASE(removeFromCache)
+{
+    std::string tableName("t_test");
+    std::string keyField("key");
+    std::string valueField("value1,value2");
+    auto ret = tableFactory->createTable(tableName, keyField, valueField);
+    BOOST_TEST(ret == true);
+    auto table = tableFactory->openTable("t_test");
+    BOOST_TEST(table != nullptr);
+    // check fields order of t_test
+    BOOST_TEST(table->tableInfo()->fields.size() == 2);
+    BOOST_TEST(table->tableInfo()->fields[0] == "value1");
+    BOOST_TEST(table->tableInfo()->fields[1] == "value2");
+    BOOST_TEST(table->tableInfo()->key == keyField);
+    auto entry = table->newEntry();
+    entry->setField("key", "name");
+    entry->setField("value", "Lili");
+    entry->setField("invalid", "name");
+    ret = table->setRow("name", entry);
+    BOOST_TEST(ret == false);
+    ret = table->remove("name");
+    BOOST_TEST(ret == true);
+    auto hash = table->hash();
+    table = tableFactory->openTable("t_test");
+    ret = table->remove("name");
+    BOOST_TEST(ret == true);
+    auto hash2 = table->hash();
+    BOOST_TEST(hash2 == hash);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
 }  // namespace bcos
