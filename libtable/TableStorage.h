@@ -28,7 +28,7 @@
 #include "tbb/parallel_sort.h"
 #include <memory>
 
-namespace bcos::stroage
+namespace bcos::storage
 {
 class TableStorage : public storage::StorageInterface,
                      public std::enable_shared_from_this<TableStorage>
@@ -112,7 +112,7 @@ public:
     void asyncCreateTable(const std::string& _tableName, const std::string& _keyField,
         const std::string& _valueFields, std::function<void(Error::Ptr&&, bool)> callback) noexcept;
 
-    std::tuple<std::string, crypto::HashType> hash();
+    std::vector<std::tuple<std::string, crypto::HashType>> tablesHash();
 
     size_t savepoint()
     {
@@ -135,9 +135,7 @@ private:
     tbb::concurrent_unordered_map<std::string, TableData> m_data;
     protocol::BlockNumber m_blockNumber = 0;
 
-    crypto::HashType m_hash;
     std::shared_ptr<StorageInterface> m_prev;
     std::shared_ptr<crypto::Hash> m_hashImpl;
-    bool m_dirty;
 };
-}  // namespace bcos::stroage
+}  // namespace bcos::storage

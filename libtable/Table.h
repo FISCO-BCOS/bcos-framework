@@ -60,7 +60,6 @@ public:
 
     TableInfo::Ptr tableInfo() const { return m_tableInfo; }
     Entry::Ptr newEntry() { return std::make_shared<Entry>(m_tableInfo, m_blockNumber); }
-    crypto::HashType hash();
 
 protected:
     std::shared_ptr<StorageInterface> m_storage;

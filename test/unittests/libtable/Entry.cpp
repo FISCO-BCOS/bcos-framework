@@ -18,9 +18,8 @@
  */
 
 #include "../../../testutils/TestPromptFixture.h"
-#include "interfaces/storage/TableInterface.h"
 #include "libtable/Table.h"
-#include "libtable/TableFactory.h"
+#include "libtable/TableStorage.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
@@ -118,9 +117,9 @@ BOOST_AUTO_TEST_CASE(functions)
     BOOST_TEST(entry->dirty() == false);
     entry->setNum(1);
     BOOST_TEST(entry->num() == 1);
-    BOOST_TEST(entry->getStatus() == Entry::Status::NORMAL);
+    BOOST_TEST(entry->status() == Entry::Status::NORMAL);
     entry->setStatus(Entry::Status::DELETED);
-    BOOST_TEST(entry->getStatus() == Entry::Status::DELETED);
+    BOOST_TEST(entry->status() == Entry::Status::DELETED);
     BOOST_TEST(entry->dirty() == true);
     BOOST_TEST(entry->rollbacked() == false);
     entry->setRollbacked(true);

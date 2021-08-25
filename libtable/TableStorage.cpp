@@ -1,8 +1,9 @@
 #include "TableStorage.h"
 #include "../libutilities/Error.h"
+#include <tbb/parallel_sort.h>
 
 using namespace bcos;
-using namespace bcos::stroage;
+using namespace bcos::storage;
 
 void TableStorage::asyncGetPrimaryKeys(const bcos::storage::TableInfo::Ptr& _tableInfo,
     const bcos::storage::Condition::Ptr& _condition,
@@ -17,9 +18,21 @@ void TableStorage::asyncGetPrimaryKeys(const bcos::storage::TableInfo::Ptr& _tab
         {
             if (_condition->isValid(entryIt.first))
             {
-                localKeys.insert({entryIt.first, entryIt.second->getStatus()});
+                localKeys.insert({entryIt.first, entryIt.second->status()});
             }
         }
+    }
+
+    if (!m_prev)
+    {
+        std::vector<std::string> resultKeys;
+        for (auto& localIt : localKeys)
+        {
+            resultKeys.push_back(localIt.first);
+        }
+
+        _callback(nullptr, std::move(resultKeys));
+        return;
     }
 
     m_prev->asyncGetPrimaryKeys(_tableInfo, _condition,
@@ -37,7 +50,7 @@ void TableStorage::asyncGetPrimaryKeys(const bcos::storage::TableInfo::Ptr& _tab
                 auto localIt = localKeys.find(*it);
                 if (localIt != localKeys.end())
                 {
-                    if (localIt->second == storage::Entry::DELETED)
+                    if (localIt->second == Entry::DELETED)
                     {
                         it = remoteKeys.erase(it);
                     }
@@ -71,7 +84,14 @@ void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
         }
     }
 
-    m_prev->asyncGetRow(_tableInfo, _key, _callback);
+    if (m_prev)
+    {
+        m_prev->asyncGetRow(_tableInfo, _key, _callback);
+    }
+    else
+    {
+        _callback(nullptr, nullptr);
+    }
 }
 
 void TableStorage::asyncGetRows(const bcos::storage::TableInfo::Ptr& _tableInfo,
@@ -106,7 +126,7 @@ void TableStorage::asyncGetRows(const bcos::storage::TableInfo::Ptr& _tableInfo,
         }
     }
 
-    if (existsCount < _keys.size())
+    if (existsCount < _keys.size() && m_prev)
     {
         m_prev->asyncGetRows(_tableInfo, std::get<0>(*missings),
             [_callback, missings, results](
@@ -142,6 +162,11 @@ void TableStorage::asyncSetRow(const bcos::storage::TableInfo::Ptr& tableInfo,
         auto entryIt = tableIt->second.entries.find(key);
         if (entryIt != tableIt->second.entries.end())
         {
+            if (entry->version() - entryIt->second->version() != 1)
+            {
+                callback(nullptr, false);
+                return;
+            }
             entryIt->second = entry;
         }
         else
@@ -149,7 +174,10 @@ void TableStorage::asyncSetRow(const bcos::storage::TableInfo::Ptr& tableInfo,
             tableIt->second.entries.insert({key, entry});
         }
 
-        getChangeLog().push_back(Change(tableInfo, Change::Set, key, entry, m_dirty));
+        getChangeLog().push_back(Change(tableInfo, Change::Set, key, entry, tableIt->second.dirty));
+        tableIt->second.dirty = true;
+
+        callback(nullptr, true);
     }
     else
     {
@@ -179,12 +207,20 @@ void TableStorage::asyncSetRow(const bcos::storage::TableInfo::Ptr& tableInfo,
                 auto entryIt = tableIt->second.entries.find(key);
                 if (entryIt != tableIt->second.entries.end())
                 {
+                    if (entry->version() - entryIt->second->version() != 1)
+                    {
+                        callback(nullptr, false);
+                        return;
+                    }
                     entryIt->second = entry;
                 }
                 else
                 {
                     tableIt->second.entries.insert({key, entry});
                 }
+                getChangeLog().push_back(
+                    Change(tableInfo, Change::Set, key, entry, tableIt->second.dirty));
+                tableIt->second.dirty = true;
 
                 callback(nullptr, true);
             }
@@ -390,6 +426,70 @@ void TableStorage::asyncCreateTable(const std::string& _tableName, const std::st
     });
 }
 
+std::vector<std::tuple<std::string, crypto::HashType>> TableStorage::tablesHash()
+{
+    std::vector<std::tuple<std::string, crypto::HashType>> result;
+
+    for (auto& tableIt : m_data)
+    {
+        if (!tableIt.second.dirty)
+        {
+            continue;
+        }
+
+        result.push_back({tableIt.first, crypto::HashType()});
+    }
+
+    tbb::parallel_sort(result.begin(), result.end(),
+        [](const std::tuple<std::string, crypto::HashType>& lhs,
+            const std::tuple<std::string, crypto::HashType>& rhs) {
+            return std::get<0>(lhs) < std::get<0>(rhs);
+        });
+
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, result.size()), [&](const tbb::blocked_range<size_t>& range) {
+            for (auto i = range.begin(); i != range.end(); ++i)
+            {
+                auto& key = std::get<0>(result[i]);
+                auto& table = m_data.find(key)->second.entries;
+
+                std::vector<std::string> sortedEntries;
+                size_t totalSize = 0;
+                sortedEntries.reserve(table.size());
+                for (auto& entryIt : table)
+                {
+                    if (entryIt.second->status() != storage::Entry::DELETED &&
+                        !entryIt.second->rollbacked())
+                    {
+                        sortedEntries.push_back(entryIt.first);
+                        totalSize += (entryIt.second->capacityOfHashField() + 1);
+                    }
+                }
+
+                tbb::parallel_sort(sortedEntries.begin(), sortedEntries.end());
+
+                bcos::bytes data(totalSize);
+                size_t offset = 0;
+                for (auto& key : sortedEntries)
+                {
+                    auto& entry = table.find(key)->second;
+                    for (auto& field : *(entry))
+                    {
+                        memcpy(&(data.data()[offset]), field.data(), field.size());
+                        offset += field.size();
+                    }
+
+                    data.data()[offset] = (char)entry->status();
+                    ++offset;
+                }
+
+                std::get<1>(result[i]) = m_hashImpl->hash(data);
+            }
+        });
+
+    return result;
+}
+
 void TableStorage::rollback(size_t _savepoint)
 {
     auto& changeLog = getChangeLog();
@@ -419,8 +519,6 @@ void TableStorage::rollback(size_t _savepoint)
                     tableMap[change.key] = oldEntry;
                 }
 
-                m_hash.clear();
-                m_dirty = change.tableDirty;
                 break;
             }
             case Change::Remove:
@@ -434,8 +532,6 @@ void TableStorage::rollback(size_t _savepoint)
                 {
                     tableMap[change.key]->setRollbacked(true);
                 }
-                m_hash.clear();
-                m_dirty = change.tableDirty;
                 break;
             }
             default:
@@ -462,7 +558,8 @@ void TableStorage::rollback(size_t _savepoint)
 
         tbb::parallel_sort(tables.begin(), tables.end(),
             [](const std::pair<std::string, Table::Ptr>& lhs,
-                const std::pair<std::string, Table::Ptr>& rhs) { return lhs.first < rhs.first; });
+                const std::pair<std::string, Table::Ptr>& rhs) { return lhs.first < rhs.first;
+   });
 
         bytes data;
         data.resize(tables.size() * crypto::HashType::size);
@@ -475,16 +572,18 @@ void TableStorage::rollback(size_t _savepoint)
                     if (hash == crypto::HashType())
                     {
                         STORAGE_LOG(DEBUG)
-                            << LOG_BADGE("FISCO_DEBUG") << LOG_BADGE("TableFactory hash continued ")
-                            << it + 1 << "/" << tables.size() << LOG_KV("tableName", table.first)
+                            << LOG_BADGE("FISCO_DEBUG") << LOG_BADGE("TableFactory hash
+   continued ")
+                            << it + 1 << "/" << tables.size() << LOG_KV("tableName",
+   table.first)
                             << LOG_KV("blockNumber", m_blockNumber);
                         continue;
                     }
 
                     bytes tableHash = hash.asBytes();
                     memcpy(
-                        &data[it * crypto::HashType::size], &tableHash[0], crypto::HashType::size);
-                    STORAGE_LOG(DEBUG)
+                        &data[it * crypto::HashType::size], &tableHash[0],
+   crypto::HashType::size); STORAGE_LOG(DEBUG)
                         << LOG_BADGE("FISCO_DEBUG") << LOG_BADGE("TableFactory hash") << it + 1
                         << "/" << tables.size() << LOG_KV("tableName", table.first)
                         << LOG_KV("hash", hash) << LOG_KV("blockNumber", m_blockNumber);

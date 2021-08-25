@@ -120,7 +120,7 @@ public:
 
     bool rollbacked() const noexcept { return m_rollbacked; }
     void setRollbacked(bool _rollbacked) noexcept { m_rollbacked = _rollbacked; }
-    Status getStatus() const noexcept { return m_status; }
+    Status status() const noexcept { return m_status; }
 
     void setStatus(Status status) noexcept
     {

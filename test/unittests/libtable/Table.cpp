@@ -20,10 +20,9 @@
 #include "libtable/Table.h"
 #include "../../../testutils/TestPromptFixture.h"
 #include "Hash.h"
-#include "interfaces/storage/TableInterface.h"
-#include "libtable/TableFactory.h"
+#include "libtable/TableStorage.h"
 #include "libutilities/ThreadPool.h"
-#include "testutils/faker/FakeStorage.h"
+#include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
@@ -41,15 +40,15 @@ struct TableFixture
     TableFixture()
     {
         hashImpl = make_shared<Header256Hash>();
-        memoryStorage = make_shared<FakeStorage>();
-        tableFactory = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
+        memoryStorage = make_shared<storage::TableStorage>();
+        tableFactory = make_shared<TableStorage>(memoryStorage, hashImpl, m_blockNumber);
     }
 
     ~TableFixture() {}
     std::shared_ptr<crypto::Hash> hashImpl = nullptr;
     std::shared_ptr<StorageInterface> memoryStorage = nullptr;
     protocol::BlockNumber m_blockNumber = 0;
-    std::shared_ptr<TableFactory> tableFactory = nullptr;
+    std::shared_ptr<TableStorage> tableFactory = nullptr;
 };
 BOOST_FIXTURE_TEST_SUITE(TableTest, TableFixture)
 
@@ -57,7 +56,7 @@ BOOST_AUTO_TEST_CASE(constructor)
 {
     auto threadPool = ThreadPool("a", 1);
     auto table = std::make_shared<Table>(nullptr, nullptr, nullptr, 0);
-    auto tableFactory = std::make_shared<TableFactory>(memoryStorage, nullptr, 0);
+    auto tableFactory = std::make_shared<TableStorage>(memoryStorage, nullptr, 0);
 }
 
 BOOST_AUTO_TEST_CASE(dump_hash)
@@ -65,17 +64,38 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     std::string tableName("t_test");
     std::string keyField("key");
     std::string valueField("value");
-    tableFactory->createTable(tableName, keyField, valueField);
-    auto table = tableFactory->openTable("t_test");
-    BOOST_TEST(table->dirty() == false);
+
+    std::promise<bool> createPromise;
+    tableFactory->asyncCreateTable(
+        tableName, keyField, valueField, [&](Error::Ptr&& error, bool success) {
+            BOOST_CHECK_EQUAL(error, nullptr);
+            createPromise.set_value(success);
+        });
+
+    BOOST_CHECK_EQUAL(createPromise.get_future().get(), true);
+
+    std::promise<Table::Ptr> tablePromise;
+    tableFactory->asyncOpenTable("t_test", [&](Error::Ptr&& error, Table::Ptr&& table) {
+        BOOST_CHECK_EQUAL(error, nullptr);
+        tablePromise.set_value(std::move(table));
+    });
+    auto table = tablePromise.get_future().get();
+    BOOST_CHECK_NE(table, nullptr);
+
+    // BOOST_TEST(table->dirty() == false);
     auto entry = table->newEntry();
     entry->setField("key", "name");
     entry->setField("value", "Lili");
     table->setRow("name", entry);
     auto tableinfo = table->tableInfo();
-    BOOST_TEST(tableinfo->name == tableName);
-    auto data = table->dump(m_blockNumber);
-    auto hash = table->hash();
+    BOOST_CHECK_EQUAL(tableinfo->name, tableName);
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+        valueField.begin(), valueField.end(), tableinfo->fields.begin(), tableinfo->fields.end());
+
+    // BOOST_CHECK_EQUAL(tableFactory.ex)
+
+    // auto data = table->dump(m_blockNumber);
+    // auto hash = table->hash();
     BOOST_TEST(data->size() == 1);
     entry = table->newEntry();
     entry->setField("key", "name2");
