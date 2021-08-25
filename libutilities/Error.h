@@ -28,12 +28,12 @@
 #define BCOS_ERROR(errorCode, errorMessage) \
     ::bcos::Error::buildError(BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage)
 #define BCOS_ERROR_WITH_PREV(errorCode, errorMessage, prev) \
-    ::bcos::Error::buildError(                                    \
+    ::bcos::Error::buildError(                              \
         BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, std::move(*prev))
 
 namespace bcos
 {
-class Error : public bcos::Exception
+class Error : virtual bcos::Exception
 {
 public:
     using Ptr = std::shared_ptr<Error>;
