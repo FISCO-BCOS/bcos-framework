@@ -30,7 +30,7 @@ class Keccak256Hash : public Hash
 {
 public:
     using Ptr = std::shared_ptr<Keccak256Hash>;
-    Keccak256Hash() = default;
+    Keccak256Hash() { setHashImplType(HashImplType::Keccak256Hash); }
     virtual ~Keccak256Hash() {}
     HashType hash(bytesConstRef _data) override
     {
@@ -45,7 +45,7 @@ class Sm3Hash : public Hash
 {
 public:
     using Ptr = std::shared_ptr<Sm3Hash>;
-    Sm3Hash() = default;
+    Sm3Hash() { setHashImplType(HashImplType::Sm3Hash); }
     virtual ~Sm3Hash() {}
     HashType hash(bytesConstRef _data) override
     {
