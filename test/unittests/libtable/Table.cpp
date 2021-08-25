@@ -92,19 +92,23 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     BOOST_CHECK_EQUAL_COLLECTIONS(
         valueField.begin(), valueField.end(), tableinfo->fields.begin(), tableinfo->fields.end());
 
+    auto hash = tableFactory->tablesHash();
+    BOOST_CHECK_EQUAL(hash.size(), 1);
+    BOOST_CHECK_EQUAL(std::get<1>(hash[0]).size, 32);
+
     // BOOST_CHECK_EQUAL(tableFactory.ex)
 
     // auto data = table->dump(m_blockNumber);
     // auto hash = table->hash();
-    BOOST_TEST(data->size() == 1);
+    // BOOST_TEST(data->size() == 1);
     entry = table->newEntry();
     entry->setField("key", "name2");
     entry->setField("value", "WW");
     table->setRow("name2", entry);
-    data = table->dump(m_blockNumber);
-    BOOST_TEST(data->size() == 2);
-    hash = table->hash();
-    BOOST_TEST(table->dirty() == true);
+    // data = table->dump(m_blockNumber);
+    // BOOST_TEST(data->size() == 2);
+    // hash = table->hash();
+    // BOOST_TEST(table->dirty() == true);
 }
 
 BOOST_AUTO_TEST_CASE(setRow)
