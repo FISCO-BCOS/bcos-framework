@@ -20,8 +20,17 @@
 #pragma once
 #include "Common.h"
 #include "Exceptions.h"
+#include <boost/exception/exception.hpp>
+#include <boost/throw_exception.hpp>
 #include <memory>
 #include <string>
+
+#define BCOS_ERROR(errorCode, errorMessage) \
+    ::bcos::Error::buildError(BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage)
+#define BCOS_ERROR_WITH_PREV(errorCode, errorMessage, prev) \
+    ::bcos::Error::buildError(                                    \
+        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, std::move(*prev))
+
 namespace bcos
 {
 class Error : public bcos::Exception
@@ -29,6 +38,28 @@ class Error : public bcos::Exception
 public:
     using Ptr = std::shared_ptr<Error>;
     using ConstPtr = std::shared_ptr<const Error>;
+
+    using PrevError = boost::error_info<struct PrevErrorTag, Error>;
+
+    static Error::Ptr buildError(char const* func, char const* file, int line, int32_t errorCode,
+        const std::string& errorMessage)
+    {
+        auto error = std::make_shared<Error>(errorCode, errorMessage);
+        (*error) << boost::throw_function(func);
+        (*error) << boost::throw_file(file);
+        (*error) << boost::throw_line(line);
+
+        return error;
+    }
+
+    static Error::Ptr buildError(char const* func, char const* file, int line, int32_t errorCode,
+        const std::string& errorMessage, Error&& prev)
+    {
+        auto error = buildError(func, file, line, errorCode, errorMessage);
+        (*error) << PrevError(std::move(prev));
+        return error;
+    }
+
     Error() = default;
     Error(int32_t _errorCode, std::string const& _errorMessage)
       : bcos::Exception(_errorMessage), m_errorCode(_errorCode), m_errorMessage(_errorMessage)

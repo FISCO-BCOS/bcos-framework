@@ -89,7 +89,7 @@ public:
 
         if (std::get<0>(result))
         {
-            BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
+            BOOST_THROW_EXCEPTION(std::move(*(std::get<0>(result))));
         }
 
         return std::get<1>(result);

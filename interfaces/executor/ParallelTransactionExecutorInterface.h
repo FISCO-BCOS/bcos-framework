@@ -56,7 +56,7 @@ public:
         std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 
-    virtual void contractStatus(bcos::protocol::BlockNumber number,
+    virtual void getContractStatus(bcos::protocol::BlockNumber number,
         std::function<void(const bcos::Error::ConstPtr&, std::vector<ContractStatus::Ptr>&&)>
             callback) noexcept = 0;
 

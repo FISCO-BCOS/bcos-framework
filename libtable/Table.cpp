@@ -24,6 +24,7 @@
 #include "tbb/enumerable_thread_specific.h"
 #include "tbb/parallel_for.h"
 #include "tbb/parallel_invoke.h"
+#include <boost/throw_exception.hpp>
 #include <sstream>
 
 using namespace std;
@@ -32,174 +33,109 @@ namespace bcos
 {
 namespace storage
 {
+Entry::Ptr Table::getRow(const std::string& _key)
+{
+    std::promise<std::tuple<Error::Ptr, Entry::Ptr>> promise;
+
+    asyncGetRow(_key, [&promise](Error::Ptr&& error, Entry::Ptr&& entry) {
+        promise.set_value(std::tuple{std::move(error), std::move(entry)});
+    });
+
+    auto result = promise.get_future().get();
+
+    if (std::get<0>(result))
+    {
+        BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
+    }
+
+    return std::get<1>(result);
+}
+
+std::vector<Entry::Ptr> Table::getRows(const gsl::span<std::string>& _keys)
+{
+    std::promise<std::tuple<Error::Ptr, std::vector<Entry::Ptr>>> promise;
+    asyncGetRows(_keys, [&promise](Error::Ptr&& error, std::vector<Entry::Ptr>&& entries) {
+        promise.set_value(std::tuple{std::move(error), std::move(entries)});
+    });
+
+    auto result = promise.get_future().get();
+
+    if (std::get<0>(result))
+    {
+        BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
+    }
+
+    return std::get<1>(result);
+}
+
+std::vector<std::string> Table::getPrimaryKeys(const Condition::Ptr& _condition)
+{
+    std::promise<std::tuple<Error::Ptr, std::vector<std::string>>> promise;
+    asyncGetPrimaryKeys(
+        _condition, [&promise](Error::Ptr&& error, std::vector<std::string>&& keys) {
+            promise.set_value(std::tuple{std::move(error), std::move(keys)});
+        });
+    auto result = promise.get_future().get();
+
+    if (std::get<0>(result))
+    {
+        BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
+    }
+
+    return std::get<1>(result);
+}
+
 bool Table::setRow(const std::string& _key, const Entry::Ptr& _entry)
-{  // For concurrent_unordered_map, insert and emplace methods may create a temporary item that
-    // is destroyed if another thread inserts an item with the same key concurrently.
-    // So, parallel insert same key is not permitted
-    if (!_entry)
+{
+    std::promise<std::tuple<Error::Ptr, bool>> promise;
+    m_storage->asyncSetRow(m_tableInfo, _key, _entry, [&promise](Error::Ptr&& error, bool success) {
+        promise.set_value(std::tuple{error, success});
+    });
+    auto result = promise.get_future().get();
+
+    if (std::get<0>(result))
     {
-        STORAGE_LOG(ERROR) << LOG_BADGE("Table setRow empty entry") << LOG_KV("key", _key);
-        return false;
+        BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
     }
 
-    _entry->setNum(m_blockNumber);
-    _entry->setField(m_tableInfo->key, _key);
-    // get the old value, if the entry is not in m_cache, dont query db
-    Entry::Ptr entry = nullptr;
-    auto entryIt = m_cache.find(_key);
-    if (entryIt != m_cache.end())
-    {
-        entry = entryIt->second;
-        entryIt->second = _entry;
-    }
-    else
-    {
-        m_cache.insert(std::make_pair(_key, _entry));
-    }
-
-    m_recorder(make_shared<Change>(shared_from_this(), Change::Set, _key, entry, m_dataDirty));
-    m_dataDirty = true;
-    m_hashDirty = true;
-    return true;
+    return std::get<1>(result);
 }
 
 bool Table::remove(const std::string& _key)
 {
-    Entry::Ptr oldEntry = nullptr;
+    std::promise<std::tuple<Error::Ptr, bool>> promise;
+    m_storage->asyncRemove(m_tableInfo, _key, [&promise](Error::Ptr&& error, bool success) {
+        promise.set_value(std::tuple{error, success});
+    });
+    auto result = promise.get_future().get();
 
-    auto entryIt = m_cache.find(_key);
-    if (entryIt != m_cache.end())
+    if (std::get<0>(result))
     {
-        // find in dirty, rollbacked means not exist in DB, Status::DELETED means it is deleted,
-        // others mean the entry was modified
-        if (!entryIt->second->rollbacked() &&
-            entryIt->second->getStatus() != Entry::Status::DELETED)
-        {
-            entryIt->second->setStatus(Entry::Status::DELETED);
-            oldEntry = entryIt->second;
-            STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove in dirty") << LOG_KV("key", _key);
-        }
-    }
-    else
-    {
-        STORAGE_LOG(DEBUG) << LOG_BADGE("Table remove") << LOG_KV("key", _key);
-        auto entry = newEntry();
-        entry->setStatus(Entry::Status::DELETED);
-        m_cache.insert(std::make_pair(_key, entry));
+        BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
     }
 
-    m_recorder(
-        make_shared<Change>(shared_from_this(), Change::Remove, _key, oldEntry, m_dataDirty));
-    m_hashDirty = true;
-    m_dataDirty = true;
-
-    return true;
+    return std::get<1>(result);
 }
 
 void Table::asyncGetPrimaryKeys(const Condition::Ptr& _condition,
     std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback)
 {
-    auto ret = make_shared<vector<string>>();
-    auto deleted = make_shared<set<string>>();
-    for (auto item : m_cache)
-    {
-        if (!item.second->rollbacked() && (!_condition || _condition->isValid(item.first)))
-        {
-            if (item.second->getStatus() != Entry::Status::DELETED)
-            {
-                ret->push_back(item.first);
-            }
-            else
-            {
-                deleted->insert(item.first);
-            }
-        }
-    }
-    if (m_tableInfo->newTable)
-    {  // new table has no data in DB
-        _callback(nullptr, std::move(*ret));
-        return;
-    }
-    m_DB->asyncGetPrimaryKeys(m_tableInfo, _condition,
-        [ret, deleted, _callback](const Error::Ptr& error, std::vector<std::string> keys) {
-            auto len = ret->size();
-            for (size_t i = 0; i < keys.size(); ++i)
-            {
-                if (!deleted->count(keys[i]) &&
-                    find(ret->begin(), ret->begin() + len, keys[i]) == ret->begin() + len)
-                {
-                    ret->emplace_back(move(keys[i]));
-                }
-            }
-
-            auto errorOut = error;
-            _callback(std::move(errorOut), std::move(*ret));
-        });
+    m_storage->asyncGetPrimaryKeys(m_tableInfo, _condition, _callback);
 }
 
 void Table::asyncGetRow(
     const std::string& _key, std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback)
 {
-    Entry::Ptr entry = nullptr;
-    auto entryIt = m_cache.find(_key);
-    if (entryIt != m_cache.end() && !entryIt->second->rollbacked())
-    {
-        if (entryIt->second->getStatus() != Entry::Status::DELETED)
-        {
-            entry = std::make_shared<Entry>(*(entryIt->second));
-            _callback(nullptr, std::move(entry));
-            return;
-        }
-        _callback(make_shared<Error>(StorageErrorCode::NotFound, "the key was deleted"),
-            std::move(entry));
-        return;
-    }
-    
-    if (m_tableInfo->newTable)
-    {  // new table has no data in DB
-        _callback(make_shared<Error>(StorageErrorCode::NotFound, "not found"), std::move(entry));
-        return;
-    }
-
-    m_DB->asyncGetRow(m_tableInfo, _key, _callback);
+    m_storage->asyncGetRow(m_tableInfo, _key, _callback);
 }
 
-void Table::asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
-    std::function<void(Error::Ptr&&, std::map<std::string, Entry::Ptr>&&)> _callback)
+void Table::asyncGetRows(const gsl::span<std::string>& _keys,
+    std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback)
 {
-    auto ret = make_shared<std::map<std::string, Entry::Ptr>>();
-
-    for (auto& key : *_keys)
-    {
-        auto entryIt = m_cache.find(key);
-        if (entryIt != m_cache.end() && !entryIt->second->rollbacked())
-        {
-            if (entryIt->second->getStatus() != Entry::Status::DELETED)
-            {  // copy from
-                (*ret)[key] = std::make_shared<Entry>(*(entryIt->second));
-            }
-            else
-            {  // deleted
-                (*ret)[key] = nullptr;
-            }
-        }
-        if (m_tableInfo->newTable)
-        {  // new table has no data in DB
-            (*ret)[key] = nullptr;
-        }
-    }
-    if (m_tableInfo->newTable)
-    {  // new table has no data in DB
-        _callback(nullptr, std::move(*ret));
-        return;
-    }
-    m_DB->asyncGetRows(m_tableInfo, _keys,
-        [ret, _callback](Error::Ptr&& error, std::map<std::string, Entry::Ptr>&& queryRet) {
-            ret->merge(queryRet);
-            _callback(std::move(error), std::move(*ret));
-        });
+    m_storage->asyncGetRows(m_tableInfo, _keys, _callback);
 }
 
+/*
 crypto::HashType Table::hash()
 {
     if (m_hashDirty && m_tableInfo->enableConsensus)
@@ -279,46 +215,7 @@ crypto::HashType Table::hash()
     STORAGE_LOG(DEBUG) << LOG_BADGE("Table hash use cache") << LOG_KV("table", m_tableInfo->name);
     return m_hash;
 }
-
-void Table::rollback(Change::Ptr _change)
-{
-    switch (_change->kind)
-    {
-    case Change::Set:
-    {
-        if (_change->entry)
-        {
-            m_cache[_change->key] = _change->entry;
-        }
-        else
-        {  // nullptr means the key is not exist in m_cache
-            auto oldEntry = newEntry();
-            oldEntry->setRollbacked(true);
-            m_cache[_change->key] = oldEntry;
-        }
-        m_hashDirty = true;
-        m_dataDirty = _change->tableDirty;
-        break;
-    }
-    case Change::Remove:
-    {
-        m_cache[_change->key]->setStatus(Entry::Status::NORMAL);
-        if (_change->entry)
-        {
-            m_cache[_change->key] = _change->entry;
-        }
-        else
-        {
-            m_cache[_change->key]->setRollbacked(true);
-        }
-        m_hashDirty = true;
-        m_dataDirty = _change->tableDirty;
-        break;
-    }
-    default:
-        break;
-    }
-}
+*/
 
 }  // namespace storage
 }  // namespace bcos
