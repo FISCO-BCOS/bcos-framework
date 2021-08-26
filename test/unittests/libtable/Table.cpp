@@ -133,10 +133,9 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     BOOST_TEST(table->tableInfo()->key == keyField);
     auto entry = table->newEntry();
     entry->setField("key", "name");
-    entry->setField("value", "Lili");
-    entry->setField("invalid", "name");
+    entry->setField("value1", "Lili");
     ret = table->setRow("name", entry);
-    BOOST_TEST(ret == false);
+    BOOST_TEST(ret == true);
     ret = table->remove("name");
     BOOST_TEST(ret == true);
     auto hash = table->hash();
