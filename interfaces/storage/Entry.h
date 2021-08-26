@@ -2,6 +2,7 @@
 
 #include "../../libutilities/Common.h"
 #include "../../libutilities/ConcurrentCOW.h"
+#include "../../libutilities/Error.h"
 #include "../protocol/ProtocolTypeDef.h"
 #include "Common.h"
 #include <boost/exception/diagnostic_information.hpp>
@@ -47,7 +48,8 @@ public:
         }
         catch (const std::exception& e)
         {
-            STORAGE_LOG(ERROR) << "getFieldConst failed " << boost::diagnostic_information(e);
+            // STORAGE_LOG(ERROR) << "getFieldConst failed " << boost::diagnostic_information(e);
+            BOOST_THROW_EXCEPTION(BCOS_ERROR_WITH_PREV(-1, "getFieldConst failed", e));
         }
 
         return "";
@@ -89,7 +91,7 @@ public:
         }
         catch (const std::exception& e)
         {
-            STORAGE_LOG(ERROR) << "setField failed " << boost::diagnostic_information(e);
+            BOOST_THROW_EXCEPTION(BCOS_ERROR_WITH_PREV(-1, "setField failed", e));
         }
     }
 
@@ -124,7 +126,6 @@ public:
 
     void setStatus(Status status) noexcept
     {
-        (void)m_data.mutableGet();
         m_status = status;
         m_dirty = true;
     }
@@ -158,6 +159,10 @@ public:
     {
         m_data.mutableGet()->fields = std::move(input);
     }
+
+    TableInfo::ConstPtr tableInfo() const { return m_data.get()->tableInfo; }
+
+    bool valid() const noexcept { return ((m_status != Status::DELETED) && (!m_rollbacked)); }
 
 private:
     struct Data

@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(copyFrom)
     auto entry1 = std::make_shared<Entry>(tableInfo);
     auto entry2 = std::make_shared<Entry>(tableInfo);
     BOOST_CHECK_EQUAL(entry1->dirty(), false);
-    entry1->setField("key", "value");
+    entry1->setField("key2", "value");
     BOOST_TEST(entry1->dirty() == true);
     BOOST_TEST(entry1->capacityOfHashField() == 5);
 
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(copyFrom)
         BOOST_CHECK_EQUAL(entry2->refCount(), 3);
         BOOST_CHECK_EQUAL(entry1->refCount(), 3);
 
-        entry3.setField("key2", "i am key2");
+        entry3.setField("value", "i am key2");
         BOOST_CHECK_EQUAL(entry3.refCount(), 1);
         BOOST_CHECK_EQUAL(entry2->refCount(), 2);
         BOOST_CHECK_EQUAL(entry1->refCount(), 2);
@@ -82,26 +82,26 @@ BOOST_AUTO_TEST_CASE(copyFrom)
         BOOST_CHECK_EQUAL(entry1->refCount(), 3);
     }
 
-    BOOST_TEST(entry2->getField("key") == "value");
+    BOOST_TEST(entry2->getField("key2") == "value");
 
-    entry2->setField("key", "value2");
+    entry2->setField("key2", "value2");
 
-    BOOST_TEST(entry2->getField("key") == "value2");
-    BOOST_TEST(entry1->getField("key") == "value");
-    BOOST_TEST(entry1->getFieldConst("key") == "value");
-    BOOST_TEST(entry1->getFieldConst("key2") == "");
-    BOOST_TEST(entry1->getField("key2") == "");
+    BOOST_TEST(entry2->getField("key2") == "value2");
+    BOOST_TEST(entry1->getField("key2") == "value");
+    BOOST_TEST(entry1->getFieldConst("key2") == "value");
+    BOOST_TEST(entry1->getFieldConst("value") == "");
+    BOOST_TEST(entry1->getField("value") == "");
 
-    entry2->setField("key", "value3");
+    entry2->setField("key2", "value3");
     BOOST_TEST(entry2->capacityOfHashField() == 6);
-    BOOST_TEST(entry2->getFieldConst("key") == "value3");
+    BOOST_TEST(entry2->getFieldConst("key2") == "value3");
     BOOST_TEST(entry1->refCount() == 1);
     BOOST_TEST(entry2->refCount() == 1);
     *entry2 = *entry2;
     BOOST_TEST(entry2->dirty() == true);
     entry2->setDirty(false);
     BOOST_TEST(entry2->dirty() == false);
-    auto key2 = "key2";
+    auto key2 = "value";
     // test setField lValue and rValue
     entry2->setField(key2, string("value2"));
     BOOST_TEST(entry2->dirty() == true);

@@ -46,7 +46,7 @@ public:
     std::vector<std::string> getPrimaryKeys(const Condition::Ptr& _condition);
 
     bool setRow(const std::string& _key, const Entry::Ptr& _entry);
-    bool remove(const std::string& _key);
+    // bool remove(const std::string& _key);
 
     void asyncGetPrimaryKeys(const Condition::Ptr& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept;
@@ -60,6 +60,12 @@ public:
 
     TableInfo::Ptr tableInfo() const { return m_tableInfo; }
     Entry::Ptr newEntry() { return std::make_shared<Entry>(m_tableInfo, m_blockNumber); }
+    Entry::Ptr newDeletedEntry()
+    {
+        auto deletedEntry = newEntry();
+        deletedEntry->setStatus(Entry::DELETED);
+        return deletedEntry;
+    }
 
 protected:
     std::shared_ptr<StorageInterface> m_storage;

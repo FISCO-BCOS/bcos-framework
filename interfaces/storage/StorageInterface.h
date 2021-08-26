@@ -35,11 +35,6 @@ namespace storage
 class StorageInterface
 {
 public:
-    struct TableData
-    {
-        TableInfo::Ptr tableInfo;
-    };
-
     using Ptr = std::shared_ptr<StorageInterface>;
     virtual ~StorageInterface() = default;
 
@@ -56,20 +51,37 @@ public:
     virtual void asyncSetRow(const TableInfo::Ptr& tableInfo, const std::string& key,
         const Entry::Ptr& entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
 
+    /*
     virtual void asyncRemove(const TableInfo::Ptr& tableInfo, const std::string& key,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
+    */
+};
+
+class ExportableStorageInterface : public StorageInterface
+{
+public:
+    struct TableData
+    {
+        TableInfo::Ptr tableInfo;
+    };
+
+    ~ExportableStorageInterface() override = default;
+
+    virtual void exportData() = 0;
+};
+
+class MergeableStorageInterface : public StorageInterface
+{
+public:
+    virtual void merge(std::shared_ptr<ExportableStorageInterface> storage) = 0;
 };
 
 class TransactionStorageInterface : public StorageInterface
 {
 public:
-    using Ptr = std::shared_ptr<TransactionStorageInterface>;
-    virtual ~TransactionStorageInterface() = default;
+    ~TransactionStorageInterface() override = default;
 
-    virtual void asyncPrepare(protocol::BlockNumber blockNumber,
-        const std::shared_ptr<std::vector<TableInfo::Ptr> >& _infos,
-        const std::shared_ptr<std::vector<std::shared_ptr<std::map<std::string, Entry::Ptr> > > >&
-            _datas,
+    virtual void asyncPrepare(std::shared_ptr<ExportableStorageInterface> storage,
         std::function<void(Error::Ptr&&)> callback);
 
     virtual void aysncCommit(

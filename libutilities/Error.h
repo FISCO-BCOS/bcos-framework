@@ -20,8 +20,10 @@
 #pragma once
 #include "Common.h"
 #include "Exceptions.h"
+#include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception/exception.hpp>
 #include <boost/throw_exception.hpp>
+#include <exception>
 #include <memory>
 #include <string>
 
@@ -29,34 +31,49 @@
     ::bcos::Error::buildError(BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage)
 #define BCOS_ERROR_WITH_PREV(errorCode, errorMessage, prev) \
     ::bcos::Error::buildError(                              \
-        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, std::move(*prev))
+        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, prev)
+#define BCOS_ERROR_PTR(errorCode, errorMessage)              \
+    std::make_shared<bcos::Error>(::bcos::Error::buildError( \
+        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage))
+#define BCOS_ERROR_WITH_PREV_PTR(errorCode, errorMessage, prev) \
+    std::make_shared<bcos::Error>(::bcos::Error::buildError(    \
+        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, std::move(*prev)))
 
 namespace bcos
 {
-class Error : virtual bcos::Exception
+class Error : public bcos::Exception
 {
 public:
     using Ptr = std::shared_ptr<Error>;
     using ConstPtr = std::shared_ptr<const Error>;
 
     using PrevError = boost::error_info<struct PrevErrorTag, Error>;
+    using PrevStdError = boost::error_info<struct PrevErrorTag, std::string>;
 
-    static Error::Ptr buildError(char const* func, char const* file, int line, int32_t errorCode,
+    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
         const std::string& errorMessage)
     {
-        auto error = std::make_shared<Error>(errorCode, errorMessage);
-        (*error) << boost::throw_function(func);
-        (*error) << boost::throw_file(file);
-        (*error) << boost::throw_line(line);
+        Error error(errorCode, errorMessage);
+        error << boost::throw_function(func);
+        error << boost::throw_file(file);
+        error << boost::throw_line(line);
 
         return error;
     }
 
-    static Error::Ptr buildError(char const* func, char const* file, int line, int32_t errorCode,
+    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
         const std::string& errorMessage, Error&& prev)
     {
         auto error = buildError(func, file, line, errorCode, errorMessage);
-        (*error) << PrevError(std::move(prev));
+        error << PrevError(std::move(prev));
+        return error;
+    }
+
+    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
+        const std::string& errorMessage, const std::exception& prev)
+    {
+        auto error = buildError(func, file, line, errorCode, errorMessage);
+        error << PrevStdError(boost::diagnostic_information(prev));
         return error;
     }
 

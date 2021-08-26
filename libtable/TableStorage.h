@@ -94,51 +94,16 @@ public:
         const storage::Entry::Ptr& entry,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
 
-    void asyncRemove(const storage::TableInfo::Ptr& tableInfo, const std::string& key,
-        std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
-
     void asyncOpenTable(const std::string& tableName,
         std::function<void(Error::Ptr&&, Table::Ptr&&)> callback) noexcept;
 
     void asyncCreateTable(const std::string& _tableName, const std::string& _keyField,
         const std::string& _valueFields, std::function<void(Error::Ptr&&, bool)> callback) noexcept;
 
-    Table::Ptr openTable(const std::string& tableName)
-    {
-        std::promise<std::tuple<Error::Ptr, Table::Ptr>> openPromise;
-        asyncOpenTable(tableName, [&](Error::Ptr&& error, Table::Ptr&& table) {
-            openPromise.set_value({std::move(error), std::move(table)});
-        });
-
-        auto [error, table] = openPromise.get_future().get();
-        if (error)
-        {
-            BOOST_THROW_EXCEPTION(
-                *(BCOS_ERROR_WITH_PREV(-1, "Open table: " + tableName + " failed", error)));
-        }
-
-        return table;
-    }
+    Table::Ptr openTable(const std::string& tableName);
 
     bool createTable(const std::string& _tableName, const std::string& _keyField,
-        const std::string& _valueFields)
-    {
-        std::promise<std::tuple<Error::Ptr, bool>> createPromise;
-        asyncCreateTable(
-            _tableName, _keyField, _valueFields, [&](Error::Ptr&& error, bool success) {
-                createPromise.set_value({std::move(error), success});
-            });
-        auto [error, success] = createPromise.get_future().get();
-        if (error)
-        {
-            BOOST_THROW_EXCEPTION(*(BCOS_ERROR_WITH_PREV(-1,
-                "Create table: " + _tableName + " with keyField: " + _keyField +
-                    " valueFields: " + _valueFields + " failed",
-                error)));
-        }
-
-        return success;
-    }
+        const std::string& _valueFields);
 
     std::vector<std::tuple<std::string, crypto::HashType>> tablesHash();
 

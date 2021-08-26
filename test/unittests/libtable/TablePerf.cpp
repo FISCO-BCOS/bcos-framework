@@ -8,7 +8,6 @@
 
 namespace bcos::test
 {
-
 using namespace bcos::storage;
 
 struct TablePerfFixture
@@ -22,26 +21,25 @@ struct TablePerfFixture
         BOOST_TEST(tableFactory != nullptr);
     }
 
-    std::vector<Entry::Ptr> createTestData(Table::Ptr table)
+    std::vector<std::tuple<std::string, Entry::Ptr>> createTestData(Table::Ptr table)
     {
-        std::vector<Entry::Ptr> entries;
+        std::vector<std::tuple<std::string, Entry::Ptr>> entries;
         entries.reserve(count);
         for (size_t i = 0; i < count; ++i)
         {
             auto entry = table->newEntry();
-            entry->setField("key", "key_" + boost::lexical_cast<std::string>(i));
             entry->setField("field1", "value1");
             entry->setField("field2", "value2");
             entry->setField("field3", "value" + boost::lexical_cast<std::string>(i));
 
-            entries.emplace_back(std::move(entry));
+            entries.emplace_back("key_" + boost::lexical_cast<std::string>(i), std::move(entry));
         }
 
         return entries;
     }
 
     std::shared_ptr<TableStorage> tableFactory;
-    size_t count = 100 * 10000;
+    size_t count = 100 * 1000;
 };
 
 BOOST_FIXTURE_TEST_SUITE(TablePerf, TablePerfFixture)
@@ -53,9 +51,9 @@ BOOST_AUTO_TEST_CASE(sync)
 
     auto entries = createTestData(table);
 
-    for (auto& entry : entries)
+    for (auto& [key, entry] : entries)
     {
-        table->setRow(entry->getField("key"), entry);
+        table->setRow(key, entry);
     }
 
     auto now = bcos::utcSteadyTime();
@@ -80,9 +78,9 @@ BOOST_AUTO_TEST_CASE(async)
 
     auto entries = createTestData(table);
 
-    for (auto& entry : entries)
+    for (auto& [key, entry] : entries)
     {
-        table->setRow(entry->getField("key"), entry);
+        table->setRow(key, entry);
     }
 
     auto total = count;
@@ -119,9 +117,9 @@ BOOST_AUTO_TEST_CASE(asyncToSync)
 
     auto entries = createTestData(table);
 
-    for (auto& entry : entries)
+    for (auto& [key, entry] : entries)
     {
-        table->setRow(entry->getField("key"), entry);
+        table->setRow(key, entry);
     }
 
     auto now = bcos::utcSteadyTime();

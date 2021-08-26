@@ -101,22 +101,6 @@ bool Table::setRow(const std::string& _key, const Entry::Ptr& _entry)
     return std::get<1>(result);
 }
 
-bool Table::remove(const std::string& _key)
-{
-    std::promise<std::tuple<Error::Ptr, bool>> promise;
-    m_storage->asyncRemove(m_tableInfo, _key, [&promise](Error::Ptr&& error, bool success) {
-        promise.set_value(std::tuple{error, success});
-    });
-    auto result = promise.get_future().get();
-
-    if (std::get<0>(result))
-    {
-        BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
-    }
-
-    return std::get<1>(result);
-}
-
 void Table::asyncGetPrimaryKeys(const Condition::Ptr& _condition,
     std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept
 {

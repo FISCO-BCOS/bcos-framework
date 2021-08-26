@@ -155,7 +155,7 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
     void generateFieldsIndex()
     {
         size_t i = 0;
-        field2Index.emplace(key, i++);
+        // field2Index.emplace(key, i++); // exclude key field
 
         for (auto& field : fields)
         {

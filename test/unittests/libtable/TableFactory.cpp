@@ -96,11 +96,16 @@ BOOST_AUTO_TEST_CASE(rollback)
     auto ret = createDefaultTable();
     BOOST_TEST(ret == true);
     auto table = tableFactory->openTable(testTableName);
-    table->remove("name");
+
+    auto deleteEntry = table->newEntry();
+    deleteEntry->setStatus(Entry::DELETED);
+    BOOST_CHECK_EQUAL(table->setRow("name", deleteEntry), true);
+
     auto entry = table->newEntry();
-    entry->setField("key", "name");
-    entry->setField("value", "Lili");
-    table->setRow("name", entry);
+    // entry->setField("key", "name");
+    BOOST_CHECK_NO_THROW(entry->setField("value", "Lili"));
+    entry->setVersion(1);
+    BOOST_CHECK_EQUAL(table->setRow("name", entry), true);
     entry = table->getRow("name");
     BOOST_TEST(entry != nullptr);
     // BOOST_TEST(table->dirty() == true);
@@ -110,7 +115,7 @@ BOOST_AUTO_TEST_CASE(rollback)
     auto savePoint = tableFactory->savepoint();
 
     entry = table->newEntry();
-    entry->setField("key", "id");
+    // entry->setField("key", "id");
     entry->setField("value", "12345");
     table->setRow("id", entry);
     entry = table->getRow("id");
@@ -122,7 +127,7 @@ BOOST_AUTO_TEST_CASE(rollback)
     auto savePoint1 = tableFactory->savepoint();
 
     entry = table->newEntry();
-    entry->setField("key", "balance");
+    // entry->setField("key", "balance");
     entry->setField("value", "500");
     table->setRow("balance", entry);
 
@@ -135,20 +140,24 @@ BOOST_AUTO_TEST_CASE(rollback)
 
     auto savePoint2 = tableFactory->savepoint();
 
-    table->remove("name");
+    auto deleteEntry2 = table->newDeletedEntry();
+    deleteEntry2->setVersion(entry->version() + 1);
+    table->setRow("name", deleteEntry2);
+
+    // table->remove("name");
     entry = table->getRow("name");
-    BOOST_TEST(entry == nullptr);
+    BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
 
     tableFactory->rollback(savePoint2);
     entry = table->getRow("name");
-    BOOST_TEST(entry != nullptr);
+    BOOST_CHECK_NE(entry->status(), Entry::DELETED);
     // BOOST_TEST(table->dirty() == true);
 
     tableFactory->rollback(savePoint1);
     entry = table->getRow("name");
     BOOST_TEST(entry != nullptr);
     entry = table->getRow("balance");
-    BOOST_TEST(entry == nullptr);
+    BOOST_CHECK_EQUAL(entry, nullptr);
     // BOOST_TEST(table->dirty() == true);
 
     // auto dbHash0 = tableFactory->hash();
@@ -156,9 +165,14 @@ BOOST_AUTO_TEST_CASE(rollback)
     entry = table->getRow("name");
     BOOST_TEST(entry != nullptr);
     entry = table->getRow("balance");
-    BOOST_TEST(entry == nullptr);
+    BOOST_CHECK_EQUAL(entry, nullptr);
     entry = table->getRow("id");
-    BOOST_TEST(entry == nullptr);
+    BOOST_CHECK_EQUAL(entry, nullptr);
+
+    // insert without version
+    entry = table->newEntry();
+    entry->setField("value", "new record");
+    BOOST_CHECK_EQUAL(table->setRow("id", entry), true);
     // BOOST_TEST(table->dirty() == true);
 
     // tableFactory->commit();
@@ -172,10 +186,13 @@ BOOST_AUTO_TEST_CASE(rollback2)
     auto ret = createDefaultTable();
     BOOST_TEST(ret == true);
     auto table = tableFactory->openTable(testTableName);
-    table->remove("name");
+
+    auto deleteEntry = table->newDeletedEntry();
+    table->setRow("name", deleteEntry);
     auto entry = table->newEntry();
-    entry->setField("key", "name");
+    // entry->setField("key", "name");
     entry->setField("value", "Lili");
+    entry->setVersion(1);
     table->setRow("name", entry);
     entry = table->getRow("name");
     BOOST_TEST(entry != nullptr);
@@ -186,7 +203,7 @@ BOOST_AUTO_TEST_CASE(rollback2)
     auto savePoint = tableFactory->savepoint();
 
     entry = table->newEntry();
-    entry->setField("key", "id");
+    // entry->setField("key", "id");
     entry->setField("value", "12345");
     table->setRow("id", entry);
     entry = table->getRow("id");
@@ -217,7 +234,7 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(ret == true);
     auto table = tableFactory->openTable(testTableName);
     auto entry = table->newEntry();
-    entry->setField("key", "name");
+    // entry->setField("key", "name");
     entry->setField("value", "Lili");
     ret = table->setRow("name", entry);
     BOOST_TEST(ret == true);
@@ -236,7 +253,7 @@ BOOST_AUTO_TEST_CASE(hash)
     */
 
     entry = table->newEntry();
-    entry->setField("key", "id");
+    // entry->setField("key", "id");
     entry->setField("value", "12345");
     ret = table->setRow("id", entry);
     BOOST_TEST(ret == true);
@@ -263,10 +280,13 @@ BOOST_AUTO_TEST_CASE(hash)
     */
 
     auto savePoint = tableFactory->savepoint();
-    ret = table->remove("id");
-    BOOST_TEST(ret == true);
+    auto idEntry = table->getRow("id");
+
+    auto deletedEntry = table->newDeletedEntry();
+    deletedEntry->setVersion(idEntry->version() + 1);
+    BOOST_CHECK_EQUAL(table->setRow("id", deletedEntry), true);
     entry = table->getRow("id");
-    BOOST_TEST(entry == nullptr);
+    BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     /*
     auto data2 = tableFactory->exportData(m_blockNumber);
     auto dbHash2 = tableFactory->hash();
@@ -300,16 +320,18 @@ BOOST_AUTO_TEST_CASE(hash)
 
     // getPrimaryKeys and getRows
     entry = table->newEntry();
-    entry->setField("key", "id");
+    // entry->setField("key", "id");
     entry->setField("value", "12345");
+    entry->setVersion(entry->version() + 1);
     ret = table->setRow("id", entry);
     BOOST_TEST(ret == true);
     entry = table->getRow("name");
     entry->setField("value", "Wang");
+    entry->setVersion(entry->version() + 1);
     ret = table->setRow("name", entry);
     BOOST_TEST(ret == true);
     entry = table->newEntry();
-    entry->setField("key", "balance");
+    // entry->setField("key", "balance");
     entry->setField("value", "12345");
     ret = table->setRow("balance", entry);
     BOOST_TEST(ret == true);
@@ -324,18 +346,26 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(entry != nullptr);
     entry = table->getRow("balance1");
     BOOST_TEST(entry == nullptr);
-    ret = table->remove("name");
+
+    auto nameEntry = table->getRow("name");
+    auto deletedEntry2 = table->newDeletedEntry();
+    deletedEntry2->setVersion(nameEntry->version() + 1);
+    ret = table->setRow("name", deletedEntry2);
     BOOST_TEST(ret == true);
     entry = table->getRow("name");
-    BOOST_TEST(entry == nullptr);
+    BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     keys = table->getPrimaryKeys(nullptr);
     BOOST_TEST(keys.size() == 2);
     entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 2);
-    ret = table->remove("id");
+
+    auto idEntry2 = table->getRow("id");
+    auto deletedEntry3 = table->newDeletedEntry();
+    deletedEntry3->setVersion(idEntry2->version() + 1);
+    ret = table->setRow("id", deletedEntry3);
     BOOST_TEST(ret == true);
     entry = table->getRow("id");
-    BOOST_TEST(entry == nullptr);
+    BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     keys = table->getPrimaryKeys(nullptr);
     BOOST_TEST(keys.size() == 1);
     entries = table->getRows(keys);
