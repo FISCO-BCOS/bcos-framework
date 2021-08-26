@@ -44,7 +44,7 @@ struct TablePerfFixture
 
 BOOST_FIXTURE_TEST_SUITE(TablePerf, TablePerfFixture)
 
-BOOST_AUTO_TEST_CASE(sync)
+BOOST_AUTO_TEST_CASE(syncGet)
 {
     tableFactory->createTable("test_table", "key", "field1,field2,field3");
     auto table = tableFactory->openTable("test_table");
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(sync)
     std::cout << "sync cost: " << bcos::utcSteadyTime() - now << std::endl;
 }
 
-BOOST_AUTO_TEST_CASE(async)
+BOOST_AUTO_TEST_CASE(asyncGet)
 {
     tableFactory->createTable("test_table", "key", "field1,field2,field3");
     auto table = tableFactory->openTable("test_table");
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(async)
     std::cout << "async cost: " << bcos::utcSteadyTime() - now << std::endl;
 }
 
-BOOST_AUTO_TEST_CASE(asyncToSync)
+BOOST_AUTO_TEST_CASE(asyncToSyncGet)
 {
     tableFactory->createTable("test_table", "key", "field1,field2,field3");
     auto table = tableFactory->openTable("test_table");
