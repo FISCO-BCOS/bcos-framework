@@ -52,23 +52,20 @@ public:
         const Entry::Ptr& entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
 };
 
-class ExportableStorageInterface : public StorageInterface
+class TraverseStorageInterface : public StorageInterface
 {
 public:
-    struct TableData
-    {
-        TableInfo::Ptr tableInfo;
-    };
+    ~TraverseStorageInterface() override = default;
 
-    ~ExportableStorageInterface() override = default;
-
-    virtual void exportData() = 0;
+    virtual void parallelTraverse(std::function<bool(
+            const TableInfo::Ptr& tableInfo, const std::string& key, const Entry::ConstPtr& entry)>
+            callback) = 0;
 };
 
 class MergeableStorageInterface : public StorageInterface
 {
 public:
-    virtual void merge(const std::shared_ptr<ExportableStorageInterface> &storage) = 0;
+    virtual void merge(const std::shared_ptr<TraverseStorageInterface>& storage) = 0;
 };
 
 class TransactionalStorageInterface : public StorageInterface
@@ -76,7 +73,7 @@ class TransactionalStorageInterface : public StorageInterface
 public:
     ~TransactionalStorageInterface() override = default;
 
-    virtual void asyncPrepare(const std::shared_ptr<ExportableStorageInterface> &storage,
+    virtual void asyncPrepare(const std::shared_ptr<TraverseStorageInterface>& storage,
         std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void aysncCommit(

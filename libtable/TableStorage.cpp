@@ -1,5 +1,6 @@
 #include "TableStorage.h"
 #include "../libutilities/Error.h"
+#include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
 #include <boost/lexical_cast.hpp>
 
@@ -244,7 +245,8 @@ void TableStorage::asyncSetRow(const bcos::storage::TableInfo::Ptr& tableInfo,
             if (table)
             {
                 auto [tableIt, inserted] = m_data.insert({tableInfo->name,
-                    {tbb::concurrent_unordered_map<std::string, storage::Entry::Ptr>(), false}});
+                    {tableInfo, tbb::concurrent_unordered_map<std::string, storage::Entry::Ptr>(),
+                        false}});
 
                 if (!inserted)
                 {
@@ -294,6 +296,28 @@ void TableStorage::asyncSetRow(const bcos::storage::TableInfo::Ptr& tableInfo,
             }
         });
     }
+}
+
+void TableStorage::parallelTraverse(std::function<bool(
+        const TableInfo::Ptr& tableInfo, const std::string& key, const Entry::ConstPtr& entry)>
+        callback)
+{
+    tbb::concurrent_unordered_map<std::string, TableData>::iterator it;
+    tbb::parallel_do(
+        m_data.begin(), m_data.end(), [&](const std::pair<std::string, TableData>& it) {
+            for (auto& entryIt : it.second.entries)
+            {
+                callback(it.second.tableInfo, entryIt.first, entryIt.second);
+            }
+        });
+    // tbb::parallel_for(
+    //     tbb::blocked_range<size_t>(0, m_data.size()), [&](const tbb::blocked_range<size_t>&
+    //     range) {
+    //         for (auto i = range.begin(); i != range.end(); ++i)
+    //         {
+    //             auto table = m_data
+    //         }
+    //     });
 }
 
 void TableStorage::asyncOpenTable(const std::string& tableName,

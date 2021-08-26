@@ -33,7 +33,7 @@
 
 namespace bcos::storage
 {
-class TableStorage : public storage::StorageInterface,
+class TableStorage : public storage::TraverseStorageInterface,
                      public std::enable_shared_from_this<TableStorage>
 {
 public:
@@ -94,6 +94,10 @@ public:
         const storage::Entry::Ptr& entry,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
 
+    void parallelTraverse(std::function<bool(
+            const TableInfo::Ptr& tableInfo, const std::string& key, const Entry::ConstPtr& entry)>
+            callback) override;
+
     void asyncOpenTable(const std::string& tableName,
         std::function<void(Error::Ptr&&, Table::Ptr&&)> callback) noexcept;
 
@@ -122,6 +126,7 @@ private:
 
     struct TableData
     {
+        TableInfo::Ptr tableInfo;
         tbb::concurrent_unordered_map<std::string, storage::Entry::Ptr> entries;
         bool dirty = false;
     };
