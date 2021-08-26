@@ -95,7 +95,6 @@ void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
 
     if (m_prev)
     {
-        // Read cache
         m_prev->asyncGetRow(
             _tableInfo, _key, [this, _key, _callback](Error::Ptr&& error, Entry::Ptr&& entry) {
                 if (error)
@@ -106,6 +105,7 @@ void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
                     return;
                 }
 
+                // If the entry exists, add it to the local cache, for version comparison
                 if (entry)
                 {
                     entry->setVersion(0);

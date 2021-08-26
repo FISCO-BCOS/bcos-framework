@@ -50,11 +50,6 @@ public:
 
     virtual void asyncSetRow(const TableInfo::Ptr& tableInfo, const std::string& key,
         const Entry::Ptr& entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
-
-    /*
-    virtual void asyncRemove(const TableInfo::Ptr& tableInfo, const std::string& key,
-        std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
-    */
 };
 
 class ExportableStorageInterface : public StorageInterface
@@ -73,22 +68,22 @@ public:
 class MergeableStorageInterface : public StorageInterface
 {
 public:
-    virtual void merge(std::shared_ptr<ExportableStorageInterface> storage) = 0;
+    virtual void merge(const std::shared_ptr<ExportableStorageInterface> &storage) = 0;
 };
 
-class TransactionStorageInterface : public StorageInterface
+class TransactionalStorageInterface : public StorageInterface
 {
 public:
-    ~TransactionStorageInterface() override = default;
+    ~TransactionalStorageInterface() override = default;
 
-    virtual void asyncPrepare(std::shared_ptr<ExportableStorageInterface> storage,
-        std::function<void(Error::Ptr&&)> callback);
+    virtual void asyncPrepare(const std::shared_ptr<ExportableStorageInterface> &storage,
+        std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void aysncCommit(
-        protocol::BlockNumber blockNumber, std::function<void(Error::Ptr&&)> callback);
+        protocol::BlockNumber blockNumber, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void aysncRollback(
-        protocol::BlockNumber blockNumber, std::function<void(Error::Ptr&&)> callback);
+        protocol::BlockNumber blockNumber, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 };
 
 }  // namespace storage
