@@ -29,6 +29,8 @@ namespace gateway
 {
 using ErrorRespFunc = std::function<void(Error::Ptr)>;
 using PeerRespFunc = std::function<void(Error::Ptr, const std::string&)>;
+using GetNodeIDsFunc =
+    std::function<void(Error::Ptr _error, std::shared_ptr<const crypto::NodeIDs> _nodeIDs)>;
 
 /**
  * @brief: A list of interfaces provided by the gateway which are called by the front service.
@@ -46,6 +48,13 @@ public:
     virtual void stop() = 0;
 
 public:
+    /**
+     * @brief: get nodeIDs from gateway
+     * @param: _groupID
+     * @param _getNodeIDsFunc: get nodeIDs callback
+     * @return void
+     */
+    virtual void asyncGetNodeIDs(const std::string& _groupID, GetNodeIDsFunc _getNodeIDsFunc) = 0;
     /**
      * @brief: get connected peers
      * @param _peerRespFunc:
