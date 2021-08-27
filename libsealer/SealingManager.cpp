@@ -144,7 +144,8 @@ Block::Ptr SealingManager::generateProposal()
     {
         m_waitUntil.store(m_sealingNumber);
         SEAL_LOG(DEBUG) << LOG_DESC("seal the system transactions")
-                        << LOG_KV("blockWaitUntil", m_waitUntil);
+                        << LOG_KV("sealNextBlockUntil", m_waitUntil)
+                        << LOG_KV("curNum", m_currentNumber);
     }
     for (size_t i = 0; i < systemTxsSize; i++)
     {
