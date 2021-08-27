@@ -170,9 +170,14 @@ void BoostLogInitializer::stopLogging()
 void BoostLogInitializer::stopLogging(boost::shared_ptr<sink_t> sink)
 {
     if (!sink)
+    {
         return;
+    }
     // remove the sink from the core, so that no records are passed to it
-    boost::log::core::get()->remove_sink(sink);
+    if (boost::log::core::get())
+    {
+        boost::log::core::get()->remove_sink(sink);
+    }
     // break the feeding loop
     sink->stop();
     // flush all log records that may have left buffered
