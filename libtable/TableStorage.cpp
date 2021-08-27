@@ -97,7 +97,7 @@ void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
     if (m_prev)
     {
         m_prev->asyncGetRow(
-            _tableInfo, _key, [this, _key, _callback](Error::Ptr&& error, Entry::Ptr&& entry) {
+            _tableInfo, _key, [this, _tableInfo, _key, _callback](Error::Ptr&& error, Entry::Ptr&& entry) {
                 if (error)
                 {
                     _callback(
@@ -111,10 +111,11 @@ void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
                 {
                     entry->setVersion(0);
                     entry->setDirty(false);
-                    entry->setNum(m_blockNumber);
 
                     auto [tableIt, inserted] =
                         m_data.insert({entry->tableInfo()->name, TableData()});
+                    (void)inserted;
+                    tableIt->second.tableInfo = _tableInfo;
                     tableIt->second.entries.insert({_key, entry});
 
                     _callback(nullptr, std::make_shared<Entry>(*entry));
@@ -303,16 +304,21 @@ void TableStorage::parallelTraverse(bool onlyDirty,
         const TableInfo::Ptr& tableInfo, const std::string& key, const Entry::ConstPtr& entry)>
         callback) const
 {
-    tbb::concurrent_unordered_map<std::string, TableData>::iterator it;
     tbb::parallel_do(
         m_data.begin(), m_data.end(), [&](const std::pair<std::string, TableData>& it) {
             for (auto& entryIt : it.second.entries)
             {
-                if (onlyDirty && !entryIt.second->dirty())
+                if (onlyDirty)
                 {
-                    continue;
+                    if (entryIt.second->dirty())
+                    {
+                        callback(it.second.tableInfo, entryIt.first, entryIt.second);
+                    }
                 }
-                callback(it.second.tableInfo, entryIt.first, entryIt.second);
+                else
+                {
+                    callback(it.second.tableInfo, entryIt.first, entryIt.second);
+                }
             }
         });
 }
@@ -371,7 +377,7 @@ void TableStorage::asyncCreateTable(const std::string& _tableName, const std::st
                                    Error::Ptr&& error, storage::Table::Ptr&& sysTable) {
         if (error)
         {
-            callback(std::move(error), false);
+            callback(BCOS_ERROR_WITH_PREV_PTR(-1, "Open sys_tables failed!", error), false);
             return;
         }
 
@@ -379,7 +385,7 @@ void TableStorage::asyncCreateTable(const std::string& _tableName, const std::st
                                               Error::Ptr&& error, storage::Entry::Ptr&& entry) {
             if (error)
             {
-                callback(std::move(error), false);
+                callback(BCOS_ERROR_WITH_PREV_PTR(-1, "Get table info row failed!", error), false);
                 return;
             }
 
@@ -396,7 +402,9 @@ void TableStorage::asyncCreateTable(const std::string& _tableName, const std::st
             sysTable->asyncSetRow(_tableName, tableEntry, [callback](Error::Ptr&& error, bool) {
                 if (error)
                 {
-                    callback(std::move(error), false);
+                    callback(BCOS_ERROR_WITH_PREV_PTR(
+                                 -1, "Put table info into sys_tables failed!", error),
+                        false);
                     return;
                 }
 

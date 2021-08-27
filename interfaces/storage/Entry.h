@@ -48,7 +48,6 @@ public:
         }
         catch (const std::exception& e)
         {
-            // STORAGE_LOG(ERROR) << "getFieldConst failed " << boost::diagnostic_information(e);
             BOOST_THROW_EXCEPTION(BCOS_ERROR_WITH_PREV(-1, "getFieldConst failed", e));
         }
 

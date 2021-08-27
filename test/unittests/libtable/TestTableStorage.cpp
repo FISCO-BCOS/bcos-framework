@@ -511,7 +511,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
     for (int i = 0; i < 20; ++i)
     {
         auto tableStorage = std::make_shared<TableStorage>(prev, hashImpl, i);
-        for (int j = 0; j < 100; ++j)
+        for (int j = 0; j < 10; ++j)
         {
             auto tableName = "table_" + boost::lexical_cast<std::string>(i) + "_" +
                              boost::lexical_cast<std::string>(j);
@@ -523,10 +523,12 @@ BOOST_AUTO_TEST_CASE(chainLink)
             for (int k = 0; k < 100; ++k)
             {
                 auto entry = table->newEntry();
-                entry->setField("value1", "hello " + boost::lexical_cast<std::string>(k));
-                entry->setField("value2", "another value");
-                entry->setField("value3", "another value3");
-                BOOST_CHECK_EQUAL(table->setRow(boost::lexical_cast<std::string>(k), entry), true);
+                auto key =
+                    boost::lexical_cast<std::string>(i) + boost::lexical_cast<std::string>(k);
+                entry->setField("value1", boost::lexical_cast<std::string>(i));
+                entry->setField("value2", boost::lexical_cast<std::string>(j));
+                entry->setField("value3", boost::lexical_cast<std::string>(k));
+                BOOST_CHECK_EQUAL(table->setRow(key, entry), true);
             }
         }
 
@@ -534,9 +536,133 @@ BOOST_AUTO_TEST_CASE(chainLink)
         storages.push_back(tableStorage);
     }
 
-    auto storage = storages[10];
 
-    BOOST_CHECK_EQUAL(storage->openTable("table_11_0"), nullptr);
+    for (int index = 0; index < 20; ++index)
+    {
+        auto storage = storages[index];
+        // Data count must be 10 * 100 + 10
+        tbb::atomic<size_t> totalCount = 0;
+        storage->parallelTraverse(
+            false, [&](const TableInfo::Ptr&, const std::string&, const Entry::ConstPtr&) {
+                ++totalCount;
+                return true;
+            });
+
+        BOOST_CHECK_EQUAL(totalCount, 10 * 100 + 10);  // extra 100 for s_tables
+
+        // Dirty data count must be 10 * 100 + 10
+        tbb::atomic<size_t> dirtyCount = 0;
+        storage->parallelTraverse(
+            true, [&](const TableInfo::Ptr&, const std::string&, const Entry::ConstPtr&) {
+                ++dirtyCount;
+                return true;
+            });
+
+        BOOST_CHECK_EQUAL(dirtyCount, 10 * 100 + 10);  // extra 100 for s_tables
+
+        // Low level can't touch high level's data
+        for (int i = 0; i < 20; ++i)
+        {
+            for (int j = 0; j < 10; ++j)
+            {
+                auto tableName = "table_" + boost::lexical_cast<std::string>(i) + "_" +
+                                 boost::lexical_cast<std::string>(j);
+
+                auto table = storage->openTable(tableName);
+                if (i > index)
+                {
+                    BOOST_CHECK_EQUAL(table, nullptr);
+                }
+                else
+                {
+                    BOOST_CHECK_NE(table, nullptr);
+
+                    for (int k = 0; k < 100; ++k)
+                    {
+                        auto key = boost::lexical_cast<std::string>(i) +
+                                   boost::lexical_cast<std::string>(k);
+
+                        auto entry = table->getRow(key);
+                        if (i > index)
+                        {
+                            BOOST_CHECK_EQUAL(entry, nullptr);
+                        }
+                        else
+                        {
+                            BOOST_CHECK_NE(entry, nullptr);
+
+                            if(i == index) {
+                                BOOST_CHECK_EQUAL(entry->dirty(), true);
+                            }
+                            else {
+                                BOOST_CHECK_EQUAL(entry->dirty(), false);
+                            }
+                            BOOST_CHECK_EQUAL(entry->getFieldConst("value1"),
+                                boost::lexical_cast<std::string>(i));
+                            BOOST_CHECK_EQUAL(entry->getFieldConst("value2"),
+                                boost::lexical_cast<std::string>(j));
+                            BOOST_CHECK_EQUAL(entry->getFieldConst("value3"),
+                                boost::lexical_cast<std::string>(k));
+                        }
+                    }
+                }
+            }
+        }
+
+        // After reading, current storage should include previous storage's data, previous data's
+        // dirty should be false
+        totalCount = 0;
+        storage->parallelTraverse(false,
+            [&](const TableInfo::Ptr& tableInfo, const std::string&, const Entry::ConstPtr& entry) {
+                BOOST_CHECK_NE(tableInfo, nullptr);
+                BOOST_CHECK_NE(entry, nullptr);
+                if (tableInfo->name != "s_tables")
+                {
+                    auto i = boost::lexical_cast<int>(entry->getFieldConst("value1"));
+                    auto j = boost::lexical_cast<int>(entry->getFieldConst("value2"));
+                    auto k = boost::lexical_cast<int>(entry->getFieldConst("value3"));
+
+                    BOOST_CHECK_LE(i, index);
+                    BOOST_CHECK_LE(j, 10);
+                    BOOST_CHECK_LE(k, 100);
+                }
+
+                ++totalCount;
+                return true;
+            });
+
+        BOOST_CHECK_EQUAL(totalCount, (10 * 100 + 10) * (index + 1));
+
+        dirtyCount = 0;
+        storage->parallelTraverse(true,
+            [&](const TableInfo::Ptr& tableInfo, const std::string&, const Entry::ConstPtr& entry) {
+                BOOST_CHECK_NE(tableInfo, nullptr);
+                BOOST_CHECK_NE(entry, nullptr);
+                if (tableInfo->name != "s_tables")
+                {
+                    auto i = boost::lexical_cast<int>(entry->getFieldConst("value1"));
+                    auto j = boost::lexical_cast<int>(entry->getFieldConst("value2"));
+                    auto k = boost::lexical_cast<int>(entry->getFieldConst("value3"));
+
+                    if (i == index)
+                    {
+                        BOOST_CHECK_EQUAL(entry->dirty(), true);
+                    }
+                    else
+                    {
+                        BOOST_CHECK_EQUAL(entry->dirty(), false);
+                    }
+
+                    BOOST_CHECK_LE(j, 10);
+                    BOOST_CHECK_LE(k, 100);
+                }
+
+                ++dirtyCount;
+                return true;
+            });
+
+        BOOST_CHECK_EQUAL(dirtyCount, 10 * 100 + 10);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
