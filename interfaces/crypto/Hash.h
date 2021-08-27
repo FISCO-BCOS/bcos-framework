@@ -27,6 +27,12 @@ namespace bcos
 {
 namespace crypto
 {
+enum HashImplType : int
+{
+    Keccak256Hash,
+    Sm3Hash,
+    Sha3
+};
 class Hash
 {
 public:
@@ -56,8 +62,13 @@ public:
 
     inline HashType hash(PublicPtr _public) { return hash(_public->data()); }
 
+    inline void setHashImplType(HashImplType _type) { m_type = _type; }
+
+    inline HashImplType getHashImplType() const { return m_type; }
+
 private:
     HashType m_emptyHash = HashType();
+    HashImplType m_type = Keccak256Hash;
 };
 }  // namespace crypto
 }  // namespace bcos

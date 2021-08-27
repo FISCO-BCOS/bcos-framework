@@ -375,7 +375,6 @@ BOOST_AUTO_TEST_CASE(hash)
 
 BOOST_AUTO_TEST_CASE(parallel_openTable)
 {
-#if 0
     tableFactory->createTable(testTableName, keyField, valueField);
     auto table = tableFactory->openTable(testTableName);
     auto threadID = tbb::this_tbb_thread::get_id();
@@ -427,12 +426,16 @@ BOOST_AUTO_TEST_CASE(parallel_openTable)
 
         auto savepoint2 = tableFactory->savepoint();
 
-        table->remove(key);
+        // table->remove(key);
+        auto deleteEntry = table->newDeletedEntry();
+        deleteEntry->setVersion(entries->version() + 1);
+
+        table->setRow(key, deleteEntry);
         entries = table->getRow(key);
 
         tableFactory->rollback(savepoint2);
         entry = table->getRow(key);
-        BOOST_TEST(entry->getStatus() == 0);
+        BOOST_CHECK_EQUAL(entry->status(), Entry::NORMAL);
     });
 
     tbb::parallel_for(tbb::blocked_range<size_t>(0, 10), [&](const tbb::blocked_range<size_t>& _r) {
@@ -459,8 +462,6 @@ BOOST_AUTO_TEST_CASE(parallel_openTable)
         entry = table->getRow(key);
         BOOST_TEST(entry != nullptr);
     });
-    tableFactory->commit();
-#endif
 }
 
 BOOST_AUTO_TEST_CASE(open_sysTables)
@@ -497,30 +498,45 @@ BOOST_AUTO_TEST_CASE(openAndCommit)
         });
 
         getRow.get_future().get();
-
-        // auto data = tableFactory2->exportData(i);
-        /*
-        auto data = tableFactory2->exportData(9);
-
-        auto tableFactory3 = make_shared<TableFactory>(memoryStorage2, hashImpl2, i + 1);
-        // auto tableFactory3 = make_shared<TableFactory>(memoryStorage2, hashImpl2, 10 + 1); //
-        // without commit, always current height + 1
-        tableFactory3->importData(data.first, data.second, false);
-
-        for (int j = i; j >= 10; --j)
-        // for (int j = 10; j >= 10; --j)
-        {
-            std::string queryTableName = "testTable" + boost::lexical_cast<std::string>(j);
-            auto queryKey = "testKey" + boost::lexical_cast<std::string>(j);
-            auto table2 = tableFactory3->openTable(queryTableName);
-            BOOST_CHECK_NE(table2, nullptr);
-            auto entry2 = table2->getRow(queryKey);
-            BOOST_CHECK_NE(entry2, nullptr);
-            BOOST_CHECK_EQUAL(entry2->getField("value"), "hello world!");
-        }
-        tableFactory2 = tableFactory3;
-        */
     }
+}
+
+BOOST_AUTO_TEST_CASE(chainLink)
+{
+    std::vector<TableStorage::Ptr> storages;
+    auto keyField = "key";
+    auto valueFields = "value1,value2,value3";
+
+    TableStorage::Ptr prev = nullptr;
+    for (int i = 0; i < 20; ++i)
+    {
+        auto tableStorage = std::make_shared<TableStorage>(prev, hashImpl, i);
+        for (int j = 0; j < 100; ++j)
+        {
+            auto tableName = "table_" + boost::lexical_cast<std::string>(i) + "_" +
+                             boost::lexical_cast<std::string>(j);
+            BOOST_CHECK_EQUAL(tableStorage->createTable(tableName, keyField, valueFields), true);
+
+            auto table = tableStorage->openTable(tableName);
+            BOOST_CHECK_NE(table, nullptr);
+
+            for (int k = 0; k < 100; ++k)
+            {
+                auto entry = table->newEntry();
+                entry->setField("value1", "hello " + boost::lexical_cast<std::string>(k));
+                entry->setField("value2", "another value");
+                entry->setField("value3", "another value3");
+                BOOST_CHECK_EQUAL(table->setRow(boost::lexical_cast<std::string>(k), entry), true);
+            }
+        }
+
+        prev = tableStorage;
+        storages.push_back(tableStorage);
+    }
+
+    auto storage = storages[10];
+
+    BOOST_CHECK_EQUAL(storage->openTable("table_11_0"), nullptr);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -94,9 +94,9 @@ public:
         const storage::Entry::Ptr& entry,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
 
-    void parallelTraverse(std::function<bool(
-            const TableInfo::Ptr& tableInfo, const std::string& key, const Entry::ConstPtr& entry)>
-            callback) override;
+    void parallelTraverse(bool onlyDirty, std::function<bool(const TableInfo::Ptr& tableInfo,
+                                              const std::string& key, const Entry::ConstPtr& entry)>
+                                              callback) const override;
 
     void asyncOpenTable(const std::string& tableName,
         std::function<void(Error::Ptr&&, Table::Ptr&&)> callback) noexcept;

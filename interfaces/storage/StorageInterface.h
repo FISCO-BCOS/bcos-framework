@@ -55,17 +55,19 @@ public:
 class TraverseStorageInterface : public StorageInterface
 {
 public:
+    using Ptr = std::shared_ptr<TraverseStorageInterface>;
     ~TraverseStorageInterface() override = default;
 
-    virtual void parallelTraverse(std::function<bool(
+    virtual void parallelTraverse(bool onlyDirty,
+        std::function<bool(
             const TableInfo::Ptr& tableInfo, const std::string& key, const Entry::ConstPtr& entry)>
-            callback) = 0;
+            callback) const = 0;
 };
 
 class MergeableStorageInterface : public StorageInterface
 {
 public:
-    virtual void merge(const std::shared_ptr<TraverseStorageInterface>& storage) = 0;
+    virtual void merge(const TraverseStorageInterface::Ptr& storage) = 0;
 };
 
 class TransactionalStorageInterface : public StorageInterface
@@ -73,7 +75,7 @@ class TransactionalStorageInterface : public StorageInterface
 public:
     ~TransactionalStorageInterface() override = default;
 
-    virtual void asyncPrepare(const std::shared_ptr<TraverseStorageInterface>& storage,
+    virtual void asyncPrepare(const TraverseStorageInterface::Ptr& storage,
         std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void aysncCommit(
