@@ -22,86 +22,55 @@
 
 #include "../interfaces/storage/Common.h"
 #include "../interfaces/storage/StorageInterface.h"
-#include "../interfaces/storage/TableInterface.h"
 #include "tbb/concurrent_unordered_map.h"
+#include <future>
+#include <gsl/span>
 
 namespace bcos
 {
 namespace storage
 {
-class Table : public TableInterface
+class Table
 {
 public:
     using Ptr = std::shared_ptr<Table>;
+
     Table(std::shared_ptr<StorageInterface> _db, TableInfo::Ptr _tableInfo,
-        std::shared_ptr<crypto::Hash> _hashImpl, protocol::BlockNumber _blockNum)
-      : m_DB(_db), m_tableInfo(_tableInfo), m_hashImpl(_hashImpl), m_blockNumber(_blockNum)
+        protocol::BlockNumber _blockNum)
+      : m_storage(_db), m_tableInfo(_tableInfo), m_blockNumber(_blockNum)
     {}
     virtual ~Table() {}
-    Entry::Ptr getRow(const std::string& _key) override;
-    std::map<std::string, Entry::Ptr> getRows(const std::vector<std::string>& _keys) override;
-    std::vector<std::string> getPrimaryKeys(const Condition::Ptr& _condition) const override;
-    bool setRow(const std::string& _key, const Entry::Ptr& _entry) override;
-    bool remove(const std::string& _key) override;
+
+    Entry::Ptr getRow(const std::string& _key);
+    std::vector<Entry::Ptr> getRows(const gsl::span<std::string>& _keys);
+    std::vector<std::string> getPrimaryKeys(const Condition::Ptr& _condition);
+
+    bool setRow(const std::string& _key, const Entry::Ptr& _entry);
+    // bool remove(const std::string& _key);
 
     void asyncGetPrimaryKeys(const Condition::Ptr& _condition,
-        std::function<void(const Error::Ptr&, const std::vector<std::string>&)> _callback) override;
+        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept;
     void asyncGetRow(const std::string& _key,
-        std::function<void(const Error::Ptr&, const Entry::Ptr&)> _callback) override;
-    void asyncGetRows(const std::shared_ptr<std::vector<std::string>>& _keys,
-        std::function<void(const Error::Ptr&, const std::map<std::string, Entry::Ptr>&)> _callback)
-        override;
+        std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback) noexcept;
+    void asyncGetRows(const gsl::span<std::string>& _keys,
+        std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback) noexcept;
 
-    TableInfo::Ptr tableInfo() const override { return m_tableInfo; }
-    Entry::Ptr newEntry() override { return std::make_shared<Entry>(m_tableInfo, m_blockNumber); }
-    crypto::HashType hash() override;
+    void asyncSetRow(const std::string& key, const Entry::Ptr& entry,
+        std::function<void(Error::Ptr&&, bool)> callback) noexcept;
 
-    std::shared_ptr<std::map<std::string, Entry::Ptr>> dump(
-        protocol::BlockNumber blockNumber) override
+    TableInfo::Ptr tableInfo() const { return m_tableInfo; }
+    Entry::Ptr newEntry() { return std::make_shared<Entry>(m_tableInfo, m_blockNumber); }
+    Entry::Ptr newDeletedEntry()
     {
-        auto ret = std::make_shared<std::map<std::string, Entry::Ptr>>();
-        bool onlyDirty = (m_blockNumber == blockNumber);
-        for (auto& it : m_cache)
-        {
-            if (!it.second->rollbacked())
-            {
-                if ((onlyDirty && it.second->dirty()) ||
-                    (!onlyDirty && it.second->num() >= blockNumber))
-                {
-                    auto entry = std::make_shared<Entry>(*(it.second));
-                    (*ret)[it.first] = entry;
-                }
-            }
-        }
-        return ret;
+        auto deletedEntry = newEntry();
+        deletedEntry->setStatus(Entry::DELETED);
+        return deletedEntry;
     }
-
-    void importCache(const std::shared_ptr<std::map<std::string, Entry::Ptr>>& _tableData) override
-    {
-        for (auto& item : *_tableData)
-        {
-            if (item.second->getStatus() != Entry::Status::DELETED)
-            {
-                m_cache[item.first] = item.second;
-                item.second->setDirty(false);
-            }
-        }
-        m_tableInfo->newTable = false;
-    }
-    void rollback(Change::Ptr) override;
-    bool dirty() const override { return m_dataDirty; }
-    void setRecorder(RecorderType _recorder) override { m_recorder = _recorder; }
 
 protected:
-    RecorderType m_recorder;
-    std::shared_ptr<StorageInterface> m_DB;
+    std::shared_ptr<StorageInterface> m_storage;
     TableInfo::Ptr m_tableInfo;
-    tbb::concurrent_unordered_map<std::string, Entry::Ptr> m_cache;
-    std::shared_ptr<crypto::Hash> m_hashImpl;
-    protocol::BlockNumber m_blockNumber = 0;
-    crypto::HashType m_hash;
-    bool m_hashDirty = true;   // mark if m_hash need to re-calculate
-    bool m_dataDirty = false;  // mark if table has data to commit
+    bcos::protocol::BlockNumber m_blockNumber;
 };
 
 }  // namespace storage

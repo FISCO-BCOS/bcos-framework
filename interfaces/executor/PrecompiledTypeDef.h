@@ -26,29 +26,35 @@ namespace bcos
 namespace precompiled
 {
 /// precompiled contract path for wasm
-const std::string SYS_CONFIG_NAME = "/bin/status";
-const std::string CRUD_NAME = "/bin/crud";
-const std::string CONSENSUS_NAME = "/bin/consensus";
-const std::string CNS_NAME = "/bin/cns";
-const std::string PERMISSION_NAME = "/bin/permission";
-const std::string PARALLEL_CONFIG_NAME = "/bin/parallel_config";
-const std::string KV_TABLE_FACTORY_NAME = "/bin/kv_storage";
-const std::string DEPLOY_WASM_NAME = "/bin/deploy_wasm";
+const char SYS_CONFIG_NAME[] = "/sys/status";
+const char CRUD_NAME[] = "/sys/crud";
+const char TABLE_FACTORY_NAME[] = "/sys/table_storage";
+const char CONSENSUS_NAME[] = "/sys/consensus";
+const char CNS_NAME[] = "/sys/cns";
+const char PERMISSION_NAME[] = "/sys/permission";
+const char PARALLEL_CONFIG_NAME[] = "/sys/parallel_config";
+const char CONTRACT_LIFECYCLE_NAME[] = "/sys/contract_mgr";
+const char KV_TABLE_FACTORY_NAME[] = "/sys/kv_storage";
+const char CRYPTO_NAME[] = "/sys/crypto_tools";
+const char DAG_TRANSFER_NAME[] = "/sys/dag_test";
+const char DEPLOY_WASM_NAME[] = "/sys/deploy_wasm";
+const char BFS_NAME[] = "/sys/bfs";
 
 /// precompiled contract for solidity
-const std::string SYS_CONFIG_ADDRESS = "0x1000";
-const std::string TABLE_FACTORY_ADDRESS = "0x1001";
-const std::string CRUD_ADDRESS = "0x1002";
-const std::string CONSENSUS_ADDRESS = "0x1003";
-const std::string CNS_ADDRESS = "0x1004";
-const std::string PERMISSION_ADDRESS = "0x1005";
-const std::string PARALLEL_CONFIG_ADDRESS = "0x1006";
-const std::string CONTRACT_LIFECYCLE_ADDRESS = "0x1007";
-const std::string CHAIN_GOVERNANCE_ADDRESS = "0x1008";
-const std::string KV_TABLE_FACTORY_ADDRESS = "0x1009";
-const std::string CRYPTO_ADDRESS = "0x100a";
-const std::string WORKING_SEALER_MGR_ADDRESS = "0x100b";
-const std::string DAG_TRANSFER_ADDRESS = "0x100c";
-const std::string DEPLOY_WASM_ADDRESS = "0x100d";
+const char SYS_CONFIG_ADDRESS[] = "0000000000000000000000000000000000001000";
+const char TABLE_FACTORY_ADDRESS[] = "0000000000000000000000000000000000001001";
+const char CRUD_ADDRESS[] = "0000000000000000000000000000000000001002";
+const char CONSENSUS_ADDRESS[] = "0000000000000000000000000000000000001003";
+const char CNS_ADDRESS[] = "0000000000000000000000000000000000001004";
+const char PERMISSION_ADDRESS[] = "0000000000000000000000000000000000001005";
+const char PARALLEL_CONFIG_ADDRESS[] = "0000000000000000000000000000000000001006";
+const char CONTRACT_LIFECYCLE_ADDRESS[] = "0000000000000000000000000000000000001007";
+const char CHAIN_GOVERNANCE_ADDRESS[] = "0000000000000000000000000000000000001008";
+const char KV_TABLE_FACTORY_ADDRESS[] = "0000000000000000000000000000000000001009";
+const char CRYPTO_ADDRESS[] = "000000000000000000000000000000000000100a";
+const char WORKING_SEALER_MGR_ADDRESS[] = "000000000000000000000000000000000000100b";
+const char DAG_TRANSFER_ADDRESS[] = "000000000000000000000000000000000000100c";
+const char DEPLOY_WASM_ADDRESS[] = "000000000000000000000000000000000000100d";
+const char BFS_ADDRESS[] = "000000000000000000000000000000000000100e";
 }  // namespace precompiled
 }  // namespace bcos

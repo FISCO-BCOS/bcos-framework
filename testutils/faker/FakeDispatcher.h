@@ -26,7 +26,7 @@
 #include "../../interfaces/protocol/BlockFactory.h"
 #include "../../interfaces/storage/StorageInterface.h"
 #include "../../interfaces/txpool/TxPoolInterface.h"
-#include "../../libtable/TableFactory.h"
+#include "../../libtable/TableStorage.h"
 #include "../protocol/FakeTransactionReceipt.h"
 using namespace bcos;
 using namespace bcos::dispatcher;
@@ -83,16 +83,23 @@ public:
     void preCommitBlock(const Block::Ptr& _block, BlockHeader::Ptr _header,
         std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback)
     {
-        auto tableFactory = std::make_shared<TableFactory>(
+        auto tableFactory = std::make_shared<TableStorage>(
             m_storage, m_cryptoSuite->hashImpl(), _block->blockHeader()->number());
         for (size_t i = 0; i < _block->transactionsHashSize(); i++)
         {
             _block->appendReceipt(testPBTransactionReceipt(m_cryptoSuite));
         }
+
+        // TODO: remove this method
+        (void)_header;
+        (void)_callback;
+
+        /*
         m_ledger->asyncStoreReceipts(tableFactory, _block, [](Error::Ptr) {});
         auto txsRoot = _block->calculateTransactionRoot(false);
         _header->setTxsRoot(txsRoot);
         _callback(nullptr, _header);
+        */
     }
 
     void fillBlockAndPrecommit(const Block::Ptr& _block,
