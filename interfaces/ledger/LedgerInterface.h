@@ -49,8 +49,10 @@ public:
      * @param _blockHeader the header to commit, this header should have signList
      * @param _onCommitBlock trigger this callback when commit block in storage
      */
+     /*
     virtual void asyncCommitBlock(bcos::protocol::BlockHeader::Ptr _blockHeader,
         std::function<void(Error::Ptr, LedgerConfig::Ptr)> _onCommitBlock) = 0;
+        */
 
     /**
      * @brief async store txs in block when tx pool verify

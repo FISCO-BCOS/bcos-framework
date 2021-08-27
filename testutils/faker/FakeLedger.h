@@ -122,6 +122,7 @@ public:
         m_ledgerConfig->setHash(_blockHeader->hash());
     }
 
+    /*
     // Consensus and block-sync module use this interface to commit block
     void asyncCommitBlock(BlockHeader::Ptr _blockHeader,
         std::function<void(Error::Ptr, LedgerConfig::Ptr)> _onCommitBlock) override
@@ -146,6 +147,7 @@ public:
             _onCommitBlock(nullptr, ledger->m_ledgerConfig);
         });
     }
+    */
 
     // the txpool module use this interface to store txs
     void asyncStoreTransactions(std::shared_ptr<std::vector<bytesPointer>> _txToStore,

@@ -6,6 +6,7 @@
 #include "../protocol/ProtocolTypeDef.h"
 #include "Common.h"
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/throw_exception.hpp>
 #include <exception>
 
@@ -34,41 +35,58 @@ public:
 
     virtual ~Entry() noexcept {}
 
-    std::string getField(const std::string_view& key) const
+    std::string_view getField(size_t index) const
     {
-        return std::string(getFieldConst(key));
-    }
-
-    std::string_view getFieldConst(const std::string_view& key) const
-    {
-        try
+        auto& fields = m_data.get()->fields;
+        if (index >= fields.size())
         {
-            auto& field = constField(key);
-            return field;
-        }
-        catch (const std::exception& e)
-        {
-            BOOST_THROW_EXCEPTION(BCOS_ERROR_WITH_PREV(-1, "getFieldConst failed", e));
+            BOOST_THROW_EXCEPTION(
+                BCOS_ERROR(-1, "Get field index: " + boost::lexical_cast<std::string>(index) +
+                                   " failed, index out of range: " +
+                                   boost::lexical_cast<std::string>(fields.size())));
         }
 
-        return "";
+        return fields[index];
     }
 
-    const std::string& constField(const std::string_view& key) const
+    std::string_view getField(const std::string_view& field) const
     {
-        size_t index;
         auto& tableInfo = m_data.get()->tableInfo;
-        auto indexIt = tableInfo->field2Index.find(key);
+        if (!tableInfo)
+        {
+            BOOST_THROW_EXCEPTION(
+                BCOS_ERROR(-1, "Get field: " + std::string(field) + " error, tableInfo is null"));
+        }
+
+        auto indexIt = tableInfo->field2Index.find(field);
         if (indexIt != tableInfo->field2Index.end())
         {
-            index = indexIt->second;
-            auto& field = (m_data.get()->fields)[index];
-            return field;
+            auto index = indexIt->second;
+            return (m_data.get()->fields)[index];
         }
         else
         {
-            BOOST_THROW_EXCEPTION(bcos::Exception("Can't find field: " + std::string(key)));
+            BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Can't find field: " + std::string(field)));
         }
+    }
+
+    void setField(size_t index, const std::string& value) { setField(index, std::string(value)); }
+
+    void setField(size_t index, std::string&& value)
+    {
+        if (index >= m_data.get()->fields.size())
+        {
+            BOOST_THROW_EXCEPTION(
+                BCOS_ERROR(-1, "Set field index: " + boost::lexical_cast<std::string>(index) +
+                                   " failed, index out of range: " +
+                                   boost::lexical_cast<std::string>(m_data.get()->fields.size())));
+        }
+
+        ssize_t updatedCapacity = value.size() - value.size();
+        auto data = m_data.mutableGet();
+        data->fields[index] = std::move(value);
+        data->capacityOfHashField += updatedCapacity;
+        m_dirty = true;
     }
 
     void setField(const std::string_view& key, const std::string& value)
@@ -78,36 +96,28 @@ public:
 
     void setField(const std::string_view& key, std::string&& value)
     {
-        try
-        {
-            ssize_t updatedCapacity = 0;
-
-            auto& field = mutableField(key);
-            updatedCapacity = value.size() - field.size();
-            field = std::move(value);
-            m_data.mutableGet()->capacityOfHashField += updatedCapacity;
-            m_dirty = true;
-        }
-        catch (const std::exception& e)
-        {
-            BOOST_THROW_EXCEPTION(BCOS_ERROR_WITH_PREV(-1, "setField failed", e));
-        }
-    }
-
-    std::string& mutableField(const std::string_view& key)
-    {
         auto& tableInfo = m_data.get()->tableInfo;
+
+        if (!tableInfo)
+        {
+            BOOST_THROW_EXCEPTION(
+                BCOS_ERROR(-1, "Set field: " + std::string(key) + " error, tableInfo is null"));
+        }
+
         auto indexIt = tableInfo->field2Index.find(key);
-        if (indexIt != tableInfo->field2Index.end())
+        if (indexIt == tableInfo->field2Index.end())
         {
-            size_t index = indexIt->second;
-            auto& field = (m_data.mutableGet()->fields)[index];
-            return field;
+            BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Can't find field: " + std::string(key)));
         }
-        else
-        {
-            BOOST_THROW_EXCEPTION(bcos::Exception("Can't find field: " + std::string(key)));
-        }
+        size_t index = indexIt->second;
+
+        auto data = m_data.mutableGet();
+        auto& field = (data->fields)[index];
+
+        ssize_t updatedCapacity = value.size() - field.size();
+        field = std::move(value);
+        data->capacityOfHashField += updatedCapacity;
+        m_dirty = true;
     }
 
     virtual std::vector<std::string>::const_iterator begin() const noexcept

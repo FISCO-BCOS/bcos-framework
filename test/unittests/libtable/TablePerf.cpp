@@ -62,10 +62,10 @@ BOOST_AUTO_TEST_CASE(syncGet)
         std::string key = "key_" + boost::lexical_cast<std::string>(i);
         auto entry = table->getRow(key);
 
-        BOOST_CHECK_EQUAL(entry->getFieldConst("field1"), "value1");
-        BOOST_CHECK_EQUAL(entry->getFieldConst("field2"), "value2");
+        BOOST_CHECK_EQUAL(entry->getField("field1"), "value1");
+        BOOST_CHECK_EQUAL(entry->getField("field2"), "value2");
         BOOST_CHECK_EQUAL(
-            entry->getFieldConst("field3"), "value" + boost::lexical_cast<std::string>(i));
+            entry->getField("field3"), "value" + boost::lexical_cast<std::string>(i));
     }
 
     std::cout << "sync cost: " << bcos::utcSteadyTime() - now << std::endl;
@@ -93,10 +93,10 @@ BOOST_AUTO_TEST_CASE(asyncGet)
         std::string key = "key_" + boost::lexical_cast<std::string>(i);
         table->asyncGetRow(
             key, [i, &total, &finished, &done](const Error::Ptr&, const Entry::Ptr& entry) {
-                BOOST_CHECK_EQUAL(entry->getFieldConst("field1"), "value1");
-                BOOST_CHECK_EQUAL(entry->getFieldConst("field2"), "value2");
+                BOOST_CHECK_EQUAL(entry->getField("field1"), "value1");
+                BOOST_CHECK_EQUAL(entry->getField("field2"), "value2");
                 BOOST_CHECK_EQUAL(
-                    entry->getFieldConst("field3"), "value" + boost::lexical_cast<std::string>(i));
+                    entry->getField("field3"), "value" + boost::lexical_cast<std::string>(i));
 
                 auto current = done.fetch_add(1);
                 if (current + 1 >= total)
@@ -128,10 +128,10 @@ BOOST_AUTO_TEST_CASE(asyncToSyncGet)
         std::string key = "key_" + boost::lexical_cast<std::string>(i);
         std::promise<bool> finished;
         table->asyncGetRow(key, [i, &finished](const Error::Ptr&, const Entry::Ptr& entry) {
-            BOOST_CHECK_EQUAL(entry->getFieldConst("field1"), "value1");
-            BOOST_CHECK_EQUAL(entry->getFieldConst("field2"), "value2");
+            BOOST_CHECK_EQUAL(entry->getField("field1"), "value1");
+            BOOST_CHECK_EQUAL(entry->getField("field2"), "value2");
             BOOST_CHECK_EQUAL(
-                entry->getFieldConst("field3"), "value" + boost::lexical_cast<std::string>(i));
+                entry->getField("field3"), "value" + boost::lexical_cast<std::string>(i));
             finished.set_value(true);
         });
         finished.get_future().get();

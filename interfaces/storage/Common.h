@@ -130,18 +130,15 @@ struct Condition : public std::enable_shared_from_this<Condition>
     std::pair<size_t, size_t> m_limit;
 };
 
-const char* const NUM_FIELD = "_num_";
-const char* const STATUS = "_status_";
-
 struct TableInfo : public std::enable_shared_from_this<TableInfo>
 {
     using Ptr = std::shared_ptr<TableInfo>;
     using ConstPtr = std::shared_ptr<const TableInfo>;
 
     explicit TableInfo(
-        const std::string& _tableName, const std::string& _key, const std::string& _fields)
+        const std::string& _tableName, const std::string_view& _key, const std::string_view& _fields)
       : name(_tableName), key(_key)
-    {  // the fields must ordered in key value_fields status num_field
+    {
         boost::split(fields, _fields, boost::is_any_of(","));
         generateFieldsIndex();
     }
@@ -155,7 +152,6 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
     void generateFieldsIndex()
     {
         size_t i = 0;
-        // field2Index.emplace(key, i++); // exclude key field
 
         for (auto& field : fields)
         {
@@ -172,18 +168,7 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
     std::string key;
     std::vector<std::string> fields;
     std::map<std::string, size_t, std::less<>> field2Index;
-
-    bool enableConsensus = true;
-    bool newTable = false;
 };
 
-inline bool isHashField(const std::string_view& _key)
-{
-    if (!_key.empty())
-    {
-        return ((_key.substr(0, 1) != "_" && _key.substr(_key.size() - 1, 1) != "_"));
-    }
-    return false;
-}
 }  // namespace storage
 }  // namespace bcos

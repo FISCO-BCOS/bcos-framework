@@ -73,9 +73,13 @@ public:
 class TransactionalStorageInterface : public StorageInterface
 {
 public:
+    struct PrepareParams {
+
+    };
+
     ~TransactionalStorageInterface() override = default;
 
-    virtual void asyncPrepare(const TraverseStorageInterface::Ptr& storage,
+    virtual void asyncPrepare(const PrepareParams &params, const TraverseStorageInterface::Ptr& storage,
         std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void aysncCommit(

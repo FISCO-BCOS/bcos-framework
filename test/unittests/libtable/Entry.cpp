@@ -88,13 +88,13 @@ BOOST_AUTO_TEST_CASE(copyFrom)
 
     BOOST_TEST(entry2->getField("key2") == "value2");
     BOOST_TEST(entry1->getField("key2") == "value");
-    BOOST_TEST(entry1->getFieldConst("key2") == "value");
-    BOOST_TEST(entry1->getFieldConst("value") == "");
+    BOOST_TEST(entry1->getField("key2") == "value");
+    BOOST_TEST(entry1->getField("value") == "");
     BOOST_TEST(entry1->getField("value") == "");
 
     entry2->setField("key2", "value3");
     BOOST_TEST(entry2->capacityOfHashField() == 6);
-    BOOST_TEST(entry2->getFieldConst("key2") == "value3");
+    BOOST_TEST(entry2->getField("key2") == "value3");
     BOOST_TEST(entry1->refCount() == 1);
     BOOST_TEST(entry2->refCount() == 1);
     *entry2 = *entry2;

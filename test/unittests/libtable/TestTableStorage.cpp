@@ -591,18 +591,20 @@ BOOST_AUTO_TEST_CASE(chainLink)
                         {
                             BOOST_CHECK_NE(entry, nullptr);
 
-                            if(i == index) {
+                            if (i == index)
+                            {
                                 BOOST_CHECK_EQUAL(entry->dirty(), true);
                             }
-                            else {
+                            else
+                            {
                                 BOOST_CHECK_EQUAL(entry->dirty(), false);
                             }
-                            BOOST_CHECK_EQUAL(entry->getFieldConst("value1"),
-                                boost::lexical_cast<std::string>(i));
-                            BOOST_CHECK_EQUAL(entry->getFieldConst("value2"),
-                                boost::lexical_cast<std::string>(j));
-                            BOOST_CHECK_EQUAL(entry->getFieldConst("value3"),
-                                boost::lexical_cast<std::string>(k));
+                            BOOST_CHECK_EQUAL(
+                                entry->getField("value1"), boost::lexical_cast<std::string>(i));
+                            BOOST_CHECK_EQUAL(
+                                entry->getField("value2"), boost::lexical_cast<std::string>(j));
+                            BOOST_CHECK_EQUAL(
+                                entry->getField("value3"), boost::lexical_cast<std::string>(k));
                         }
                     }
                 }
@@ -618,9 +620,9 @@ BOOST_AUTO_TEST_CASE(chainLink)
                 BOOST_CHECK_NE(entry, nullptr);
                 if (tableInfo->name != "s_tables")
                 {
-                    auto i = boost::lexical_cast<int>(entry->getFieldConst("value1"));
-                    auto j = boost::lexical_cast<int>(entry->getFieldConst("value2"));
-                    auto k = boost::lexical_cast<int>(entry->getFieldConst("value3"));
+                    auto i = boost::lexical_cast<int>(entry->getField("value1"));
+                    auto j = boost::lexical_cast<int>(entry->getField("value2"));
+                    auto k = boost::lexical_cast<int>(entry->getField("value3"));
 
                     BOOST_CHECK_LE(i, index);
                     BOOST_CHECK_LE(j, 10);
@@ -640,9 +642,9 @@ BOOST_AUTO_TEST_CASE(chainLink)
                 BOOST_CHECK_NE(entry, nullptr);
                 if (tableInfo->name != "s_tables")
                 {
-                    auto i = boost::lexical_cast<int>(entry->getFieldConst("value1"));
-                    auto j = boost::lexical_cast<int>(entry->getFieldConst("value2"));
-                    auto k = boost::lexical_cast<int>(entry->getFieldConst("value3"));
+                    auto i = boost::lexical_cast<int>(entry->getField("value1"));
+                    auto j = boost::lexical_cast<int>(entry->getField("value2"));
+                    auto k = boost::lexical_cast<int>(entry->getField("value3"));
 
                     if (i == index)
                     {
