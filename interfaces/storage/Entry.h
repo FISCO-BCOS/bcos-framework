@@ -159,10 +159,7 @@ public:
 
     ssize_t refCount() const noexcept { return m_data.refCount(); }
 
-    std::vector<std::string>&& exportData() noexcept
-    {
-        return std::move(m_data.mutableGet()->fields);
-    }
+    std::vector<std::string>& exportData() noexcept { return m_data.mutableGet()->fields; }
 
     void importData(std::vector<std::string>&& input) noexcept
     {
