@@ -146,6 +146,23 @@ BOOST_AUTO_TEST_CASE(nullTableInfo)
     BOOST_CHECK_NO_THROW(entry->setField(1, "value22"));
     BOOST_CHECK_EQUAL(entry->getField(1), "value22");
     BOOST_CHECK_THROW(entry->setField(2, "value3"), bcos::Error);
+
+    entry = std::make_shared<Entry>(nullptr, 0);
+    BOOST_CHECK_EQUAL(entry->capacityOfHashField(), 0);
+
+    entry->importFields({"value1", "value2"});
+
+    BOOST_CHECK_EQUAL(entry->fields().size(), 2);
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+        entry->fields().begin(), entry->fields().end(), fields.begin(), fields.end());
+    BOOST_CHECK_EQUAL(entry->getField(0), "value1");
+    BOOST_CHECK_EQUAL(entry->getField(1), "value2");
+    BOOST_CHECK_THROW(entry->getField("field1"), bcos::Error);
+    BOOST_CHECK_THROW(entry->setField("field2", "value1"), bcos::Error);
+
+    BOOST_CHECK_NO_THROW(entry->setField(1, "value22"));
+    BOOST_CHECK_EQUAL(entry->getField(1), "value22");
+    BOOST_CHECK_THROW(entry->setField(2, "value3"), bcos::Error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
