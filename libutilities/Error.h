@@ -37,7 +37,7 @@
         BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage))
 #define BCOS_ERROR_WITH_PREV_PTR(errorCode, errorMessage, prev) \
     std::make_shared<bcos::Error>(::bcos::Error::buildError(    \
-        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, std::move(*prev)))
+        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, prev))
 
 namespace bcos
 {
@@ -58,6 +58,30 @@ public:
         error << boost::throw_file(file);
         error << boost::throw_line(line);
 
+        return error;
+    }
+
+    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
+        const std::string& errorMessage, const std::shared_ptr<Error>& prev)
+    {
+        auto error = buildError(func, file, line, errorCode, errorMessage);
+        error << PrevError(*prev);
+        return error;
+    }
+
+    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
+        const std::string& errorMessage, std::shared_ptr<Error>&& prev)
+    {
+        auto error = buildError(func, file, line, errorCode, errorMessage);
+        error << PrevError(std::move(*prev));
+        return error;
+    }
+
+    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
+        const std::string& errorMessage, const Error& prev)
+    {
+        auto error = buildError(func, file, line, errorCode, errorMessage);
+        error << PrevError(prev);
         return error;
     }
 

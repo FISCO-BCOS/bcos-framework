@@ -96,8 +96,8 @@ void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
 
     if (m_prev)
     {
-        m_prev->asyncGetRow(
-            _tableInfo, _key, [this, _tableInfo, _key, _callback](Error::Ptr&& error, Entry::Ptr&& entry) {
+        m_prev->asyncGetRow(_tableInfo, _key,
+            [this, _tableInfo, _key, _callback](Error::Ptr&& error, Entry::Ptr&& entry) {
                 if (error)
                 {
                     _callback(
@@ -377,7 +377,8 @@ void TableStorage::asyncCreateTable(const std::string& _tableName, const std::st
                                    Error::Ptr&& error, storage::Table::Ptr&& sysTable) {
         if (error)
         {
-            callback(BCOS_ERROR_WITH_PREV_PTR(-1, "Open sys_tables failed!", error), false);
+            callback(
+                BCOS_ERROR_WITH_PREV_PTR(-1, "Open sys_tables failed!", error), false);
             return;
         }
 
@@ -385,7 +386,9 @@ void TableStorage::asyncCreateTable(const std::string& _tableName, const std::st
                                               Error::Ptr&& error, storage::Entry::Ptr&& entry) {
             if (error)
             {
-                callback(BCOS_ERROR_WITH_PREV_PTR(-1, "Get table info row failed!", error), false);
+                callback(
+                    BCOS_ERROR_WITH_PREV_PTR(-1, "Get table info row failed!", error),
+                    false);
                 return;
             }
 
