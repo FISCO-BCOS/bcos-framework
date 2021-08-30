@@ -67,9 +67,9 @@ public:
     void notifyObserverNodeList(ConsensusNodeList const&, std::function<void(Error::Ptr)>) override
     {}
 
-    // TODO: fake this interface for libsealer
-    void asyncSealTxs(
-        size_t, TxsHashSetPtr, std::function<void(Error::Ptr, HashListPtr, HashListPtr)>) override
+    void asyncSealTxs(size_t, TxsHashSetPtr,
+        std::function<void(Error::Ptr, bcos::protocol::Block::Ptr, bcos::protocol::Block::Ptr)>)
+        override
     {}
 
     // TODO: fake this interface for libsealer

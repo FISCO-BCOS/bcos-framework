@@ -24,6 +24,7 @@
 #include "../../interfaces/protocol/BlockHeaderFactory.h"
 #include "../../interfaces/protocol/TransactionFactory.h"
 #include "../../interfaces/protocol/TransactionReceiptFactory.h"
+#include "./PBTransactionMetaData.h"
 #include "PBBlock.h"
 namespace bcos
 {
@@ -60,6 +61,17 @@ public:
         return std::make_shared<PBBlock>(m_blockHeaderFactory, m_transactionFactory,
             m_receiptFactory, _data, _calculateHash, _checkSig);
     }
+
+    TransactionMetaData::Ptr createTransactionMetaData() override
+    {
+        return std::make_shared<PBTransactionMetaData>();
+    }
+    TransactionMetaData::Ptr createTransactionMetaData(
+        bcos::crypto::HashType const _hash, std::string const& _to) override
+    {
+        return std::make_shared<PBTransactionMetaData>(_hash, _to);
+    }
+
 
     bcos::crypto::CryptoSuite::Ptr cryptoSuite() override
     {

@@ -19,6 +19,7 @@
  */
 #pragma once
 #include "../interfaces/protocol/BlockFactory.h"
+#include "../interfaces/protocol/TransactionMetaData.h"
 #include "../libutilities/CallbackCollectionHandler.h"
 #include "../libutilities/ThreadPool.h"
 #include "Common.h"
@@ -27,7 +28,7 @@ namespace bcos
 {
 namespace sealer
 {
-using TxsHashQueue = std::deque<bcos::crypto::HashType>;
+using TxsMetaDataQueue = std::deque<bcos::protocol::TransactionMetaData::Ptr>;
 class SealingManager : public std::enable_shared_from_this<SealingManager>
 {
 public:
@@ -35,8 +36,8 @@ public:
     using ConstPtr = std::shared_ptr<SealingManager const>;
     explicit SealingManager(SealerConfig::Ptr _config)
       : m_config(_config),
-        m_pendingTxs(std::make_shared<TxsHashQueue>()),
-        m_pendingSysTxs(std::make_shared<TxsHashQueue>()),
+        m_pendingTxs(std::make_shared<TxsMetaDataQueue>()),
+        m_pendingSysTxs(std::make_shared<TxsMetaDataQueue>()),
         m_worker(std::make_shared<ThreadPool>("sealerWorker", 1))
     {}
 
@@ -91,9 +92,9 @@ public:
         return m_onReady.add(_t);
     }
 
-    virtual void appendTransactions(bcos::crypto::HashListPtr _fetchedTxs, bool _systemTx);
-
 protected:
+    virtual void appendTransactions(
+        std::shared_ptr<TxsMetaDataQueue> _txsQueue, bcos::protocol::Block::Ptr _fetchedTxs);
     virtual bool reachMinSealTimeCondition();
     virtual void clearPendingTxs();
     virtual void notifyResetTxsFlag(
@@ -104,8 +105,8 @@ protected:
 
 private:
     SealerConfig::Ptr m_config;
-    std::shared_ptr<TxsHashQueue> m_pendingTxs;
-    std::shared_ptr<TxsHashQueue> m_pendingSysTxs;
+    std::shared_ptr<TxsMetaDataQueue> m_pendingTxs;
+    std::shared_ptr<TxsMetaDataQueue> m_pendingSysTxs;
     SharedMutex x_pendingTxs;
 
     ThreadPool::Ptr m_worker;

@@ -27,9 +27,8 @@ using namespace bcos::protocol;
 using namespace bcos::crypto;
 
 PBTransaction::PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite, int32_t _version,
-    const std::string_view& _to, bytes const& _input, u256 const& _nonce,
-    int64_t _blockLimit, std::string const& _chainId, std::string const& _groupId,
-    int64_t _importTime)
+    const std::string_view& _to, bytes const& _input, u256 const& _nonce, int64_t _blockLimit,
+    std::string const& _chainId, std::string const& _groupId, int64_t _importTime)
   : PBTransaction(_cryptoSuite)
 {
     m_transactionHashFields->set_version(_version);
