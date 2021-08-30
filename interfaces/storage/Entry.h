@@ -23,6 +23,8 @@ public:
     using Ptr = std::shared_ptr<Entry>;
     using ConstPtr = std::shared_ptr<const Entry>;
 
+    explicit Entry() noexcept : m_num(0) {}
+
     explicit Entry(const TableInfo::ConstPtr& tableInfo, protocol::BlockNumber _num = 0) noexcept
       : m_num(_num),
         m_data(Data{tableInfo, std::vector<std::string>(tableInfo->field2Index.size()), 0})
@@ -159,9 +161,9 @@ public:
 
     ssize_t refCount() const noexcept { return m_data.refCount(); }
 
-    const std::vector<std::string>& exportData() const noexcept { return m_data.get()->fields; }
+    const std::vector<std::string>& fields() const noexcept { return m_data.get()->fields; }
 
-    void importData(std::vector<std::string>&& input) noexcept
+    void importFields(std::vector<std::string>&& input) noexcept
     {
         m_data.mutableGet()->fields = std::move(input);
     }
