@@ -139,6 +139,11 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     ret = table->remove("name");
     BOOST_TEST(ret == true);
     auto hash = table->hash();
+
+    // clean table
+    tableFactory = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
+    ret = tableFactory->createTable(tableName, keyField, valueField);
+    BOOST_TEST(ret == true);
     table = tableFactory->openTable("t_test");
     ret = table->remove("name");
     BOOST_TEST(ret == true);
