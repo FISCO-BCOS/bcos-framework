@@ -194,6 +194,7 @@ bool Table::remove(const std::string& _key)
         auto entry = std::make_shared<Entry>();
         entry->setNum(m_blockNumber);
         entry->setStatus(Entry::Status::DELETED);
+        entry->setField(m_tableInfo->key, _key);
         m_cache.insert(std::make_pair(_key, entry));
     }
 
