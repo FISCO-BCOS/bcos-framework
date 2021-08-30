@@ -91,6 +91,10 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
     for (size_t i = 0; i < decodedBlock->transactionsHashSize(); i++)
     {
         BOOST_CHECK(decodedBlock->transactionHash(i) == block->transactionHash(i));
+        BOOST_CHECK(
+            decodedBlock->transactionMetaData(i)->hash() == block->transactionMetaData(i)->hash());
+        BOOST_CHECK(
+            decodedBlock->transactionMetaData(i)->to() == block->transactionMetaData(i)->to());
     }
     // check receiptsRoot
     h256 originHash = h256();
@@ -157,7 +161,8 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
     {
         auto content = "transaction: " + std::to_string(i);
         auto hash = _cryptoSuite->hashImpl()->hash(content);
-        block->appendTransactionHash(hash);
+        auto txMetaData = _blockFactory->createTransactionMetaData(hash, *toHexString(hash));
+        block->appendTransactionMetaData(txMetaData);
     }
 
     // encode block
@@ -168,11 +173,14 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
     checkBlock(_cryptoSuite, block, decodedBlock);
     // check txsHash
     BOOST_CHECK(decodedBlock->transactionsHashSize() == _txsHashNum);
+    BOOST_CHECK(decodedBlock->transactionsMetaDataSize() == _txsHashNum);
     for (size_t i = 0; i < _txsHashNum; i++)
     {
         auto content = "transaction: " + std::to_string(i);
         auto hash = _cryptoSuite->hashImpl()->hash(content);
         BOOST_CHECK(decodedBlock->transactionHash(i) == hash);
+        BOOST_CHECK(decodedBlock->transactionMetaData(i)->hash() == hash);
+        BOOST_CHECK(decodedBlock->transactionMetaData(i)->to() == *toHexString(hash));
     }
 
     // exception test

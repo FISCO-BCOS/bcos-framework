@@ -22,6 +22,7 @@
 #include "Block.h"
 #include "BlockHeaderFactory.h"
 #include "TransactionFactory.h"
+#include "TransactionMetaData.h"
 #include "TransactionReceiptFactory.h"
 namespace bcos
 {
@@ -38,6 +39,10 @@ public:
         bytes const& _data, bool _calculateHash = true, bool _checkSig = true) = 0;
     virtual Block::Ptr createBlock(
         bytesConstRef _data, bool _calculateHash = true, bool _checkSig = true) = 0;
+
+    virtual TransactionMetaData::Ptr createTransactionMetaData() = 0;
+    virtual TransactionMetaData::Ptr createTransactionMetaData(
+        bcos::crypto::HashType const _hash, std::string const& _to) = 0;
 
     virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() = 0;
     virtual BlockHeaderFactory::Ptr blockHeaderFactory() = 0;

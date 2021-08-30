@@ -21,6 +21,7 @@
 #include "PBBlock.h"
 #include "../../interfaces/protocol/Exceptions.h"
 #include "../Common.h"
+#include "PBTransactionMetaData.h"
 #include <tbb/parallel_invoke.h>
 
 using namespace bcos;
@@ -50,7 +51,7 @@ void PBBlock::decode(bytesConstRef _data, bool _calculateHash, bool _checkSig)
         },
         [this]() {
             // decode txsHashList
-            decodeTxsHashList();
+            decodeTransactionsMetaData();
         },
         [this]() { decodeNonceList(); });
 }
@@ -78,7 +79,7 @@ void PBBlock::encode(bytes& _encodedData) const
         },
         [this]() {
             // encode transactions hash
-            encodeTransactionsHash();
+            encodeTransactionsMetaData();
         },
         [this]() {
             // encode the nonceList
@@ -88,19 +89,14 @@ void PBBlock::encode(bytes& _encodedData) const
     _encodedData = *data;
 }
 
-void PBBlock::decodeTxsHashList()
+void PBBlock::decodeTransactionsMetaData()
 {
-    auto txsHashNum = m_pbRawBlock->transactionshash_size();
-    if (txsHashNum == 0)
+    m_transactionMetaDataList->clear();
+    for (auto i = 0; i < m_pbRawBlock->transactionsmetadata_size(); i++)
     {
-        return;
-    }
-    // decode the transactionsHash
-    for (auto i = 0; i < txsHashNum; i++)
-    {
-        m_transactionsHash->push_back(
-            HashType((byte const*)m_pbRawBlock->transactionshash(i).data(),
-                HashType::ConstructorType::FromPointer));
+        std::shared_ptr<PBRawTransactionMetaData> pbTxMetaData(
+            m_pbRawBlock->mutable_transactionsmetadata(i));
+        m_transactionMetaDataList->push_back(std::make_shared<PBTransactionMetaData>(pbTxMetaData));
     }
 }
 void PBBlock::decodeNonceList()
@@ -227,29 +223,17 @@ void PBBlock::encodeReceipts() const
         });
 }
 
-void PBBlock::encodeTransactionsHash() const
+void PBBlock::encodeTransactionsMetaData() const
 {
-    auto txsHashNum = m_transactionsHash->size();
-    if (txsHashNum == 0)
+    clearTransactionMetaDataCache();
+    for (auto txMetaData : *m_transactionMetaDataList)
     {
-        return;
-    }
-    // hit the cache
-    if (m_pbRawBlock->transactionshash_size() > 0)
-    {
-        return;
-    }
-    // extend transactionshash
-    for (size_t i = 0; i < txsHashNum; i++)
-    {
-        m_pbRawBlock->add_transactionshash();
-    }
-    int index = 0;
-    for (auto const& txHash : *m_transactionsHash)
-    {
-        m_pbRawBlock->set_transactionshash(index++, txHash.data(), HashType::size);
+        auto txMetaDataImpl = std::dynamic_pointer_cast<PBTransactionMetaData>(txMetaData);
+        m_pbRawBlock->mutable_transactionsmetadata()->UnsafeArenaAddAllocated(
+            txMetaDataImpl->pbTxMetaData().get());
     }
 }
+
 void PBBlock::encodeNonceList() const
 {
     auto nonceNum = m_nonceList->size();
@@ -282,9 +266,13 @@ Transaction::ConstPtr PBBlock::transaction(size_t _index) const
     return (*m_transactions)[_index];
 }
 
-HashType const& PBBlock::transactionHash(size_t _index) const
+TransactionMetaData::ConstPtr PBBlock::transactionMetaData(size_t _index) const
 {
-    return (*m_transactionsHash)[_index];
+    if (m_transactionMetaDataList->size() <= _index)
+    {
+        return nullptr;
+    }
+    return (*m_transactionMetaDataList)[_index];
 }
 
 TransactionReceipt::ConstPtr PBBlock::receipt(size_t _index) const
