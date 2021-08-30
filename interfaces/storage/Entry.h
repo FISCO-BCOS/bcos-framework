@@ -168,6 +168,11 @@ public:
         m_data.mutableGet()->fields = std::move(input);
     }
 
+    std::vector<std::string>&& exportFields() noexcept
+    {
+        return std::move(m_data.mutableGet()->fields);
+    }
+
     TableInfo::ConstPtr tableInfo() const { return m_data.get()->tableInfo; }
 
     bool valid() const noexcept { return ((m_status != Status::DELETED) && (!m_rollbacked)); }
