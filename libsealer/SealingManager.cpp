@@ -18,7 +18,6 @@
  * @date: 2021-05-14
  */
 #include "SealingManager.h"
-
 using namespace bcos;
 using namespace bcos::sealer;
 using namespace bcos::crypto;
@@ -33,18 +32,15 @@ void SealingManager::resetSealing()
     clearPendingTxs();
 }
 
-void SealingManager::appendTransactions(HashListPtr _fetchedTxs, bool _systemTx)
+void SealingManager::appendTransactions(
+    std::shared_ptr<TxsMetaDataQueue> _txsQueue, Block::Ptr _fetchedTxs)
 {
     WriteGuard l(x_pendingTxs);
     // append the system transactions
-    if (_systemTx)
+    for (size_t i = 0; i < _fetchedTxs->transactionsMetaDataSize(); i++)
     {
-        m_pendingSysTxs->insert(m_pendingSysTxs->end(), _fetchedTxs->begin(), _fetchedTxs->end());
-    }
-    else
-    {
-        // append the common transactions
-        m_pendingTxs->insert(m_pendingTxs->end(), _fetchedTxs->begin(), _fetchedTxs->end());
+        _txsQueue->emplace_back(
+            std::const_pointer_cast<TransactionMetaData>(_fetchedTxs->transactionMetaData(i)));
     }
     m_onReady();
 }
@@ -81,9 +77,15 @@ void SealingManager::clearPendingTxs()
     // return the txs back to the txpool
     SEAL_LOG(INFO) << LOG_DESC("clearPendingTxs: return back the unhandled transactions")
                    << LOG_KV("size", pendingTxsSize);
-    HashListPtr unHandledTxs =
-        std::make_shared<HashList>(m_pendingTxs->begin(), m_pendingTxs->end());
-    unHandledTxs->insert(unHandledTxs->end(), m_pendingSysTxs->begin(), m_pendingSysTxs->end());
+    HashListPtr unHandledTxs = std::make_shared<HashList>();
+    for (auto txMetaData : *m_pendingTxs)
+    {
+        unHandledTxs->emplace_back(txMetaData->hash());
+    }
+    for (auto txMetaData : *m_pendingSysTxs)
+    {
+        unHandledTxs->emplace_back(txMetaData->hash());
+    }
     auto self = std::weak_ptr<SealingManager>(shared_from_this());
     m_worker->enqueue([self, unHandledTxs]() {
         try
@@ -109,7 +111,7 @@ void SealingManager::clearPendingTxs()
 
 void SealingManager::notifyResetTxsFlag(HashListPtr _txsHashList, bool _flag, size_t _retryTime)
 {
-    m_config->txpool()->asyncMarkTxs(_txsHashList, _flag, 0, bcos::crypto::HashType(),
+    m_config->txpool()->asyncMarkTxs(_txsHashList, _flag, 0, HashType(),
         [this, _txsHashList, _flag, _retryTime](Error::Ptr _error) {
             if (_error == nullptr)
             {
@@ -148,12 +150,12 @@ Block::Ptr SealingManager::generateProposal()
     }
     for (size_t i = 0; i < systemTxsSize; i++)
     {
-        block->appendTransactionHash(m_pendingSysTxs->front());
+        block->appendTransactionMetaData(m_pendingSysTxs->front());
         m_pendingSysTxs->pop_front();
     }
     for (size_t i = systemTxsSize; i < txsSize; i++)
     {
-        block->appendTransactionHash(m_pendingTxs->front());
+        block->appendTransactionMetaData(m_pendingTxs->front());
         m_pendingTxs->pop_front();
     }
     m_sealingNumber++;
@@ -222,8 +224,7 @@ void SealingManager::fetchTransactions()
     m_fetchingTxs = true;
     auto self = std::weak_ptr<SealingManager>(shared_from_this());
     m_config->txpool()->asyncSealTxs(txsToFetch, nullptr,
-        [self](Error::Ptr _error, bcos::crypto::HashListPtr _txsHashList,
-            bcos::crypto::HashListPtr _sysTxsList) {
+        [self](Error::Ptr _error, Block::Ptr _txsHashList, Block::Ptr _sysTxsList) {
             try
             {
                 auto sealingMgr = self.lock();
@@ -239,15 +240,18 @@ void SealingManager::fetchTransactions()
                     sealingMgr->m_fetchingTxs = false;
                     return;
                 }
-                sealingMgr->appendTransactions(_txsHashList, false);
-                sealingMgr->appendTransactions(_sysTxsList, true);
+                sealingMgr->appendTransactions(sealingMgr->m_pendingTxs, _txsHashList);
+                sealingMgr->appendTransactions(sealingMgr->m_pendingSysTxs, _sysTxsList);
                 sealingMgr->m_fetchingTxs = false;
             }
             catch (std::exception const& e)
             {
                 SEAL_LOG(WARNING) << LOG_DESC("fetchTransactions: onRecv sealed txs failed")
                                   << LOG_KV("error", boost::diagnostic_information(e))
-                                  << LOG_KV("fetchedTxsSize", _txsHashList->size())
+                                  << LOG_KV(
+                                         "fetchedTxsSize", _txsHashList->transactionsMetaDataSize())
+                                  << LOG_KV(
+                                         "fetchedSysTxs", _sysTxsList->transactionsMetaDataSize())
                                   << LOG_KV("returnCode", _error->errorCode())
                                   << LOG_KV("returnMsg", _error->errorMessage());
             }
