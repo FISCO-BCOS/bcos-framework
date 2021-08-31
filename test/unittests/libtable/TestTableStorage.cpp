@@ -22,6 +22,7 @@
 #include "libtable/Table.h"
 #include "libtable/TableStorage.h"
 #include "libutilities/ThreadPool.h"
+#include <tbb/concurrent_vector.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
@@ -373,97 +374,6 @@ BOOST_AUTO_TEST_CASE(hash)
     // tableFactory->asyncCommit([](Error::Ptr, size_t) {});
 }
 
-BOOST_AUTO_TEST_CASE(parallel_openTable)
-{
-    tableFactory->createTable(testTableName, keyField, valueField);
-    auto table = tableFactory->openTable(testTableName);
-    auto threadID = tbb::this_tbb_thread::get_id();
-
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, 10), [&](const tbb::blocked_range<size_t>& _r) {
-        if (tbb::this_tbb_thread::get_id() == threadID)
-        {
-            return;
-        }
-
-        auto i = _r.begin();
-
-        auto entry = table->newEntry();
-        // entry->setField("key", "balance");
-        auto initBalance = std::to_string(500 + i);
-        entry->setField("value", initBalance);
-        auto key = std::to_string(i);
-        auto entries = table->getRow(key);
-        auto savepoint0 = tableFactory->savepoint();
-
-        table->setRow(key, entry);
-
-        entry = table->getRow(key);
-        BOOST_TEST(entry->getField("value") == initBalance);
-
-        tbb::this_tbb_thread::sleep(tbb::tick_count::interval_t((double)i / 100));
-        auto savepoint1 = tableFactory->savepoint();
-        BOOST_TEST(savepoint1 == savepoint0 + 1);
-
-        entry = table->newEntry();
-        entry->setField("value", std::to_string((i + 1) * 100));
-        table->setRow(key, entry);
-        entry = table->getRow(key);
-        BOOST_TEST(entry->getField("value") == std::to_string((i + 1) * 100));
-
-        tableFactory->rollback(savepoint1);
-        entry = table->getRow(key);
-        BOOST_TEST(entry->getField("value") == initBalance);
-
-        tableFactory->rollback(savepoint0);
-        entries = table->getRow(key);
-
-        entry = table->newEntry();
-        // entry->setField("key", "name");
-        entry->setField("value", "Vita");
-        table->setRow(key, entry);
-
-        entries = table->getRow(key);
-
-        auto savepoint2 = tableFactory->savepoint();
-
-        // table->remove(key);
-        auto deleteEntry = table->newDeletedEntry();
-        deleteEntry->setVersion(entries->version() + 1);
-
-        table->setRow(key, deleteEntry);
-        entries = table->getRow(key);
-
-        tableFactory->rollback(savepoint2);
-        entry = table->getRow(key);
-        BOOST_CHECK_EQUAL(entry->status(), Entry::NORMAL);
-    });
-
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, 10), [&](const tbb::blocked_range<size_t>& _r) {
-        if (tbb::this_tbb_thread::get_id() == threadID)
-        {
-            return;
-        }
-
-        auto i = _r.begin();
-        auto entry = table->newEntry();
-        auto initBalance = std::to_string(500 + i);
-        entry->setField("value", initBalance);
-        auto key = std::to_string(i + 10);
-        entry = table->getRow(key);
-        auto savepoint0 = tableFactory->savepoint();
-        table->setRow(key, entry);
-        auto savepoint1 = tableFactory->savepoint();
-        BOOST_TEST(savepoint1 == savepoint0 + 1);
-
-        entry = table->getRow(key);
-        BOOST_TEST(entry->getField("value") == initBalance);
-
-        tableFactory->rollback(savepoint0);
-        entry = table->getRow(key);
-        BOOST_TEST(entry != nullptr);
-    });
-}
-
 BOOST_AUTO_TEST_CASE(open_sysTables)
 {
     auto table = tableFactory->openTable(TableStorage::SYS_TABLES);
@@ -535,7 +445,6 @@ BOOST_AUTO_TEST_CASE(chainLink)
         prev = tableStorage;
         storages.push_back(tableStorage);
     }
-
 
     for (int index = 0; index < 20; ++index)
     {
@@ -614,56 +523,122 @@ BOOST_AUTO_TEST_CASE(chainLink)
         // After reading, current storage should include previous storage's data, previous data's
         // dirty should be false
         totalCount = 0;
+        tbb::concurrent_vector<std::function<void()>> checks;
         storage->parallelTraverse(false,
             [&](const TableInfo::Ptr& tableInfo, const std::string&, const Entry::ConstPtr& entry) {
-                BOOST_CHECK_NE(tableInfo, nullptr);
-                BOOST_CHECK_NE(entry, nullptr);
-                if (tableInfo->name != "s_tables")
-                {
-                    auto i = boost::lexical_cast<int>(entry->getField("value1"));
-                    auto j = boost::lexical_cast<int>(entry->getField("value2"));
-                    auto k = boost::lexical_cast<int>(entry->getField("value3"));
+                checks.push_back([index, tableInfo, entry] {
+                    BOOST_CHECK_NE(tableInfo, nullptr);
+                    BOOST_CHECK_NE(entry, nullptr);
+                    if (tableInfo->name != "s_tables")
+                    {
+                        auto i = boost::lexical_cast<int>(entry->getField("value1"));
+                        auto j = boost::lexical_cast<int>(entry->getField("value2"));
+                        auto k = boost::lexical_cast<int>(entry->getField("value3"));
 
-                    BOOST_CHECK_LE(i, index);
-                    BOOST_CHECK_LE(j, 10);
-                    BOOST_CHECK_LE(k, 100);
-                }
+                        BOOST_CHECK_LE(i, index);
+                        BOOST_CHECK_LE(j, 10);
+                        BOOST_CHECK_LE(k, 100);
+                    }
+                });
 
                 ++totalCount;
                 return true;
             });
 
+        for (auto& it : checks)
+        {
+            it();
+        }
+
         BOOST_CHECK_EQUAL(totalCount, (10 * 100 + 10) * (index + 1));
 
+        checks.clear();
         dirtyCount = 0;
         storage->parallelTraverse(true,
             [&](const TableInfo::Ptr& tableInfo, const std::string&, const Entry::ConstPtr& entry) {
-                BOOST_CHECK_NE(tableInfo, nullptr);
-                BOOST_CHECK_NE(entry, nullptr);
-                if (tableInfo->name != "s_tables")
-                {
-                    auto i = boost::lexical_cast<int>(entry->getField("value1"));
-                    auto j = boost::lexical_cast<int>(entry->getField("value2"));
-                    auto k = boost::lexical_cast<int>(entry->getField("value3"));
-
-                    if (i == index)
+                checks.push_back([index, tableInfo, entry]() {
+                    BOOST_CHECK_NE(tableInfo, nullptr);
+                    BOOST_CHECK_NE(entry, nullptr);
+                    if (tableInfo->name != "s_tables")
                     {
-                        BOOST_CHECK_EQUAL(entry->dirty(), true);
-                    }
-                    else
-                    {
-                        BOOST_CHECK_EQUAL(entry->dirty(), false);
-                    }
+                        auto i = boost::lexical_cast<int>(entry->getField("value1"));
+                        auto j = boost::lexical_cast<int>(entry->getField("value2"));
+                        auto k = boost::lexical_cast<int>(entry->getField("value3"));
 
-                    BOOST_CHECK_LE(j, 10);
-                    BOOST_CHECK_LE(k, 100);
-                }
+                        if (i == index)
+                        {
+                            BOOST_CHECK_EQUAL(entry->dirty(), true);
+                        }
+                        else
+                        {
+                            BOOST_CHECK_EQUAL(entry->dirty(), false);
+                        }
+
+                        BOOST_CHECK_LE(j, 10);
+                        BOOST_CHECK_LE(k, 100);
+                    }
+                });
 
                 ++dirtyCount;
                 return true;
             });
 
+        for (auto& it : checks)
+        {
+            it();
+        }
+
         BOOST_CHECK_EQUAL(dirtyCount, 10 * 100 + 10);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(getRows)
+{
+    std::vector<TableStorage::Ptr> storages;
+    auto keyField = "key";
+    auto valueFields = "value1,value2,value3";
+
+    TableStorage::Ptr prev = nullptr;
+    prev = std::make_shared<TableStorage>(prev, hashImpl, 0);
+    auto tableStorage = std::make_shared<TableStorage>(prev, hashImpl, 1);
+
+    BOOST_CHECK_EQUAL(prev->createTable("t_test", keyField, valueFields), true);
+
+    auto table = prev->openTable("t_test");
+    BOOST_CHECK_NE(table, nullptr);
+
+    for (size_t i = 0; i < 100; ++i)
+    {
+        auto entry = table->newEntry();
+        entry->importFields({"data" + boost::lexical_cast<std::string>(i), "data2", "data3"});
+        table->setRow("key" + boost::lexical_cast<std::string>(i), entry);
+    }
+
+    // query 50-150
+    std::vector<std::string> keys;
+    for (size_t i = 50; i < 150; ++i)
+    {
+        keys.push_back("key" + boost::lexical_cast<std::string>(i));
+    }
+
+    auto queryTable = tableStorage->openTable("t_test");
+    BOOST_CHECK_NE(queryTable, nullptr);
+
+    auto values = queryTable->getRows(keys);
+
+    for (size_t i = 0; i < 100; ++i)
+    {
+        auto entry = values[i];
+        if (i + 50 < 100)
+        {
+            BOOST_CHECK_NE(entry, nullptr);
+            BOOST_CHECK_EQUAL(entry->dirty(), false);
+            BOOST_CHECK_EQUAL(entry->num(), 0);
+        }
+        else
+        {
+            BOOST_CHECK_EQUAL(entry, nullptr);
+        }
     }
 }
 

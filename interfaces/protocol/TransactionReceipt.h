@@ -57,14 +57,14 @@ public:
     }
 
     virtual int32_t version() const = 0;
-    virtual u256 const& gasUsed() const = 0;
+    virtual u256 const& gasUsed() const = 0; // TODO: remove from hash
     virtual std::string_view contractAddress() const = 0;
     virtual int32_t status() const = 0;
     virtual bytesConstRef output() const = 0;
     virtual gsl::span<const LogEntry> logEntries() const = 0;
     virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() { return m_cryptoSuite; }
     virtual BlockNumber blockNumber() const = 0;
-
+    // TODO: add error message
 
 protected:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;

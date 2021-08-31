@@ -39,15 +39,6 @@ namespace bcos
 {
 namespace storage
 {
-enum StorageErrorCode
-{
-    DataBaseUnavailable = -50000,
-    NotFound = -50001,
-    InvalidArgument = -50002,
-    StateCacheNotFound = -50003,
-    LogicError = -50004,
-};
-
 struct Condition : public std::enable_shared_from_this<Condition>
 {
     using Ptr = std::shared_ptr<Condition>;
