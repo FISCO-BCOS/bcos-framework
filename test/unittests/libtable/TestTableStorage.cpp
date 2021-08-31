@@ -640,6 +640,39 @@ BOOST_AUTO_TEST_CASE(getRows)
             BOOST_CHECK_EQUAL(entry, nullptr);
         }
     }
+
+    for (size_t i = 0; i < 10; ++i)
+    {
+        auto entry = queryTable->newEntry();
+        entry->importFields({"data" + boost::lexical_cast<std::string>(i), "data2", "data3"});
+        queryTable->setRow("key" + boost::lexical_cast<std::string>(i), entry);
+    }
+
+    // Query 0-30 local(0-9) prev(10-29)
+    keys.clear();
+    for (size_t i = 0; i < 30; ++i)
+    {
+        keys.push_back("key" + boost::lexical_cast<std::string>(i));
+    }
+
+    values = queryTable->getRows(keys);
+
+    for (size_t i = 0; i < 30; ++i)
+    {
+        auto entry = values[i];
+        if (i < 10)
+        {
+            BOOST_CHECK_NE(entry, nullptr);
+            BOOST_CHECK_EQUAL(entry->dirty(), true);
+            BOOST_CHECK_EQUAL(entry->num(), 1);
+        }
+        else
+        {
+            BOOST_CHECK_NE(entry, nullptr);
+            BOOST_CHECK_EQUAL(entry->dirty(), false);
+            BOOST_CHECK_EQUAL(entry->num(), 0);
+        }
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

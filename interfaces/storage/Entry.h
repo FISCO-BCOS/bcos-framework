@@ -174,6 +174,7 @@ public:
     void importFields(std::vector<std::string>&& input) noexcept
     {
         m_data.mutableGet()->fields = std::move(input);
+        m_dirty = true;
     }
 
     std::vector<std::string>&& exportFields() noexcept
