@@ -124,11 +124,11 @@ void SealingManager::notifyResetTxsFlag(HashListPtr _txsHashList, bool _flag, si
         });
 }
 
-Block::Ptr SealingManager::generateProposal()
+std::pair<bool, bcos::protocol::Block::Ptr> SealingManager::generateProposal()
 {
     if (!shouldGenerateProposal())
     {
-        return nullptr;
+        return std::pair(false, nullptr);
     }
     WriteGuard l(x_pendingTxs);
     auto block = m_config->blockFactory()->createBlock();
@@ -147,10 +147,12 @@ Block::Ptr SealingManager::generateProposal()
                         << LOG_KV("sealNextBlockUntil", m_waitUntil)
                         << LOG_KV("curNum", m_currentNumber);
     }
+    bool containSysTxs = false;
     for (size_t i = 0; i < systemTxsSize; i++)
     {
         block->appendTransactionHash(m_pendingSysTxs->front());
         m_pendingSysTxs->pop_front();
+        containSysTxs = true;
     }
     for (size_t i = systemTxsSize; i < txsSize; i++)
     {
@@ -160,7 +162,10 @@ Block::Ptr SealingManager::generateProposal()
     m_sealingNumber++;
 
     m_lastSealTime = utcSteadyTime();
-    return block;
+    // Note: When the last block(N) sealed by this node contains system transactions,
+    //       if other nodes do not wait until block(N) is committed and directly seal block(N+1),
+    //       will cause system exceptions.
+    return std::pair(containSysTxs, block);
 }
 
 size_t SealingManager::pendingTxsSize()

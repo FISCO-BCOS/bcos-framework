@@ -100,13 +100,15 @@ void Sealer::executeWorker()
     // try to generateProposal
     if (m_sealingManager->shouldGenerateProposal())
     {
-        auto proposal = m_sealingManager->generateProposal();
+        auto ret = m_sealingManager->generateProposal();
+        auto proposal = ret.second;
         SEAL_LOG(DEBUG) << LOG_DESC("++++++++++++++++ Generate proposal")
                         << LOG_KV("index", proposal->blockHeader()->number())
                         << LOG_KV("curNum", m_sealingManager->currentNumber())
                         << LOG_KV("hash", proposal->blockHeader()->hash().abridged())
+                        << LOG_KV("sysTxs", ret.first)
                         << LOG_KV("txsSize", proposal->transactionsHashSize());
-        submitProposal(proposal);
+        submitProposal(ret.first, proposal);
     }
     // try to fetch transactions
     if (m_sealingManager->shouldFetchTransaction())
@@ -115,11 +117,11 @@ void Sealer::executeWorker()
     }
 }
 
-void Sealer::submitProposal(bcos::protocol::Block::Ptr _proposal)
+void Sealer::submitProposal(bool _containSysTxs, bcos::protocol::Block::Ptr _proposal)
 {
     bytesPointer encodedData = std::make_shared<bytes>();
     _proposal->encode(*encodedData);
-    m_sealerConfig->consensus()->asyncSubmitProposal(ref(*encodedData),
+    m_sealerConfig->consensus()->asyncSubmitProposal(_containSysTxs, ref(*encodedData),
         _proposal->blockHeader()->number(), _proposal->blockHeader()->hash(),
         [_proposal](Error::Ptr _error) {
             if (_error == nullptr)
