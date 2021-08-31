@@ -46,14 +46,15 @@ public:
     virtual void nextBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 
-    virtual void executeTransaction(const std::string_view& to,
-        const bcos::protocol::ExecutionParams::ConstPtr& input,
-        std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
+    virtual void executeTransactions(
+        std::vector<const bcos::protocol::ExecutionParams::ConstPtr&>& input,
+        std::function<void(
+            const bcos::Error::ConstPtr&, std::vector<bcos::protocol::ExecutionResult::Ptr&&>&)>
             callback) noexcept = 0;
 
-    virtual void call(const std::string_view& to,
-        const bcos::protocol::ExecutionParams::ConstPtr& input,
-        std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::ExecutionResult::Ptr&&)>
+    virtual void call(std::vector<const bcos::protocol::ExecutionParams::ConstPtr&>& input,
+        std::function<void(
+            const bcos::Error::ConstPtr&, std::vector<bcos::protocol::ExecutionResult::Ptr&&>&)>
             callback) noexcept = 0;
 
     virtual void getContractStatus(bcos::protocol::BlockNumber number,

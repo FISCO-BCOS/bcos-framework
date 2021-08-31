@@ -18,6 +18,7 @@
  */
 
 #include "interfaces/executor/ExecutorInterface.h"
+#include "interfaces/executor/ParallelTransactionExecutorInterface.h"
 #include <boost/test/unit_test.hpp>
 #include <string>
 
@@ -31,7 +32,9 @@ namespace test
 {
 struct ExecutorTestFixture
 {
-    ExecutorTestFixture() {}
+    ParallelTransactionExecutorInterface* executor;
+
+    ExecutorTestFixture() : executor(nullptr) {}
 
     ~ExecutorTestFixture() {}
 };
