@@ -44,41 +44,39 @@ public:
     using ConstPtr = std::shared_ptr<const ParallelTransactionExecutorInterface>;
 
     virtual void nextBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
-        std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
+        std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void executeTransactions(bool enableDAG,
-        std::vector<const bcos::protocol::ExecutionParams::ConstPtr&>& input,
-        std::function<void(
-            const bcos::Error::ConstPtr&, std::vector<bcos::protocol::ExecutionResult::Ptr&&>&)>
+        const gsl::span<bcos::protocol::ExecutionParams::ConstPtr>& inputs,
+        std::function<void(bcos::Error::Ptr&&, std::vector<bcos::protocol::ExecutionResult::Ptr>&&)>
             callback) noexcept = 0;
 
-    virtual void call(std::vector<const bcos::protocol::ExecutionParams::ConstPtr&>& input,
-        std::function<void(
-            const bcos::Error::ConstPtr&, std::vector<bcos::protocol::ExecutionResult::Ptr&&>&)>
+    virtual void call(const bcos::protocol::ExecutionParams::ConstPtr& input,
+        std::function<void(bcos::Error::Ptr&&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 
     virtual void getContractStatus(bcos::protocol::BlockNumber number,
-        std::function<void(const bcos::Error::ConstPtr&, std::vector<ContractStatus::Ptr>&&)>
+        std::function<void(bcos::Error::Ptr&&, std::vector<ContractStatus::Ptr>&&)>
             callback) noexcept = 0;
 
     /* ----- XA Transaction interface Start ----- */
 
     // Write data to storage uncommitted
     virtual void prepare(bcos::protocol::BlockNumber number,
-        std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
+        std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
 
     // Commit uncommitted data
     virtual void commit(bcos::protocol::BlockNumber number,
-        std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
+        std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
 
     // Rollback the changes
     virtual void rollback(bcos::protocol::BlockNumber number,
-        std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
+        std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
 
     /* ----- XA Transaction interface End ----- */
 
     // drop all status
-    virtual void reset(std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
+    virtual void reset(std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
 };
 }  // namespace executor
 }  // namespace bcos
