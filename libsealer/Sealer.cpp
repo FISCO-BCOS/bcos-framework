@@ -102,12 +102,6 @@ void Sealer::executeWorker()
     {
         auto ret = m_sealingManager->generateProposal();
         auto proposal = ret.second;
-        SEAL_LOG(DEBUG) << LOG_DESC("++++++++++++++++ Generate proposal")
-                        << LOG_KV("index", proposal->blockHeader()->number())
-                        << LOG_KV("curNum", m_sealingManager->currentNumber())
-                        << LOG_KV("hash", proposal->blockHeader()->hash().abridged())
-                        << LOG_KV("sysTxs", ret.first)
-                        << LOG_KV("txsSize", proposal->transactionsHashSize());
         submitProposal(ret.first, proposal);
     }
     // try to fetch transactions
@@ -117,19 +111,41 @@ void Sealer::executeWorker()
     }
 }
 
-void Sealer::submitProposal(bool _containSysTxs, bcos::protocol::Block::Ptr _proposal)
+void Sealer::submitProposal(bool _containSysTxs, bcos::protocol::Block::Ptr _block)
 {
-    bytesPointer encodedData = std::make_shared<bytes>();
-    _proposal->encode(*encodedData);
+    if (_block->blockHeader()->number() <= m_sealingManager->currentNumber())
+    {
+        m_sealingManager->resetSealing();
+        return;
+    }
+    // supplement the header info: set sealerList and weightList
+    std::vector<bytes> sealerList;
+    std::vector<uint64_t> weightList;
+    auto consensusNodeInfo = m_sealerConfig->consensus()->consensusNodeList();
+    for (auto const& consensusNode : consensusNodeInfo)
+    {
+        sealerList.push_back(consensusNode->nodeID()->data());
+        weightList.push_back(consensusNode->weight());
+    }
+    _block->blockHeader()->setSealerList(std::move(sealerList));
+    _block->blockHeader()->setConsensusWeights(std::move(weightList));
+    auto encodedData = std::make_shared<bytes>();
+    _block->encode(*encodedData);
+    SEAL_LOG(DEBUG) << LOG_DESC("++++++++++++++++ Generate proposal")
+                    << LOG_KV("index", _block->blockHeader()->number())
+                    << LOG_KV("curNum", m_sealingManager->currentNumber())
+                    << LOG_KV("hash", _block->blockHeader()->hash().abridged())
+                    << LOG_KV("sysTxs", _containSysTxs)
+                    << LOG_KV("txsSize", _block->transactionsHashSize());
     m_sealerConfig->consensus()->asyncSubmitProposal(_containSysTxs, ref(*encodedData),
-        _proposal->blockHeader()->number(), _proposal->blockHeader()->hash(),
-        [_proposal](Error::Ptr _error) {
+        _block->blockHeader()->number(), _block->blockHeader()->hash(),
+        [_block](Error::Ptr _error) {
             if (_error == nullptr)
             {
                 return;
             }
             SEAL_LOG(WARNING) << LOG_DESC("asyncSubmitProposal failed: put back the transactions")
-                              << LOG_KV("txsSize", _proposal->transactionsHashSize());
+                              << LOG_KV("txsSize", _block->transactionsHashSize());
         });
 }
 
