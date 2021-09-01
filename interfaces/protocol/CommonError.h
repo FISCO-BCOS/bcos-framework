@@ -38,6 +38,7 @@ enum CommonError : int32_t
     NotFoundPeerByTopicSendMsg = 3001,
     NotFoundClientByTopicDispatchMsg = 3002,
     AMOPSendMsgFailed = 3003,
+    NoBlockToExecute = 4000,  // for dispatcher
 };
 }
 }  // namespace bcos
