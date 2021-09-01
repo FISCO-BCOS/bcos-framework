@@ -67,6 +67,10 @@ public:
 
     virtual void asyncNoteUnSealedTxsSize(
         size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse) = 0;
+
+    // get the consensusNodeList
+    // Note: if seperate sealer with the PBFT module, should implement with notify
+    virtual ConsensusNodeList consensusNodeList() const { return ConsensusNodeList(); }
 };
 }  // namespace consensus
 }  // namespace bcos
