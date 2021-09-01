@@ -46,7 +46,7 @@ public:
     virtual void nextBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
         std::function<void(const bcos::Error::ConstPtr&)> callback) noexcept = 0;
 
-    virtual void executeTransactions(
+    virtual void executeTransactions(bool enableDAG,
         std::vector<const bcos::protocol::ExecutionParams::ConstPtr&>& input,
         std::function<void(
             const bcos::Error::ConstPtr&, std::vector<bcos::protocol::ExecutionResult::Ptr&&>&)>
