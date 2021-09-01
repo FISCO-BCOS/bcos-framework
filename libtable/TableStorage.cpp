@@ -3,6 +3,7 @@
 #include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/throw_exception.hpp>
 
 using namespace bcos;
 using namespace bcos::storage;
@@ -597,5 +598,9 @@ Entry::Ptr TableStorage::importExistingEntry(
         tableIt->second.tableInfo = tableInfo;
     }
     auto [it, success] = tableIt->second.entries.insert({key, std::move(entry)});
+    if (!success)
+    {
+        BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Insert existing entry failed, entry exists"));
+    }
     return std::make_shared<Entry>(*(it->second));
 }
