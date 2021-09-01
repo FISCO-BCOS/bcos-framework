@@ -23,7 +23,7 @@ public:
     using Ptr = std::shared_ptr<Entry>;
     using ConstPtr = std::shared_ptr<const Entry>;
 
-    explicit Entry() noexcept : m_num(0), m_data(Data{nullptr, std::vector<std::string>(), 0}) {}
+    Entry() noexcept : m_num(0), m_data(Data{nullptr, std::vector<std::string>(), 0}) {}
 
     explicit Entry(const TableInfo::ConstPtr& tableInfo, protocol::BlockNumber _num = 0) noexcept
       : m_num(_num)
