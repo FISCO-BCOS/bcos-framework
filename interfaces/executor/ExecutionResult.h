@@ -40,6 +40,7 @@ public:
     {
         FINISHED = 0,   // Finish the execution, whether from scheduler or another contract
         EXTERNAL_CALL,  // Generate an external call
+        SEND_BACK,      // The transaction cannot be executed concurrently via DAG mechanism
     };
 
     virtual Type type() const = 0;
