@@ -76,6 +76,27 @@ public:
       : m_blockNumber(_blockNum), m_prev(prev), m_hashImpl(_hashImpl)
     {}
 
+    // TODO: check if needed
+    TableStorage(std::shared_ptr<TraverseStorageInterface> prev,
+        std::shared_ptr<StorageInterface> backend, std::shared_ptr<crypto::Hash> _hashImpl,
+        protocol::BlockNumber blockNumber, protocol::BlockNumber commitedBlockNumber)
+      : m_blockNumber(blockNumber), m_prev(backend), m_hashImpl(_hashImpl)
+    {
+        if (!prev)
+        {
+            BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Null prev storage"));
+        }
+
+        prev->parallelTraverse(false, [&](const TableInfo::Ptr& tableInfo, const std::string& key,
+                                          const Entry::ConstPtr& entry) {
+            if (entry->num() > commitedBlockNumber)
+            {
+                importExistingEntry(tableInfo, key, std::make_shared<Entry>(*entry));
+            }
+            return true;
+        });
+    }
+
     virtual ~TableStorage() { getChangeLog().clear(); }
 
     void asyncGetPrimaryKeys(const storage::TableInfo::Ptr& _tableInfo,
@@ -91,7 +112,7 @@ public:
         override;
 
     void asyncSetRow(const storage::TableInfo::Ptr& tableInfo, const std::string& key,
-        const storage::Entry::Ptr& entry,
+        const storage::Entry::ConstPtr& entry,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
 
     void parallelTraverse(bool onlyDirty, std::function<bool(const TableInfo::Ptr& tableInfo,
