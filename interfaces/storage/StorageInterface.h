@@ -82,7 +82,7 @@ public:
     virtual void asyncPrepare(const PrepareParams &params, const TraverseStorageInterface::Ptr& storage,
         std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
-    virtual void aysncCommit(
+    virtual void asyncCommit(
         protocol::BlockNumber blockNumber, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void asyncRollback(
