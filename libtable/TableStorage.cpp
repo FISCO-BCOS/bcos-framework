@@ -197,10 +197,13 @@ void TableStorage::asyncGetRows(const bcos::storage::TableInfo::Ptr& _tableInfo,
 }
 
 void TableStorage::asyncSetRow(const bcos::storage::TableInfo::Ptr& tableInfo,
-    const std::string& key, const bcos::storage::Entry::Ptr& entry,
+    const std::string& key, const bcos::storage::Entry::ConstPtr& entry,
     std::function<void(bcos::Error::Ptr&&, bool)> callback) noexcept
 {
     auto entryCopy = std::make_shared<Entry>(*entry);
+
+    // TODO: check if needed
+    entryCopy->setNum(m_blockNumber);
 
     auto tableIt = m_data.find(tableInfo->name);
     if (tableIt != m_data.end())

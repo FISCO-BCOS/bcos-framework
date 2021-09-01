@@ -49,7 +49,7 @@ public:
         std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback) noexcept = 0;
 
     virtual void asyncSetRow(const TableInfo::Ptr& tableInfo, const std::string& key,
-        const Entry::Ptr& entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
+        const Entry::ConstPtr& entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
 };
 
 class TraverseStorageInterface : public StorageInterface
@@ -82,10 +82,10 @@ public:
     virtual void asyncPrepare(const PrepareParams &params, const TraverseStorageInterface::Ptr& storage,
         std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
-    virtual void aysncCommit(
+    virtual void asyncCommit(
         protocol::BlockNumber blockNumber, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
-    virtual void aysncRollback(
+    virtual void asyncRollback(
         protocol::BlockNumber blockNumber, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 };
 
