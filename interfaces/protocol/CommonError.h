@@ -39,5 +39,14 @@ enum CommonError : int32_t
     NotFoundClientByTopicDispatchMsg = 3002,
     AMOPSendMsgFailed = 3003,
 };
-}
+
+enum StorageErrorCode
+{
+    DataBaseUnavailable = -50000,
+    NotFound = -50001,
+    InvalidArgument = -50002,
+    StateCacheNotFound = -50003,
+    LogicError = -50004,
+};
+}  // namespace protocol
 }  // namespace bcos

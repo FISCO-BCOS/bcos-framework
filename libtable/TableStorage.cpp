@@ -3,6 +3,7 @@
 #include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/throw_exception.hpp>
 
 using namespace bcos;
 using namespace bcos::storage;
@@ -96,8 +97,8 @@ void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
 
     if (m_prev)
     {
-        m_prev->asyncGetRow(
-            _tableInfo, _key, [this, _tableInfo, _key, _callback](Error::Ptr&& error, Entry::Ptr&& entry) {
+        m_prev->asyncGetRow(_tableInfo, _key,
+            [this, _tableInfo, _key, _callback](Error::Ptr&& error, Entry::Ptr&& entry) {
                 if (error)
                 {
                     _callback(
@@ -106,19 +107,10 @@ void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
                     return;
                 }
 
-                // If the entry exists, add it to the local cache, for version comparison
                 if (entry)
                 {
-                    entry->setVersion(0);
-                    entry->setDirty(false);
-
-                    auto [tableIt, inserted] =
-                        m_data.insert({entry->tableInfo()->name, TableData()});
-                    (void)inserted;
-                    tableIt->second.tableInfo = _tableInfo;
-                    tableIt->second.entries.insert({_key, entry});
-
-                    _callback(nullptr, std::make_shared<Entry>(*entry));
+                    // If the entry exists, add it to the local cache, for version comparison
+                    _callback(nullptr, importExistingEntry(_tableInfo, _key, std::move(entry)));
                 }
                 else
                 {
@@ -163,11 +155,19 @@ void TableStorage::asyncGetRows(const bcos::storage::TableInfo::Ptr& _tableInfo,
             ++i;
         }
     }
+    else
+    {
+        for (long i = 0; i < _keys.size(); ++i)
+        {
+            std::get<0>(*missings).push_back(_keys[i]);
+            std::get<1>(*missings).push_back(i);
+        }
+    }
 
     if (existsCount < _keys.size() && m_prev)
     {
         m_prev->asyncGetRows(_tableInfo, std::get<0>(*missings),
-            [_callback, missings, results](
+            [this, _callback, _tableInfo, missings, results](
                 Error::Ptr&& error, std::vector<storage::Entry::Ptr>&& entries) {
                 if (error)
                 {
@@ -178,7 +178,13 @@ void TableStorage::asyncGetRows(const bcos::storage::TableInfo::Ptr& _tableInfo,
 
                 for (size_t i = 0; i < entries.size(); ++i)
                 {
-                    (*results)[std::get<1>(*missings)[i]] = std::move(entries[i]);
+                    auto& entry = entries[i];
+
+                    if (entry)
+                    {
+                        (*results)[std::get<1>(*missings)[i]] = importExistingEntry(
+                            _tableInfo, std::get<0>(*missings)[i], std::move(entry));
+                    }
                 }
 
                 _callback(nullptr, std::move(*results));
@@ -338,15 +344,15 @@ void TableStorage::asyncOpenTable(const std::string& tableName,
     else
     {
         asyncOpenTable(SYS_TABLES, [this, callback, tableName](
-                                       Error::Ptr&& error, storage::Table::Ptr&& table) {
+                                       Error::Ptr&& error, storage::Table::Ptr&& sysTable) {
             if (error)
             {
                 callback(std::move(error), nullptr);
                 return;
             }
 
-            table->asyncGetRow(tableName, [this, tableName, callback](
-                                              Error::Ptr&& error, storage::Entry::Ptr&& entry) {
+            sysTable->asyncGetRow(tableName, [this, tableName, callback](
+                                                 Error::Ptr&& error, storage::Entry::Ptr&& entry) {
                 if (error)
                 {
                     callback(std::move(error), nullptr);
@@ -425,7 +431,7 @@ Table::Ptr TableStorage::openTable(const std::string& tableName)
     if (error)
     {
         BOOST_THROW_EXCEPTION(
-            *(BCOS_ERROR_WITH_PREV_PTR(-1, "Open table: " + tableName + " failed", error)));
+            BCOS_ERROR_WITH_PREV(-1, "Open table: " + tableName + " failed", error));
     }
 
     return table;
@@ -578,4 +584,23 @@ void TableStorage::rollback(size_t _savepoint)
 
         changeLog.pop_back();
     }
+}
+
+Entry::Ptr TableStorage::importExistingEntry(
+    const TableInfo::Ptr& tableInfo, const std::string& key, Entry::Ptr&& entry)
+{
+    entry->setVersion(0);
+    entry->setDirty(false);
+
+    auto [tableIt, inserted] = m_data.insert({entry->tableInfo()->name, TableData()});
+    if (inserted)
+    {
+        tableIt->second.tableInfo = tableInfo;
+    }
+    auto [it, success] = tableIt->second.entries.insert({key, std::move(entry)});
+    if (!success)
+    {
+        BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Insert existing entry failed, entry exists"));
+    }
+    return std::make_shared<Entry>(*(it->second));
 }

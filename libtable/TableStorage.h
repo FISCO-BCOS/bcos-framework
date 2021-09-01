@@ -122,6 +122,9 @@ public:
 
 private:
     std::vector<Change>& getChangeLog() { return s_changeLog.local(); }
+    Entry::Ptr importExistingEntry(
+        const TableInfo::Ptr& tableInfo, const std::string& key, Entry::Ptr&& entry);
+
     tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
 
     struct TableData

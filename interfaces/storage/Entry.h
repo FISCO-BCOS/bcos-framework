@@ -23,10 +23,20 @@ public:
     using Ptr = std::shared_ptr<Entry>;
     using ConstPtr = std::shared_ptr<const Entry>;
 
+    Entry() noexcept : m_num(0), m_data(Data{nullptr, std::vector<std::string>(), 0}) {}
+
     explicit Entry(const TableInfo::ConstPtr& tableInfo, protocol::BlockNumber _num = 0) noexcept
-      : m_num(_num),
-        m_data(Data{tableInfo, std::vector<std::string>(tableInfo->field2Index.size()), 0})
-    {}
+      : m_num(_num)
+    {
+        if (tableInfo)
+        {
+            m_data.reset(Data{tableInfo, std::vector<std::string>(tableInfo->fields.size()), 0});
+        }
+        else
+        {
+            m_data.reset(Data{nullptr, std::vector<std::string>(), 0});
+        }
+    }
 
     explicit Entry(const Entry& entry) noexcept = default;
     explicit Entry(Entry&& entry) noexcept = default;
@@ -159,14 +169,17 @@ public:
 
     ssize_t refCount() const noexcept { return m_data.refCount(); }
 
-    std::vector<std::string>&& exportData() noexcept
-    {
-        return std::move(m_data.mutableGet()->fields);
-    }
+    const std::vector<std::string>& fields() const noexcept { return m_data.get()->fields; }
 
-    void importData(std::vector<std::string>&& input) noexcept
+    void importFields(std::vector<std::string>&& input) noexcept
     {
         m_data.mutableGet()->fields = std::move(input);
+        m_dirty = true;
+    }
+
+    std::vector<std::string>&& exportFields() noexcept
+    {
+        return std::move(m_data.mutableGet()->fields);
     }
 
     TableInfo::ConstPtr tableInfo() const { return m_data.get()->tableInfo; }
