@@ -238,7 +238,7 @@ void NodeConfig::generateGenesisData()
 {
     std::stringstream s;
     s << m_ledgerConfig->blockTxCountLimit() << "-" << m_ledgerConfig->consensusTimeout() << "-"
-      << m_txGasLimit << "-";
+      << m_ledgerConfig->leaderSwitchPeriod() << "-" << m_txGasLimit << "-";
     for (auto node : m_ledgerConfig->consensusNodeList())
     {
         s << *toHexString(node->nodeID()->data()) << "," << node->weight() << ";";
