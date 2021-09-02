@@ -42,6 +42,7 @@ namespace storage
 struct Condition : public std::enable_shared_from_this<Condition>
 {
     using Ptr = std::shared_ptr<Condition>;
+    using ConstPtr = std::shared_ptr<Condition const>;
     Condition() = default;
     virtual ~Condition() = default;
     virtual void NE(const std::string& value) { m_conditions.emplace_back(Comparator::NE, value); }
@@ -126,8 +127,8 @@ struct TableInfo : public std::enable_shared_from_this<TableInfo>
     using Ptr = std::shared_ptr<TableInfo>;
     using ConstPtr = std::shared_ptr<const TableInfo>;
 
-    explicit TableInfo(
-        const std::string& _tableName, const std::string_view& _key, const std::string_view& _fields)
+    explicit TableInfo(const std::string& _tableName, const std::string_view& _key,
+        const std::string_view& _fields)
       : name(_tableName), key(_key)
     {
         boost::split(fields, _fields, boost::is_any_of(","));
