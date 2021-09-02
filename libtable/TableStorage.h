@@ -112,7 +112,7 @@ public:
     bool createTable(const std::string& _tableName, const std::string& _keyField,
         const std::string& _valueFields);
 
-    std::vector<std::tuple<std::string, crypto::HashType>> tablesHash();
+    std::vector<std::tuple<std::string, crypto::HashType>> tableHashes();
 
     size_t savepoint()
     {

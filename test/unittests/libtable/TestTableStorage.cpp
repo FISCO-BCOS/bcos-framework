@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(rollback)
 
 BOOST_AUTO_TEST_CASE(rollback2)
 {
-    auto hash0 = tableFactory->tablesHash();
+    auto hash0 = tableFactory->tableHashes();
     auto savePoint0 = tableFactory->savepoint();
     auto ret = createDefaultTable();
     BOOST_TEST(ret == true);
@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE(rollback2)
     BOOST_TEST(entry == nullptr);
     // BOOST_TEST(table->dirty() == true);
     tableFactory->rollback(savePoint0);
-    auto hash00 = tableFactory->tablesHash();
+    auto hash00 = tableFactory->tableHashes();
     // BOOST_CHECK_EQUAL_COLLECTIONS(hash0.begin(), hash0.end(), hash00.begin(), hash00.end());
     // BOOST_TEST(hash00 == hash0);
     table = tableFactory->openTable(testTableName);
@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE(hash)
     entry = table->getRow("name");
     BOOST_TEST(entry != nullptr);
     // BOOST_TEST(table->dirty() == true);
-    auto dbHash0 = tableFactory->tablesHash();
+    auto dbHash0 = tableFactory->tableHashes();
     // auto data0 = tableFactory->exportData(m_blockNumber);
     auto tableFactory0 = make_shared<TableStorage>(tableFactory, hashImpl, m_blockNumber);
     // tableFactory0->importData(data0.first, data0.second);
