@@ -80,9 +80,7 @@ public:
         }
     }
 
-    void setField(size_t index, const std::string& value) { setField(index, std::string(value)); }
-
-    void setField(size_t index, std::string&& value)
+    void setField(size_t index, std::string value)
     {
         if (index >= m_data.get()->fields.size())
         {
@@ -99,12 +97,7 @@ public:
         m_dirty = true;
     }
 
-    void setField(const std::string_view& key, const std::string& value)
-    {
-        setField(key, std::string(value));
-    }
-
-    void setField(const std::string_view& key, std::string&& value)
+    void setField(const std::string_view& key, std::string value)
     {
         auto& tableInfo = m_data.get()->tableInfo;
 
@@ -171,7 +164,7 @@ public:
 
     const std::vector<std::string>& fields() const noexcept { return m_data.get()->fields; }
 
-    void importFields(std::vector<std::string>&& input) noexcept
+    void importFields(std::vector<std::string> input) noexcept
     {
         m_data.mutableGet()->fields = std::move(input);
         m_dirty = true;

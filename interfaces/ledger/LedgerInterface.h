@@ -26,6 +26,7 @@
 #include "../../interfaces/protocol/BlockHeader.h"
 #include "../../interfaces/protocol/Transaction.h"
 #include "../../interfaces/protocol/TransactionReceipt.h"
+#include "../../libtable/TableStorage.h"
 #include "../../libutilities/Error.h"
 #include "LedgerConfig.h"
 #include "LedgerTypeDef.h"
@@ -33,9 +34,7 @@
 #include <map>
 
 
-namespace bcos
-{
-namespace ledger
+namespace bcos::ledger
 {
 class LedgerInterface
 {
@@ -45,14 +44,13 @@ public:
     virtual ~LedgerInterface() {}
 
     /**
-     * @brief async commit a block in consensus/sync module
-     * @param _blockHeader the header to commit, this header should have signList
-     * @param _onCommitBlock trigger this callback when commit block in storage
+     * @brief async prewrite a block in scheduler module
+     * @param block the block to commit
+     * @param callback trigger this callback when write is finished
      */
-     /*
-    virtual void asyncCommitBlock(bcos::protocol::BlockHeader::Ptr _blockHeader,
-        std::function<void(Error::Ptr, LedgerConfig::Ptr)> _onCommitBlock) = 0;
-        */
+    virtual void asyncPrewriteBlock(bcos::storage::TableStorage::Ptr storage,
+        bcos::protocol::Block::ConstPtr block,
+        std::function<void(Error::Ptr&&)> callback) = 0;
 
     /**
      * @brief async store txs in block when tx pool verify
@@ -62,17 +60,6 @@ public:
      */
     virtual void asyncStoreTransactions(std::shared_ptr<std::vector<bytesPointer>> _txToStore,
         crypto::HashListPtr _txHashList, std::function<void(Error::Ptr)> _onTxStored) = 0;
-
-    /**
-     * @brief async store receipts when execute module executed
-     * @param _tableFactory
-     * @param _block full block within receipts
-     * @param _onReceiptStored
-     */
-     /*
-    virtual void asyncStoreReceipts(storage::TableFactoryInterface::Ptr _tableFactory,
-        protocol::Block::Ptr _block, std::function<void(Error::Ptr)> _onReceiptStored) = 0;
-        */
 
     /**
      * @brief async get block by blockNumber
@@ -170,5 +157,4 @@ public:
             Error::Ptr, std::shared_ptr<std::map<protocol::BlockNumber, protocol::NonceListPtr>>)>
             _onGetList) = 0;
 };
-}  // namespace ledger
-}  // namespace bcos
+}  // namespace bcos::ledger

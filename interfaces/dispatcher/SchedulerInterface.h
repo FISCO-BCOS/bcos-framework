@@ -23,7 +23,7 @@
 #include "../../libutilities/Error.h"
 #include "../crypto/CommonType.h"
 #include "../protocol/Block.h"
-#include "interfaces/executor/ParallelExecutorInterface.h"
+#include "interfaces/executor/ParallelTransactionExecutorInterface.h"
 #include "interfaces/protocol/ProtocolTypeDef.h"
 #include <functional>
 #include <memory>
@@ -36,32 +36,30 @@ class SchedulerInterface
 public:
     // by pbft & sync
     virtual void executeBlock(const bcos::protocol::Block::ConstPtr& block, bool verify,
-        std::function<void(const bcos::Error::ConstPtr&, bcos::protocol::BlockHeader::Ptr&&)>
+        std::function<void(bcos::Error::Ptr&&, bcos::protocol::BlockHeader::Ptr&&)>
             callback) noexcept = 0;
 
     // by pbft & sync
     virtual void commitBlock(const bcos::protocol::BlockHeader::ConstPtr& header,
-        std::function<void(const bcos::Error::ConstPtr&)>) noexcept = 0;
+        std::function<void(bcos::Error::Ptr&&)>) noexcept = 0;
 
     // by console, query committed committing executing
-    virtual void status(
-        std::function<void(const Error::ConstPtr&, const bcos::protocol::Session::ConstPtr&)>
+    virtual void status(std::function<void(Error::Ptr&&, bcos::protocol::Session::ConstPtr&&)>
             callback) noexcept = 0;
 
     // by rpc
     virtual void call(const protocol::Transaction::ConstPtr& tx,
-        std::function<void(
-            const Error::ConstPtr&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
+        std::function<void(Error::Ptr&&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
 
     // by executor
     virtual void registerExecutor(const std::string& name,
-        const bcos::executor::ParallelExecutorInterface::Ptr& executor,
-        std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+        const bcos::executor::ParallelTransactionExecutorInterface::Ptr& executor,
+        std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void unregisterExecutor(
-        const std::string& name, std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+        const std::string& name, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     // clear all status
-    virtual void reset(std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
+    virtual void reset(std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 };
 }  // namespace bcos::dispatcher

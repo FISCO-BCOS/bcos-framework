@@ -50,20 +50,32 @@ public:
     virtual void setGasAvailable(bcos::u256 gasAvailable) = 0;
 
     virtual bcos::bytesConstRef input() const = 0;
-    virtual void setInput(const bcos::bytesConstRef& input) = 0;
-    virtual void setInput(bcos::bytes&& input) = 0;
+    virtual void setInput(bcos::bytes input) = 0;
 
-    // for extern call return
+    virtual std::string_view origin() const = 0;
+    virtual void setOrigin(std::string origin) = 0;
+
+    virtual std::string_view from() const = 0;
+    virtual void setFrom(std::string from) = 0;
+
+    virtual std::string_view to() const = 0;
+    virtual void setTo(std::string to) = 0;
+
+    // for external call return
     virtual int64_t status() const = 0;
     virtual void setStatus(int64_t status) = 0;
 
+    // for external call return
     virtual std::string_view message() const = 0;
-    virtual void setMessage(const std::string& message) = 0;
-    virtual void setMessage(std::string&& message) = 0;
+    virtual void setMessage(std::string message) = 0;
 
-    virtual std::string_view to() const = 0;
-    virtual void setTo(const std::string& to) = 0;
-    virtual void setTo(const std::string&& to) = 0;
+    // for solidity
+    virtual int32_t depth() const = 0;
+    virtual void setDepth(int32_t depth) = 0;
+
+    // for solidity
+    virtual std::string_view createSalt() const = 0;
+    virtual void setCreateSalt(std::string createSalt) = 0;
 };
 
 class ExecutionParamsFactory
