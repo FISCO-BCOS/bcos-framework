@@ -459,7 +459,7 @@ bool TableStorage::createTable(
     return success;
 }
 
-std::vector<std::tuple<std::string, crypto::HashType>> TableStorage::tablesHash()
+std::vector<std::tuple<std::string, crypto::HashType>> TableStorage::tableHashes()
 {
     std::vector<std::tuple<std::string, crypto::HashType>> result;
 
