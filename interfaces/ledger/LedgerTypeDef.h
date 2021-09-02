@@ -41,8 +41,8 @@ static const std::string SYSTEM_KEY_CONSENSUS_LEADER_PERIOD = "consensus_leader_
 
 const unsigned TX_GAS_LIMIT_MIN = 100000;
 
-const unsigned SYSTEM_CONSENSUS_TIMEOUT_MIN = 3;
-const unsigned SYSTEM_CONSENSUS_TIMEOUT_MAX = (UINT_MAX / 1000);
+const unsigned SYSTEM_CONSENSUS_TIMEOUT_MIN = 3000;
+const unsigned SYSTEM_CONSENSUS_TIMEOUT_MAX = INT_MAX;
 
 // get consensus node list type
 static const std::string CONSENSUS_SEALER = "consensus_sealer";
