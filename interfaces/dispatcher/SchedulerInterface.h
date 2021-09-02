@@ -23,7 +23,7 @@
 #include "../../libutilities/Error.h"
 #include "../crypto/CommonType.h"
 #include "../protocol/Block.h"
-#include "interfaces/executor/ParallelExecutorInterface.h"
+#include "interfaces/executor/ParallelTransactionExecutorInterface.h"
 #include "interfaces/protocol/ProtocolTypeDef.h"
 #include <functional>
 #include <memory>
@@ -55,7 +55,7 @@ public:
 
     // by executor
     virtual void registerExecutor(const std::string& name,
-        const bcos::executor::ParallelExecutorInterface::Ptr& executor,
+        const bcos::executor::ParallelTransactionExecutorInterface::Ptr& executor,
         std::function<void(const Error::ConstPtr&)> callback) noexcept = 0;
 
     virtual void unregisterExecutor(

@@ -54,23 +54,24 @@ public:
     virtual void setStatus(int64_t status) = 0;
 
     virtual std::string_view message() const = 0;
-    virtual void setMessage(const std::string& message) = 0;
-    virtual void setMessage(std::string&& message) = 0;
+    virtual void setMessage(std::string message) = 0;
 
     // When the type is FINISH, it means that the transaction is executed and output is the return
     // value of the transaction. When the type is EXTERNAL_CALL, output is the input parameter of
     // the next call
     virtual bcos::bytesConstRef output() const = 0;
-    virtual void setOutput(const bcos::bytesConstRef& output) = 0;
-    virtual void setOutput(bytes&& output) = 0;
+    virtual void setOutput(bytes output) = 0;
 
     virtual bcos::u256 gasUsed() const = 0;
     virtual void setGasUsed(bcos::u256 gasUsed) = 0;
 
     // Only when status is EXTERNAL_CALL, it is not empty
     virtual std::string_view to() const = 0;
-    virtual void setTo(const std::string_view& to) = 0;
-    virtual void setTo(std::string&& to) = 0;
+    virtual void setTo(std::string to);
+
+    // For solidity
+    virtual std::string_view contractAddress() const = 0;
+    virtual void setContractAddress(std::string to) = 0;
 };
 
 class ExecutionResultFactory

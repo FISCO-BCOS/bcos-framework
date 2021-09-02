@@ -122,32 +122,13 @@ public:
         m_ledgerConfig->setHash(_blockHeader->hash());
     }
 
-    /*
-    // Consensus and block-sync module use this interface to commit block
-    void asyncCommitBlock(BlockHeader::Ptr _blockHeader,
-        std::function<void(Error::Ptr, LedgerConfig::Ptr)> _onCommitBlock) override
+    void asyncPrewriteBlock(bcos::storage::TableStorage::Ptr storage,
+        bcos::protocol::Block::ConstPtr block, std::function<void(Error::Ptr&&)> callback) override
     {
-        if (_blockHeader->number() != m_ledgerConfig->blockNumber() + 1)
-        {
-            _onCommitBlock(std::make_shared<Error>(-1, "invalid block"), nullptr);
-            return;
-        }
-
-        auto self = std::weak_ptr<FakeLedger>(shared_from_this());
-        m_worker->enqueue([_blockHeader, _onCommitBlock, self]() {
-            auto ledger = self.lock();
-            if (!self.lock())
-            {
-                return;
-            }
-            WriteGuard l(ledger->x_ledger);
-            auto block = ledger->populateFromHeader(_blockHeader);
-            ledger->m_ledger.push_back(block);
-            ledger->updateLedgerConfig(_blockHeader);
-            _onCommitBlock(nullptr, ledger->m_ledgerConfig);
-        });
+        (void)storage;
+        (void)block;
+        callback(nullptr);
     }
-    */
 
     // the txpool module use this interface to store txs
     void asyncStoreTransactions(std::shared_ptr<std::vector<bytesPointer>> _txToStore,
@@ -162,15 +143,6 @@ public:
         }
         _onTxStored(nullptr);
     }
-
-    /*
-    // the dispatcher use this interface to store receipts
-    void asyncStoreReceipts(storage::TableFactoryInterface::Ptr, Block::Ptr,
-        std::function<void(Error::Ptr)> _onReceiptStored) override
-    {
-        _onReceiptStored(nullptr);
-    }
-    */
 
     // maybe sync module or rpc module need this interface to return header/txs/receipts
     void asyncGetBlockDataByNumber(BlockNumber _number, int32_t,

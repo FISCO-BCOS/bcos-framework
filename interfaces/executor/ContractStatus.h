@@ -16,11 +16,9 @@ public:
     using ConstPtr = std::shared_ptr<const ContractStatus>;
 
     virtual std::string_view contract() const = 0;
-    virtual void setContract(const std::string_view& contract) = 0;
     virtual void setContract(std::string&& contract) = 0;
 
     virtual bcos::bytesConstRef dbHash() const = 0;
-    virtual void setDBHash(const bcos::bytesConstRef& dbHash) = 0;
     virtual void setDBHash(bcos::bytes&& dbHash) = 0;
 };
 
