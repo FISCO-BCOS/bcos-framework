@@ -38,48 +38,52 @@ public:
     using Ptr = std::shared_ptr<StorageInterface>;
     virtual ~StorageInterface() = default;
 
-    virtual void asyncGetPrimaryKeys(const TableInfo::Ptr& _tableInfo,
-        const Condition::Ptr& _condition,
+    virtual void asyncGetPrimaryKeys(const TableInfo::ConstPtr& _tableInfo,
+        const Condition::ConstPtr& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept = 0;
 
-    virtual void asyncGetRow(const TableInfo::Ptr& _tableInfo, const std::string& _key,
+    virtual void asyncGetRow(const TableInfo::ConstPtr& _tableInfo, const std::string& _key,
         std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback) noexcept = 0;
 
-    virtual void asyncGetRows(const TableInfo::Ptr& _tableInfo, const gsl::span<std::string>& _keys,
+    virtual void asyncGetRows(const TableInfo::ConstPtr& _tableInfo,
+        const gsl::span<std::string const>& _keys,
         std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback) noexcept = 0;
 
-    virtual void asyncSetRow(const TableInfo::Ptr& tableInfo, const std::string& key,
-        const Entry::ConstPtr& entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
+    virtual void asyncSetRow(const TableInfo::ConstPtr& tableInfo, const std::string& key,
+        const Entry::ConstPtr& entry,
+        std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
 };
 
 class TraverseStorageInterface : public StorageInterface
 {
 public:
     using Ptr = std::shared_ptr<TraverseStorageInterface>;
+    using ConstPtr = std::shared_ptr<TraverseStorageInterface const>;
     ~TraverseStorageInterface() override = default;
 
     virtual void parallelTraverse(bool onlyDirty,
-        std::function<bool(
-            const TableInfo::Ptr& tableInfo, const std::string& key, const Entry::ConstPtr& entry)>
+        std::function<bool(const TableInfo::ConstPtr& tableInfo, const std::string& key,
+            const Entry::ConstPtr& entry)>
             callback) const = 0;
 };
 
 class MergeableStorageInterface : public StorageInterface
 {
 public:
-    virtual void merge(const TraverseStorageInterface::Ptr& storage) = 0;
+    virtual void merge(const TraverseStorageInterface::ConstPtr& storage) = 0;
 };
 
 class TransactionalStorageInterface : public StorageInterface
 {
 public:
-    struct PrepareParams {
-
+    struct PrepareParams
+    {
     };
 
     ~TransactionalStorageInterface() override = default;
 
-    virtual void asyncPrepare(const PrepareParams &params, const TraverseStorageInterface::Ptr& storage,
+    virtual void asyncPrepare(const PrepareParams& params,
+        const TraverseStorageInterface::ConstPtr& storage,
         std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void asyncCommit(

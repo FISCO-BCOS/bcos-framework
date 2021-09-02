@@ -8,8 +8,8 @@
 using namespace bcos;
 using namespace bcos::storage;
 
-void TableStorage::asyncGetPrimaryKeys(const bcos::storage::TableInfo::Ptr& _tableInfo,
-    const bcos::storage::Condition::Ptr& _condition,
+void TableStorage::asyncGetPrimaryKeys(const bcos::storage::TableInfo::ConstPtr& _tableInfo,
+    const bcos::storage::Condition::ConstPtr& _condition,
     std::function<void(bcos::Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept
 {
     std::map<std::string, storage::Entry::Status> localKeys;
@@ -80,7 +80,7 @@ void TableStorage::asyncGetPrimaryKeys(const bcos::storage::TableInfo::Ptr& _tab
         });
 }
 
-void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
+void TableStorage::asyncGetRow(const bcos::storage::TableInfo::ConstPtr& _tableInfo,
     const std::string& _key,
     std::function<void(bcos::Error::Ptr&&, bcos::storage::Entry::Ptr&&)> _callback) noexcept
 {
@@ -124,8 +124,8 @@ void TableStorage::asyncGetRow(const bcos::storage::TableInfo::Ptr& _tableInfo,
     }
 }
 
-void TableStorage::asyncGetRows(const bcos::storage::TableInfo::Ptr& _tableInfo,
-    const gsl::span<std::string>& _keys,
+void TableStorage::asyncGetRows(const bcos::storage::TableInfo::ConstPtr& _tableInfo,
+    const gsl::span<std::string const>& _keys,
     std::function<void(bcos::Error::Ptr&&, std::vector<bcos::storage::Entry::Ptr>&&)>
         _callback) noexcept
 {
@@ -196,7 +196,7 @@ void TableStorage::asyncGetRows(const bcos::storage::TableInfo::Ptr& _tableInfo,
     }
 }
 
-void TableStorage::asyncSetRow(const bcos::storage::TableInfo::Ptr& tableInfo,
+void TableStorage::asyncSetRow(const bcos::storage::TableInfo::ConstPtr& tableInfo,
     const std::string& key, const bcos::storage::Entry::ConstPtr& entry,
     std::function<void(bcos::Error::Ptr&&, bool)> callback) noexcept
 {
@@ -310,7 +310,7 @@ void TableStorage::asyncSetRow(const bcos::storage::TableInfo::Ptr& tableInfo,
 
 void TableStorage::parallelTraverse(bool onlyDirty,
     std::function<bool(
-        const TableInfo::Ptr& tableInfo, const std::string& key, const Entry::ConstPtr& entry)>
+        const TableInfo::ConstPtr& tableInfo, const std::string& key, const Entry::ConstPtr& entry)>
         callback) const
 {
     tbb::parallel_do(
@@ -590,7 +590,7 @@ void TableStorage::rollback(size_t _savepoint)
 }
 
 Entry::Ptr TableStorage::importExistingEntry(
-    const TableInfo::Ptr& tableInfo, const std::string& key, Entry::Ptr&& entry)
+    const TableInfo::ConstPtr& tableInfo, const std::string& key, Entry::Ptr&& entry)
 {
     entry->setVersion(0);
     entry->setDirty(false);

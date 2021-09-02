@@ -452,7 +452,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
         // Data count must be 10 * 100 + 10
         tbb::atomic<size_t> totalCount = 0;
         storage->parallelTraverse(
-            false, [&](const TableInfo::Ptr&, const std::string&, const Entry::ConstPtr&) {
+            false, [&](const TableInfo::ConstPtr&, const std::string&, const Entry::ConstPtr&) {
                 ++totalCount;
                 return true;
             });
@@ -462,7 +462,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
         // Dirty data count must be 10 * 100 + 10
         tbb::atomic<size_t> dirtyCount = 0;
         storage->parallelTraverse(
-            true, [&](const TableInfo::Ptr&, const std::string&, const Entry::ConstPtr&) {
+            true, [&](const TableInfo::ConstPtr&, const std::string&, const Entry::ConstPtr&) {
                 ++dirtyCount;
                 return true;
             });
@@ -525,7 +525,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
         totalCount = 0;
         tbb::concurrent_vector<std::function<void()>> checks;
         storage->parallelTraverse(false,
-            [&](const TableInfo::Ptr& tableInfo, const std::string&, const Entry::ConstPtr& entry) {
+            [&](const TableInfo::ConstPtr& tableInfo, const std::string&, const Entry::ConstPtr& entry) {
                 checks.push_back([index, tableInfo, entry] {
                     BOOST_CHECK_NE(tableInfo, nullptr);
                     BOOST_CHECK_NE(entry, nullptr);
@@ -555,7 +555,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
         checks.clear();
         dirtyCount = 0;
         storage->parallelTraverse(true,
-            [&](const TableInfo::Ptr& tableInfo, const std::string&, const Entry::ConstPtr& entry) {
+            [&](const TableInfo::ConstPtr& tableInfo, const std::string&, const Entry::ConstPtr& entry) {
                 checks.push_back([index, tableInfo, entry]() {
                     BOOST_CHECK_NE(tableInfo, nullptr);
                     BOOST_CHECK_NE(entry, nullptr);

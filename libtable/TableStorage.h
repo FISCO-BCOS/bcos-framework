@@ -37,24 +37,6 @@ class TableStorage : public storage::TraverseStorageInterface,
                      public std::enable_shared_from_this<TableStorage>
 {
 public:
-    struct Change
-    {
-        enum Kind : int
-        {
-            Set,
-            Remove,
-        };
-        storage::TableInfo::Ptr tableInfo;
-        Kind kind;  ///< The kind of the change.
-        std::string key;
-        storage::Entry::Ptr entry;
-        bool tableDirty;
-        Change(storage::TableInfo::Ptr _tableInfo, Kind _kind, std::string const& _key,
-            const storage::Entry::Ptr& _entry, bool _tableDirty)
-          : tableInfo(_tableInfo), kind(_kind), key(_key), entry(_entry), tableDirty(_tableDirty)
-        {}
-    };
-
     static constexpr const char* SYS_TABLES = "s_tables";
     static constexpr const char* const SYS_TABLE_KEY = "table_name";
     static constexpr const char* const SYS_TABLE_VALUE_FIELDS = "value_fields";
@@ -87,8 +69,8 @@ public:
             BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Null prev storage"));
         }
 
-        prev->parallelTraverse(false, [&](const TableInfo::Ptr& tableInfo, const std::string& key,
-                                          const Entry::ConstPtr& entry) {
+        prev->parallelTraverse(false, [&](const TableInfo::ConstPtr& tableInfo,
+                                          const std::string& key, const Entry::ConstPtr& entry) {
             if (entry->num() > commitedBlockNumber)
             {
                 importExistingEntry(tableInfo, key, std::make_shared<Entry>(*entry));
@@ -99,23 +81,23 @@ public:
 
     virtual ~TableStorage() { getChangeLog().clear(); }
 
-    void asyncGetPrimaryKeys(const storage::TableInfo::Ptr& _tableInfo,
-        const storage::Condition::Ptr& _condition,
+    void asyncGetPrimaryKeys(const storage::TableInfo::ConstPtr& _tableInfo,
+        const storage::Condition::ConstPtr& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept override;
 
-    void asyncGetRow(const storage::TableInfo::Ptr& _tableInfo, const std::string& _key,
+    void asyncGetRow(const storage::TableInfo::ConstPtr& _tableInfo, const std::string& _key,
         std::function<void(Error::Ptr&&, storage::Entry::Ptr&&)> _callback) noexcept override;
 
-    void asyncGetRows(const storage::TableInfo::Ptr& _tableInfo,
-        const gsl::span<std::string>& _keys,
+    void asyncGetRows(const storage::TableInfo::ConstPtr& _tableInfo,
+        const gsl::span<std::string const>& _keys,
         std::function<void(Error::Ptr&&, std::vector<storage::Entry::Ptr>&&)> _callback) noexcept
         override;
 
-    void asyncSetRow(const storage::TableInfo::Ptr& tableInfo, const std::string& key,
+    void asyncSetRow(const storage::TableInfo::ConstPtr& tableInfo, const std::string& key,
         const storage::Entry::ConstPtr& entry,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
 
-    void parallelTraverse(bool onlyDirty, std::function<bool(const TableInfo::Ptr& tableInfo,
+    void parallelTraverse(bool onlyDirty, std::function<bool(const TableInfo::ConstPtr& tableInfo,
                                               const std::string& key, const Entry::ConstPtr& entry)>
                                               callback) const override;
 
@@ -142,15 +124,37 @@ public:
     protocol::BlockNumber blockNumber() const { return m_blockNumber; }
 
 private:
+    struct Change
+    {
+        enum Kind : int
+        {
+            Set,
+            Remove,
+        };
+        TableInfo::ConstPtr tableInfo;
+        Kind kind;  ///< The kind of the change.
+        std::string key;
+        storage::Entry::Ptr entry;
+        bool tableDirty;
+        Change(storage::TableInfo::ConstPtr _tableInfo, Kind _kind, std::string _key,
+            const storage::Entry::Ptr& _entry, bool _tableDirty)
+          : tableInfo(_tableInfo),
+            kind(_kind),
+            key(std::move(_key)),
+            entry(_entry),
+            tableDirty(_tableDirty)
+        {}
+    };
+
     std::vector<Change>& getChangeLog() { return s_changeLog.local(); }
     Entry::Ptr importExistingEntry(
-        const TableInfo::Ptr& tableInfo, const std::string& key, Entry::Ptr&& entry);
+        const TableInfo::ConstPtr& tableInfo, const std::string& key, Entry::Ptr&& entry);
 
     tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
 
     struct TableData
     {
-        TableInfo::Ptr tableInfo;
+        TableInfo::ConstPtr tableInfo;
         tbb::concurrent_unordered_map<std::string, storage::Entry::Ptr> entries;
         bool dirty = false;
     };
