@@ -20,6 +20,7 @@
  */
 
 #pragma once
+#include "../libprotocol/LogEntry.h"
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/TransactionReceipt.h"
 #include <memory>
@@ -65,13 +66,16 @@ public:
     virtual bcos::u256 gasUsed() const = 0;
     virtual void setGasUsed(bcos::u256 gasUsed) = 0;
 
+    virtual gsl::span<LogEntry> logEntries() const = 0;
+    virtual void setLogEntries(std::vector<LogEntry> logEntries) = 0;
+
     // Only when status is EXTERNAL_CALL, it is not empty
     virtual std::string_view to() const = 0;
     virtual void setTo(std::string to);
 
-    // For solidity
-    virtual std::string_view contractAddress() const = 0;
-    virtual void setContractAddress(std::string to) = 0;
+    // For evm
+    virtual std::string_view newEVMContractAddress() const = 0;
+    virtual void setNewEVMContractAddress(std::string newEVMContractAddress) = 0;
 };
 
 class ExecutionResultFactory
