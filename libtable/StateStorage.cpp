@@ -1,4 +1,4 @@
-#include "TableStorage.h"
+#include "StateStorage.h"
 #include "../libutilities/Error.h"
 #include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
@@ -8,7 +8,7 @@
 using namespace bcos;
 using namespace bcos::storage;
 
-void TableStorage::asyncGetPrimaryKeys(const bcos::storage::TableInfo::ConstPtr& _tableInfo,
+void StateStorage::asyncGetPrimaryKeys(const bcos::storage::TableInfo::ConstPtr& _tableInfo,
     const bcos::storage::Condition::ConstPtr& _condition,
     std::function<void(bcos::Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept
 {
@@ -80,7 +80,7 @@ void TableStorage::asyncGetPrimaryKeys(const bcos::storage::TableInfo::ConstPtr&
         });
 }
 
-void TableStorage::asyncGetRow(const bcos::storage::TableInfo::ConstPtr& _tableInfo,
+void StateStorage::asyncGetRow(const bcos::storage::TableInfo::ConstPtr& _tableInfo,
     const std::string& _key,
     std::function<void(bcos::Error::Ptr&&, bcos::storage::Entry::Ptr&&)> _callback) noexcept
 {
@@ -124,7 +124,7 @@ void TableStorage::asyncGetRow(const bcos::storage::TableInfo::ConstPtr& _tableI
     }
 }
 
-void TableStorage::asyncGetRows(const bcos::storage::TableInfo::ConstPtr& _tableInfo,
+void StateStorage::asyncGetRows(const bcos::storage::TableInfo::ConstPtr& _tableInfo,
     const gsl::span<std::string const>& _keys,
     std::function<void(bcos::Error::Ptr&&, std::vector<bcos::storage::Entry::Ptr>&&)>
         _callback) noexcept
@@ -196,7 +196,7 @@ void TableStorage::asyncGetRows(const bcos::storage::TableInfo::ConstPtr& _table
     }
 }
 
-void TableStorage::asyncSetRow(const bcos::storage::TableInfo::ConstPtr& tableInfo,
+void StateStorage::asyncSetRow(const bcos::storage::TableInfo::ConstPtr& tableInfo,
     const std::string& key, const bcos::storage::Entry::ConstPtr& entry,
     std::function<void(bcos::Error::Ptr&&, bool)> callback) noexcept
 {
@@ -308,7 +308,7 @@ void TableStorage::asyncSetRow(const bcos::storage::TableInfo::ConstPtr& tableIn
     }
 }
 
-void TableStorage::parallelTraverse(bool onlyDirty,
+void StateStorage::parallelTraverse(bool onlyDirty,
     std::function<bool(
         const TableInfo::ConstPtr& tableInfo, const std::string& key, const Entry::ConstPtr& entry)>
         callback) const
@@ -332,98 +332,7 @@ void TableStorage::parallelTraverse(bool onlyDirty,
         });
 }
 
-void TableStorage::asyncOpenTable(const std::string& tableName,
-    std::function<void(Error::Ptr&&, storage::Table::Ptr&&)> callback) noexcept
-{
-    auto sysTableInfo = getSysTableInfo(tableName);
-    if (sysTableInfo)
-    {
-        auto table =
-            std::make_shared<storage::Table>(shared_from_this(), sysTableInfo, m_blockNumber);
-        callback(nullptr, std::move(table));
-
-        return;
-    }
-    else
-    {
-        asyncOpenTable(SYS_TABLES, [this, callback, tableName](
-                                       Error::Ptr&& error, storage::Table::Ptr&& sysTable) {
-            if (error)
-            {
-                callback(std::move(error), nullptr);
-                return;
-            }
-
-            sysTable->asyncGetRow(tableName, [this, tableName, callback](
-                                                 Error::Ptr&& error, storage::Entry::Ptr&& entry) {
-                if (error)
-                {
-                    callback(std::move(error), nullptr);
-                    return;
-                }
-
-                if (!entry)
-                {
-                    callback(nullptr, nullptr);
-                    return;
-                }
-
-                auto tableInfo = std::make_shared<storage::TableInfo>(tableName,
-                    entry->getField(SYS_TABLE_KEY_FIELDS), entry->getField(SYS_TABLE_VALUE_FIELDS));
-                auto table =
-                    std::make_shared<storage::Table>(shared_from_this(), tableInfo, m_blockNumber);
-
-                callback(nullptr, std::move(table));
-            });
-        });
-    }
-}
-
-void TableStorage::asyncCreateTable(const std::string& _tableName, const std::string& _keyField,
-    const std::string& _valueFields, std::function<void(Error::Ptr&&, bool)> callback) noexcept
-{
-    asyncOpenTable(SYS_TABLES, [_tableName, callback, _keyField, _valueFields](
-                                   Error::Ptr&& error, storage::Table::Ptr&& sysTable) {
-        if (error)
-        {
-            callback(BCOS_ERROR_WITH_PREV_PTR(-1, "Open sys_tables failed!", error), false);
-            return;
-        }
-
-        sysTable->asyncGetRow(_tableName, [_tableName, callback, sysTable, _keyField, _valueFields](
-                                              Error::Ptr&& error, storage::Entry::Ptr&& entry) {
-            if (error)
-            {
-                callback(BCOS_ERROR_WITH_PREV_PTR(-1, "Get table info row failed!", error), false);
-                return;
-            }
-
-            if (entry)
-            {
-                callback(nullptr, false);
-                return;
-            }
-
-            auto tableEntry = sysTable->newEntry();
-            tableEntry->setField(SYS_TABLE_KEY_FIELDS, _keyField);
-            tableEntry->setField(SYS_TABLE_VALUE_FIELDS, _valueFields);
-
-            sysTable->asyncSetRow(_tableName, tableEntry, [callback](Error::Ptr&& error, bool) {
-                if (error)
-                {
-                    callback(BCOS_ERROR_WITH_PREV_PTR(
-                                 -1, "Put table info into sys_tables failed!", error),
-                        false);
-                    return;
-                }
-
-                callback(nullptr, true);
-            });
-        });
-    });
-}
-
-Table::Ptr TableStorage::openTable(const std::string& tableName)
+Table::Ptr StateStorage::openTable(const std::string& tableName)
 {
     std::promise<std::tuple<Error::Ptr, Table::Ptr>> openPromise;
     asyncOpenTable(tableName, [&](Error::Ptr&& error, Table::Ptr&& table) {
@@ -440,7 +349,7 @@ Table::Ptr TableStorage::openTable(const std::string& tableName)
     return table;
 }
 
-bool TableStorage::createTable(
+bool StateStorage::createTable(
     const std::string& _tableName, const std::string& _keyField, const std::string& _valueFields)
 {
     std::promise<std::tuple<Error::Ptr, bool>> createPromise;
@@ -459,7 +368,7 @@ bool TableStorage::createTable(
     return success;
 }
 
-std::vector<std::tuple<std::string, crypto::HashType>> TableStorage::tablesHash()
+std::vector<std::tuple<std::string, crypto::HashType>> StateStorage::tablesHash()
 {
     std::vector<std::tuple<std::string, crypto::HashType>> result;
 
@@ -536,7 +445,7 @@ std::vector<std::tuple<std::string, crypto::HashType>> TableStorage::tablesHash(
     return result;
 }
 
-void TableStorage::rollback(size_t _savepoint)
+void StateStorage::rollback(size_t _savepoint)
 {
     auto& changeLog = getChangeLog();
     while (_savepoint < changeLog.size())
@@ -589,7 +498,7 @@ void TableStorage::rollback(size_t _savepoint)
     }
 }
 
-Entry::Ptr TableStorage::importExistingEntry(
+Entry::Ptr StateStorage::importExistingEntry(
     const TableInfo::ConstPtr& tableInfo, const std::string& key, Entry::Ptr&& entry)
 {
     entry->setVersion(0);

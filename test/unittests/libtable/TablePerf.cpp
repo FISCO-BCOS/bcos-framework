@@ -1,6 +1,6 @@
 #include "../../../testutils/TestPromptFixture.h"
 #include "Hash.h"
-#include "libtable/TableStorage.h"
+#include "libtable/StateStorage.h"
 #include "libutilities/Common.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/test/unit_test.hpp>
@@ -15,9 +15,9 @@ struct TablePerfFixture
     TablePerfFixture()
     {
         auto hashImpl = std::make_shared<bcos::crypto::Header256Hash>();
-        auto memoryStorage = std::make_shared<TableStorage>(nullptr, hashImpl, 0);
+        auto memoryStorage = std::make_shared<StateStorage>(nullptr, hashImpl, 0);
         BOOST_TEST(memoryStorage != nullptr);
-        tableFactory = std::make_shared<TableStorage>(memoryStorage, hashImpl, 0);
+        tableFactory = std::make_shared<StateStorage>(memoryStorage, hashImpl, 0);
         BOOST_TEST(tableFactory != nullptr);
     }
 
@@ -38,7 +38,7 @@ struct TablePerfFixture
         return entries;
     }
 
-    std::shared_ptr<TableStorage> tableFactory;
+    std::shared_ptr<StateStorage> tableFactory;
     size_t count = 100 * 1000;
 };
 

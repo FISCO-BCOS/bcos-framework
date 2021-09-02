@@ -20,9 +20,8 @@
  */
 #pragma once
 
-#include "../interfaces/storage/Common.h"
-#include "../interfaces/storage/StorageInterface.h"
-#include "tbb/concurrent_unordered_map.h"
+#include "Common.h"
+#include "StorageInterface.h"
 #include <future>
 #include <gsl/span>
 
@@ -35,8 +34,7 @@ class Table
 public:
     using Ptr = std::shared_ptr<Table>;
 
-    Table(std::shared_ptr<StorageInterface> _db, TableInfo::Ptr _tableInfo,
-        protocol::BlockNumber _blockNum)
+    Table(StorageInterface* _db, TableInfo::Ptr _tableInfo, protocol::BlockNumber _blockNum)
       : m_storage(_db), m_tableInfo(_tableInfo), m_blockNumber(_blockNum)
     {}
     virtual ~Table() {}
@@ -46,7 +44,6 @@ public:
     std::vector<std::string> getPrimaryKeys(const Condition::Ptr& _condition);
 
     bool setRow(const std::string& _key, const Entry::Ptr& _entry);
-    // bool remove(const std::string& _key);
 
     void asyncGetPrimaryKeys(const Condition::Ptr& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept;
@@ -68,7 +65,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<StorageInterface> m_storage;
+    StorageInterface* m_storage;
     TableInfo::Ptr m_tableInfo;
     bcos::protocol::BlockNumber m_blockNumber;
 };

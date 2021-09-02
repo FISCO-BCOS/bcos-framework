@@ -17,11 +17,12 @@
  * @file Table.cpp
  */
 
-#include "libtable/Table.h"
+#include "interfaces/storage/Table.h"
 #include "../../../testutils/TestPromptFixture.h"
 #include "Hash.h"
 #include "interfaces/crypto/CommonType.h"
-#include "libtable/TableStorage.h"
+#include "interfaces/storage/StorageInterface.h"
+#include "libtable/StateStorage.h"
 #include "libutilities/ThreadPool.h"
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
@@ -51,15 +52,15 @@ struct TableFixture
     TableFixture()
     {
         hashImpl = make_shared<Header256Hash>();
-        memoryStorage = make_shared<TableStorage>(nullptr, hashImpl, 0);
-        tableFactory = make_shared<TableStorage>(memoryStorage, hashImpl, m_blockNumber);
+        memoryStorage = make_shared<StateStorage>(nullptr, hashImpl, 0);
+        tableFactory = make_shared<StateStorage>(memoryStorage, hashImpl, m_blockNumber);
     }
 
     ~TableFixture() {}
     std::shared_ptr<crypto::Hash> hashImpl = nullptr;
     std::shared_ptr<StorageInterface> memoryStorage = nullptr;
     protocol::BlockNumber m_blockNumber = 0;
-    std::shared_ptr<TableStorage> tableFactory = nullptr;
+    std::shared_ptr<StateStorage> tableFactory = nullptr;
 };
 BOOST_FIXTURE_TEST_SUITE(TableTest, TableFixture)
 
@@ -67,7 +68,7 @@ BOOST_AUTO_TEST_CASE(constructor)
 {
     auto threadPool = ThreadPool("a", 1);
     auto table = std::make_shared<Table>(nullptr, nullptr, 0);
-    auto tableFactory = std::make_shared<TableStorage>(memoryStorage, hashImpl, 0);
+    auto tableFactory = std::make_shared<StateStorage>(memoryStorage, hashImpl, 0);
 }
 
 BOOST_AUTO_TEST_CASE(dump_hash)
@@ -162,7 +163,7 @@ BOOST_AUTO_TEST_CASE(setRow)
     // check fields order of SYS_TABLE
     std::promise<Table::Ptr> sysTablePromise;
     tableFactory->asyncOpenTable(
-        TableStorage::SYS_TABLES, [&](Error::Ptr&& error, Table::Ptr&& table) {
+        StorageInterface::SYS_TABLES, [&](Error::Ptr&& error, Table::Ptr&& table) {
             BOOST_CHECK_EQUAL(error, nullptr);
             BOOST_CHECK_NE(table, nullptr);
             sysTablePromise.set_value(std::move(table));
@@ -171,9 +172,9 @@ BOOST_AUTO_TEST_CASE(setRow)
     BOOST_CHECK_NE(sysTable, nullptr);
 
     BOOST_TEST(sysTable->tableInfo()->fields.size() == 2);
-    BOOST_TEST(sysTable->tableInfo()->fields[0] == TableStorage::SYS_TABLE_KEY_FIELDS);
-    BOOST_TEST(sysTable->tableInfo()->fields[1] == TableStorage::SYS_TABLE_VALUE_FIELDS);
-    BOOST_TEST(sysTable->tableInfo()->key == TableStorage::SYS_TABLE_KEY);
+    BOOST_TEST(sysTable->tableInfo()->fields[0] == StateStorage::SYS_TABLE_KEY_FIELDS);
+    BOOST_TEST(sysTable->tableInfo()->fields[1] == StateStorage::SYS_TABLE_VALUE_FIELDS);
+    BOOST_TEST(sysTable->tableInfo()->key == StateStorage::SYS_TABLE_KEY);
 }
 
 BOOST_AUTO_TEST_CASE(removeFromCache)
@@ -206,7 +207,7 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
 
     auto hashs = tableFactory->tablesHash();
 
-    auto tableFactory2 = std::make_shared<TableStorage>(nullptr, hashImpl, 0);
+    auto tableFactory2 = std::make_shared<StateStorage>(nullptr, hashImpl, 0);
     BOOST_CHECK_EQUAL(tableFactory2->createTable(tableName, keyField, valueField), true);
     auto table2 = tableFactory2->openTable(tableName);
     BOOST_CHECK_NE(table2, nullptr);

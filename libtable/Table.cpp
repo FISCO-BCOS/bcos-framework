@@ -18,7 +18,7 @@
  * @author: xingqiangbai
  * @date: 2021-04-07
  */
-#include "Table.h"
+#include "../interfaces/storage/Table.h"
 #include "../interfaces/storage/StorageInterface.h"
 #include "tbb/concurrent_vector.h"
 #include "tbb/enumerable_thread_specific.h"

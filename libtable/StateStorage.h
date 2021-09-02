@@ -22,7 +22,7 @@
 
 #include "../interfaces/storage/StorageInterface.h"
 #include "../libutilities/Error.h"
-#include "Table.h"
+#include "../interfaces/storage/Table.h"
 #include "tbb/concurrent_unordered_map.h"
 #include "tbb/enumerable_thread_specific.h"
 #include "tbb/parallel_for.h"
@@ -33,33 +33,18 @@
 
 namespace bcos::storage
 {
-class TableStorage : public storage::TraverseStorageInterface,
-                     public std::enable_shared_from_this<TableStorage>
+class StateStorage : public storage::TraverseStorageInterface,
+                     public std::enable_shared_from_this<StateStorage>
 {
 public:
-    static constexpr const char* SYS_TABLES = "s_tables";
-    static constexpr const char* const SYS_TABLE_KEY = "table_name";
-    static constexpr const char* const SYS_TABLE_VALUE_FIELDS = "value_fields";
-    static constexpr const char* const SYS_TABLE_KEY_FIELDS = "key_field";
-
-    inline storage::TableInfo::Ptr getSysTableInfo(const std::string& tableName)
-    {
-        if (tableName == SYS_TABLES)
-        {
-            return std::make_shared<storage::TableInfo>(tableName, SYS_TABLE_KEY,
-                std::string(SYS_TABLE_KEY_FIELDS) + "," + SYS_TABLE_VALUE_FIELDS);
-        }
-        return nullptr;
-    }
-
-    typedef std::shared_ptr<TableStorage> Ptr;
-    TableStorage(std::shared_ptr<StorageInterface> prev, std::shared_ptr<crypto::Hash> _hashImpl,
+    typedef std::shared_ptr<StateStorage> Ptr;
+    StateStorage(std::shared_ptr<StorageInterface> prev, std::shared_ptr<crypto::Hash> _hashImpl,
         protocol::BlockNumber _blockNum)
       : m_blockNumber(_blockNum), m_prev(prev), m_hashImpl(_hashImpl)
     {}
 
     // TODO: check if needed
-    TableStorage(std::shared_ptr<TraverseStorageInterface> prev,
+    StateStorage(std::shared_ptr<TraverseStorageInterface> prev,
         std::shared_ptr<StorageInterface> backend, std::shared_ptr<crypto::Hash> _hashImpl,
         protocol::BlockNumber blockNumber, protocol::BlockNumber commitedBlockNumber)
       : m_blockNumber(blockNumber), m_prev(backend), m_hashImpl(_hashImpl)
@@ -79,7 +64,7 @@ public:
         });
     }
 
-    virtual ~TableStorage() { getChangeLog().clear(); }
+    virtual ~StateStorage() { getChangeLog().clear(); }
 
     void asyncGetPrimaryKeys(const storage::TableInfo::ConstPtr& _tableInfo,
         const storage::Condition::ConstPtr& _condition,
@@ -100,12 +85,6 @@ public:
     void parallelTraverse(bool onlyDirty, std::function<bool(const TableInfo::ConstPtr& tableInfo,
                                               const std::string& key, const Entry::ConstPtr& entry)>
                                               callback) const override;
-
-    void asyncOpenTable(const std::string& tableName,
-        std::function<void(Error::Ptr&&, Table::Ptr&&)> callback) noexcept;
-
-    void asyncCreateTable(const std::string& _tableName, const std::string& _keyField,
-        const std::string& _valueFields, std::function<void(Error::Ptr&&, bool)> callback) noexcept;
 
     Table::Ptr openTable(const std::string& tableName);
 

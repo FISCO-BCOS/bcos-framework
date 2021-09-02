@@ -26,7 +26,7 @@
 #include "../../interfaces/protocol/BlockFactory.h"
 #include "../../interfaces/storage/StorageInterface.h"
 #include "../../interfaces/txpool/TxPoolInterface.h"
-#include "../../libtable/TableStorage.h"
+#include "../../libtable/StateStorage.h"
 #include "../protocol/FakeTransactionReceipt.h"
 using namespace bcos;
 using namespace bcos::dispatcher;

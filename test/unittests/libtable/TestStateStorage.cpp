@@ -19,8 +19,8 @@
 
 #include "../../../testutils/TestPromptFixture.h"
 #include "Hash.h"
-#include "libtable/Table.h"
-#include "libtable/TableStorage.h"
+#include "interfaces/storage/StorageInterface.h"
+#include "libtable/StateStorage.h"
 #include "libutilities/ThreadPool.h"
 #include <tbb/concurrent_vector.h>
 #include <boost/lexical_cast.hpp>
@@ -43,9 +43,9 @@ struct TableFactoryFixture
     TableFactoryFixture()
     {
         hashImpl = make_shared<Header256Hash>();
-        memoryStorage = make_shared<TableStorage>(nullptr, hashImpl, 0);
+        memoryStorage = make_shared<StateStorage>(nullptr, hashImpl, 0);
         BOOST_TEST(memoryStorage != nullptr);
-        tableFactory = make_shared<TableStorage>(memoryStorage, hashImpl, m_blockNumber);
+        tableFactory = make_shared<StateStorage>(memoryStorage, hashImpl, m_blockNumber);
         BOOST_TEST(tableFactory != nullptr);
     }
 
@@ -63,7 +63,7 @@ struct TableFactoryFixture
     std::shared_ptr<crypto::Hash> hashImpl = nullptr;
     std::shared_ptr<StorageInterface> memoryStorage = nullptr;
     protocol::BlockNumber m_blockNumber = 0;
-    std::shared_ptr<TableStorage> tableFactory = nullptr;
+    std::shared_ptr<StateStorage> tableFactory = nullptr;
     std::string testTableName = "t_test";
     std::string keyField = "key";
     std::string valueField = "value";
@@ -73,7 +73,7 @@ BOOST_FIXTURE_TEST_SUITE(TableFactoryTest, TableFactoryFixture)
 BOOST_AUTO_TEST_CASE(constructor)
 {
     auto threadPool = ThreadPool("a", 1);
-    auto tf = std::make_shared<TableStorage>(memoryStorage, nullptr, 0);
+    auto tf = std::make_shared<StateStorage>(memoryStorage, nullptr, 0);
 }
 
 BOOST_AUTO_TEST_CASE(create_Table)
@@ -244,7 +244,7 @@ BOOST_AUTO_TEST_CASE(hash)
     // BOOST_TEST(table->dirty() == true);
     auto dbHash0 = tableFactory->tablesHash();
     // auto data0 = tableFactory->exportData(m_blockNumber);
-    auto tableFactory0 = make_shared<TableStorage>(tableFactory, hashImpl, m_blockNumber);
+    auto tableFactory0 = make_shared<StateStorage>(tableFactory, hashImpl, m_blockNumber);
     // tableFactory0->importData(data0.first, data0.second);
     /*
     BOOST_TEST(dbHash0 == tableFactory0->hash());
@@ -376,15 +376,15 @@ BOOST_AUTO_TEST_CASE(hash)
 
 BOOST_AUTO_TEST_CASE(open_sysTables)
 {
-    auto table = tableFactory->openTable(TableStorage::SYS_TABLES);
+    auto table = tableFactory->openTable(StorageInterface::SYS_TABLES);
     BOOST_TEST(table != nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(openAndCommit)
 {
     auto hashImpl2 = make_shared<Header256Hash>();
-    auto memoryStorage2 = make_shared<TableStorage>(nullptr, hashImpl2, 0);
-    auto tableFactory2 = make_shared<TableStorage>(memoryStorage2, hashImpl2, 10);
+    auto memoryStorage2 = make_shared<StateStorage>(nullptr, hashImpl2, 0);
+    auto tableFactory2 = make_shared<StateStorage>(memoryStorage2, hashImpl2, 10);
 
     for (int i = 10; i < 20; ++i)
     {
@@ -413,14 +413,14 @@ BOOST_AUTO_TEST_CASE(openAndCommit)
 
 BOOST_AUTO_TEST_CASE(chainLink)
 {
-    std::vector<TableStorage::Ptr> storages;
+    std::vector<StateStorage::Ptr> storages;
     auto keyField = "key";
     auto valueFields = "value1,value2,value3";
 
-    TableStorage::Ptr prev = nullptr;
+    StateStorage::Ptr prev = nullptr;
     for (int i = 0; i < 20; ++i)
     {
-        auto tableStorage = std::make_shared<TableStorage>(prev, hashImpl, i);
+        auto tableStorage = std::make_shared<StateStorage>(prev, hashImpl, i);
         for (int j = 0; j < 10; ++j)
         {
             auto tableName = "table_" + boost::lexical_cast<std::string>(i) + "_" +
@@ -594,13 +594,13 @@ BOOST_AUTO_TEST_CASE(chainLink)
 
 BOOST_AUTO_TEST_CASE(getRows)
 {
-    std::vector<TableStorage::Ptr> storages;
+    std::vector<StateStorage::Ptr> storages;
     auto keyField = "key";
     auto valueFields = "value1,value2,value3";
 
-    TableStorage::Ptr prev = nullptr;
-    prev = std::make_shared<TableStorage>(prev, hashImpl, 0);
-    auto tableStorage = std::make_shared<TableStorage>(prev, hashImpl, 1);
+    StateStorage::Ptr prev = nullptr;
+    prev = std::make_shared<StateStorage>(prev, hashImpl, 0);
+    auto tableStorage = std::make_shared<StateStorage>(prev, hashImpl, 1);
 
     BOOST_CHECK_EQUAL(prev->createTable("t_test", keyField, valueFields), true);
 

@@ -18,8 +18,8 @@
  */
 
 #include "../../../testutils/TestPromptFixture.h"
-#include "libtable/Table.h"
-#include "libtable/TableStorage.h"
+#include "interfaces/storage/Table.h"
+#include "libtable/StateStorage.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
