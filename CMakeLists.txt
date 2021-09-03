@@ -98,7 +98,7 @@ include_directories(${CMAKE_INSTALL_INCLUDEDIR}/include)
 
 # set library target name
 set(UTILITIES_TARGET "utilities")
-set(TABLE_TARGET "table")
+set(STORAGE_TARGET "storage")
 set(CODEC_TARGET "codec")
 set(PROTOCOL_TARGET "protocol")
 set(PBPROTOCOL_TARGET "protocol-pb")
@@ -118,7 +118,7 @@ set(SYNC_PROTO_GENERATE_DIR ${SYNC_PROTO_GENERATE_BASE_DIR}/${SYNC_PROTO_SUB_DIR
 # add subdirectories to build the libraries
 add_subdirectory(libutilities)
 add_subdirectory(libcodec)
-add_subdirectory(libtable)
+add_subdirectory(libstorage)
 add_subdirectory(libprotocol)
 add_subdirectory(libprotocol/protobuf)
 add_subdirectory(libsync)

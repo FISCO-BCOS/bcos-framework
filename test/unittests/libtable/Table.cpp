@@ -22,11 +22,12 @@
 #include "Hash.h"
 #include "interfaces/crypto/CommonType.h"
 #include "interfaces/storage/StorageInterface.h"
-#include "libtable/StateStorage.h"
+#include "libstorage/StateStorage.h"
 #include "libutilities/ThreadPool.h"
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
+#include <optional>
 #include <string>
 
 using namespace std;
@@ -86,8 +87,8 @@ BOOST_AUTO_TEST_CASE(dump_hash)
 
     BOOST_CHECK_EQUAL(createPromise.get_future().get(), true);
 
-    std::promise<Table::Ptr> tablePromise;
-    tableFactory->asyncOpenTable("t_test", [&](Error::Ptr&& error, Table::Ptr&& table) {
+    std::promise<std::optional<Table>> tablePromise;
+    tableFactory->asyncOpenTable("t_test", [&](auto&& error, auto&& table) {
         BOOST_CHECK_EQUAL(error, nullptr);
         tablePromise.set_value(std::move(table));
     });
@@ -95,10 +96,10 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     BOOST_CHECK_NE(table, nullptr);
 
     // BOOST_TEST(table->dirty() == false);
-    auto entry = table->newEntry();
+    auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
     entry->setField("value", "Lili");
-    table->setRow("name", entry);
+    table->setRow("name", *entry);
     auto tableinfo = table->tableInfo();
     BOOST_CHECK_EQUAL(tableinfo->name, tableName);
 
@@ -118,7 +119,7 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     entry = table->newEntry();
     // entry->setField("key", "name2");
     entry->setField("value", "WW");
-    BOOST_CHECK_EQUAL(table->setRow("name2", entry), true);
+    BOOST_CHECK_EQUAL(table->setRow("name2", *entry), true);
 
     // data = table->dump(m_blockNumber);
     // BOOST_TEST(data->size() == 2);
@@ -140,8 +141,8 @@ BOOST_AUTO_TEST_CASE(setRow)
         });
     BOOST_CHECK_EQUAL(createPromise.get_future().get(), true);
 
-    std::promise<Table::Ptr> tablePromise;
-    tableFactory->asyncOpenTable("t_test", [&](Error::Ptr&& error, Table::Ptr&& table) {
+    std::promise<std::optional<Table>> tablePromise;
+    tableFactory->asyncOpenTable("t_test", [&](auto&& error, auto&& table) {
         BOOST_CHECK_EQUAL(error, nullptr);
         tablePromise.set_value(std::move(table));
     });
@@ -153,21 +154,20 @@ BOOST_AUTO_TEST_CASE(setRow)
     BOOST_TEST(table->tableInfo()->fields[0] == "value1");
     BOOST_TEST(table->tableInfo()->fields[1] == "value2");
     BOOST_TEST(table->tableInfo()->key == keyField);
-    auto entry = table->newEntry();
+    auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
     BOOST_CHECK_THROW(entry->setField("value", "Lili"), bcos::Error);
     BOOST_CHECK_THROW(entry->setField("invalid", "name"), bcos::Error);
-    auto ret = table->setRow("name", entry);
+    auto ret = table->setRow("name", *entry);
     BOOST_CHECK_EQUAL(ret, true);
 
     // check fields order of SYS_TABLE
-    std::promise<Table::Ptr> sysTablePromise;
-    tableFactory->asyncOpenTable(
-        StorageInterface::SYS_TABLES, [&](Error::Ptr&& error, Table::Ptr&& table) {
-            BOOST_CHECK_EQUAL(error, nullptr);
-            BOOST_CHECK_NE(table, nullptr);
-            sysTablePromise.set_value(std::move(table));
-        });
+    std::promise<std::optional<Table>> sysTablePromise;
+    tableFactory->asyncOpenTable(StorageInterface::SYS_TABLES, [&](auto&& error, auto&& table) {
+        BOOST_CHECK_EQUAL(error, nullptr);
+        BOOST_CHECK_NE(table, nullptr);
+        sysTablePromise.set_value(std::move(table));
+    });
     auto sysTable = sysTablePromise.get_future().get();
     BOOST_CHECK_NE(sysTable, nullptr);
 
@@ -186,24 +186,24 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     auto ret = tableFactory->createTable(tableName, keyField, valueField);
     BOOST_TEST(ret == true);
     auto table = tableFactory->openTable("t_test");
-    BOOST_TEST(table != nullptr);
+    BOOST_TEST(table);
     // check fields order of t_test
     BOOST_TEST(table->tableInfo()->fields.size() == 2);
     BOOST_TEST(table->tableInfo()->fields[0] == "value1");
     BOOST_TEST(table->tableInfo()->fields[1] == "value2");
     BOOST_TEST(table->tableInfo()->key == keyField);
-    auto entry = table->newEntry();
+    auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
     entry->setField("value1", "hello world!");
     entry->setField("value2", "hello world2!");
     BOOST_CHECK_THROW(entry->setField("value", "Lili"), bcos::Error);
     BOOST_CHECK_THROW(entry->setField("invalid", "name"), bcos::Error);
-    BOOST_CHECK_EQUAL(table->setRow("name", entry), true);
+    BOOST_CHECK_EQUAL(table->setRow("name", *entry), true);
 
-    auto deleteEntry = table->newEntry();
+    auto deleteEntry = std::make_optional(table->newEntry());
     deleteEntry->setStatus(Entry::DELETED);
     deleteEntry->setVersion(entry->version() + 1);
-    BOOST_CHECK_EQUAL(table->setRow("name", deleteEntry), true);
+    BOOST_CHECK_EQUAL(table->setRow("name", *deleteEntry), true);
 
     auto hashs = tableFactory->tableHashes();
 
@@ -212,9 +212,9 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     auto table2 = tableFactory2->openTable(tableName);
     BOOST_CHECK_NE(table2, nullptr);
 
-    auto deleteEntry2 = table2->newEntry();
+    auto deleteEntry2 = std::make_optional(table2->newEntry());
     deleteEntry2->setStatus(Entry::DELETED);
-    BOOST_CHECK_EQUAL(table2->setRow("name", deleteEntry2), true);
+    BOOST_CHECK_EQUAL(table2->setRow("name", *deleteEntry2), true);
     auto hashs2 = tableFactory2->tableHashes();
 
     BOOST_CHECK_EQUAL_COLLECTIONS(hashs.begin(), hashs.end(), hashs2.begin(), hashs2.end());

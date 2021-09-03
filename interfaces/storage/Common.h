@@ -41,8 +41,6 @@ namespace storage
 {
 struct Condition : public std::enable_shared_from_this<Condition>
 {
-    using Ptr = std::shared_ptr<Condition>;
-    using ConstPtr = std::shared_ptr<Condition const>;
     Condition() = default;
     virtual ~Condition() = default;
     virtual void NE(const std::string& value) { m_conditions.emplace_back(Comparator::NE, value); }

@@ -19,7 +19,7 @@
 
 #include "../../../testutils/TestPromptFixture.h"
 #include "interfaces/storage/Table.h"
-#include "libtable/StateStorage.h"
+#include "libstorage/StateStorage.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>

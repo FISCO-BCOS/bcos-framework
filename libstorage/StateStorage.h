@@ -21,8 +21,8 @@
 #pragma once
 
 #include "../interfaces/storage/StorageInterface.h"
-#include "../libutilities/Error.h"
 #include "../interfaces/storage/Table.h"
+#include "../libutilities/Error.h"
 #include "tbb/concurrent_unordered_map.h"
 #include "tbb/enumerable_thread_specific.h"
 #include "tbb/parallel_for.h"
@@ -54,11 +54,10 @@ public:
             BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Null prev storage"));
         }
 
-        prev->parallelTraverse(false, [&](const TableInfo::ConstPtr& tableInfo,
-                                          const std::string& key, const Entry::ConstPtr& entry) {
-            if (entry->num() > commitedBlockNumber)
+        prev->parallelTraverse(false, [&](auto&& tableInfo, auto&& key, auto&& entry) {
+            if (entry.num() > commitedBlockNumber)
             {
-                importExistingEntry(tableInfo, key, std::make_shared<Entry>(*entry));
+                importExistingEntry(tableInfo, key, std::move(entry));
             }
             return true;
         });
@@ -67,26 +66,25 @@ public:
     virtual ~StateStorage() { getChangeLog().clear(); }
 
     void asyncGetPrimaryKeys(const storage::TableInfo::ConstPtr& _tableInfo,
-        const storage::Condition::ConstPtr& _condition,
+        const std::optional<storage::Condition const>& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept override;
 
     void asyncGetRow(const storage::TableInfo::ConstPtr& _tableInfo, const std::string& _key,
-        std::function<void(Error::Ptr&&, storage::Entry::Ptr&&)> _callback) noexcept override;
+        std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept override;
 
     void asyncGetRows(const storage::TableInfo::ConstPtr& _tableInfo,
         const gsl::span<std::string const>& _keys,
-        std::function<void(Error::Ptr&&, std::vector<storage::Entry::Ptr>&&)> _callback) noexcept
+        std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
         override;
 
     void asyncSetRow(const storage::TableInfo::ConstPtr& tableInfo, const std::string& key,
-        const storage::Entry::ConstPtr& entry,
-        std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
+        Entry entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
 
     void parallelTraverse(bool onlyDirty, std::function<bool(const TableInfo::ConstPtr& tableInfo,
-                                              const std::string& key, const Entry::ConstPtr& entry)>
+                                              const std::string& key, const Entry& entry)>
                                               callback) const override;
 
-    Table::Ptr openTable(const std::string& tableName);
+    std::optional<Table> openTable(const std::string& tableName);
 
     bool createTable(const std::string& _tableName, const std::string& _keyField,
         const std::string& _valueFields);
@@ -113,10 +111,10 @@ private:
         TableInfo::ConstPtr tableInfo;
         Kind kind;  ///< The kind of the change.
         std::string key;
-        storage::Entry::Ptr entry;
+        std::optional<Entry> entry;
         bool tableDirty;
         Change(storage::TableInfo::ConstPtr _tableInfo, Kind _kind, std::string _key,
-            const storage::Entry::Ptr& _entry, bool _tableDirty)
+            std::optional<Entry> _entry, bool _tableDirty)
           : tableInfo(_tableInfo),
             kind(_kind),
             key(std::move(_key)),
@@ -126,15 +124,15 @@ private:
     };
 
     std::vector<Change>& getChangeLog() { return s_changeLog.local(); }
-    Entry::Ptr importExistingEntry(
-        const TableInfo::ConstPtr& tableInfo, const std::string& key, Entry::Ptr&& entry);
+    Entry importExistingEntry(
+        const TableInfo::ConstPtr& tableInfo, const std::string& key, Entry entry);
 
     tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
 
     struct TableData
     {
         TableInfo::ConstPtr tableInfo;
-        tbb::concurrent_unordered_map<std::string, storage::Entry::Ptr> entries;
+        tbb::concurrent_unordered_map<std::string, Entry> entries;
         bool dirty = false;
     };
     tbb::concurrent_unordered_map<std::string, TableData> m_data;

@@ -26,7 +26,7 @@
 #include "../../interfaces/protocol/BlockFactory.h"
 #include "../../interfaces/storage/StorageInterface.h"
 #include "../../interfaces/txpool/TxPoolInterface.h"
-#include "../../libtable/StateStorage.h"
+#include "../../libstorage/StateStorage.h"
 #include "../protocol/FakeTransactionReceipt.h"
 using namespace bcos;
 using namespace bcos::dispatcher;
@@ -83,7 +83,7 @@ public:
     void preCommitBlock(const Block::Ptr& _block, BlockHeader::Ptr _header,
         std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback)
     {
-        auto tableFactory = std::make_shared<TableStorage>(
+        auto tableFactory = std::make_shared<StateStorage>(
             m_storage, m_cryptoSuite->hashImpl(), _block->blockHeader()->number());
         for (size_t i = 0; i < _block->transactionsHashSize(); i++)
         {

@@ -20,12 +20,10 @@ public:
         NORMAL = 0,
         DELETED = 1
     };
-    using Ptr = std::shared_ptr<Entry>;
-    using ConstPtr = std::shared_ptr<const Entry>;
 
-    Entry() noexcept : m_num(0), m_data(Data{nullptr, std::vector<std::string>(), 0}) {}
+    Entry() : m_num(0), m_data(Data{nullptr, std::vector<std::string>(), 0}) {}
 
-    explicit Entry(const TableInfo::ConstPtr& tableInfo, protocol::BlockNumber _num = 0) noexcept
+    explicit Entry(const TableInfo::ConstPtr& tableInfo, protocol::BlockNumber _num = 0)
       : m_num(_num)
     {
         if (tableInfo)
@@ -38,12 +36,12 @@ public:
         }
     }
 
-    explicit Entry(const Entry& entry) noexcept = default;
-    explicit Entry(Entry&& entry) noexcept = default;
-    bcos::storage::Entry& operator=(const Entry& entry) noexcept = default;
-    bcos::storage::Entry& operator=(Entry&& entry) noexcept = default;
+    Entry(const Entry&) = default;
+    Entry(Entry&&) = default;
+    bcos::storage::Entry& operator=(const Entry&) = default;
+    bcos::storage::Entry& operator=(Entry&&) = default;
 
-    virtual ~Entry() noexcept {}
+    virtual ~Entry() {}
 
     std::string_view getField(size_t index) const
     {

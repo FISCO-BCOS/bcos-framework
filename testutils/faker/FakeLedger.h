@@ -122,7 +122,7 @@ public:
         m_ledgerConfig->setHash(_blockHeader->hash());
     }
 
-    void asyncPrewriteBlock(bcos::storage::TableStorage::Ptr storage,
+    void asyncPrewriteBlock(bcos::storage::StorageInterface::Ptr storage,
         bcos::protocol::Block::ConstPtr block, std::function<void(Error::Ptr&&)> callback) override
     {
         (void)storage;

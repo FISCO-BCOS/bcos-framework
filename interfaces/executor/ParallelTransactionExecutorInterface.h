@@ -28,9 +28,9 @@
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/Transaction.h"
 #include "../protocol/TransactionReceipt.h"
-#include "TableHash.h"
 #include "ExecutionParams.h"
 #include "ExecutionResult.h"
+#include "TableHash.h"
 #include <memory>
 
 namespace bcos
@@ -40,13 +40,22 @@ namespace executor
 class ParallelTransactionExecutorInterface
 {
 public:
+    struct TwoPCParams
+    {
+        bcos::protocol::BlockNumber number;
+    };
+
     using Ptr = std::shared_ptr<ParallelTransactionExecutorInterface>;
     using ConstPtr = std::shared_ptr<const ParallelTransactionExecutorInterface>;
 
     virtual void nextBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
         std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
 
-    virtual void executeTransactions(bool enableDAG,
+    virtual void executeTransaction(const bcos::protocol::ExecutionParams::ConstPtr& inputs,
+        std::function<void(bcos::Error::Ptr&&, bcos::protocol::ExecutionResult::Ptr&&)>
+            callback) noexcept = 0;
+
+    virtual void dagExecuteTransactions(
         const gsl::span<bcos::protocol::ExecutionParams::ConstPtr>& inputs,
         std::function<void(bcos::Error::Ptr&&, std::vector<bcos::protocol::ExecutionResult::Ptr>&&)>
             callback) noexcept = 0;
@@ -62,16 +71,16 @@ public:
     /* ----- XA Transaction interface Start ----- */
 
     // Write data to storage uncommitted
-    virtual void prepare(bcos::protocol::BlockNumber number,
-        std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
+    virtual void prepare(
+        const TwoPCParams& params, std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
 
     // Commit uncommitted data
-    virtual void commit(bcos::protocol::BlockNumber number,
-        std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
+    virtual void commit(
+        const TwoPCParams& params, std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
 
     // Rollback the changes
-    virtual void rollback(bcos::protocol::BlockNumber number,
-        std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
+    virtual void rollback(
+        const TwoPCParams& params, std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
 
     /* ----- XA Transaction interface End ----- */
 
