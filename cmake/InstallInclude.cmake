@@ -39,9 +39,9 @@ install(
     FILES_MATCHING PATTERN "*.h"
 )
 
-# table
+# storage
 install(
-    DIRECTORY "libtable"
+    DIRECTORY "libstorage"
     DESTINATION "${DESTINATION_INCLUDE_DIR}"
     FILES_MATCHING PATTERN "*.h"
 )
