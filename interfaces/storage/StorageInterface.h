@@ -38,11 +38,10 @@ class StorageInterface
 {
 public:
     static constexpr const char* SYS_TABLES = "s_tables";
-    static constexpr const char* const SYS_TABLE_KEY = "table_name";
     static constexpr const char* const SYS_TABLE_VALUE_FIELDS = "value_fields";
     static constexpr const char* const SYS_TABLE_KEY_FIELDS = "key_field";
 
-    static storage::TableInfo::Ptr getSysTableInfo(const std::string& tableName);
+    static std::optional<TableInfo> getSysTableInfo(const std::string& tableName);
 
     using Ptr = std::shared_ptr<StorageInterface>;
     virtual ~StorageInterface() = default;

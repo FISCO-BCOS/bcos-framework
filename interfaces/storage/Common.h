@@ -120,24 +120,26 @@ struct Condition : public std::enable_shared_from_this<Condition>
     std::pair<size_t, size_t> m_limit;
 };
 
-struct TableInfo : public std::enable_shared_from_this<TableInfo>
+struct TableInfo
 {
     using Ptr = std::shared_ptr<TableInfo>;
     using ConstPtr = std::shared_ptr<const TableInfo>;
 
-    explicit TableInfo(const std::string& _tableName, const std::string_view& _key,
-        const std::string_view& _fields)
-      : name(_tableName), key(_key)
+    explicit TableInfo(std::string _tableName, std::string _key, const std::string_view& _fields)
+      : name(std::move(_tableName)), key(std::move(_key))
     {
         boost::split(fields, _fields, boost::is_any_of(","));
         generateFieldsIndex();
     }
-    explicit TableInfo(const std::string& _tableName, const std::string& _key,
-        const std::vector<std::string>& _fields)
-      : name(_tableName), key(_key), fields(_fields)
+    explicit TableInfo(std::string _tableName, std::string _key, std::vector<std::string> _fields)
+      : name(std::move(_tableName)), key(std::move(_key)), fields(std::move(_fields))
     {
         generateFieldsIndex();
     }
+    TableInfo(const TableInfo&) = default;
+    TableInfo(TableInfo&&) = default;
+    TableInfo& operator=(const TableInfo&) = default;
+    TableInfo& operator=(TableInfo&&) = default;
 
     void generateFieldsIndex()
     {
