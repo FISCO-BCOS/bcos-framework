@@ -20,12 +20,10 @@ public:
         NORMAL = 0,
         DELETED = 1
     };
-    using Ptr = std::shared_ptr<Entry>;
-    using ConstPtr = std::shared_ptr<const Entry>;
 
-    Entry() noexcept : m_num(0), m_data(Data{nullptr, std::vector<std::string>(), 0}) {}
+    Entry() : m_num(0), m_data(Data{nullptr, std::vector<std::string>(), 0}) {}
 
-    explicit Entry(const TableInfo::ConstPtr& tableInfo, protocol::BlockNumber _num = 0) noexcept
+    explicit Entry(const TableInfo::ConstPtr& tableInfo, protocol::BlockNumber _num = 0)
       : m_num(_num)
     {
         if (tableInfo)
@@ -38,12 +36,12 @@ public:
         }
     }
 
-    explicit Entry(const Entry& entry) noexcept = default;
-    explicit Entry(Entry&& entry) noexcept = default;
-    bcos::storage::Entry& operator=(const Entry& entry) noexcept = default;
-    bcos::storage::Entry& operator=(Entry&& entry) noexcept = default;
+    Entry(const Entry&) = default;
+    Entry(Entry&&) = default;
+    bcos::storage::Entry& operator=(const Entry&) = default;
+    bcos::storage::Entry& operator=(Entry&&) = default;
 
-    virtual ~Entry() noexcept {}
+    virtual ~Entry() {}
 
     std::string_view getField(size_t index) const
     {
@@ -61,7 +59,8 @@ public:
 
     std::string_view getField(const std::string_view& field) const
     {
-        auto& tableInfo = m_data.get()->tableInfo;
+        auto data = m_data.get();
+        auto& tableInfo = data->tableInfo;
         if (!tableInfo)
         {
             BOOST_THROW_EXCEPTION(
@@ -90,8 +89,11 @@ public:
                                    boost::lexical_cast<std::string>(m_data.get()->fields.size())));
         }
 
-        ssize_t updatedCapacity = value.size() - value.size();
         auto data = m_data.mutableGet();
+        auto& field = (data->fields)[index];
+
+        ssize_t updatedCapacity = value.size() - field.size();
+
         data->fields[index] = std::move(value);
         data->capacityOfHashField += updatedCapacity;
         m_dirty = true;
@@ -146,7 +148,6 @@ public:
     void setNum(protocol::BlockNumber num) noexcept
     {
         m_num = num;
-        m_dirty = true;
     }
 
     bool dirty() const noexcept { return m_dirty; }

@@ -1,6 +1,6 @@
 #include "../../../testutils/TestPromptFixture.h"
 #include "Hash.h"
-#include "libtable/TableStorage.h"
+#include "libstorage/StateStorage.h"
 #include "libutilities/Common.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/test/unit_test.hpp>
@@ -15,22 +15,22 @@ struct TablePerfFixture
     TablePerfFixture()
     {
         auto hashImpl = std::make_shared<bcos::crypto::Header256Hash>();
-        auto memoryStorage = std::make_shared<TableStorage>(nullptr, hashImpl, 0);
+        auto memoryStorage = std::make_shared<StateStorage>(nullptr, hashImpl, 0);
         BOOST_TEST(memoryStorage != nullptr);
-        tableFactory = std::make_shared<TableStorage>(memoryStorage, hashImpl, 0);
+        tableFactory = std::make_shared<StateStorage>(memoryStorage, hashImpl, 0);
         BOOST_TEST(tableFactory != nullptr);
     }
 
-    std::vector<std::tuple<std::string, Entry::Ptr>> createTestData(Table::Ptr table)
+    std::vector<std::tuple<std::string, Entry>> createTestData(Table table)
     {
-        std::vector<std::tuple<std::string, Entry::Ptr>> entries;
+        std::vector<std::tuple<std::string, Entry>> entries;
         entries.reserve(count);
         for (size_t i = 0; i < count; ++i)
         {
-            auto entry = table->newEntry();
-            entry->setField("field1", "value1");
-            entry->setField("field2", "value2");
-            entry->setField("field3", "value" + boost::lexical_cast<std::string>(i));
+            auto entry = table.newEntry();
+            entry.setField("field1", "value1");
+            entry.setField("field2", "value2");
+            entry.setField("field3", "value" + boost::lexical_cast<std::string>(i));
 
             entries.emplace_back("key_" + boost::lexical_cast<std::string>(i), std::move(entry));
         }
@@ -38,7 +38,7 @@ struct TablePerfFixture
         return entries;
     }
 
-    std::shared_ptr<TableStorage> tableFactory;
+    std::shared_ptr<StateStorage> tableFactory;
     size_t count = 100 * 1000;
 };
 
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(syncGet)
     tableFactory->createTable("test_table", "key", "field1,field2,field3");
     auto table = tableFactory->openTable("test_table");
 
-    auto entries = createTestData(table);
+    auto entries = createTestData(*table);
 
     for (auto& [key, entry] : entries)
     {
@@ -64,8 +64,7 @@ BOOST_AUTO_TEST_CASE(syncGet)
 
         BOOST_CHECK_EQUAL(entry->getField("field1"), "value1");
         BOOST_CHECK_EQUAL(entry->getField("field2"), "value2");
-        BOOST_CHECK_EQUAL(
-            entry->getField("field3"), "value" + boost::lexical_cast<std::string>(i));
+        BOOST_CHECK_EQUAL(entry->getField("field3"), "value" + boost::lexical_cast<std::string>(i));
     }
 
     std::cout << "sync cost: " << bcos::utcSteadyTime() - now << std::endl;
@@ -76,7 +75,7 @@ BOOST_AUTO_TEST_CASE(asyncGet)
     tableFactory->createTable("test_table", "key", "field1,field2,field3");
     auto table = tableFactory->openTable("test_table");
 
-    auto entries = createTestData(table);
+    auto entries = createTestData(*table);
 
     for (auto& [key, entry] : entries)
     {
@@ -91,19 +90,18 @@ BOOST_AUTO_TEST_CASE(asyncGet)
     for (size_t i = 0; i < count; ++i)
     {
         std::string key = "key_" + boost::lexical_cast<std::string>(i);
-        table->asyncGetRow(
-            key, [i, &total, &finished, &done](const Error::Ptr&, const Entry::Ptr& entry) {
-                BOOST_CHECK_EQUAL(entry->getField("field1"), "value1");
-                BOOST_CHECK_EQUAL(entry->getField("field2"), "value2");
-                BOOST_CHECK_EQUAL(
-                    entry->getField("field3"), "value" + boost::lexical_cast<std::string>(i));
+        table->asyncGetRow(key, [i, &total, &finished, &done](auto&&, auto&& entry) {
+            BOOST_CHECK_EQUAL(entry->getField("field1"), "value1");
+            BOOST_CHECK_EQUAL(entry->getField("field2"), "value2");
+            BOOST_CHECK_EQUAL(
+                entry->getField("field3"), "value" + boost::lexical_cast<std::string>(i));
 
-                auto current = done.fetch_add(1);
-                if (current + 1 >= total)
-                {
-                    finished.set_value(true);
-                }
-            });
+            auto current = done.fetch_add(1);
+            if (current + 1 >= total)
+            {
+                finished.set_value(true);
+            }
+        });
     }
     finished.get_future().get();
 
@@ -115,7 +113,7 @@ BOOST_AUTO_TEST_CASE(asyncToSyncGet)
     tableFactory->createTable("test_table", "key", "field1,field2,field3");
     auto table = tableFactory->openTable("test_table");
 
-    auto entries = createTestData(table);
+    auto entries = createTestData(*table);
 
     for (auto& [key, entry] : entries)
     {
@@ -127,7 +125,7 @@ BOOST_AUTO_TEST_CASE(asyncToSyncGet)
     {
         std::string key = "key_" + boost::lexical_cast<std::string>(i);
         std::promise<bool> finished;
-        table->asyncGetRow(key, [i, &finished](const Error::Ptr&, const Entry::Ptr& entry) {
+        table->asyncGetRow(key, [i, &finished](auto&&, auto&& entry) {
             BOOST_CHECK_EQUAL(entry->getField("field1"), "value1");
             BOOST_CHECK_EQUAL(entry->getField("field2"), "value2");
             BOOST_CHECK_EQUAL(

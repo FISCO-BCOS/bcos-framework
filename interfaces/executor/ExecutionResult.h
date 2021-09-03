@@ -51,8 +51,8 @@ public:
     virtual int64_t contextID() const = 0;
     virtual void setContextID(int64_t contextID) = 0;
 
-    virtual int64_t status() const = 0;
-    virtual void setStatus(int64_t status) = 0;
+    virtual int32_t status() const = 0;
+    virtual void setStatus(int32_t status) = 0;
 
     virtual std::string_view message() const = 0;
     virtual void setMessage(std::string message) = 0;

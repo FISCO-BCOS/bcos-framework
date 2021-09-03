@@ -87,7 +87,7 @@ public:
                 return;
             }
             _onVerifyFinished(
-                std::make_shared<Error>(CommonError::TransactionsMissing, "TransactionsMissing"),
+                std::make_unique<Error>(CommonError::TransactionsMissing, "TransactionsMissing"),
                 m_verifyResult);
         });
     }

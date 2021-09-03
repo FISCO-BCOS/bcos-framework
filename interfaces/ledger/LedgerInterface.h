@@ -26,7 +26,7 @@
 #include "../../interfaces/protocol/BlockHeader.h"
 #include "../../interfaces/protocol/Transaction.h"
 #include "../../interfaces/protocol/TransactionReceipt.h"
-#include "../../libtable/TableStorage.h"
+#include "../../interfaces/storage/StorageInterface.h"
 #include "../../libutilities/Error.h"
 #include "LedgerConfig.h"
 #include "LedgerTypeDef.h"
@@ -48,9 +48,8 @@ public:
      * @param block the block to commit
      * @param callback trigger this callback when write is finished
      */
-    virtual void asyncPrewriteBlock(bcos::storage::TableStorage::Ptr storage,
-        bcos::protocol::Block::ConstPtr block,
-        std::function<void(Error::Ptr&&)> callback) = 0;
+    virtual void asyncPrewriteBlock(bcos::storage::StorageInterface::Ptr storage,
+        bcos::protocol::Block::ConstPtr block, std::function<void(Error::Ptr&&)> callback) = 0;
 
     /**
      * @brief async store txs in block when tx pool verify

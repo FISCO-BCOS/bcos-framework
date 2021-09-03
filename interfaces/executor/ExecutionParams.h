@@ -62,8 +62,8 @@ public:
     virtual void setTo(std::string to) = 0;
 
     // for external call return
-    virtual int64_t status() const = 0;
-    virtual void setStatus(int64_t status) = 0;
+    virtual int32_t status() const = 0;
+    virtual void setStatus(int32_t status) = 0;
 
     // for external call return
     virtual std::string_view message() const = 0;

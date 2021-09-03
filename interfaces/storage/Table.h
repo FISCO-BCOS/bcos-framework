@@ -20,9 +20,8 @@
  */
 #pragma once
 
-#include "../interfaces/storage/Common.h"
-#include "../interfaces/storage/StorageInterface.h"
-#include "tbb/concurrent_unordered_map.h"
+#include "Common.h"
+#include "StorageInterface.h"
 #include <future>
 #include <gsl/span>
 
@@ -33,42 +32,43 @@ namespace storage
 class Table
 {
 public:
-    using Ptr = std::shared_ptr<Table>;
-
-    Table(std::shared_ptr<StorageInterface> _db, TableInfo::Ptr _tableInfo,
-        protocol::BlockNumber _blockNum)
-      : m_storage(_db), m_tableInfo(_tableInfo), m_blockNumber(_blockNum)
+    Table(StorageInterface* _db, TableInfo::Ptr _tableInfo, protocol::BlockNumber _blockNum)
+      : m_storage(_db), m_tableInfo(std::move(_tableInfo)), m_blockNumber(_blockNum)
     {}
+
+    Table(const Table&) = default;
+    Table(Table&&) = default;
+    Table& operator=(const Table&) = default;
+    Table& operator=(Table&&) = default;
     virtual ~Table() {}
 
-    Entry::Ptr getRow(const std::string& _key);
-    std::vector<Entry::Ptr> getRows(const gsl::span<std::string>& _keys);
-    std::vector<std::string> getPrimaryKeys(const Condition::Ptr& _condition);
+    std::optional<Entry> getRow(const std::string& _key);
+    std::vector<std::optional<Entry>> getRows(const gsl::span<std::string>& _keys);
+    std::vector<std::string> getPrimaryKeys(const Condition& _condition);
 
-    bool setRow(const std::string& _key, const Entry::Ptr& _entry);
-    // bool remove(const std::string& _key);
+    bool setRow(const std::string& _key, Entry _entry);
 
-    void asyncGetPrimaryKeys(const Condition::Ptr& _condition,
+    void asyncGetPrimaryKeys(Condition const& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept;
     void asyncGetRow(const std::string& _key,
-        std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback) noexcept;
+        std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept;
     void asyncGetRows(const gsl::span<std::string>& _keys,
-        std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback) noexcept;
+        std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept;
 
-    void asyncSetRow(const std::string& key, const Entry::Ptr& entry,
+    void asyncSetRow(const std::string& key, Entry entry,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept;
 
     TableInfo::Ptr tableInfo() const { return m_tableInfo; }
-    Entry::Ptr newEntry() { return std::make_shared<Entry>(m_tableInfo, m_blockNumber); }
-    Entry::Ptr newDeletedEntry()
+    Entry newEntry() { return Entry(m_tableInfo, m_blockNumber); }
+    Entry newDeletedEntry()
     {
         auto deletedEntry = newEntry();
-        deletedEntry->setStatus(Entry::DELETED);
+        deletedEntry.setStatus(Entry::DELETED);
         return deletedEntry;
     }
 
 protected:
-    std::shared_ptr<StorageInterface> m_storage;
+    StorageInterface* m_storage;
     TableInfo::Ptr m_tableInfo;
     bcos::protocol::BlockNumber m_blockNumber;
 };

@@ -32,26 +32,40 @@ namespace bcos
 {
 namespace storage
 {
+class Table;
+
 class StorageInterface
 {
 public:
+    static constexpr const char* SYS_TABLES = "s_tables";
+    static constexpr const char* const SYS_TABLE_VALUE_FIELDS = "value_fields";
+    static constexpr const char* const SYS_TABLE_KEY_FIELDS = "key_field";
+
+    static std::optional<TableInfo> getSysTableInfo(const std::string& tableName);
+
     using Ptr = std::shared_ptr<StorageInterface>;
     virtual ~StorageInterface() = default;
 
     virtual void asyncGetPrimaryKeys(const TableInfo::ConstPtr& _tableInfo,
-        const Condition::ConstPtr& _condition,
+        const std::optional<Condition const>& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept = 0;
 
     virtual void asyncGetRow(const TableInfo::ConstPtr& _tableInfo, const std::string& _key,
-        std::function<void(Error::Ptr&&, Entry::Ptr&&)> _callback) noexcept = 0;
+        std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept = 0;
 
     virtual void asyncGetRows(const TableInfo::ConstPtr& _tableInfo,
         const gsl::span<std::string const>& _keys,
-        std::function<void(Error::Ptr&&, std::vector<Entry::Ptr>&&)> _callback) noexcept = 0;
+        std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)>
+            _callback) noexcept = 0;
 
     virtual void asyncSetRow(const TableInfo::ConstPtr& tableInfo, const std::string& key,
-        const Entry::ConstPtr& entry,
-        std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
+        Entry entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
+
+    virtual void asyncCreateTable(const std::string& _tableName, const std::string& _keyField,
+        const std::string& _valueFields, std::function<void(Error::Ptr&&, bool)> callback) noexcept;
+
+    virtual void asyncOpenTable(const std::string& tableName,
+        std::function<void(Error::Ptr&&, std::optional<Table>&&)> callback) noexcept;
 };
 
 class TraverseStorageInterface : public StorageInterface
@@ -62,8 +76,8 @@ public:
     ~TraverseStorageInterface() override = default;
 
     virtual void parallelTraverse(bool onlyDirty,
-        std::function<bool(const TableInfo::ConstPtr& tableInfo, const std::string& key,
-            const Entry::ConstPtr& entry)>
+        std::function<bool(
+            const TableInfo::ConstPtr& tableInfo, const std::string& key, Entry const& entry)>
             callback) const = 0;
 };
 
@@ -76,21 +90,22 @@ public:
 class TransactionalStorageInterface : public StorageInterface
 {
 public:
-    struct PrepareParams
+    struct TwoPCParams
     {
+        bcos::protocol::BlockNumber number;
     };
 
     ~TransactionalStorageInterface() override = default;
 
-    virtual void asyncPrepare(const PrepareParams& params,
+    virtual void asyncPrepare(const TwoPCParams& params,
         const TraverseStorageInterface::ConstPtr& storage,
         std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void asyncCommit(
-        protocol::BlockNumber blockNumber, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
+        const TwoPCParams& params, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void asyncRollback(
-        protocol::BlockNumber blockNumber, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
+        const TwoPCParams& params, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 };
 
 }  // namespace storage
