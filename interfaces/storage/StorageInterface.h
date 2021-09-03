@@ -42,7 +42,7 @@ public:
     static constexpr const char* const SYS_TABLE_VALUE_FIELDS = "value_fields";
     static constexpr const char* const SYS_TABLE_KEY_FIELDS = "key_field";
 
-    storage::TableInfo::Ptr getSysTableInfo(const std::string& tableName) const;
+    static storage::TableInfo::Ptr getSysTableInfo(const std::string& tableName);
 
     using Ptr = std::shared_ptr<StorageInterface>;
     virtual ~StorageInterface() = default;

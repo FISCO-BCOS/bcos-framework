@@ -3,7 +3,7 @@
 
 using namespace bcos::storage;
 
-TableInfo::Ptr StorageInterface::getSysTableInfo(const std::string& tableName) const
+TableInfo::Ptr StorageInterface::getSysTableInfo(const std::string& tableName)
 {
     if (tableName == SYS_TABLES)
     {
