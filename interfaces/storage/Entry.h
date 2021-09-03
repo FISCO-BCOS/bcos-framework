@@ -59,7 +59,8 @@ public:
 
     std::string_view getField(const std::string_view& field) const
     {
-        auto& tableInfo = m_data.get()->tableInfo;
+        auto data = m_data.get();
+        auto& tableInfo = data->tableInfo;
         if (!tableInfo)
         {
             BOOST_THROW_EXCEPTION(
@@ -88,8 +89,11 @@ public:
                                    boost::lexical_cast<std::string>(m_data.get()->fields.size())));
         }
 
-        ssize_t updatedCapacity = value.size() - value.size();
         auto data = m_data.mutableGet();
+        auto& field = (data->fields)[index];
+
+        ssize_t updatedCapacity = value.size() - field.size();
+
         data->fields[index] = std::move(value);
         data->capacityOfHashField += updatedCapacity;
         m_dirty = true;
@@ -144,7 +148,6 @@ public:
     void setNum(protocol::BlockNumber num) noexcept
     {
         m_num = num;
-        m_dirty = true;
     }
 
     bool dirty() const noexcept { return m_dirty; }
