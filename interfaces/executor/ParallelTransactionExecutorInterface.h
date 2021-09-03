@@ -28,7 +28,7 @@
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/Transaction.h"
 #include "../protocol/TransactionReceipt.h"
-#include "ContractStatus.h"
+#include "TableHash.h"
 #include "ExecutionParams.h"
 #include "ExecutionResult.h"
 #include <memory>
@@ -55,8 +55,8 @@ public:
         std::function<void(bcos::Error::Ptr&&, bcos::protocol::ExecutionResult::Ptr&&)>
             callback) noexcept = 0;
 
-    virtual void getContractStatus(bcos::protocol::BlockNumber number,
-        std::function<void(bcos::Error::Ptr&&, std::vector<ContractStatus::Ptr>&&)>
+    virtual void getTableHashes(bcos::protocol::BlockNumber number,
+        std::function<void(bcos::Error::Ptr&&, std::vector<TableHash::Ptr>&&)>
             callback) noexcept = 0;
 
     /* ----- XA Transaction interface Start ----- */

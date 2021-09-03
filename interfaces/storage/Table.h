@@ -35,7 +35,7 @@ public:
     using Ptr = std::shared_ptr<Table>;
 
     Table(StorageInterface* _db, TableInfo::Ptr _tableInfo, protocol::BlockNumber _blockNum)
-      : m_storage(_db), m_tableInfo(_tableInfo), m_blockNumber(_blockNum)
+      : m_storage(_db), m_tableInfo(std::move(_tableInfo)), m_blockNumber(_blockNum)
     {}
     virtual ~Table() {}
 

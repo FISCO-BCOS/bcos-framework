@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     //     valueField.begin(), valueField.end(), tableinfo->fields.begin(),
     //     tableinfo->fields.end());
 
-    auto hash = tableFactory->tablesHash();
+    auto hash = tableFactory->tableHashes();
     BOOST_CHECK_EQUAL(hash.size(), 2);  // include s_tables and t_test
     BOOST_CHECK_EQUAL(std::get<1>(hash[0]).size, 32);
 
@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     deleteEntry->setVersion(entry->version() + 1);
     BOOST_CHECK_EQUAL(table->setRow("name", deleteEntry), true);
 
-    auto hashs = tableFactory->tablesHash();
+    auto hashs = tableFactory->tableHashes();
 
     auto tableFactory2 = std::make_shared<StateStorage>(nullptr, hashImpl, 0);
     BOOST_CHECK_EQUAL(tableFactory2->createTable(tableName, keyField, valueField), true);
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     auto deleteEntry2 = table2->newEntry();
     deleteEntry2->setStatus(Entry::DELETED);
     BOOST_CHECK_EQUAL(table2->setRow("name", deleteEntry2), true);
-    auto hashs2 = tableFactory2->tablesHash();
+    auto hashs2 = tableFactory2->tableHashes();
 
     BOOST_CHECK_EQUAL_COLLECTIONS(hashs.begin(), hashs.end(), hashs2.begin(), hashs2.end());
 }

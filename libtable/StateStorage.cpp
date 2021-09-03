@@ -368,7 +368,7 @@ bool StateStorage::createTable(
     return success;
 }
 
-std::vector<std::tuple<std::string, crypto::HashType>> StateStorage::tablesHash()
+std::vector<std::tuple<std::string, crypto::HashType>> StateStorage::tableHashes()
 {
     std::vector<std::tuple<std::string, crypto::HashType>> result;
 
