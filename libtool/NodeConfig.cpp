@@ -57,21 +57,20 @@ void NodeConfig::loadGenesisConfig(boost::property_tree::ptree const& _genesisCo
 // load the txpool related params
 void NodeConfig::loadTxPoolConfig(boost::property_tree::ptree const& _pt)
 {
-    m_txpoolLimit = _pt.get<ssize_t>("txpool.limit", 15000);
+    m_txpoolLimit = checkAndGetValue(_pt, "txpool.limit", "15000");
     if (m_txpoolLimit <= 0)
     {
         BOOST_THROW_EXCEPTION(
             InvalidConfig() << errinfo_comment("Please set txpool.limit to positive !"));
     }
-
-    m_notifyWorkerNum = _pt.get<ssize_t>("txpool.notify_worker_num", 2);
+    m_notifyWorkerNum = checkAndGetValue(_pt, "txpool.notify_worker_num", "2");
     if (m_notifyWorkerNum <= 0)
     {
         BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(
                                   "Please set txpool.notify_worker_num to positive !"));
     }
 
-    m_verifierWorkerNum = _pt.get<ssize_t>("txpool.verify_worker_num", 2);
+    m_verifierWorkerNum = checkAndGetValue(_pt, "txpool.verify_worker_num", "2");
     if (m_verifierWorkerNum <= 0)
     {
         BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(
@@ -87,7 +86,7 @@ void NodeConfig::loadChainConfig(boost::property_tree::ptree const& _pt)
     m_smCryptoType = _pt.get<bool>("chain.sm_crypto", false);
     m_groupId = _pt.get<std::string>("chain.group_id", "test_group");
     m_chainId = _pt.get<std::string>("chain.chain_id", "test_chain");
-    m_blockLimit = _pt.get<ssize_t>("chain.block_limit", 1000);
+    m_blockLimit = checkAndGetValue(_pt, "chain.block_limit", "1000");
     if (m_blockLimit <= 0 || m_blockLimit > MAX_BLOCK_LIMIT)
     {
         BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(
@@ -108,7 +107,7 @@ void NodeConfig::loadSecurityConfig(boost::property_tree::ptree const& _pt)
 
 void NodeConfig::loadSealerConfig(boost::property_tree::ptree const& _pt)
 {
-    m_minSealTime = _pt.get<ssize_t>("consensus.min_seal_time", 500);
+    m_minSealTime = checkAndGetValue(_pt, "consensus.min_seal_time", "500");
     if (m_minSealTime <= 0)
     {
         BOOST_THROW_EXCEPTION(
@@ -125,7 +124,7 @@ void NodeConfig::loadStorageConfig(boost::property_tree::ptree const& _pt)
 
 void NodeConfig::loadConsensusConfig(boost::property_tree::ptree const& _pt)
 {
-    m_checkPointTimeoutInterval = _pt.get<ssize_t>("consensus.checkpoint_timeout", 3000);
+    m_checkPointTimeoutInterval = checkAndGetValue(_pt, "consensus.checkpoint_timeout", "3000");
     if (m_checkPointTimeoutInterval < SYSTEM_CONSENSUS_TIMEOUT_MIN)
     {
         BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(
@@ -141,7 +140,8 @@ void NodeConfig::loadLedgerConfig(boost::property_tree::ptree const& _genesisCon
     // consensus type
     m_consensusType = _genesisConfig.get<std::string>("consensus.consensus_type", "pbft");
     // blockTxCountLimit
-    auto blockTxCountLimit = _genesisConfig.get<ssize_t>("consensus.block_tx_count_limit", 1000);
+    auto blockTxCountLimit =
+        checkAndGetValue(_genesisConfig, "consensus.block_tx_count_limit", "1000");
     if (blockTxCountLimit <= 0)
     {
         BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(
@@ -150,25 +150,27 @@ void NodeConfig::loadLedgerConfig(boost::property_tree::ptree const& _genesisCon
     m_ledgerConfig->setBlockTxCountLimit(blockTxCountLimit);
 
     // consensusTimeout
-    auto consensusTimeout = _genesisConfig.get<ssize_t>("consensus.consensus_timeout", 3000);
+    auto consensusTimeout = checkAndGetValue(_genesisConfig, "consensus.consensus_timeout", "3000");
     if (consensusTimeout < SYSTEM_CONSENSUS_TIMEOUT_MIN ||
-        consensusTimeout > SYSTEM_CONSENSUS_TIMEOUT_MAX)
+        consensusTimeout >= SYSTEM_CONSENSUS_TIMEOUT_MAX)
     {
         BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(
                                   "Please set consensus.consensus_timeout must between " +
                                   std::to_string(SYSTEM_CONSENSUS_TIMEOUT_MIN) + " and " +
                                   std::to_string(SYSTEM_CONSENSUS_TIMEOUT_MAX) + " !"));
     }
-    m_minSealTime = std::min((ssize_t)m_minSealTime, consensusTimeout);
+    m_minSealTime = std::min((int64_t)m_minSealTime, consensusTimeout);
     m_ledgerConfig->setConsensusTimeout(consensusTimeout);
 
     // txGasLimit
-    auto txGasLimit = _genesisConfig.get<ssize_t>("tx.gas_limit", 300000000);
-    if (txGasLimit <= 0)
+    auto txGasLimit = checkAndGetValue(_genesisConfig, "tx.gas_limit", "300000000");
+    if (txGasLimit <= TX_GAS_LIMIT_MIN)
     {
         BOOST_THROW_EXCEPTION(
-            InvalidConfig() << errinfo_comment("Please set tx.gas_limit to positive!"));
+            InvalidConfig() << errinfo_comment(
+                "Please set tx.gas_limit to more than " + std::to_string(TX_GAS_LIMIT_MIN) + " !"));
     }
+
     m_txGasLimit = txGasLimit;
     // sealerList
     auto consensusNodeList = parseConsensusNodeList(_genesisConfig, "consensus", "node.");
@@ -179,7 +181,7 @@ void NodeConfig::loadLedgerConfig(boost::property_tree::ptree const& _genesisCon
     m_ledgerConfig->setConsensusNodeList(*consensusNodeList);
 
     // leaderSwitchPeriod
-    auto consensusLeaderPeriod = _genesisConfig.get<ssize_t>("consensus.leader_period", 1);
+    auto consensusLeaderPeriod = checkAndGetValue(_genesisConfig, "consensus.leader_period", "1");
     if (consensusLeaderPeriod <= 0)
     {
         BOOST_THROW_EXCEPTION(
@@ -223,12 +225,12 @@ ConsensusNodeListPtr NodeConfig::parseConsensusNodeList(boost::property_tree::pt
         }
         std::string nodeId = nodeInfo[0];
         boost::to_lower(nodeId);
-        ssize_t weight = 1;
+        int64_t weight = 1;
         if (nodeInfo.size() == 2)
         {
             auto& weightInfoStr = nodeInfo[1];
             boost::trim(weightInfoStr);
-            weight = boost::lexical_cast<ssize_t>(weightInfoStr);
+            weight = boost::lexical_cast<int64_t>(weightInfoStr);
         }
         if (weight <= 0)
         {
@@ -265,4 +267,21 @@ void NodeConfig::loadExecutorConfig(boost::property_tree::ptree const& _pt)
 {
     m_isWasm = _pt.get<bool>("executor.is_wasm", false);
     NodeConfig_LOG(INFO) << LOG_DESC("loadExecutorConfig") << LOG_KV("isWasm", m_isWasm);
+}
+
+// Note: make sure the consensus param checker is consistent with the precompiled param checker
+int64_t NodeConfig::checkAndGetValue(boost::property_tree::ptree const& _pt,
+    std::string const& _key, std::string const& _defaultValue)
+{
+    auto value = _pt.get<std::string>(_key, _defaultValue);
+    try
+    {
+        return boost::lexical_cast<int64_t>(value);
+    }
+    catch (std::exception const& e)
+    {
+        BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(
+                                  "Invalid value " + value + " for configuration " + _key +
+                                  ", please set the value with a valid number"));
+    }
 }

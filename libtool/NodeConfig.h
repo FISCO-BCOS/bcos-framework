@@ -103,6 +103,8 @@ private:
         std::string const& _subSectionName);
 
     void generateGenesisData();
+    virtual int64_t checkAndGetValue(boost::property_tree::ptree const& _pt,
+        std::string const& _value, std::string const& _defaultValue);
 
 private:
     bcos::crypto::KeyFactory::Ptr m_keyFactory;
