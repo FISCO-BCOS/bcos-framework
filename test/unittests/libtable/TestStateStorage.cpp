@@ -35,6 +35,22 @@ using namespace std;
 using namespace bcos;
 using namespace bcos::storage;
 using namespace bcos::crypto;
+
+namespace std
+{
+inline ostream& operator<<(ostream& os, const std::optional<Entry>& entry)
+{
+    os << entry.has_value();
+    return os;
+}
+
+inline ostream& operator<<(ostream& os, const std::optional<Table>& table)
+{
+    os << table.has_value();
+    return os;
+}
+}  // namespace std
+
 namespace bcos
 {
 namespace test
@@ -159,7 +175,7 @@ BOOST_AUTO_TEST_CASE(rollback)
     entry = table->getRow("name");
     BOOST_TEST(entry);
     entry = table->getRow("balance");
-    BOOST_CHECK_EQUAL(entry, nullptr);
+    BOOST_TEST(!entry);
     // BOOST_TEST(table->dirty() == true);
 
     // auto dbHash0 = tableFactory->hash();
@@ -167,9 +183,9 @@ BOOST_AUTO_TEST_CASE(rollback)
     entry = table->getRow("name");
     BOOST_TEST(entry);
     entry = table->getRow("balance");
-    BOOST_CHECK_EQUAL(entry, nullptr);
+    BOOST_TEST(!entry);
     entry = table->getRow("id");
-    BOOST_CHECK_EQUAL(entry, nullptr);
+    BOOST_TEST(!entry);
 
     // insert without version
     entry = table->newEntry();
@@ -429,7 +445,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
             BOOST_CHECK_EQUAL(tableStorage->createTable(tableName, keyField, valueFields), true);
 
             auto table = tableStorage->openTable(tableName);
-            BOOST_CHECK_NE(table, nullptr);
+            BOOST_TEST(table);
 
             for (int k = 0; k < 100; ++k)
             {
@@ -479,11 +495,11 @@ BOOST_AUTO_TEST_CASE(chainLink)
                 auto table = storage->openTable(tableName);
                 if (i > index)
                 {
-                    BOOST_CHECK_EQUAL(table, nullptr);
+                    BOOST_TEST(!table);
                 }
                 else
                 {
-                    BOOST_CHECK_NE(table, nullptr);
+                    BOOST_TEST(table);
 
                     for (int k = 0; k < 100; ++k)
                     {
@@ -493,11 +509,11 @@ BOOST_AUTO_TEST_CASE(chainLink)
                         auto entry = table->getRow(key);
                         if (i > index)
                         {
-                            BOOST_CHECK_EQUAL(entry, nullptr);
+                            BOOST_TEST(!entry);
                         }
                         else
                         {
-                            BOOST_CHECK_NE(entry, nullptr);
+                            BOOST_TEST(entry);
 
                             if (i == index)
                             {
@@ -526,7 +542,6 @@ BOOST_AUTO_TEST_CASE(chainLink)
         storage->parallelTraverse(false, [&](auto&& tableInfo, auto&&, auto&& entry) {
             checks.push_back([index, tableInfo, entry] {
                 BOOST_CHECK_NE(tableInfo, nullptr);
-                BOOST_CHECK_NE(entry, nullptr);
                 if (tableInfo->name != "s_tables")
                 {
                     auto i = boost::lexical_cast<int>(entry.getField("value1"));
@@ -555,7 +570,6 @@ BOOST_AUTO_TEST_CASE(chainLink)
         storage->parallelTraverse(true, [&](auto&& tableInfo, auto&&, auto&& entry) {
             checks.push_back([index, tableInfo, entry]() {
                 BOOST_CHECK_NE(tableInfo, nullptr);
-                BOOST_CHECK_NE(entry, nullptr);
                 if (tableInfo->name != "s_tables")
                 {
                     auto i = boost::lexical_cast<int>(entry.getField("value1"));
@@ -602,7 +616,7 @@ BOOST_AUTO_TEST_CASE(getRows)
     BOOST_CHECK_EQUAL(prev->createTable("t_test", keyField, valueFields), true);
 
     auto table = prev->openTable("t_test");
-    BOOST_CHECK_NE(table, nullptr);
+    BOOST_TEST(table);
 
     for (size_t i = 0; i < 100; ++i)
     {
@@ -619,7 +633,7 @@ BOOST_AUTO_TEST_CASE(getRows)
     }
 
     auto queryTable = tableStorage->openTable("t_test");
-    BOOST_CHECK_NE(queryTable, nullptr);
+    BOOST_TEST(queryTable);
 
     auto values = queryTable->getRows(keys);
 
@@ -628,13 +642,13 @@ BOOST_AUTO_TEST_CASE(getRows)
         auto entry = values[i];
         if (i + 50 < 100)
         {
-            BOOST_CHECK_NE(entry, nullptr);
+            BOOST_TEST(entry);
             BOOST_CHECK_EQUAL(entry->dirty(), false);
             BOOST_CHECK_EQUAL(entry->num(), 0);
         }
         else
         {
-            BOOST_CHECK_EQUAL(entry, nullptr);
+            BOOST_TEST(!entry);
         }
     }
 
@@ -659,13 +673,13 @@ BOOST_AUTO_TEST_CASE(getRows)
         auto entry = values[i];
         if (i < 10)
         {
-            BOOST_CHECK_NE(entry, nullptr);
+            BOOST_TEST(entry);
             BOOST_CHECK_EQUAL(entry->dirty(), true);
             BOOST_CHECK_EQUAL(entry->num(), 1);
         }
         else
         {
-            BOOST_CHECK_NE(entry, nullptr);
+            BOOST_TEST(entry);
             BOOST_CHECK_EQUAL(entry->dirty(), false);
             BOOST_CHECK_EQUAL(entry->num(), 0);
         }

@@ -37,9 +37,15 @@ using namespace bcos::crypto;
 
 namespace std
 {
-ostream& operator<<(ostream& os, const tuple<string, crypto::HashType>& item)
+inline ostream& operator<<(ostream& os, const tuple<string, crypto::HashType>& item)
 {
     os << get<0>(item) << " " << get<1>(item);
+    return os;
+}
+
+inline ostream& operator<<(ostream& os, const std::optional<Table>& table)
+{
+    os << table.has_value();
     return os;
 }
 }  // namespace std
@@ -93,7 +99,7 @@ BOOST_AUTO_TEST_CASE(dump_hash)
         tablePromise.set_value(std::move(table));
     });
     auto table = tablePromise.get_future().get();
-    BOOST_CHECK_NE(table, nullptr);
+    BOOST_TEST(table);
 
     // BOOST_TEST(table->dirty() == false);
     auto entry = std::make_optional(table->newEntry());
@@ -147,7 +153,7 @@ BOOST_AUTO_TEST_CASE(setRow)
         tablePromise.set_value(std::move(table));
     });
     auto table = tablePromise.get_future().get();
-    BOOST_CHECK_NE(table, nullptr);
+    BOOST_TEST(table);
 
     // check fields order of t_test
     BOOST_TEST(table->tableInfo()->fields.size() == 2);
@@ -165,11 +171,11 @@ BOOST_AUTO_TEST_CASE(setRow)
     std::promise<std::optional<Table>> sysTablePromise;
     tableFactory->asyncOpenTable(StorageInterface::SYS_TABLES, [&](auto&& error, auto&& table) {
         BOOST_CHECK_EQUAL(error, nullptr);
-        BOOST_CHECK_NE(table, nullptr);
+        BOOST_TEST(table);
         sysTablePromise.set_value(std::move(table));
     });
     auto sysTable = sysTablePromise.get_future().get();
-    BOOST_CHECK_NE(sysTable, nullptr);
+    BOOST_CHECK(sysTable);
 
     BOOST_TEST(sysTable->tableInfo()->fields.size() == 2);
     BOOST_TEST(sysTable->tableInfo()->fields[0] == StateStorage::SYS_TABLE_KEY_FIELDS);
@@ -184,7 +190,7 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     std::string valueField("value1,value2");
 
     auto ret = tableFactory->createTable(tableName, keyField, valueField);
-    BOOST_TEST(ret == true);
+    BOOST_TEST(ret);
     auto table = tableFactory->openTable("t_test");
     BOOST_TEST(table);
     // check fields order of t_test
@@ -210,7 +216,7 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     auto tableFactory2 = std::make_shared<StateStorage>(nullptr, hashImpl, 0);
     BOOST_CHECK_EQUAL(tableFactory2->createTable(tableName, keyField, valueField), true);
     auto table2 = tableFactory2->openTable(tableName);
-    BOOST_CHECK_NE(table2, nullptr);
+    BOOST_TEST(table2);
 
     auto deleteEntry2 = std::make_optional(table2->newEntry());
     deleteEntry2->setStatus(Entry::DELETED);
