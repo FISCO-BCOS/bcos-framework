@@ -151,7 +151,7 @@ public:
         ReadGuard l(x_ledger);
         if (m_ledger.size() <= (size_t)(_number))
         {
-            _callback(std::make_shared<Error>(-1, "block not found"), nullptr);
+            _callback(std::make_unique<Error>(-1, "block not found"), nullptr);
             return;
         }
         auto block = m_ledger[_number];
@@ -238,7 +238,7 @@ public:
             _onGetNodeList(nullptr, observerNodes);
             return;
         }
-        _onGetNodeList(std::make_shared<Error>(-1, "invalid Type"), nullptr);
+        _onGetNodeList(std::make_unique<Error>(-1, "invalid Type"), nullptr);
     }
 
     void asyncGetNonceList(BlockNumber _startNumber, int64_t _offset,

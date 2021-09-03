@@ -33,10 +33,10 @@
     ::bcos::Error::buildError(                              \
         BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, prev)
 #define BCOS_ERROR_PTR(errorCode, errorMessage)              \
-    std::make_shared<bcos::Error>(::bcos::Error::buildError( \
+    std::make_unique<bcos::Error>(::bcos::Error::buildError( \
         BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage))
 #define BCOS_ERROR_WITH_PREV_PTR(errorCode, errorMessage, prev) \
-    std::make_shared<bcos::Error>(::bcos::Error::buildError(    \
+    std::make_unique<bcos::Error>(::bcos::Error::buildError(    \
         BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, prev))
 
 namespace bcos
@@ -44,8 +44,8 @@ namespace bcos
 class Error : public bcos::Exception
 {
 public:
-    using Ptr = std::shared_ptr<Error>;
-    using ConstPtr = std::shared_ptr<const Error>;
+    using Ptr = std::unique_ptr<Error>;
+    using ConstPtr = std::unique_ptr<const Error>;
 
     using PrevError = boost::error_info<struct PrevErrorTag, Error>;
     using PrevStdError = boost::error_info<struct PrevErrorTag, std::string>;
@@ -62,7 +62,7 @@ public:
     }
 
     static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
-        const std::string& errorMessage, const std::shared_ptr<Error>& prev)
+        const std::string& errorMessage, const std::unique_ptr<Error>& prev)
     {
         auto error = buildError(func, file, line, errorCode, errorMessage);
         error << PrevError(*prev);
@@ -70,7 +70,7 @@ public:
     }
 
     static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
-        const std::string& errorMessage, std::shared_ptr<Error>&& prev)
+        const std::string& errorMessage, std::unique_ptr<Error>&& prev)
     {
         auto error = buildError(func, file, line, errorCode, errorMessage);
         error << PrevError(std::move(*prev));

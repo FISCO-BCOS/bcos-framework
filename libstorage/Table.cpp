@@ -89,7 +89,7 @@ bool Table::setRow(const std::string& _key, Entry _entry)
     std::promise<std::tuple<Error::Ptr, bool>> promise;
     m_storage->asyncSetRow(
         m_tableInfo, _key, std::move(_entry), [&promise](auto&& error, auto success) {
-            promise.set_value(std::tuple{error, success});
+            promise.set_value(std::tuple{std::move(error), success});
         });
     auto result = promise.get_future().get();
 

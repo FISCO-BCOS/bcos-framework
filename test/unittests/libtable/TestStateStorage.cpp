@@ -49,6 +49,12 @@ inline ostream& operator<<(ostream& os, const std::optional<Table>& table)
     os << table.has_value();
     return os;
 }
+
+inline ostream& operator<<(ostream& os, const std::unique_ptr<Error>& error)
+{
+    os << error->what();
+    return os;
+}
 }  // namespace std
 
 namespace bcos
