@@ -33,7 +33,7 @@ namespace bcos
 {
 namespace storage
 {
-std::optional<Entry> Table::getRow(const std::string& _key)
+std::optional<Entry> Table::getRow(const std::string_view& _key)
 {
     std::promise<std::tuple<Error::Ptr, std::optional<Entry>>> promise;
 
@@ -51,7 +51,7 @@ std::optional<Entry> Table::getRow(const std::string& _key)
     return std::get<1>(result);
 }
 
-std::vector<std::optional<Entry>> Table::getRows(const gsl::span<std::string>& _keys)
+std::vector<std::optional<Entry>> Table::getRows(const gsl::span<std::string_view const>& _keys)
 {
     std::promise<std::tuple<Error::Ptr, std::vector<std::optional<Entry>>>> promise;
     asyncGetRows(_keys, [&promise](auto&& error, auto&& entries) {
@@ -84,11 +84,11 @@ std::vector<std::string> Table::getPrimaryKeys(Condition const& _condition)
     return std::get<1>(result);
 }
 
-bool Table::setRow(const std::string& _key, Entry _entry)
+bool Table::setRow(const std::string_view& _key, Entry _entry)
 {
     std::promise<std::tuple<Error::Ptr, bool>> promise;
     m_storage->asyncSetRow(
-        m_tableInfo, _key, std::move(_entry), [&promise](auto&& error, auto success) {
+        *m_tableInfo, _key, std::move(_entry), [&promise](auto&& error, auto success) {
             promise.set_value(std::tuple{std::move(error), success});
         });
     auto result = promise.get_future().get();
@@ -104,25 +104,25 @@ bool Table::setRow(const std::string& _key, Entry _entry)
 void Table::asyncGetPrimaryKeys(Condition const& _condition,
     std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept
 {
-    m_storage->asyncGetPrimaryKeys(m_tableInfo, _condition, _callback);
+    m_storage->asyncGetPrimaryKeys(*m_tableInfo, _condition, _callback);
 }
 
-void Table::asyncGetRow(const std::string& _key,
+void Table::asyncGetRow(const std::string_view& _key,
     std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept
 {
-    m_storage->asyncGetRow(m_tableInfo, _key, _callback);
+    m_storage->asyncGetRow(*m_tableInfo, _key, _callback);
 }
 
-void Table::asyncGetRows(const gsl::span<std::string>& _keys,
+void Table::asyncGetRows(const gsl::span<std::string_view const>& _keys,
     std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
 {
-    m_storage->asyncGetRows(m_tableInfo, _keys, _callback);
+    m_storage->asyncGetRows(*m_tableInfo, _keys, _callback);
 }
 
-void Table::asyncSetRow(
-    const std::string& key, Entry entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept
+void Table::asyncSetRow(const std::string_view& key, Entry entry,
+    std::function<void(Error::Ptr&&, bool)> callback) noexcept
 {
-    m_storage->asyncSetRow(m_tableInfo, key, std::move(entry), callback);
+    m_storage->asyncSetRow(*m_tableInfo, key, std::move(entry), callback);
 }
 
 }  // namespace storage

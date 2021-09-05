@@ -102,8 +102,10 @@ public:
     }
 
     Error() = default;
-    Error(int32_t _errorCode, std::string const& _errorMessage)
-      : bcos::Exception(_errorMessage), m_errorCode(_errorCode), m_errorMessage(_errorMessage)
+    Error(int32_t _errorCode, std::string _errorMessage)
+      : bcos::Exception(_errorMessage),
+        m_errorCode(_errorCode),
+        m_errorMessage(std::move(_errorMessage))
     {}
 
     virtual ~Error() {}
