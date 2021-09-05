@@ -42,20 +42,20 @@ public:
     Table& operator=(Table&&) = default;
     virtual ~Table() {}
 
-    std::optional<Entry> getRow(const std::string& _key);
-    std::vector<std::optional<Entry>> getRows(const gsl::span<std::string>& _keys);
+    std::optional<Entry> getRow(const std::string_view& _key);
+    std::vector<std::optional<Entry>> getRows(const gsl::span<std::string_view const>& _keys);
     std::vector<std::string> getPrimaryKeys(const Condition& _condition);
 
-    bool setRow(const std::string& _key, Entry _entry);
+    bool setRow(const std::string_view& _key, Entry _entry);
 
     void asyncGetPrimaryKeys(Condition const& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept;
-    void asyncGetRow(const std::string& _key,
+    void asyncGetRow(const std::string_view& _key,
         std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept;
-    void asyncGetRows(const gsl::span<std::string>& _keys,
+    void asyncGetRows(const gsl::span<std::string_view const>& _keys,
         std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept;
 
-    void asyncSetRow(const std::string& key, Entry entry,
+    void asyncSetRow(const std::string_view& key, Entry entry,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept;
 
     TableInfo::Ptr tableInfo() const { return m_tableInfo; }

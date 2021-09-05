@@ -33,7 +33,11 @@ namespace test
 {
 struct EntryFixture
 {
-    EntryFixture() { tableInfo = std::make_shared<TableInfo>("testTable", "key", "key2,value"); }
+    EntryFixture()
+    {
+        tableInfo =
+            std::make_shared<TableInfo>("testTable", std::vector<std::string>{"key2", "value"});
+    }
 
     ~EntryFixture() {}
 

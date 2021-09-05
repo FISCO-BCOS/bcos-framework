@@ -58,6 +58,9 @@ public:
     virtual std::string_view from() const = 0;
     virtual void setFrom(std::string from) = 0;
 
+    virtual crypto::HashType transactionHash() const = 0;
+    virtual void setTransactionHash(crypto::HashType hash) = 0;
+
     virtual std::string_view to() const = 0;
     virtual void setTo(std::string to) = 0;
 

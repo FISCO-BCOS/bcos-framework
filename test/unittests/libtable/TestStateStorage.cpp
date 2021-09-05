@@ -77,7 +77,7 @@ struct TableFactoryFixture
     {
         std::promise<bool> createPromise;
         tableFactory->asyncCreateTable(
-            testTableName, keyField, valueField, [&](Error::Ptr&& error, bool success) {
+            testTableName, valueField, [&](Error::Ptr&& error, bool success) {
                 BOOST_CHECK_EQUAL(error, nullptr);
                 createPromise.set_value(success);
             });
@@ -288,7 +288,13 @@ BOOST_AUTO_TEST_CASE(hash)
     // BOOST_TEST(table->dirty() == true);
     auto keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 2);
-    auto entries = table->getRows(keys);
+
+    std::vector<std::string_view> views;
+    for (auto& key : keys)
+    {
+        views.push_back(key);
+    }
+    auto entries = table->getRows(views);
     BOOST_TEST(entries.size() == 2);
 
     /*
@@ -362,7 +368,13 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(entry);
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 3);
-    entries = table->getRows(keys);
+
+    views.clear();
+    for (auto& key : keys)
+    {
+        views.push_back(key);
+    }
+    entries = table->getRows(views);
     BOOST_TEST(entries.size() == 3);
     entry = table->getRow("name");
     BOOST_TEST(entry);
@@ -380,7 +392,13 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 2);
-    entries = table->getRows(keys);
+
+    views.clear();
+    for (auto& key : keys)
+    {
+        views.push_back(key);
+    }
+    entries = table->getRows(views);
     BOOST_TEST(entries.size() == 2);
 
     auto idEntry2 = table->getRow("id");
@@ -392,7 +410,13 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 1);
-    entries = table->getRows(keys);
+
+    views.clear();
+    for (auto& key : keys)
+    {
+        views.push_back(key);
+    }
+    entries = table->getRows(views);
     BOOST_TEST(entries.size() == 1);
     // tableFactory->asyncCommit([](Error::Ptr, size_t) {});
 }
@@ -471,6 +495,8 @@ BOOST_AUTO_TEST_CASE(chainLink)
 
     for (int index = 0; index < 20; ++index)
     {
+        std::cout << "Current index: " << index << std::endl;
+
         auto storage = storages[index];
         // Data count must be 10 * 100 + 10
         tbb::atomic<size_t> totalCount = 0;
@@ -498,6 +524,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
                 auto tableName = "table_" + boost::lexical_cast<std::string>(i) + "_" +
                                  boost::lexical_cast<std::string>(j);
 
+                std::cout << "Opening table: " << tableName << std::endl;
                 auto table = storage->openTable(tableName);
                 if (i > index)
                 {
@@ -547,8 +574,8 @@ BOOST_AUTO_TEST_CASE(chainLink)
         tbb::concurrent_vector<std::function<void()>> checks;
         storage->parallelTraverse(false, [&](auto&& tableInfo, auto&&, auto&& entry) {
             checks.push_back([index, tableInfo, entry] {
-                BOOST_CHECK_NE(tableInfo, nullptr);
-                if (tableInfo->name != "s_tables")
+                // BOOST_CHECK_NE(tableInfo, nullptr);
+                if (tableInfo.name() != "s_tables")
                 {
                     auto i = boost::lexical_cast<int>(entry.getField("value1"));
                     auto j = boost::lexical_cast<int>(entry.getField("value2"));
@@ -575,8 +602,8 @@ BOOST_AUTO_TEST_CASE(chainLink)
         dirtyCount = 0;
         storage->parallelTraverse(true, [&](auto&& tableInfo, auto&&, auto&& entry) {
             checks.push_back([index, tableInfo, entry]() {
-                BOOST_CHECK_NE(tableInfo, nullptr);
-                if (tableInfo->name != "s_tables")
+                // BOOST_CHECK_NE(tableInfo, nullptr);
+                if (tableInfo.name() != "s_tables")
                 {
                     auto i = boost::lexical_cast<int>(entry.getField("value1"));
                     auto j = boost::lexical_cast<int>(entry.getField("value2"));
@@ -641,7 +668,12 @@ BOOST_AUTO_TEST_CASE(getRows)
     auto queryTable = tableStorage->openTable("t_test");
     BOOST_TEST(queryTable);
 
-    auto values = queryTable->getRows(keys);
+    std::vector<std::string_view> views;
+    for (auto& key : keys)
+    {
+        views.push_back(key);
+    }
+    auto values = queryTable->getRows(views);
 
     for (size_t i = 0; i < 100; ++i)
     {
@@ -672,7 +704,12 @@ BOOST_AUTO_TEST_CASE(getRows)
         keys.push_back("key" + boost::lexical_cast<std::string>(i));
     }
 
-    values = queryTable->getRows(keys);
+    views.clear();
+    for (auto& key : keys)
+    {
+        views.push_back(key);
+    }
+    values = queryTable->getRows(views);
 
     for (size_t i = 0; i < 30; ++i)
     {

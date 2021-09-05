@@ -40,24 +40,24 @@ public:
     typedef std::shared_ptr<StateStorage> Ptr;
     StateStorage(std::shared_ptr<StorageInterface> prev, std::shared_ptr<crypto::Hash> _hashImpl,
         protocol::BlockNumber _blockNum)
-      : m_blockNumber(_blockNum), m_prev(prev), m_hashImpl(_hashImpl)
+      : m_blockNumber(_blockNum), m_prev(std::move(prev)), m_hashImpl(std::move(_hashImpl))
     {}
 
     // TODO: check if needed
     StateStorage(std::shared_ptr<TraverseStorageInterface> prev,
         std::shared_ptr<StorageInterface> backend, std::shared_ptr<crypto::Hash> _hashImpl,
         protocol::BlockNumber blockNumber, protocol::BlockNumber commitedBlockNumber)
-      : m_blockNumber(blockNumber), m_prev(backend), m_hashImpl(_hashImpl)
+      : m_blockNumber(blockNumber), m_prev(std::move(backend)), m_hashImpl(std::move(_hashImpl))
     {
         if (!prev)
         {
             BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Null prev storage"));
         }
 
-        prev->parallelTraverse(false, [&](auto&& tableInfo, auto&& key, auto&& entry) {
+        prev->parallelTraverse(false, [&](auto&&, auto&& key, auto&& entry) {
             if (entry.num() > commitedBlockNumber)
             {
-                importExistingEntry(tableInfo, key, std::move(entry));
+                importExistingEntry(std::string(key), std::move(entry));
             }
             return true;
         });
@@ -65,23 +65,22 @@ public:
 
     virtual ~StateStorage() { getChangeLog().clear(); }
 
-    void asyncGetPrimaryKeys(const storage::TableInfo::ConstPtr& _tableInfo,
+    void asyncGetPrimaryKeys(const TableInfo& _tableInfo,
         const std::optional<storage::Condition const>& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept override;
 
-    void asyncGetRow(const storage::TableInfo::ConstPtr& _tableInfo, const std::string& _key,
+    void asyncGetRow(const TableInfo& _tableInfo, const std::string_view& _key,
         std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept override;
 
-    void asyncGetRows(const storage::TableInfo::ConstPtr& _tableInfo,
-        const gsl::span<std::string const>& _keys,
+    void asyncGetRows(const TableInfo& _tableInfo, const gsl::span<std::string_view const>& _keys,
         std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
         override;
 
-    void asyncSetRow(const storage::TableInfo::ConstPtr& tableInfo, const std::string& key,
-        Entry entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
+    void asyncSetRow(const storage::TableInfo& tableInfo, const std::string_view& key, Entry entry,
+        std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
 
-    void parallelTraverse(bool onlyDirty, std::function<bool(const TableInfo::ConstPtr& tableInfo,
-                                              const std::string& key, const Entry& entry)>
+    void parallelTraverse(bool onlyDirty, std::function<bool(const TableInfo& tableInfo,
+                                              const std::string_view& key, const Entry& entry)>
                                               callback) const override;
 
     std::optional<Table> openTable(const std::string& tableName);
@@ -124,18 +123,23 @@ private:
     };
 
     std::vector<Change>& getChangeLog() { return s_changeLog.local(); }
-    Entry importExistingEntry(
-        const TableInfo::ConstPtr& tableInfo, const std::string& key, Entry entry);
+    Entry& importExistingEntry(std::string key, Entry entry);
 
     tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
 
     struct TableData
     {
+        TableData(TableInfo::ConstPtr tableInfo) : tableInfo(std::move(tableInfo)) {}
+
         TableInfo::ConstPtr tableInfo;
-        tbb::concurrent_unordered_map<std::string, Entry> entries;
+        tbb::concurrent_unordered_map<std::string_view,
+            std::tuple<std::unique_ptr<std::string>, Entry>, std::hash<std::string_view>>
+            entries;
         bool dirty = false;
     };
-    tbb::concurrent_unordered_map<std::string, TableData> m_data;
+    tbb::concurrent_unordered_map<std::string_view,
+        std::tuple<std::unique_ptr<std::string>, TableData>, std::hash<std::string_view>>
+        m_data;
     protocol::BlockNumber m_blockNumber = 0;
 
     std::shared_ptr<StorageInterface> m_prev;
