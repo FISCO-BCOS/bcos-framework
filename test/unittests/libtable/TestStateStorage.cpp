@@ -495,8 +495,6 @@ BOOST_AUTO_TEST_CASE(chainLink)
 
     for (int index = 0; index < 20; ++index)
     {
-        std::cout << "Current index: " << index << std::endl;
-
         auto storage = storages[index];
         // Data count must be 10 * 100 + 10
         tbb::atomic<size_t> totalCount = 0;
@@ -524,7 +522,6 @@ BOOST_AUTO_TEST_CASE(chainLink)
                 auto tableName = "table_" + boost::lexical_cast<std::string>(i) + "_" +
                                  boost::lexical_cast<std::string>(j);
 
-                std::cout << "Opening table: " << tableName << std::endl;
                 auto table = storage->openTable(tableName);
                 if (i > index)
                 {

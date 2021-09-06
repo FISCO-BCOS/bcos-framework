@@ -75,7 +75,6 @@ void StorageInterface::asyncCreateTable(std::string _tableName, std::string _val
 void StorageInterface::asyncOpenTable(std::string_view tableName,
     std::function<void(Error::Ptr&&, std::optional<Table>&&)> callback) noexcept
 {
-    STORAGE_LOG(TRACE) << "Opening table: " << tableName;
     auto sysTableInfo = getSysTableInfo(tableName);
     if (sysTableInfo)
     {
@@ -95,7 +94,6 @@ void StorageInterface::asyncOpenTable(std::string_view tableName,
                     return;
                 }
 
-                STORAGE_LOG(TRACE) << "Getting row: " << tableName;
                 sysTable->asyncGetRow(tableName,
                     [this, tableName, callback = std::move(callback)](auto&& error, auto&& entry) {
                         if (error)
@@ -106,7 +104,6 @@ void StorageInterface::asyncOpenTable(std::string_view tableName,
 
                         if (!entry)
                         {
-                            STORAGE_LOG(TRACE) << "Row: " << tableName << " not found!";
                             callback(nullptr, {});
                             return;
                         }

@@ -97,9 +97,8 @@ void StateStorage::asyncGetRow(const TableInfo& _tableInfo, const std::string_vi
 
     if (m_prev)
     {
-        std::string keyStr(_key);
-        m_prev->asyncGetRow(_tableInfo, keyStr,
-            [this, _tableInfo, key = std::move(keyStr), _callback](auto&& error, auto&& entry) {
+        m_prev->asyncGetRow(_tableInfo, _key,
+            [this, _tableInfo, key = std::string(_key), _callback](auto&& error, auto&& entry) {
                 if (error)
                 {
                     _callback(
@@ -149,8 +148,8 @@ void StateStorage::asyncGetRows(const bcos::storage::TableInfo& _tableInfo,
             }
             else
             {
-                auto& it = std::get<1>(*missings).emplace_back(std::string(key), i);
-                std::get<0>(*missings).emplace_back(std::get<0>(it));
+                std::get<1>(*missings).emplace_back(std::string(key), i);
+                std::get<0>(*missings).emplace_back(key);
             }
 
             ++i;
@@ -160,8 +159,8 @@ void StateStorage::asyncGetRows(const bcos::storage::TableInfo& _tableInfo,
     {
         for (long i = 0; i < _keys.size(); ++i)
         {
-            auto& it = std::get<1>(*missings).emplace_back(std::string(_keys[i]), i);
-            std::get<0>(*missings).emplace_back(std::get<0>(it));
+            std::get<1>(*missings).emplace_back(std::string(_keys[i]), i);
+            std::get<0>(*missings).emplace_back(_keys[i]);
         }
     }
 
@@ -503,14 +502,16 @@ Entry& StateStorage::importExistingEntry(std::string key, Entry entry)
     if (tableIt == m_data.end())
     {
         auto tableNamePtr = std::make_unique<std::string>(entry.tableInfo()->name());
+        auto tableNameView = std::string_view(*tableNamePtr);
         std::tie(tableIt, inserted) = m_data.emplace(
-            *tableNamePtr, std::make_tuple(std::move(tableNamePtr), TableData(entry.tableInfo())));
+            tableNameView, std::make_tuple(std::move(tableNamePtr), TableData(entry.tableInfo())));
     }
 
     auto keyPtr = std::make_unique<std::string>(std::move(key));
+    auto keyView = std::string_view(*keyPtr);
     auto [it, success] =
         std::get<TableData>(tableIt->second)
-            .entries.emplace(*keyPtr, std::make_tuple(std::move(keyPtr), std::move(entry)));
+            .entries.emplace(keyView, std::make_tuple(std::move(keyPtr), std::move(entry)));
 
     if (!success)
     {

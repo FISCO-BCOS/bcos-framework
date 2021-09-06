@@ -27,7 +27,9 @@
 #include "tbb/spin_rw_mutex.h"
 #include "tbb/tbb_thread.h"
 #include <boost/throw_exception.hpp>
+#include <algorithm>
 #include <any>
+#include <cstdlib>
 #include <gsl/span>
 #include <map>
 #include <memory>
@@ -141,7 +143,7 @@ public:
     size_t fieldIndex(const std::string_view& field) const
     {
         auto it = std::lower_bound(m_fields.begin(), m_fields.end(), field);
-        if (it != m_fields.end())
+        if (it != m_fields.end() && *it == field)
         {
             return it - m_fields.begin();
         }
