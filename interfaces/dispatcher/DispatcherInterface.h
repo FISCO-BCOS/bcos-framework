@@ -35,8 +35,11 @@ public:
     using Ptr = std::shared_ptr<DispatcherInterface>;
     DispatcherInterface() = default;
     virtual ~DispatcherInterface() {}
+    // _timeout used to define execution timeout in the microservice version,
+    // and is useless for the bcos-node version
     virtual void asyncExecuteBlock(const protocol::Block::Ptr& _block, bool _verify,
-        std::function<void(const Error::Ptr&, const protocol::BlockHeader::Ptr&)> _callback) = 0;
+        std::function<void(const Error::Ptr&, const protocol::BlockHeader::Ptr&)> _callback,
+        ssize_t _timeout = -1) = 0;
     virtual void asyncGetLatestBlock(
         std::function<void(const Error::Ptr&, const protocol::Block::Ptr&)> _callback) = 0;
     virtual void asyncNotifyExecutionResult(const Error::Ptr& _error,

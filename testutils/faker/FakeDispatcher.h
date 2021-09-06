@@ -57,7 +57,7 @@ public:
     void setTxPool(TxPoolInterface::Ptr _txpool) { m_txpool = _txpool; }
 
     void asyncExecuteBlock(const Block::Ptr& _block, bool _verify,
-        std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback) override
+        std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback, ssize_t) override
     {
         auto blockHeader = _block->blockHeader();
         if (m_blockFactory)
