@@ -646,7 +646,12 @@ BOOST_AUTO_TEST_CASE(getRows)
     auto queryTable = tableStorage->openTable("t_test");
     BOOST_TEST(queryTable);
 
-    auto values = queryTable->getRows(keys);
+    std::vector<std::string_view> views;
+    for (auto& key : keys)
+    {
+        views.push_back(key);
+    }
+    auto values = queryTable->getRows(views);
 
     for (size_t i = 0; i < 100; ++i)
     {
@@ -678,7 +683,12 @@ BOOST_AUTO_TEST_CASE(getRows)
         keys.push_back("key" + boost::lexical_cast<std::string>(i));
     }
 
-    values = queryTable->getRows(keys);
+    views.clear();
+    for (auto& key : keys)
+    {
+        views.push_back(key);
+    }
+    values = queryTable->getRows(views);
 
     for (size_t i = 0; i < 30; ++i)
     {
