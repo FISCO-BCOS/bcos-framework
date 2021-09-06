@@ -289,12 +289,7 @@ BOOST_AUTO_TEST_CASE(hash)
     auto keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 2);
 
-    std::vector<std::string_view> views;
-    for (auto& key : keys)
-    {
-        views.push_back(key);
-    }
-    auto entries = table->getRows(views);
+    auto entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 2);
 
     /*
@@ -369,12 +364,7 @@ BOOST_AUTO_TEST_CASE(hash)
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 3);
 
-    views.clear();
-    for (auto& key : keys)
-    {
-        views.push_back(key);
-    }
-    entries = table->getRows(views);
+    entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 3);
     entry = table->getRow("name");
     BOOST_TEST(entry);
@@ -393,12 +383,7 @@ BOOST_AUTO_TEST_CASE(hash)
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 2);
 
-    views.clear();
-    for (auto& key : keys)
-    {
-        views.push_back(key);
-    }
-    entries = table->getRows(views);
+    entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 2);
 
     auto idEntry2 = table->getRow("id");
@@ -411,12 +396,7 @@ BOOST_AUTO_TEST_CASE(hash)
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 1);
 
-    views.clear();
-    for (auto& key : keys)
-    {
-        views.push_back(key);
-    }
-    entries = table->getRows(views);
+    entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 1);
     // tableFactory->asyncCommit([](Error::Ptr, size_t) {});
 }

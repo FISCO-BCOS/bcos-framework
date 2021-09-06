@@ -43,7 +43,8 @@ public:
     virtual ~Table() {}
 
     std::optional<Entry> getRow(const std::string_view& _key);
-    std::vector<std::optional<Entry>> getRows(const gsl::span<std::string_view const>& _keys);
+    std::vector<std::optional<Entry>> getRows(
+        const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys);
     std::vector<std::string> getPrimaryKeys(const Condition& _condition);
 
     bool setRow(const std::string_view& _key, Entry _entry);
@@ -52,7 +53,8 @@ public:
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept;
     void asyncGetRow(const std::string_view& _key,
         std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept;
-    void asyncGetRows(const gsl::span<std::string_view const>& _keys,
+    void asyncGetRows(
+        const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
         std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept;
 
     void asyncSetRow(const std::string_view& key, Entry entry,

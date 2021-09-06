@@ -51,7 +51,8 @@ std::optional<Entry> Table::getRow(const std::string_view& _key)
     return std::get<1>(result);
 }
 
-std::vector<std::optional<Entry>> Table::getRows(const gsl::span<std::string_view const>& _keys)
+std::vector<std::optional<Entry>> Table::getRows(
+    const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys)
 {
     std::promise<std::tuple<Error::Ptr, std::vector<std::optional<Entry>>>> promise;
     asyncGetRows(_keys, [&promise](auto&& error, auto&& entries) {
@@ -113,7 +114,8 @@ void Table::asyncGetRow(const std::string_view& _key,
     m_storage->asyncGetRow(*m_tableInfo, _key, _callback);
 }
 
-void Table::asyncGetRows(const gsl::span<std::string_view const>& _keys,
+void Table::asyncGetRows(
+    const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
     std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
 {
     m_storage->asyncGetRows(*m_tableInfo, _keys, _callback);
