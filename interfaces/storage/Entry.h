@@ -148,13 +148,22 @@ public:
 
     void importFields(std::vector<std::string> input) noexcept
     {
-        m_data.mutableGet()->fields = std::move(input);
+        auto data = m_data.mutableGet();
+        data->capacityOfHashField = 0;
+        for (auto& value : input)
+        {
+            data->capacityOfHashField += value.size();
+        }
+
+        data->fields = std::move(input);
         m_dirty = true;
     }
 
     std::vector<std::string>&& exportFields() noexcept
     {
-        return std::move(m_data.mutableGet()->fields);
+        auto data = m_data.mutableGet();
+        data->capacityOfHashField = 0;
+        return std::move(data->fields);
     }
 
     TableInfo::ConstPtr tableInfo() const { return m_data.get()->tableInfo; }

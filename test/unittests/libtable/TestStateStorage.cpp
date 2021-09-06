@@ -545,6 +545,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
                         {
                             BOOST_TEST(entry);
 
+                            BOOST_CHECK_GT(entry->capacityOfHashField(), 0);
                             if (i == index)
                             {
                                 BOOST_CHECK_EQUAL(entry->dirty(), true);
@@ -680,6 +681,7 @@ BOOST_AUTO_TEST_CASE(getRows)
             BOOST_TEST(entry);
             BOOST_CHECK_EQUAL(entry->dirty(), false);
             BOOST_CHECK_EQUAL(entry->num(), 0);
+            BOOST_CHECK_GT(entry->capacityOfHashField(), 0);
         }
         else
         {
