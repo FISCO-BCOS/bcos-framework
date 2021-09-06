@@ -289,12 +289,7 @@ BOOST_AUTO_TEST_CASE(hash)
     auto keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 2);
 
-    std::vector<std::string_view> views;
-    for (auto& key : keys)
-    {
-        views.push_back(key);
-    }
-    auto entries = table->getRows(views);
+    auto entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 2);
 
     /*
@@ -369,12 +364,7 @@ BOOST_AUTO_TEST_CASE(hash)
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 3);
 
-    views.clear();
-    for (auto& key : keys)
-    {
-        views.push_back(key);
-    }
-    entries = table->getRows(views);
+    entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 3);
     entry = table->getRow("name");
     BOOST_TEST(entry);
@@ -393,12 +383,7 @@ BOOST_AUTO_TEST_CASE(hash)
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 2);
 
-    views.clear();
-    for (auto& key : keys)
-    {
-        views.push_back(key);
-    }
-    entries = table->getRows(views);
+    entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 2);
 
     auto idEntry2 = table->getRow("id");
@@ -411,12 +396,7 @@ BOOST_AUTO_TEST_CASE(hash)
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 1);
 
-    views.clear();
-    for (auto& key : keys)
-    {
-        views.push_back(key);
-    }
-    entries = table->getRows(views);
+    entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 1);
     // tableFactory->asyncCommit([](Error::Ptr, size_t) {});
 }
@@ -666,12 +646,7 @@ BOOST_AUTO_TEST_CASE(getRows)
     auto queryTable = tableStorage->openTable("t_test");
     BOOST_TEST(queryTable);
 
-    std::vector<std::string_view> views;
-    for (auto& key : keys)
-    {
-        views.push_back(key);
-    }
-    auto values = queryTable->getRows(views);
+    auto values = queryTable->getRows(keys);
 
     for (size_t i = 0; i < 100; ++i)
     {
@@ -703,12 +678,7 @@ BOOST_AUTO_TEST_CASE(getRows)
         keys.push_back("key" + boost::lexical_cast<std::string>(i));
     }
 
-    views.clear();
-    for (auto& key : keys)
-    {
-        views.push_back(key);
-    }
-    values = queryTable->getRows(views);
+    values = queryTable->getRows(keys);
 
     for (size_t i = 0; i < 30; ++i)
     {

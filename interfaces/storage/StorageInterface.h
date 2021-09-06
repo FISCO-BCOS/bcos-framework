@@ -53,7 +53,7 @@ public:
         std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept = 0;
 
     virtual void asyncGetRows(const TableInfo& _tableInfo,
-        const gsl::span<std::string_view const>& _keys,
+        const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
         std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)>
             _callback) noexcept = 0;
 

@@ -124,75 +124,17 @@ void StateStorage::asyncGetRow(const TableInfo& _tableInfo, const std::string_vi
     }
 }
 
-void StateStorage::asyncGetRows(const bcos::storage::TableInfo& _tableInfo,
-    const gsl::span<std::string_view const>& _keys,
-    std::function<void(bcos::Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
+void StateStorage::asyncGetRows(const TableInfo& _tableInfo,
+    const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
+    std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
 {
-    auto results = std::make_shared<std::vector<std::optional<Entry>>>(_keys.size());
-    auto missings = std::make_shared<
-        std::tuple<std::vector<std::string_view>, std::vector<std::tuple<std::string, size_t>>>>();
-
-    long existsCount = 0;
-
-    auto tableIt = m_data.find(_tableInfo.name());
-    if (tableIt != m_data.end())
+    if (_keys.index() == 0)
     {
-        size_t i = 0;
-        for (auto& key : _keys)
-        {
-            auto entryIt = std::get<TableData>(tableIt->second).entries.find(key);
-            if (entryIt != std::get<TableData>(tableIt->second).entries.end())
-            {
-                (*results)[i] = Entry(std::get<Entry>(entryIt->second));
-                ++existsCount;
-            }
-            else
-            {
-                std::get<1>(*missings).emplace_back(std::string(key), i);
-                std::get<0>(*missings).emplace_back(key);
-            }
-
-            ++i;
-        }
+        multiAsyncGetRows(_tableInfo, std::get<0>(_keys), _callback);
     }
-    else
+    else if (_keys.index() == 1)
     {
-        for (long i = 0; i < _keys.size(); ++i)
-        {
-            std::get<1>(*missings).emplace_back(std::string(_keys[i]), i);
-            std::get<0>(*missings).emplace_back(_keys[i]);
-        }
-    }
-
-    if (existsCount < _keys.size() && m_prev)
-    {
-        m_prev->asyncGetRows(_tableInfo, std::get<0>(*missings),
-            [this, _callback, _tableInfo, missings, results](auto&& error, auto&& entries) {
-                if (error)
-                {
-                    _callback(BCOS_ERROR_WITH_PREV_PTR(-1, "async get perv rows failed!", error),
-                        std::vector<std::optional<Entry>>());
-                    return;
-                }
-
-                for (size_t i = 0; i < entries.size(); ++i)
-                {
-                    auto& entry = entries[i];
-
-                    if (entry)
-                    {
-                        (*results)[std::get<1>(std::get<1>(*missings)[i])] = Entry(
-                            importExistingEntry(std::move(std::get<0>(std::get<1>(*missings)[i])),
-                                std::move(*entry)));
-                    }
-                }
-
-                _callback(nullptr, std::move(*results));
-            });
-    }
-    else
-    {
-        _callback(nullptr, std::move(*results));
+        multiAsyncGetRows(_tableInfo, std::get<1>(_keys), _callback);
     }
 }
 
