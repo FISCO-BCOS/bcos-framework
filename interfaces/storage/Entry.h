@@ -23,17 +23,9 @@ public:
 
     Entry() : m_num(0), m_data(Data{nullptr, std::vector<std::string>(), 0}) {}
 
-    explicit Entry(const TableInfo::ConstPtr& tableInfo, protocol::BlockNumber _num = 0)
-      : m_num(_num)
+    explicit Entry(TableInfo::ConstPtr tableInfo, protocol::BlockNumber _num = 0) : m_num(_num)
     {
-        if (tableInfo)
-        {
-            m_data.reset(Data{tableInfo, std::vector<std::string>(tableInfo->fields.size()), 0});
-        }
-        else
-        {
-            m_data.reset(Data{nullptr, std::vector<std::string>(), 0});
-        }
+        m_data.reset(Data{std::move(tableInfo), std::vector<std::string>(), 0});
     }
 
     Entry(const Entry&) = default;
@@ -67,16 +59,8 @@ public:
                 BCOS_ERROR(-1, "Get field: " + std::string(field) + " error, tableInfo is null"));
         }
 
-        auto indexIt = tableInfo->field2Index.find(field);
-        if (indexIt != tableInfo->field2Index.end())
-        {
-            auto index = indexIt->second;
-            return (m_data.get()->fields)[index];
-        }
-        else
-        {
-            BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Can't find field: " + std::string(field)));
-        }
+        auto index = tableInfo->fieldIndex(field);
+        return (m_data.get()->fields)[index];
     }
 
     void setField(size_t index, std::string value)
@@ -99,28 +83,28 @@ public:
         m_dirty = true;
     }
 
-    void setField(const std::string_view& key, std::string value)
+    void setField(const std::string_view& field, std::string value)
     {
         auto& tableInfo = m_data.get()->tableInfo;
 
         if (!tableInfo)
         {
             BOOST_THROW_EXCEPTION(
-                BCOS_ERROR(-1, "Set field: " + std::string(key) + " error, tableInfo is null"));
+                BCOS_ERROR(-1, "Set field: " + std::string(field) + " error, tableInfo is null"));
         }
 
-        auto indexIt = tableInfo->field2Index.find(key);
-        if (indexIt == tableInfo->field2Index.end())
-        {
-            BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Can't find field: " + std::string(key)));
-        }
-        size_t index = indexIt->second;
+        auto index = tableInfo->fieldIndex(field);
 
         auto data = m_data.mutableGet();
-        auto& field = (data->fields)[index];
+        if (data->fields.size() < tableInfo->fields().size())
+        {
+            data->fields.resize(tableInfo->fields().size());
+        }
 
-        ssize_t updatedCapacity = value.size() - field.size();
-        field = std::move(value);
+        auto& fieldValue = (data->fields)[index];
+
+        ssize_t updatedCapacity = value.size() - fieldValue.size();
+        fieldValue = std::move(value);
         data->capacityOfHashField += updatedCapacity;
         m_dirty = true;
     }
@@ -145,10 +129,7 @@ public:
     }
 
     protocol::BlockNumber num() const noexcept { return m_num; }
-    void setNum(protocol::BlockNumber num) noexcept
-    {
-        m_num = num;
-    }
+    void setNum(protocol::BlockNumber num) noexcept { m_num = num; }
 
     bool dirty() const noexcept { return m_dirty; }
     void setDirty(bool dirty) noexcept { m_dirty = dirty; }
@@ -167,13 +148,22 @@ public:
 
     void importFields(std::vector<std::string> input) noexcept
     {
-        m_data.mutableGet()->fields = std::move(input);
+        auto data = m_data.mutableGet();
+        data->capacityOfHashField = 0;
+        for (auto& value : input)
+        {
+            data->capacityOfHashField += value.size();
+        }
+
+        data->fields = std::move(input);
         m_dirty = true;
     }
 
     std::vector<std::string>&& exportFields() noexcept
     {
-        return std::move(m_data.mutableGet()->fields);
+        auto data = m_data.mutableGet();
+        data->capacityOfHashField = 0;
+        return std::move(data->fields);
     }
 
     TableInfo::ConstPtr tableInfo() const { return m_data.get()->tableInfo; }

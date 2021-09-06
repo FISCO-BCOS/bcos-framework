@@ -21,12 +21,16 @@
 #pragma once
 
 #include "../../interfaces/protocol/ProtocolTypeDef.h"
-#include "../../libutilities/Log.h"
+#include "../../libutilities/Error.h"
 #include "boost/algorithm/string.hpp"
 #include "tbb/spin_mutex.h"
 #include "tbb/spin_rw_mutex.h"
 #include "tbb/tbb_thread.h"
 #include <boost/throw_exception.hpp>
+#include <algorithm>
+#include <any>
+#include <cstdlib>
+#include <gsl/span>
 #include <map>
 #include <memory>
 #include <string>
@@ -120,46 +124,43 @@ struct Condition : public std::enable_shared_from_this<Condition>
     std::pair<size_t, size_t> m_limit;
 };
 
-struct TableInfo
+class TableInfo
 {
+public:
     using Ptr = std::shared_ptr<TableInfo>;
     using ConstPtr = std::shared_ptr<const TableInfo>;
 
-    explicit TableInfo(std::string _tableName, std::string _key, const std::string_view& _fields)
-      : name(std::move(_tableName)), key(std::move(_key))
+    TableInfo(std::string name, std::vector<std::string> fields)
+      : m_name(std::move(name)), m_fields(std::move(fields))
     {
-        boost::split(fields, _fields, boost::is_any_of(","));
-        generateFieldsIndex();
+        std::sort(m_fields.begin(), m_fields.end());
     }
-    explicit TableInfo(std::string _tableName, std::string _key, std::vector<std::string> _fields)
-      : name(std::move(_tableName)), key(std::move(_key)), fields(std::move(_fields))
-    {
-        generateFieldsIndex();
-    }
-    TableInfo(const TableInfo&) = default;
-    TableInfo(TableInfo&&) = default;
-    TableInfo& operator=(const TableInfo&) = default;
-    TableInfo& operator=(TableInfo&&) = default;
 
-    void generateFieldsIndex()
-    {
-        size_t i = 0;
+    std::string_view name() const { return m_name; }
 
-        for (auto& field : fields)
+    const std::vector<std::string>& fields() const { return m_fields; }
+
+    size_t fieldIndex(const std::string_view& field) const
+    {
+        auto it = std::lower_bound(m_fields.begin(), m_fields.end(), field);
+        if (it != m_fields.end() && *it == field)
         {
-            auto [it, success] = field2Index.emplace(field, i++);
-            (void)it;
-            if (!success)
-            {
-                BOOST_THROW_EXCEPTION(bcos::Exception("Field exists! " + field));
-            }
+            return it - m_fields.begin();
+        }
+        else
+        {
+            BOOST_THROW_EXCEPTION(
+                BCOS_ERROR(-1, std::string("Can't find field: ") + std::string(field)));
         }
     }
 
-    std::string name;
-    std::string key;
-    std::vector<std::string> fields;
-    std::map<std::string, size_t, std::less<>> field2Index;
+private:
+    std::string m_name;
+    std::vector<std::string> m_fields;
+
+private:
+    void* operator new(size_t s) { return malloc(s); };
+    void operator delete(void* p) { free(p); };
 };
 
 }  // namespace storage

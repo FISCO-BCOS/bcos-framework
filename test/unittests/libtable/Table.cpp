@@ -91,11 +91,10 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     std::string valueField("value");
 
     std::promise<bool> createPromise;
-    tableFactory->asyncCreateTable(
-        tableName, keyField, valueField, [&](Error::Ptr&& error, bool success) {
-            BOOST_CHECK_EQUAL(error, nullptr);
-            createPromise.set_value(success);
-        });
+    tableFactory->asyncCreateTable(tableName, valueField, [&](Error::Ptr&& error, bool success) {
+        BOOST_CHECK_EQUAL(error, nullptr);
+        createPromise.set_value(success);
+    });
 
     BOOST_CHECK_EQUAL(createPromise.get_future().get(), true);
 
@@ -113,7 +112,7 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     entry->setField("value", "Lili");
     table->setRow("name", *entry);
     auto tableinfo = table->tableInfo();
-    BOOST_CHECK_EQUAL(tableinfo->name, tableName);
+    BOOST_CHECK_EQUAL(tableinfo->name(), tableName);
 
     // BOOST_CHECK_EQUAL_COLLECTIONS(
     //     valueField.begin(), valueField.end(), tableinfo->fields.begin(),
@@ -146,11 +145,10 @@ BOOST_AUTO_TEST_CASE(setRow)
     std::string valueField("value1,value2");
 
     std::promise<bool> createPromise;
-    tableFactory->asyncCreateTable(
-        tableName, keyField, valueField, [&](Error::Ptr&& error, bool success) {
-            BOOST_CHECK_EQUAL(error, nullptr);
-            createPromise.set_value(success);
-        });
+    tableFactory->asyncCreateTable(tableName, valueField, [&](Error::Ptr&& error, bool success) {
+        BOOST_CHECK_EQUAL(error, nullptr);
+        createPromise.set_value(success);
+    });
     BOOST_CHECK_EQUAL(createPromise.get_future().get(), true);
 
     std::promise<std::optional<Table>> tablePromise;
@@ -162,10 +160,10 @@ BOOST_AUTO_TEST_CASE(setRow)
     BOOST_TEST(table);
 
     // check fields order of t_test
-    BOOST_TEST(table->tableInfo()->fields.size() == 2);
-    BOOST_TEST(table->tableInfo()->fields[0] == "value1");
-    BOOST_TEST(table->tableInfo()->fields[1] == "value2");
-    BOOST_TEST(table->tableInfo()->key == keyField);
+    BOOST_TEST(table->tableInfo()->fields().size() == 2);
+    BOOST_TEST(table->tableInfo()->fields()[0] == "value1");
+    BOOST_TEST(table->tableInfo()->fields()[1] == "value2");
+    // BOOST_TEST(table->tableInfo()->key == keyField);
     auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
     BOOST_CHECK_THROW(entry->setField("value", "Lili"), bcos::Error);
@@ -183,9 +181,8 @@ BOOST_AUTO_TEST_CASE(setRow)
     auto sysTable = sysTablePromise.get_future().get();
     BOOST_CHECK(sysTable);
 
-    BOOST_TEST(sysTable->tableInfo()->fields.size() == 2);
-    BOOST_TEST(sysTable->tableInfo()->fields[0] == StateStorage::SYS_TABLE_KEY_FIELDS);
-    BOOST_TEST(sysTable->tableInfo()->fields[1] == StateStorage::SYS_TABLE_VALUE_FIELDS);
+    BOOST_TEST(sysTable->tableInfo()->fields().size() == 1);
+    BOOST_TEST(sysTable->tableInfo()->fields()[0] == StateStorage::SYS_TABLE_VALUE_FIELDS);
     // BOOST_TEST(sysTable->tableInfo()->key == StateStorage::SYS_TABLE_KEY);
 }
 
@@ -200,10 +197,10 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     auto table = tableFactory->openTable("t_test");
     BOOST_TEST(table);
     // check fields order of t_test
-    BOOST_TEST(table->tableInfo()->fields.size() == 2);
-    BOOST_TEST(table->tableInfo()->fields[0] == "value1");
-    BOOST_TEST(table->tableInfo()->fields[1] == "value2");
-    BOOST_TEST(table->tableInfo()->key == keyField);
+    BOOST_TEST(table->tableInfo()->fields().size() == 2);
+    BOOST_TEST(table->tableInfo()->fields()[0] == "value1");
+    BOOST_TEST(table->tableInfo()->fields()[1] == "value2");
+    // BOOST_TEST(table->tableInfo()->key == keyField);
     auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
     entry->setField("value1", "hello world!");

@@ -1,22 +1,35 @@
 #include "../interfaces/storage/StorageInterface.h"
 #include "../interfaces/storage/Table.h"
+#include <boost/range/detail/implementation_help.hpp>
 
 using namespace bcos::storage;
 
-std::optional<TableInfo> StorageInterface::getSysTableInfo(const std::string& tableName)
+TableInfo::ConstPtr StorageInterface::getSysTableInfo(const std::string_view& tableName)
 {
+    struct SystemTables
+    {
+        SystemTables()
+        {
+            tables.push_back(std::make_shared<TableInfo>(
+                std::string(SYS_TABLES), std::vector<std::string>{SYS_TABLE_VALUE_FIELDS}));
+        }
+
+        std::vector<TableInfo::ConstPtr> tables;
+    } static m_systemTables;
+
     if (tableName == SYS_TABLES)
     {
-        return TableInfo(
-            tableName, "table_name", {std::string("key_field"), std::string("value_fields")});
+        return m_systemTables.tables[0];
     }
-    return {};
+
+    return nullptr;
 }
 
-void StorageInterface::asyncCreateTable(const std::string& _tableName, const std::string& _keyField,
-    const std::string& _valueFields, std::function<void(Error::Ptr&&, bool)> callback) noexcept
+void StorageInterface::asyncCreateTable(std::string _tableName, std::string _valueFields,
+    std::function<void(Error::Ptr&&, bool)> callback) noexcept
 {
-    asyncOpenTable(SYS_TABLES, [_tableName, callback, _keyField, _valueFields](
+    asyncOpenTable(SYS_TABLES, [tableName = std::move(_tableName), callback = std::move(callback),
+                                   valueFields = std::move(_valueFields)](
                                    auto&& error, auto&& sysTable) {
         if (error)
         {
@@ -24,8 +37,9 @@ void StorageInterface::asyncCreateTable(const std::string& _tableName, const std
             return;
         }
 
-        sysTable->asyncGetRow(_tableName, [_tableName, callback, &sysTable, _keyField,
-                                              _valueFields](auto&& error, auto&& entry) {
+        sysTable->asyncGetRow(tableName, [tableName, callback, &sysTable,
+                                             valueFields = std::move(valueFields)](
+                                             auto&& error, auto&& entry) {
             if (error)
             {
                 callback(BCOS_ERROR_WITH_PREV_PTR(-1, "Get table info row failed!", error), false);
@@ -39,10 +53,9 @@ void StorageInterface::asyncCreateTable(const std::string& _tableName, const std
             }
 
             auto tableEntry = sysTable->newEntry();
-            tableEntry.setField(SYS_TABLE_KEY_FIELDS, _keyField);
-            tableEntry.setField(SYS_TABLE_VALUE_FIELDS, _valueFields);
+            tableEntry.setField(SYS_TABLE_VALUE_FIELDS, std::string(valueFields));
 
-            sysTable->asyncSetRow(_tableName, tableEntry, [callback](auto&& error, auto success) {
+            sysTable->asyncSetRow(tableName, tableEntry, [callback](auto&& error, auto success) {
                 if (error)
                 {
                     callback(BCOS_ERROR_WITH_PREV_PTR(
@@ -63,29 +76,38 @@ void StorageInterface::asyncCreateTable(const std::string& _tableName, const std
     });
 }
 
-void StorageInterface::asyncOpenTable(const std::string& tableName,
+void StorageInterface::asyncOpenTable(std::string_view tableName,
     std::function<void(Error::Ptr&&, std::optional<Table>&&)> callback) noexcept
 {
     auto sysTableInfo = getSysTableInfo(tableName);
     if (sysTableInfo)
     {
-        auto table = Table(this, std::make_shared<TableInfo>(std::move(*sysTableInfo)), 0);
+        auto table = Table(this, sysTableInfo, 0);
         callback(nullptr, std::move(table));
 
         return;
     }
     else
     {
-        asyncOpenTable(SYS_TABLES,
-            [this, callback, tableName](Error::Ptr&& error, std::optional<Table>&& sysTable) {
+        asyncOpenTable(
+            SYS_TABLES, [this, callback = std::move(callback), tableName = std::string(tableName)](
+                            Error::Ptr&& error, std::optional<Table>&& sysTable) {
                 if (error)
                 {
                     callback(std::move(error), {});
                     return;
                 }
 
-                sysTable->asyncGetRow(
-                    tableName, [this, tableName, callback](auto&& error, auto&& entry) {
+                if (!sysTable)
+                {
+                    callback(BCOS_ERROR_PTR(
+                                 -1, "System table: " + std::string(SYS_TABLES) + " not found!"),
+                        {});
+                    return;
+                }
+
+                sysTable->asyncGetRow(tableName,
+                    [this, tableName, callback = std::move(callback)](auto&& error, auto&& entry) {
                         if (error)
                         {
                             callback(std::move(error), {});
@@ -98,9 +120,12 @@ void StorageInterface::asyncOpenTable(const std::string& tableName,
                             return;
                         }
 
-                        auto tableInfo = std::make_shared<storage::TableInfo>(tableName,
-                            std::string(entry->getField(SYS_TABLE_KEY_FIELDS)),
-                            entry->getField(SYS_TABLE_VALUE_FIELDS));
+                        std::vector<std::string> fields;
+                        boost::split(
+                            fields, entry->getField(SYS_TABLE_VALUE_FIELDS), boost::is_any_of(","));
+
+                        auto tableInfo = std::make_shared<storage::TableInfo>(
+                            std::move(tableName), std::move(fields));
                         auto table = Table(this, tableInfo, 0);
 
                         callback(nullptr, std::move(table));
