@@ -4,18 +4,22 @@
 
 using namespace bcos::storage;
 
-const TableInfo* StorageInterface::getSysTableInfo(const std::string_view& tableName)
+TableInfo::ConstPtr StorageInterface::getSysTableInfo(const std::string_view& tableName)
 {
     struct SystemTables
     {
-        SystemTables() { tables.push_back({SYS_TABLES, {SYS_TABLE_VALUE_FIELDS}}); }
+        SystemTables()
+        {
+            tables.push_back(std::make_shared<TableInfo>(
+                std::string(SYS_TABLES), std::vector<std::string>{SYS_TABLE_VALUE_FIELDS}));
+        }
 
-        std::vector<TableInfo> tables;
+        std::vector<TableInfo::ConstPtr> tables;
     } static m_systemTables;
 
     if (tableName == SYS_TABLES)
     {
-        return &m_systemTables.tables[0];
+        return m_systemTables.tables[0];
     }
 
     return nullptr;
@@ -24,7 +28,7 @@ const TableInfo* StorageInterface::getSysTableInfo(const std::string_view& table
 void StorageInterface::asyncCreateTable(std::string _tableName, std::string _valueFields,
     std::function<void(Error::Ptr&&, bool)> callback) noexcept
 {
-    asyncOpenTable(SYS_TABLES, [tableName = std::move(_tableName), callback,
+    asyncOpenTable(SYS_TABLES, [tableName = std::move(_tableName), callback = std::move(callback),
                                    valueFields = std::move(_valueFields)](
                                    auto&& error, auto&& sysTable) {
         if (error)
@@ -78,7 +82,7 @@ void StorageInterface::asyncOpenTable(std::string_view tableName,
     auto sysTableInfo = getSysTableInfo(tableName);
     if (sysTableInfo)
     {
-        auto table = Table(this, std::make_shared<TableInfo>(*sysTableInfo), 0);
+        auto table = Table(this, sysTableInfo, 0);
         callback(nullptr, std::move(table));
 
         return;
@@ -91,6 +95,14 @@ void StorageInterface::asyncOpenTable(std::string_view tableName,
                 if (error)
                 {
                     callback(std::move(error), {});
+                    return;
+                }
+
+                if (!sysTable)
+                {
+                    callback(BCOS_ERROR_PTR(
+                                 -1, "System table: " + std::string(SYS_TABLES) + " not found!"),
+                        {});
                     return;
                 }
 

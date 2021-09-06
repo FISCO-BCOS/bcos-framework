@@ -40,7 +40,7 @@ public:
     static constexpr const char* SYS_TABLES = "s_tables";
     static constexpr const char* SYS_TABLE_VALUE_FIELDS = "value_fields";
 
-    static const TableInfo* getSysTableInfo(const std::string_view& tableName);
+    static TableInfo::ConstPtr getSysTableInfo(const std::string_view& tableName);
 
     using Ptr = std::shared_ptr<StorageInterface>;
     virtual ~StorageInterface() = default;
@@ -60,8 +60,7 @@ public:
     virtual void asyncSetRow(const TableInfo& tableInfo, const std::string_view& key, Entry entry,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
 
-    virtual void asyncCreateTable(std::string _tableName,
-        std::string _valueFields,
+    virtual void asyncCreateTable(std::string _tableName, std::string _valueFields,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept;
 
     virtual void asyncOpenTable(std::string_view tableName,
@@ -76,7 +75,8 @@ public:
     ~TraverseStorageInterface() override = default;
 
     virtual void parallelTraverse(bool onlyDirty,
-        std::function<bool(const TableInfo& tableInfo, const std::string_view& key, Entry const& entry)>
+        std::function<bool(
+            const TableInfo& tableInfo, const std::string_view& key, Entry const& entry)>
             callback) const = 0;
 };
 
