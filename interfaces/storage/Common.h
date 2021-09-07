@@ -162,6 +162,7 @@ public:
         }
         else
         {
+            STORAGE_LOG(TRACE) << "name: " << m_name << " field:" << field << toString(m_fields);
             BOOST_THROW_EXCEPTION(
                 BCOS_ERROR(-1, std::string("Can't find field: ") + std::string(field)));
         }

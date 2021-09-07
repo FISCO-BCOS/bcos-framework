@@ -146,7 +146,11 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
 
     auto setEntryToTable = [this, entry = std::move(entry), tableName = std::string(table),
                                callback](const std::string_view& key,
-                               std::unique_ptr<std::string> keyPtr, TableData& table) {
+                               std::unique_ptr<std::string> keyPtr, TableData& table) mutable {
+        if (!entry.tableInfo())
+        {
+            entry.setTableInfo(table.tableInfo);
+        }
         std::optional<Entry> entryOld;
         auto entryIt = table.entries.find(key);
         if (entryIt != table.entries.end())
@@ -199,44 +203,44 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
     }
     else
     {
-        asyncOpenTable(table,
-            [this, callback, setEntryToTable = std::move(setEntryToTable), key = std::string(key),
-                tableName = std::string(table)](Error::Ptr&& error, std::optional<Table>&& table) {
-                if (error)
+        asyncOpenTable(table, [this, callback, setEntryToTable = std::move(setEntryToTable),
+                                  key = std::string(key), tableName = std::string(table)](
+                                  Error::Ptr&& error, std::optional<Table>&& table) mutable {
+            if (error)
+            {
+                callback(BCOS_ERROR_WITH_PREV_PTR(
+                             -1, "Open table: " + tableName + " failed", std::move(error)),
+                    false);
+                return;
+            }
+
+            if (table)
+            {
+                auto tableNamePtr = std::make_unique<std::string>(std::move(tableName));
+                std::string_view tableNameView(*tableNamePtr);
+                auto [tableIt, inserted] = m_data.emplace(tableNameView,
+                    std::make_tuple(std::move(tableNamePtr), TableData(table->tableInfo())));
+
+                if (!inserted)
                 {
-                    callback(BCOS_ERROR_WITH_PREV_PTR(
-                                 -1, "Open table: " + tableName + " failed", std::move(error)),
+                    callback(BCOS_ERROR_PTR(-1, "Insert table: " + std::string(tableIt->first) +
+                                                    " into tableFactory failed!"),
                         false);
                     return;
                 }
 
-                if (table)
-                {
-                    auto tableNamePtr = std::make_unique<std::string>(std::move(tableName));
-                    std::string_view tableNameView(*tableNamePtr);
-                    auto [tableIt, inserted] = m_data.emplace(tableNameView,
-                        std::make_tuple(std::move(tableNamePtr), TableData(table->tableInfo())));
-
-                    if (!inserted)
-                    {
-                        callback(BCOS_ERROR_PTR(-1, "Insert table: " + std::string(tableIt->first) +
-                                                        " into tableFactory failed!"),
-                            false);
-                        return;
-                    }
-
-                    auto keyPtr = std::make_unique<std::string>(std::move(key));
-                    std::string_view keyView(*keyPtr);
-                    setEntryToTable(keyView, std::move(keyPtr), std::get<1>(tableIt->second));
-                    return;
-                }
-                else
-                {
-                    callback(BCOS_ERROR_PTR(-1,
-                                 "Async set row failed, table: " + tableName + " does not exists"),
-                        false);
-                }
-            });
+                auto keyPtr = std::make_unique<std::string>(std::move(key));
+                std::string_view keyView(*keyPtr);
+                setEntryToTable(keyView, std::move(keyPtr), std::get<1>(tableIt->second));
+                return;
+            }
+            else
+            {
+                callback(BCOS_ERROR_PTR(
+                             -1, "Async set row failed, table: " + tableName + " does not exists"),
+                    false);
+            }
+        });
     }
 }
 
