@@ -43,6 +43,12 @@ namespace bcos
 {
 namespace storage
 {
+
+enum StorageError {
+    SUCCESS = 0,
+    TableNotExists = 1,
+};
+
 struct Condition : public std::enable_shared_from_this<Condition>
 {
     Condition() = default;

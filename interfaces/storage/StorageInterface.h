@@ -17,6 +17,10 @@
  * @file StorageInterface.h
  * @author: xingqiangbai
  * @date: 2021-04-07
+ * @brief interface of StorageInterface
+ * @file StorageInterface.h
+ * @author: ancelmo
+ * @date: 2021-09-07
  */
 #pragma once
 #include "../../interfaces/protocol/Block.h"

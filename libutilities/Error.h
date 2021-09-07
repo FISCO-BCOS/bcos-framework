@@ -47,7 +47,6 @@ public:
     using Ptr = std::unique_ptr<Error>;
     using ConstPtr = std::unique_ptr<const Error>;
 
-    using PrevError = boost::error_info<struct PrevErrorTag, Error>;
     using PrevStdError = boost::error_info<struct PrevErrorTag, std::string>;
 
     static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
@@ -65,7 +64,7 @@ public:
         const std::string& errorMessage, const std::unique_ptr<Error>& prev)
     {
         auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevError(*prev);
+        error << PrevStdError(boost::diagnostic_information(*prev));
         return error;
     }
 
@@ -73,7 +72,7 @@ public:
         const std::string& errorMessage, std::unique_ptr<Error>&& prev)
     {
         auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevError(std::move(*prev));
+        error << PrevStdError(boost::diagnostic_information(*prev));
         return error;
     }
 
@@ -81,7 +80,7 @@ public:
         const std::string& errorMessage, const Error& prev)
     {
         auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevError(prev);
+        error << PrevStdError(boost::diagnostic_information(prev));
         return error;
     }
 
@@ -89,7 +88,7 @@ public:
         const std::string& errorMessage, Error&& prev)
     {
         auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevError(std::move(prev));
+        error << PrevStdError(boost::diagnostic_information(prev));
         return error;
     }
 

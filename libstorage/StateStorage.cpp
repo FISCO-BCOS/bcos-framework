@@ -205,8 +205,8 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                 tableName = std::string(table)](Error::Ptr&& error, std::optional<Table>&& table) {
                 if (error)
                 {
-                    callback(
-                        BCOS_ERROR_WITH_PREV_PTR(-1, "Open table: " + tableName + " failed", error),
+                    callback(BCOS_ERROR_WITH_PREV_PTR(
+                                 -1, "Open table: " + tableName + " failed", std::move(error)),
                         false);
                     return;
                 }
