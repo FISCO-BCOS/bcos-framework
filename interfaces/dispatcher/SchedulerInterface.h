@@ -51,7 +51,7 @@ public:
      *                       return the system ledger config to the sync/consensus module
      */
     virtual void commitBlock(const bcos::protocol::BlockHeader::ConstPtr& header,
-        std::function<void(bcos::Error::Ptr&&, bcos::ledger::LedgerConfig::Ptr)>) noexcept = 0;
+        std::function<void(bcos::Error::Ptr&&, bcos::ledger::LedgerConfig::Ptr&&)>) noexcept = 0;
 
     // by console, query committed committing executing
     virtual void status(std::function<void(Error::Ptr&&, bcos::protocol::Session::ConstPtr&&)>
