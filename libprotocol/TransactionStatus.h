@@ -46,9 +46,9 @@ enum class TransactionStatus : int32_t
     GasOverflow = 20,
     ContractFrozen = 21,
     AccountFrozen = 22,
-    WASMValidationFailuer = 32,
+    WASMValidationFailure = 32,
     WASMArgumentOutOfRange = 33,
-    WASMUnreacheableInstruction = 34,
+    WASMUnreachableInstruction = 34,
     WASMTrap = 35,
     NonceCheckFail = 10000,  /// txPool related errors
     BlockLimitCheckFail = 10001,
