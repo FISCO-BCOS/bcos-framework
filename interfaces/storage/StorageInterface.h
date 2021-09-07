@@ -32,8 +32,28 @@ namespace bcos
 {
 namespace storage
 {
-class Table;
+// TODO: implement this function
+class KVStorageInterface
+{
+public:
+    using Ptr = std::shared_ptr<KVStorageInterface>;
+    KVStorageInterface() = default;
+    virtual ~KVStorageInterface() {}
 
+    virtual void asyncGet(const std::string_view& _columnFamily, const std::string_view& _key,
+        std::function<void(const Error::Ptr&, const std::string& value)> _callback) = 0;
+
+    virtual void asyncGetBatch(const std::string_view& _columnFamily,
+        const std::shared_ptr<std::vector<std::string>>& _keys,
+        std::function<void(const Error::Ptr&, const std::shared_ptr<std::vector<std::string>>&)>
+            callback) = 0;
+    virtual void asyncPut(const std::string_view& _columnFamily, const std::string_view& _key,
+        const std::string_view& _value, std::function<void(const Error::Ptr&)> _callback) = 0;
+    virtual void asyncRemove(const std::string_view& _columnFamily, const std::string_view& _key,
+        std::function<void(const Error::Ptr&)> _callback) = 0;
+};
+
+class Table;
 class StorageInterface
 {
 public:
