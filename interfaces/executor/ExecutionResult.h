@@ -20,7 +20,7 @@
  */
 
 #pragma once
-#include "../libprotocol/LogEntry.h"
+#include "../../libprotocol/LogEntry.h"
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/TransactionReceipt.h"
 #include <memory>
