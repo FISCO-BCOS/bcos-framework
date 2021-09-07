@@ -65,26 +65,26 @@ public:
 
     virtual ~StateStorage() { getChangeLog().clear(); }
 
-    void asyncGetPrimaryKeys(const TableInfo& _tableInfo,
+    void asyncGetPrimaryKeys(const std::string_view& table,
         const std::optional<storage::Condition const>& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept override;
 
-    void asyncGetRow(const TableInfo& _tableInfo, const std::string_view& _key,
+    void asyncGetRow(const std::string_view& table, const std::string_view& _key,
         std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept override;
 
-    void asyncGetRows(const TableInfo& _tableInfo,
+    void asyncGetRows(const std::string_view& table,
         const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
         std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
         override;
 
-    void asyncSetRow(const storage::TableInfo& tableInfo, const std::string_view& key, Entry entry,
+    void asyncSetRow(const std::string_view& table, const std::string_view& key, Entry entry,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
 
-    void parallelTraverse(bool onlyDirty, std::function<bool(const TableInfo& tableInfo,
+    void parallelTraverse(bool onlyDirty, std::function<bool(const std::string_view& table,
                                               const std::string_view& key, const Entry& entry)>
                                               callback) const override;
 
-    std::optional<Table> openTable(const std::string& tableName);
+    std::optional<Table> openTable(const std::string& table);
 
     bool createTable(const std::string& _tableName, const std::string& _keyField,
         const std::string& _valueFields);
@@ -108,17 +108,17 @@ private:
             Set,
             Remove,
         };
-        TableInfo::ConstPtr tableInfo;
+        std::string table;
         Kind kind;  ///< The kind of the change.
         std::string key;
         std::optional<Entry> entry;
         bool tableDirty;
-        Change(storage::TableInfo::ConstPtr _tableInfo, Kind _kind, std::string _key,
-            std::optional<Entry> _entry, bool _tableDirty)
-          : tableInfo(_tableInfo),
+        Change(std::string _table, Kind _kind, std::string _key, std::optional<Entry> _entry,
+            bool _tableDirty)
+          : table(std::move(_table)),
             kind(_kind),
             key(std::move(_key)),
-            entry(_entry),
+            entry(std::move(_entry)),
             tableDirty(_tableDirty)
         {}
     };
@@ -126,7 +126,7 @@ private:
     std::vector<Change>& getChangeLog() { return s_changeLog.local(); }
 
     template <class T>
-    void multiAsyncGetRows(const TableInfo& _tableInfo, const gsl::span<T const>& _keys,
+    void multiAsyncGetRows(const std::string_view& table, const gsl::span<T const>& _keys,
         std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback)
     {
         auto results = std::make_shared<std::vector<std::optional<Entry>>>(_keys.size());
@@ -135,7 +135,7 @@ private:
 
         long existsCount = 0;
 
-        auto tableIt = m_data.find(_tableInfo.name());
+        auto tableIt = m_data.find(table);
         if (tableIt != m_data.end())
         {
             size_t i = 0;
@@ -167,8 +167,8 @@ private:
 
         if (existsCount < _keys.size() && m_prev)
         {
-            m_prev->asyncGetRows(_tableInfo, std::get<0>(*missings),
-                [this, _callback, _tableInfo, missings, results](auto&& error, auto&& entries) {
+            m_prev->asyncGetRows(table, std::get<0>(*missings),
+                [this, _callback, missings, results](auto&& error, auto&& entries) {
                     if (error)
                     {
                         _callback(

@@ -24,6 +24,8 @@
 #include "../../libutilities/Error.h"
 #include "Common.h"
 #include "Entry.h"
+#include <boost/range.hpp>
+#include <boost/range/iterator.hpp>
 #include <map>
 #include <memory>
 #include <string>
@@ -37,28 +39,28 @@ class Table;
 class StorageInterface
 {
 public:
-    static constexpr const char* SYS_TABLES = "s_tables";
-    static constexpr const char* SYS_TABLE_VALUE_FIELDS = "value_fields";
+    static constexpr const char SYS_TABLES[] = "s_tables";
+    static constexpr const char SYS_TABLE_VALUE_FIELDS[] = "value_fields";
 
     static TableInfo::ConstPtr getSysTableInfo(const std::string_view& tableName);
 
     using Ptr = std::shared_ptr<StorageInterface>;
     virtual ~StorageInterface() = default;
 
-    virtual void asyncGetPrimaryKeys(const TableInfo& _tableInfo,
+    virtual void asyncGetPrimaryKeys(const std::string_view& table,
         const std::optional<Condition const>& _condition,
         std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept = 0;
 
-    virtual void asyncGetRow(const TableInfo& _tableInfo, const std::string_view& _key,
+    virtual void asyncGetRow(const std::string_view& table, const std::string_view& _key,
         std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept = 0;
 
-    virtual void asyncGetRows(const TableInfo& _tableInfo,
+    virtual void asyncGetRows(const std::string_view& table,
         const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
         std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)>
             _callback) noexcept = 0;
 
-    virtual void asyncSetRow(const TableInfo& tableInfo, const std::string_view& key, Entry entry,
-        std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
+    virtual void asyncSetRow(const std::string_view& table, const std::string_view& key,
+        Entry entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
 
     virtual void asyncCreateTable(std::string _tableName, std::string _valueFields,
         std::function<void(Error::Ptr&&, bool)> callback) noexcept;
@@ -76,7 +78,7 @@ public:
 
     virtual void parallelTraverse(bool onlyDirty,
         std::function<bool(
-            const TableInfo& tableInfo, const std::string_view& key, Entry const& entry)>
+            const std::string_view& table, const std::string_view& key, Entry const& entry)>
             callback) const = 0;
 };
 

@@ -550,10 +550,10 @@ BOOST_AUTO_TEST_CASE(chainLink)
         // dirty should be false
         totalCount = 0;
         tbb::concurrent_vector<std::function<void()>> checks;
-        storage->parallelTraverse(false, [&](auto&& tableInfo, auto&&, auto&& entry) {
-            checks.push_back([index, tableInfo, entry] {
+        storage->parallelTraverse(false, [&](auto&& table, auto&&, auto&& entry) {
+            checks.push_back([index, table, entry] {
                 // BOOST_CHECK_NE(tableInfo, nullptr);
-                if (tableInfo.name() != "s_tables")
+                if (table != "s_tables")
                 {
                     auto i = boost::lexical_cast<int>(entry.getField("value1"));
                     auto j = boost::lexical_cast<int>(entry.getField("value2"));
@@ -578,10 +578,10 @@ BOOST_AUTO_TEST_CASE(chainLink)
 
         checks.clear();
         dirtyCount = 0;
-        storage->parallelTraverse(true, [&](auto&& tableInfo, auto&&, auto&& entry) {
-            checks.push_back([index, tableInfo, entry]() {
+        storage->parallelTraverse(true, [&](auto&& table, auto&&, auto&& entry) {
+            checks.push_back([index, table, entry]() {
                 // BOOST_CHECK_NE(tableInfo, nullptr);
-                if (tableInfo.name() != "s_tables")
+                if (table != "s_tables")
                 {
                     auto i = boost::lexical_cast<int>(entry.getField("value1"));
                     auto j = boost::lexical_cast<int>(entry.getField("value2"));

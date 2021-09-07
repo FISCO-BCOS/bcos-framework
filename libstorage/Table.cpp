@@ -89,7 +89,7 @@ bool Table::setRow(const std::string_view& _key, Entry _entry)
 {
     std::promise<std::tuple<Error::Ptr, bool>> promise;
     m_storage->asyncSetRow(
-        *m_tableInfo, _key, std::move(_entry), [&promise](auto&& error, auto success) {
+        m_tableInfo->name(), _key, std::move(_entry), [&promise](auto&& error, auto success) {
             promise.set_value(std::tuple{std::move(error), success});
         });
     auto result = promise.get_future().get();
@@ -105,26 +105,26 @@ bool Table::setRow(const std::string_view& _key, Entry _entry)
 void Table::asyncGetPrimaryKeys(Condition const& _condition,
     std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept
 {
-    m_storage->asyncGetPrimaryKeys(*m_tableInfo, _condition, _callback);
+    m_storage->asyncGetPrimaryKeys(m_tableInfo->name(), _condition, _callback);
 }
 
 void Table::asyncGetRow(const std::string_view& _key,
     std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept
 {
-    m_storage->asyncGetRow(*m_tableInfo, _key, _callback);
+    m_storage->asyncGetRow(m_tableInfo->name(), _key, _callback);
 }
 
 void Table::asyncGetRows(
     const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
     std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
 {
-    m_storage->asyncGetRows(*m_tableInfo, _keys, _callback);
+    m_storage->asyncGetRows(m_tableInfo->name(), _keys, _callback);
 }
 
 void Table::asyncSetRow(const std::string_view& key, Entry entry,
     std::function<void(Error::Ptr&&, bool)> callback) noexcept
 {
-    m_storage->asyncSetRow(*m_tableInfo, key, std::move(entry), callback);
+    m_storage->asyncSetRow(m_tableInfo->name(), key, std::move(entry), callback);
 }
 
 }  // namespace storage
