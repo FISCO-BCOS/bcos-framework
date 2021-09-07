@@ -46,8 +46,8 @@ public:
     virtual int64_t contextID() const = 0;
     virtual void setContextID(int64_t contextID) = 0;
 
-    virtual bcos::u256 gasAvailable() const = 0;
-    virtual void setGasAvailable(bcos::u256 gasAvailable) = 0;
+    virtual int64_t gasAvailable() const = 0;
+    virtual void setGasAvailable(int64_t gasAvailable) = 0;
 
     virtual bcos::bytesConstRef input() const = 0;
     virtual void setInput(bcos::bytes input) = 0;

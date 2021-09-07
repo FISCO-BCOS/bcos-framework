@@ -63,8 +63,8 @@ public:
     virtual bcos::bytesConstRef output() const = 0;
     virtual void setOutput(bytes output) = 0;
 
-    virtual bcos::u256 gasUsed() const = 0;
-    virtual void setGasUsed(bcos::u256 gasUsed) = 0;
+    virtual int64_t gasUsed() const = 0;
+    virtual void setGasUsed(int64_t gasUsed) = 0;
 
     virtual gsl::span<LogEntry> logEntries() const = 0;
     virtual void setLogEntries(std::vector<LogEntry> logEntries) = 0;
