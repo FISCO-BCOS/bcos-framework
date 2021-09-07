@@ -43,8 +43,8 @@ namespace bcos
 {
 namespace storage
 {
-
-enum StorageError {
+enum StorageError
+{
     SUCCESS = 0,
     TableNotExists = 1,
 };
@@ -139,7 +139,13 @@ public:
     TableInfo(std::string name, std::vector<std::string> fields)
       : m_name(std::move(name)), m_fields(std::move(fields))
     {
-        std::sort(m_fields.begin(), m_fields.end());
+        m_order.reserve(m_fields.size());
+        for (size_t i = 0; i < m_fields.size(); ++i)
+        {
+            m_order.push_back({m_fields[i], i});
+        }
+        std::sort(m_order.begin(), m_order.end(),
+            [](auto&& lhs, auto&& rhs) { return std::get<0>(lhs) < std::get<0>(rhs); });
     }
 
     std::string_view name() const { return m_name; }
@@ -148,10 +154,11 @@ public:
 
     size_t fieldIndex(const std::string_view& field) const
     {
-        auto it = std::lower_bound(m_fields.begin(), m_fields.end(), field);
-        if (it != m_fields.end() && *it == field)
+        auto it = std::lower_bound(m_order.begin(), m_order.end(), field,
+            [](auto&& lhs, auto&& rhs) { return std::get<0>(lhs) < rhs; });
+        if (it != m_order.end() && std::get<0>(*it) == field)
         {
-            return it - m_fields.begin();
+            return std::get<1>(*it);
         }
         else
         {
@@ -163,6 +170,7 @@ public:
 private:
     std::string m_name;
     std::vector<std::string> m_fields;
+    std::vector<std::tuple<std::string, size_t>> m_order;
 
 private:
     void* operator new(size_t s) { return malloc(s); };
