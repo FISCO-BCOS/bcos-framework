@@ -144,10 +144,8 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
 {
     entry.setNum(m_blockNumber);
 
-    auto setEntryToTable = [this, entry = std::move(entry), callback](const std::string_view& key,
+    auto setEntryToTable = [this, entry = std::move(entry), tableName = std::string(table), callback](const std::string_view& key,
                                std::unique_ptr<std::string> keyPtr, TableData& table) {
-        auto tableInfo = entry.tableInfo();
-
         std::optional<Entry> entryOld;
         auto entryIt = table.entries.find(key);
         if (entryIt != table.entries.end())
@@ -185,7 +183,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
             }
         }
 
-        getChangeLog().push_back(Change(std::string(tableInfo->name()), Change::Set,
+        getChangeLog().push_back(Change(tableName, Change::Set,
             std::string(key), std::move(entryOld),
             table.dirty));  // TODO: fix null tableInfo ptr
         table.dirty = true;
