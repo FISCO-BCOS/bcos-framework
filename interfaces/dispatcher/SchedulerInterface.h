@@ -20,11 +20,12 @@
  */
 
 #pragma once
+#include "../../interfaces/executor/ParallelTransactionExecutorInterface.h"
+#include "../../interfaces/ledger/LedgerConfig.h"
+#include "../../interfaces/protocol/ProtocolTypeDef.h"
 #include "../../libutilities/Error.h"
 #include "../crypto/CommonType.h"
 #include "../protocol/Block.h"
-#include "interfaces/executor/ParallelTransactionExecutorInterface.h"
-#include "interfaces/protocol/ProtocolTypeDef.h"
 #include <functional>
 #include <memory>
 #include <string_view>
@@ -34,14 +35,23 @@ namespace bcos::dispatcher
 class SchedulerInterface
 {
 public:
+    using Ptr = std::shared_ptr<SchedulerInterface>;
+    SchedulerInterface() = default;
+    virtual ~SchedulerInterface() {}
+
     // by pbft & sync
     virtual void executeBlock(const bcos::protocol::Block::ConstPtr& block, bool verify,
         std::function<void(bcos::Error::Ptr&&, bcos::protocol::BlockHeader::Ptr&&)>
             callback) noexcept = 0;
 
-    // by pbft & sync
+    /**
+     * @brief async commit a block in consensus/sync module
+     * @param _blockHeader the header to commit, this header should have signList
+     * @param _onCommitBlock trigger this callback when commit block in storage
+     *                       return the system ledger config to the sync/consensus module
+     */
     virtual void commitBlock(const bcos::protocol::BlockHeader::ConstPtr& header,
-        std::function<void(bcos::Error::Ptr&&)>) noexcept = 0;
+        std::function<void(bcos::Error::Ptr&&, bcos::ledger::LedgerConfig::Ptr)>) noexcept = 0;
 
     // by console, query committed committing executing
     virtual void status(std::function<void(Error::Ptr&&, bcos::protocol::Session::ConstPtr&&)>
