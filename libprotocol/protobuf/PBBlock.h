@@ -22,6 +22,7 @@
 #include "../../interfaces/crypto/CryptoSuite.h"
 #include "../../interfaces/protocol/Block.h"
 #include "../../interfaces/protocol/BlockHeaderFactory.h"
+#include "../../interfaces/protocol/TransactionMetaData.h"
 #include "libprotocol/bcos-proto/Block.pb.h"
 namespace bcos
 {
@@ -38,7 +39,7 @@ public:
         m_pbRawBlock(std::make_shared<PBRawBlock>()),
         m_transactions(std::make_shared<Transactions>()),
         m_receipts(std::make_shared<Receipts>()),
-        m_transactionsHash(std::make_shared<HashList>()),
+        m_transactionMetaDataList(std::make_shared<TransactionMetaDataList>()),
         m_nonceList(std::make_shared<NonceList>())
     {
         assert(m_blockHeaderFactory);
@@ -61,14 +62,19 @@ public:
             _calculateHash, _checkSig)
     {}
 
-    ~PBBlock() override {}
+    ~PBBlock() override
+    {
+        // return the ownership of rawProposal to the passed-in proposal
+        clearTransactionMetaDataCache();
+    }
 
     void decode(bytesConstRef _data, bool _calculateHash, bool _checkSig) override;
     void encode(bytes& _encodeData) const override;
 
     // getNonces of the current block
     Transaction::ConstPtr transaction(size_t _index) const override;
-    bcos::crypto::HashType const& transactionHash(size_t _index) const override;
+    TransactionMetaData::ConstPtr transactionMetaData(size_t _index) const override;
+
     TransactionReceipt::ConstPtr receipt(size_t _index) const override;
 
     int32_t version() const override { return m_pbRawBlock->version(); }
@@ -83,7 +89,10 @@ public:
     // get receipts
     ReceiptsConstPtr receipts() const { return m_receipts; }  // removed
     // get transaction hash
-    HashListConstPtr transactionsHash() const { return m_transactionsHash; }  // removed
+    TransactionMetaDataList const& transactionsMetaData() const
+    {
+        return *m_transactionMetaDataList;
+    }  // removed
 
     void setBlockType(BlockType _blockType) override
     {
@@ -135,16 +144,9 @@ public:
         m_receipts->push_back(_receipt);
         clearReceiptsCache();
     }
-    // set transaction hash
-    void setTransactionsHash(HashListPtr _transactionsHash)  // removed
+    void appendTransactionMetaData(TransactionMetaData::Ptr _txMetaData) override
     {
-        m_transactionsHash = _transactionsHash;
-        clearTransactionsHashCache();
-    }
-    void appendTransactionHash(bcos::crypto::HashType const& _txHash) override
-    {
-        m_transactionsHash->push_back(_txHash);
-        clearTransactionsHashCache();
+        m_transactionMetaDataList->emplace_back(_txMetaData);
     }
 
     // get transactions size
@@ -152,7 +154,7 @@ public:
     // get receipts size
     size_t receiptsSize() const override { return m_receipts->size(); }
 
-    size_t transactionsHashSize() const override { return m_transactionsHash->size(); }
+    size_t transactionsMetaDataSize() const override { return m_transactionMetaDataList->size(); }
     void setNonceList(NonceList const& _nonceList) override
     {
         *m_nonceList = _nonceList;
@@ -166,15 +168,29 @@ public:
     }
     NonceList const& nonceList() const override { return *m_nonceList; }
 
+protected:
+    virtual void encodeTransactionsMetaData() const;
+    virtual void decodeTransactionsMetaData();
+
+    virtual void clearTransactionMetaDataCache() const
+    {
+        auto allocatedMetaDataSize = m_pbRawBlock->transactionsmetadata_size();
+        for (int i = 0; i < allocatedMetaDataSize; i++)
+        {
+            m_pbRawBlock->mutable_transactionsmetadata()->UnsafeArenaReleaseLast();
+        }
+        m_pbRawBlock->clear_transactionsmetadata();
+    }
+
 private:
     void decodeTransactions(bool _calculateHash, bool _checkSig);
     void decodeReceipts(bool _calculateHash);
-    void decodeTxsHashList();
+
     void decodeNonceList();
 
     void encodeTransactions() const;
     void encodeReceipts() const;
-    void encodeTransactionsHash() const;
+
     void encodeNonceList() const;
 
     void clearTransactionsCache()
@@ -190,15 +206,13 @@ private:
         m_receiptRootCache = bcos::crypto::HashType();
     }
 
-    void clearTransactionsHashCache() { m_pbRawBlock->clear_transactionshash(); }
-
 private:
     BlockHeaderFactory::Ptr m_blockHeaderFactory;
     std::shared_ptr<PBRawBlock> m_pbRawBlock;
     BlockHeader::Ptr m_blockHeader;
     TransactionsPtr m_transactions;
     ReceiptsPtr m_receipts;
-    HashListPtr m_transactionsHash;
+    TransactionMetaDataListPtr m_transactionMetaDataList;
     NonceListPtr m_nonceList;
 };
 }  // namespace protocol

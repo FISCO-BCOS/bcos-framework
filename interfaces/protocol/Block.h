@@ -24,6 +24,7 @@
 #include "BlockHeader.h"
 #include "Transaction.h"
 #include "TransactionFactory.h"
+#include "TransactionMetaData.h"
 #include "TransactionReceipt.h"
 #include "TransactionReceiptFactory.h"
 #include <tbb/parallel_for.h>
@@ -121,8 +122,18 @@ public:
     virtual Transaction::ConstPtr transaction(size_t _index) const = 0;
     // get receipts
     virtual TransactionReceipt::ConstPtr receipt(size_t _index) const = 0;
+    // get transaction metaData
+    virtual TransactionMetaData::ConstPtr transactionMetaData(size_t _index) const = 0;
     // get transaction hash
-    virtual bcos::crypto::HashType const& transactionHash(size_t _index) const = 0;
+    virtual bcos::crypto::HashType const& transactionHash(size_t _index) const
+    {
+        auto txMetaData = transactionMetaData(_index);
+        if (txMetaData)
+        {
+            return txMetaData->hash();
+        }
+        return m_emptyHash;
+    }
 
     virtual void setBlockType(BlockType _blockType) = 0;
     // setBlockHeader sets blockHeader
@@ -133,8 +144,8 @@ public:
     // set receipts
     virtual void setReceipt(size_t _index, TransactionReceipt::Ptr _receipt) = 0;
     virtual void appendReceipt(TransactionReceipt::Ptr _receipt) = 0;
-    // set transaction hash
-    virtual void appendTransactionHash(bcos::crypto::HashType const& _txHash) = 0;
+    // set transaction metaData
+    virtual void appendTransactionMetaData(TransactionMetaData::Ptr _txMetaData) = 0;
 
     virtual NonceListPtr nonces() const
     {
@@ -152,7 +163,9 @@ public:
 
     // get transactions size
     virtual size_t transactionsSize() const = 0;
-    virtual size_t transactionsHashSize() const = 0;
+    virtual size_t transactionsMetaDataSize() const = 0;
+    virtual size_t transactionsHashSize() const { return transactionsMetaDataSize(); }
+
     // get receipts size
     virtual size_t receiptsSize() const = 0;
 
@@ -207,6 +220,8 @@ protected:
 
     mutable bcos::crypto::HashType m_receiptRootCache;
     mutable SharedMutex x_receiptRootCache;
+
+    bcos::crypto::HashType m_emptyHash = bcos::crypto::HashType();
 };
 using Blocks = std::vector<Block::Ptr>;
 using BlocksPtr = std::shared_ptr<Blocks>;

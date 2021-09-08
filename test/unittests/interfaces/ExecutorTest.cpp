@@ -18,6 +18,9 @@
  */
 
 #include "interfaces/executor/ExecutorInterface.h"
+#include "interfaces/executor/ExecutionParams.h"
+#include "interfaces/executor/ExecutionResult.h"
+#include "interfaces/executor/TableHash.h"
 #include "interfaces/executor/ParallelTransactionExecutorInterface.h"
 #include <boost/test/unit_test.hpp>
 #include <string>
@@ -44,6 +47,21 @@ BOOST_FIXTURE_TEST_SUITE(ExecutorTest, ExecutorTestFixture)
 BOOST_AUTO_TEST_CASE(constructor)
 {
     shared_ptr<ExecutorInterface> executor = nullptr;
+}
+
+BOOST_AUTO_TEST_CASE(ExecutionParams)
+{
+    shared_ptr<ExecutionParams> p = nullptr;
+}
+
+BOOST_AUTO_TEST_CASE(ExecutionResult)
+{
+    shared_ptr<ExecutionResult> p = nullptr;
+}
+
+BOOST_AUTO_TEST_CASE(TableHash)
+{
+    shared_ptr<TableHash> p = nullptr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

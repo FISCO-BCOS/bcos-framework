@@ -112,6 +112,11 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     BOOST_CHECK(result->txHash() == tx->hash());
     BOOST_CHECK(result->blockHash() == decodedBlock->blockHeader()->hash());
 #endif
+    // without metaData
+    block2 = std::dynamic_pointer_cast<PBBlock>(
+        fakeAndCheckBlock(cryptoSuite, blockFactory, false, 10, 0));
+    BOOST_CHECK(block2->transactionsMetaDataSize() == 0);
+    BOOST_CHECK(block2->transactionsHashSize() == 0);
 }
 
 BOOST_AUTO_TEST_CASE(testNormalBlock)
