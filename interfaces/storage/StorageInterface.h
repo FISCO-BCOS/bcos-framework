@@ -49,6 +49,8 @@ public:
     static TableInfo::ConstPtr getSysTableInfo(const std::string_view& tableName);
 
     using Ptr = std::shared_ptr<StorageInterface>;
+    using ConstPtr = std::shared_ptr<const StorageInterface>;
+
     virtual ~StorageInterface() = default;
 
     virtual void asyncGetPrimaryKeys(const std::string_view& table,
@@ -77,8 +79,9 @@ class TraverseStorageInterface : public StorageInterface
 {
 public:
     using Ptr = std::shared_ptr<TraverseStorageInterface>;
-    using ConstPtr = std::shared_ptr<TraverseStorageInterface const>;
-    ~TraverseStorageInterface() override = default;
+    using ConstPtr = std::shared_ptr<const TraverseStorageInterface>;
+
+    virtual ~TraverseStorageInterface() = default;
 
     virtual void parallelTraverse(bool onlyDirty,
         std::function<bool(
@@ -89,18 +92,26 @@ public:
 class MergeableStorageInterface : public StorageInterface
 {
 public:
+    using Ptr = std::shared_ptr<MergeableStorageInterface>;
+    using ConstPtr = std::shared_ptr<const MergeableStorageInterface>;
+
+    virtual ~MergeableStorageInterface() = default;
+
     virtual void merge(const TraverseStorageInterface::ConstPtr& storage) = 0;
 };
 
 class TransactionalStorageInterface : public StorageInterface
 {
 public:
+    using Ptr = std::shared_ptr<TransactionalStorageInterface>;
+    using ConstPtr = std::shared_ptr<const TransactionalStorageInterface>;
+
+    virtual ~TransactionalStorageInterface() = default;
+
     struct TwoPCParams
     {
         bcos::protocol::BlockNumber number;
     };
-
-    ~TransactionalStorageInterface() override = default;
 
     virtual void asyncPrepare(const TwoPCParams& params,
         const TraverseStorageInterface::ConstPtr& storage,
