@@ -158,7 +158,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
             auto& existsEntry = std::get<Entry>(entryIt->second);
             if (!existsEntry.rollbacked())
             {
-                if (entry.version() - existsEntry.version() != 1)
+                if (m_checkVersion && (entry.version() - existsEntry.version() != 1))
                 {
                     callback(
                         BCOS_ERROR(-1,
@@ -287,8 +287,7 @@ std::optional<Table> StateStorage::openTable(const std::string& tableName)
     return table;
 }
 
-bool StateStorage::createTable(
-    const std::string& _tableName, const std::string& _keyField, const std::string& _valueFields)
+bool StateStorage::createTable(const std::string& _tableName, const std::string& _valueFields)
 {
     std::promise<std::tuple<std::optional<Error>, bool>> createPromise;
     asyncCreateTable(_tableName, _valueFields, [&](std::optional<Error>&& error, bool success) {
@@ -298,9 +297,7 @@ bool StateStorage::createTable(
     if (error)
     {
         BOOST_THROW_EXCEPTION(BCOS_ERROR_WITH_PREV(-1,
-            "Create table: " + _tableName + " with keyField: " + _keyField +
-                " valueFields: " + _valueFields + " failed",
-            *error));
+            "Create table: " + _tableName + " valueFields: " + _valueFields + " failed", *error));
     }
 
     return success;

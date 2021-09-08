@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     std::string keyField("key");
     std::string valueField("value1,value2");
 
-    auto ret = tableFactory->createTable(tableName, keyField, valueField);
+    auto ret = tableFactory->createTable(tableName, valueField);
     BOOST_TEST(ret);
     auto table = tableFactory->openTable("t_test");
     BOOST_TEST(table);
@@ -233,7 +233,7 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     auto hashs = tableFactory->tableHashes();
 
     auto tableFactory2 = std::make_shared<StateStorage>(nullptr, hashImpl, 0);
-    BOOST_CHECK_EQUAL(tableFactory2->createTable(tableName, keyField, valueField), true);
+    BOOST_CHECK_EQUAL(tableFactory2->createTable(tableName, valueField), true);
     auto table2 = tableFactory2->openTable(tableName);
     BOOST_TEST(table2);
 

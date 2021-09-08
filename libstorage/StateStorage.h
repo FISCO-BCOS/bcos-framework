@@ -67,15 +67,17 @@ public:
 
     void asyncGetPrimaryKeys(const std::string_view& table,
         const std::optional<storage::Condition const>& _condition,
-        std::function<void(std::optional<Error>&&, std::vector<std::string>&&)> _callback) noexcept override;
+        std::function<void(std::optional<Error>&&, std::vector<std::string>&&)> _callback) noexcept
+        override;
 
     void asyncGetRow(const std::string_view& table, const std::string_view& _key,
-        std::function<void(std::optional<Error>&&, std::optional<Entry>&&)> _callback) noexcept override;
+        std::function<void(std::optional<Error>&&, std::optional<Entry>&&)> _callback) noexcept
+        override;
 
     void asyncGetRows(const std::string_view& table,
         const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
-        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
-        override;
+        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)>
+            _callback) noexcept override;
 
     void asyncSetRow(const std::string_view& table, const std::string_view& key, Entry entry,
         std::function<void(std::optional<Error>&&, bool)> callback) noexcept override;
@@ -86,8 +88,7 @@ public:
 
     std::optional<Table> openTable(const std::string& table);
 
-    bool createTable(const std::string& _tableName, const std::string& _keyField,
-        const std::string& _valueFields);
+    bool createTable(const std::string& _tableName, const std::string& _valueFields);
 
     std::vector<std::tuple<std::string, crypto::HashType>> tableHashes();
 
@@ -99,6 +100,8 @@ public:
     void rollback(size_t _savepoint);
 
     protocol::BlockNumber blockNumber() const { return m_blockNumber; }
+
+    void setCheckVersion(bool checkVersion) { m_checkVersion = checkVersion; }
 
 private:
     struct Change
@@ -171,8 +174,7 @@ private:
                 [this, _callback, missings, results](auto&& error, auto&& entries) {
                     if (error)
                     {
-                        _callback(
-                            BCOS_ERROR_WITH_PREV(-1, "async get perv rows failed!", *error),
+                        _callback(BCOS_ERROR_WITH_PREV(-1, "async get perv rows failed!", *error),
                             std::vector<std::optional<Entry>>());
                         return;
                     }
@@ -199,10 +201,7 @@ private:
         }
     }
 
-
     Entry& importExistingEntry(std::string key, Entry entry);
-
-    tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
 
     struct TableData
     {
@@ -214,12 +213,16 @@ private:
             entries;
         bool dirty = false;
     };
+
+    // data members
     tbb::concurrent_unordered_map<std::string_view,
         std::tuple<std::unique_ptr<std::string>, TableData>, std::hash<std::string_view>>
         m_data;
+    tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
     protocol::BlockNumber m_blockNumber = 0;
 
     std::shared_ptr<StorageInterface> m_prev;
     std::shared_ptr<crypto::Hash> m_hashImpl;
+    bool m_checkVersion = true;
 };
 }  // namespace bcos::storage
