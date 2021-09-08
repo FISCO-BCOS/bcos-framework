@@ -22,8 +22,6 @@
 
 #pragma once
 #include "Common.h"
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread/thread.hpp>
 #include <iosfwd>
