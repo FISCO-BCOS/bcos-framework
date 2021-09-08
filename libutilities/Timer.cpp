@@ -27,6 +27,10 @@ using namespace bcos;
 
 void Timer::start()
 {
+    if (!m_working)
+    {
+        return;
+    }
     startTimer();
 }
 
@@ -71,6 +75,10 @@ void Timer::startTimer()
 // stop the timer
 void Timer::stop()
 {
+    if (!m_working)
+    {
+        return;
+    }
     if (!m_running)
     {
         return;
