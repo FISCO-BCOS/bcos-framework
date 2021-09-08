@@ -57,7 +57,7 @@ public:
         }
 
         auto index = m_tableInfo->fieldIndex(field);
-        return (m_data.get()->fields)[index];
+        return getField(index);
     }
 
     void setField(size_t index, std::string value)

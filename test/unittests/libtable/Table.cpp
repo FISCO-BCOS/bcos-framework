@@ -84,6 +84,20 @@ BOOST_AUTO_TEST_CASE(constructor)
     auto tableFactory = std::make_shared<StateStorage>(memoryStorage, hashImpl, 0);
 }
 
+BOOST_AUTO_TEST_CASE(tableInfo)
+{
+    std::vector<std::string> fields = {"value9", "value8", "value7", "value6"};
+    TableInfo tableInfo("test-table", fields);
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+        fields.begin(), fields.end(), tableInfo.fields().begin(), tableInfo.fields().end());
+
+    BOOST_CHECK_EQUAL(tableInfo.fieldIndex("value9"), 0);
+    BOOST_CHECK_EQUAL(tableInfo.fieldIndex("value8"), 1);
+    BOOST_CHECK_EQUAL(tableInfo.fieldIndex("value7"), 2);
+    BOOST_CHECK_EQUAL(tableInfo.fieldIndex("value6"), 3);
+}
+
 BOOST_AUTO_TEST_CASE(dump_hash)
 {
     std::string tableName("t_test");
@@ -91,10 +105,11 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     std::string valueField("value");
 
     std::promise<bool> createPromise;
-    tableFactory->asyncCreateTable(tableName, valueField, [&](std::optional<Error>&& error, bool success) {
-        BOOST_CHECK(!error);
-        createPromise.set_value(success);
-    });
+    tableFactory->asyncCreateTable(
+        tableName, valueField, [&](std::optional<Error>&& error, bool success) {
+            BOOST_CHECK(!error);
+            createPromise.set_value(success);
+        });
 
     BOOST_CHECK_EQUAL(createPromise.get_future().get(), true);
 
@@ -145,10 +160,11 @@ BOOST_AUTO_TEST_CASE(setRow)
     std::string valueField("value1,value2");
 
     std::promise<bool> createPromise;
-    tableFactory->asyncCreateTable(tableName, valueField, [&](std::optional<Error>&& error, bool success) {
-        BOOST_CHECK(!error);
-        createPromise.set_value(success);
-    });
+    tableFactory->asyncCreateTable(
+        tableName, valueField, [&](std::optional<Error>&& error, bool success) {
+            BOOST_CHECK(!error);
+            createPromise.set_value(success);
+        });
     BOOST_CHECK_EQUAL(createPromise.get_future().get(), true);
 
     std::promise<std::optional<Table>> tablePromise;
