@@ -32,12 +32,6 @@
 #define BCOS_ERROR_WITH_PREV(errorCode, errorMessage, prev) \
     ::bcos::Error::buildError(                              \
         BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, prev)
-#define BCOS_ERROR_PTR(errorCode, errorMessage)              \
-    std::make_unique<bcos::Error>(::bcos::Error::buildError( \
-        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage))
-#define BCOS_ERROR_WITH_PREV_PTR(errorCode, errorMessage, prev) \
-    std::make_unique<bcos::Error>(::bcos::Error::buildError(    \
-        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, prev))
 
 namespace bcos
 {
@@ -64,31 +58,7 @@ public:
     }
 
     static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
-        const std::string& errorMessage, const std::shared_ptr<Error>& prev)
-    {
-        auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevStdError(boost::diagnostic_information(*prev));
-        return error;
-    }
-
-    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
-        const std::string& errorMessage, std::shared_ptr<Error>&& prev)
-    {
-        auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevStdError(boost::diagnostic_information(*prev));
-        return error;
-    }
-
-    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
         const std::string& errorMessage, const Error& prev)
-    {
-        auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevStdError(boost::diagnostic_information(prev));
-        return error;
-    }
-
-    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
-        const std::string& errorMessage, Error&& prev)
     {
         auto error = buildError(func, file, line, errorCode, errorMessage);
         error << PrevStdError(boost::diagnostic_information(prev));

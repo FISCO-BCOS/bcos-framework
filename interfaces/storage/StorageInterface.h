@@ -75,24 +75,26 @@ public:
 
     virtual void asyncGetPrimaryKeys(const std::string_view& table,
         const std::optional<Condition const>& _condition,
-        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept = 0;
+        std::function<void(std::optional<Error>&&, std::vector<std::string>&&)>
+            _callback) noexcept = 0;
 
     virtual void asyncGetRow(const std::string_view& table, const std::string_view& _key,
-        std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept = 0;
+        std::function<void(std::optional<Error>&&, std::optional<Entry>&&)>
+            _callback) noexcept = 0;
 
     virtual void asyncGetRows(const std::string_view& table,
         const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
-        std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)>
+        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)>
             _callback) noexcept = 0;
 
     virtual void asyncSetRow(const std::string_view& table, const std::string_view& key,
-        Entry entry, std::function<void(Error::Ptr&&, bool)> callback) noexcept = 0;
+        Entry entry, std::function<void(std::optional<Error>&&, bool)> callback) noexcept = 0;
 
     virtual void asyncCreateTable(std::string _tableName, std::string _valueFields,
-        std::function<void(Error::Ptr&&, bool)> callback) noexcept;
+        std::function<void(std::optional<Error>&&, bool)> callback) noexcept;
 
     virtual void asyncOpenTable(std::string_view tableName,
-        std::function<void(Error::Ptr&&, std::optional<Table>&&)> callback) noexcept;
+        std::function<void(std::optional<Error>&&, std::optional<Table>&&)> callback) noexcept;
 };
 
 class TraverseStorageInterface : public StorageInterface

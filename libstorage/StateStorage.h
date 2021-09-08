@@ -67,18 +67,18 @@ public:
 
     void asyncGetPrimaryKeys(const std::string_view& table,
         const std::optional<storage::Condition const>& _condition,
-        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept override;
+        std::function<void(std::optional<Error>&&, std::vector<std::string>&&)> _callback) noexcept override;
 
     void asyncGetRow(const std::string_view& table, const std::string_view& _key,
-        std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept override;
+        std::function<void(std::optional<Error>&&, std::optional<Entry>&&)> _callback) noexcept override;
 
     void asyncGetRows(const std::string_view& table,
         const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
-        std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
+        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
         override;
 
     void asyncSetRow(const std::string_view& table, const std::string_view& key, Entry entry,
-        std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
+        std::function<void(std::optional<Error>&&, bool)> callback) noexcept override;
 
     void parallelTraverse(bool onlyDirty, std::function<bool(const std::string_view& table,
                                               const std::string_view& key, const Entry& entry)>
@@ -127,7 +127,7 @@ private:
 
     template <class T>
     void multiAsyncGetRows(const std::string_view& table, const gsl::span<T const>& _keys,
-        std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback)
+        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)> _callback)
     {
         auto results = std::make_shared<std::vector<std::optional<Entry>>>(_keys.size());
         auto missings = std::make_shared<std::tuple<std::vector<std::string_view>,
@@ -172,7 +172,7 @@ private:
                     if (error)
                     {
                         _callback(
-                            BCOS_ERROR_WITH_PREV_PTR(-1, "async get perv rows failed!", error),
+                            BCOS_ERROR_WITH_PREV(-1, "async get perv rows failed!", *error),
                             std::vector<std::optional<Entry>>());
                         return;
                     }
@@ -190,12 +190,12 @@ private:
                         }
                     }
 
-                    _callback(nullptr, std::move(*results));
+                    _callback({}, std::move(*results));
                 });
         }
         else
         {
-            _callback(nullptr, std::move(*results));
+            _callback({}, std::move(*results));
         }
     }
 

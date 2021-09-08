@@ -77,8 +77,8 @@ struct TableFactoryFixture
     {
         std::promise<bool> createPromise;
         tableFactory->asyncCreateTable(
-            testTableName, valueField, [&](Error::Ptr&& error, bool success) {
-                BOOST_CHECK_EQUAL(error, nullptr);
+            testTableName, valueField, [&](std::optional<Error>&& error, bool success) {
+                BOOST_CHECK(!error);
                 createPromise.set_value(success);
             });
         return createPromise.get_future().get();
@@ -428,7 +428,7 @@ BOOST_AUTO_TEST_CASE(openAndCommit)
 
         std::promise<bool> getRow;
         table->asyncGetRow(key, [&](auto&& error, auto&& result) {
-            BOOST_CHECK_EQUAL(error, nullptr);
+            BOOST_CHECK(!error);
             BOOST_CHECK_EQUAL(result->getField("value"), "hello world!");
 
             getRow.set_value(true);

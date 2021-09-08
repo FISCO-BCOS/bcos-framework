@@ -91,8 +91,8 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     std::string valueField("value");
 
     std::promise<bool> createPromise;
-    tableFactory->asyncCreateTable(tableName, valueField, [&](Error::Ptr&& error, bool success) {
-        BOOST_CHECK_EQUAL(error, nullptr);
+    tableFactory->asyncCreateTable(tableName, valueField, [&](std::optional<Error>&& error, bool success) {
+        BOOST_CHECK(!error);
         createPromise.set_value(success);
     });
 
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(dump_hash)
 
     std::promise<std::optional<Table>> tablePromise;
     tableFactory->asyncOpenTable("t_test", [&](auto&& error, auto&& table) {
-        BOOST_CHECK_EQUAL(error, nullptr);
+        BOOST_CHECK(!error);
         tablePromise.set_value(std::move(table));
     });
     auto table = tablePromise.get_future().get();
@@ -145,15 +145,15 @@ BOOST_AUTO_TEST_CASE(setRow)
     std::string valueField("value1,value2");
 
     std::promise<bool> createPromise;
-    tableFactory->asyncCreateTable(tableName, valueField, [&](Error::Ptr&& error, bool success) {
-        BOOST_CHECK_EQUAL(error, nullptr);
+    tableFactory->asyncCreateTable(tableName, valueField, [&](std::optional<Error>&& error, bool success) {
+        BOOST_CHECK(!error);
         createPromise.set_value(success);
     });
     BOOST_CHECK_EQUAL(createPromise.get_future().get(), true);
 
     std::promise<std::optional<Table>> tablePromise;
     tableFactory->asyncOpenTable("t_test", [&](auto&& error, auto&& table) {
-        BOOST_CHECK_EQUAL(error, nullptr);
+        BOOST_CHECK(!error);
         tablePromise.set_value(std::move(table));
     });
     auto table = tablePromise.get_future().get();
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(setRow)
     // check fields order of SYS_TABLE
     std::promise<std::optional<Table>> sysTablePromise;
     tableFactory->asyncOpenTable(StorageInterface::SYS_TABLES, [&](auto&& error, auto&& table) {
-        BOOST_CHECK_EQUAL(error, nullptr);
+        BOOST_CHECK(!error);
         BOOST_TEST(table);
         sysTablePromise.set_value(std::move(table));
     });
