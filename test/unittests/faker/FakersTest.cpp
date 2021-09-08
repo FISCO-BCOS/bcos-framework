@@ -20,6 +20,7 @@
 #include "../../../testutils/TestPromptFixture.h"
 #include <testutils/faker/FakeDispatcher.h>
 #include <testutils/faker/FakeFrontService.h>
+#include <testutils/faker/FakeKVStorage.h>
 #include <testutils/faker/FakeLedger.h>
 #include <testutils/faker/FakeSealer.h>
 #include <testutils/faker/FakeTxPool.h>
@@ -45,6 +46,10 @@ BOOST_AUTO_TEST_CASE(fakeFrontServiceConstructor)
 BOOST_AUTO_TEST_CASE(fakeLedgerConstructor)
 {
     std::make_shared<FakeLedger>();
+}
+BOOST_AUTO_TEST_CASE(fakeKVStorage)
+{
+    std::make_shared<FakeKVStorage>();
 }
 
 BOOST_AUTO_TEST_CASE(fakeStorageConstructor)

@@ -298,6 +298,32 @@ public:
 
     std::vector<bytes> sealerList() { return m_sealerList; }
 
+    // Consensus and block-sync module use this interface to commit block
+    virtual void asyncCommitBlock(const bcos::protocol::BlockHeader::ConstPtr& _blockHeader,
+        std::function<void(bcos::Error::Ptr&&, bcos::ledger::LedgerConfig::Ptr)> _onCommitBlock)
+    {
+        auto nonConstHeader = std::const_pointer_cast<bcos::protocol::BlockHeader>(_blockHeader);
+        if (nonConstHeader->number() != m_ledgerConfig->blockNumber() + 1)
+        {
+            _onCommitBlock(std::make_shared<Error>(-1, "invalid block"), nullptr);
+            return;
+        }
+
+        auto self = std::weak_ptr<FakeLedger>(shared_from_this());
+        m_worker->enqueue([nonConstHeader, _onCommitBlock, self]() {
+            auto ledger = self.lock();
+            if (!self.lock())
+            {
+                return;
+            }
+            WriteGuard l(ledger->x_ledger);
+            auto block = ledger->populateFromHeader(nonConstHeader);
+            ledger->m_ledger.push_back(block);
+            ledger->updateLedgerConfig(nonConstHeader);
+            _onCommitBlock(nullptr, ledger->m_ledgerConfig);
+        });
+    }
+
 private:
     BlockFactory::Ptr m_blockFactory;
     std::vector<KeyPairInterface::Ptr> m_keyPairVec;
