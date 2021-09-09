@@ -65,29 +65,30 @@ public:
 
     virtual ~StateStorage() { getChangeLog().clear(); }
 
-    void asyncGetPrimaryKeys(const TableInfo& _tableInfo,
+    void asyncGetPrimaryKeys(const std::string_view& table,
         const std::optional<storage::Condition const>& _condition,
-        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept override;
-
-    void asyncGetRow(const TableInfo& _tableInfo, const std::string_view& _key,
-        std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept override;
-
-    void asyncGetRows(const TableInfo& _tableInfo,
-        const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
-        std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
+        std::function<void(std::optional<Error>&&, std::vector<std::string>&&)> _callback) noexcept
         override;
 
-    void asyncSetRow(const storage::TableInfo& tableInfo, const std::string_view& key, Entry entry,
-        std::function<void(Error::Ptr&&, bool)> callback) noexcept override;
+    void asyncGetRow(const std::string_view& table, const std::string_view& _key,
+        std::function<void(std::optional<Error>&&, std::optional<Entry>&&)> _callback) noexcept
+        override;
 
-    void parallelTraverse(bool onlyDirty, std::function<bool(const TableInfo& tableInfo,
+    void asyncGetRows(const std::string_view& table,
+        const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
+        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)>
+            _callback) noexcept override;
+
+    void asyncSetRow(const std::string_view& table, const std::string_view& key, Entry entry,
+        std::function<void(std::optional<Error>&&, bool)> callback) noexcept override;
+
+    void parallelTraverse(bool onlyDirty, std::function<bool(const std::string_view& table,
                                               const std::string_view& key, const Entry& entry)>
                                               callback) const override;
 
-    std::optional<Table> openTable(const std::string& tableName);
+    std::optional<Table> openTable(const std::string& table);
 
-    bool createTable(const std::string& _tableName, const std::string& _keyField,
-        const std::string& _valueFields);
+    bool createTable(const std::string& _tableName, const std::string& _valueFields);
 
     std::vector<std::tuple<std::string, crypto::HashType>> tableHashes();
 
@@ -100,6 +101,8 @@ public:
 
     protocol::BlockNumber blockNumber() const { return m_blockNumber; }
 
+    void setCheckVersion(bool checkVersion) { m_checkVersion = checkVersion; }
+
 private:
     struct Change
     {
@@ -108,17 +111,17 @@ private:
             Set,
             Remove,
         };
-        TableInfo::ConstPtr tableInfo;
+        std::string table;
         Kind kind;  ///< The kind of the change.
         std::string key;
         std::optional<Entry> entry;
         bool tableDirty;
-        Change(storage::TableInfo::ConstPtr _tableInfo, Kind _kind, std::string _key,
-            std::optional<Entry> _entry, bool _tableDirty)
-          : tableInfo(_tableInfo),
+        Change(std::string _table, Kind _kind, std::string _key, std::optional<Entry> _entry,
+            bool _tableDirty)
+          : table(std::move(_table)),
             kind(_kind),
             key(std::move(_key)),
-            entry(_entry),
+            entry(std::move(_entry)),
             tableDirty(_tableDirty)
         {}
     };
@@ -126,8 +129,8 @@ private:
     std::vector<Change>& getChangeLog() { return s_changeLog.local(); }
 
     template <class T>
-    void multiAsyncGetRows(const TableInfo& _tableInfo, const gsl::span<T const>& _keys,
-        std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback)
+    void multiAsyncGetRows(const std::string_view& table, const gsl::span<T const>& _keys,
+        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)> _callback)
     {
         auto results = std::make_shared<std::vector<std::optional<Entry>>>(_keys.size());
         auto missings = std::make_shared<std::tuple<std::vector<std::string_view>,
@@ -135,7 +138,7 @@ private:
 
         long existsCount = 0;
 
-        auto tableIt = m_data.find(_tableInfo.name());
+        auto tableIt = m_data.find(table);
         if (tableIt != m_data.end())
         {
             size_t i = 0;
@@ -167,12 +170,11 @@ private:
 
         if (existsCount < _keys.size() && m_prev)
         {
-            m_prev->asyncGetRows(_tableInfo, std::get<0>(*missings),
-                [this, _callback, _tableInfo, missings, results](auto&& error, auto&& entries) {
+            m_prev->asyncGetRows(table, std::get<0>(*missings),
+                [this, _callback, missings, results](auto&& error, auto&& entries) {
                     if (error)
                     {
-                        _callback(
-                            BCOS_ERROR_WITH_PREV_PTR(-1, "async get perv rows failed!", error),
+                        _callback(BCOS_ERROR_WITH_PREV(-1, "async get perv rows failed!", *error),
                             std::vector<std::optional<Entry>>());
                         return;
                     }
@@ -190,19 +192,16 @@ private:
                         }
                     }
 
-                    _callback(nullptr, std::move(*results));
+                    _callback({}, std::move(*results));
                 });
         }
         else
         {
-            _callback(nullptr, std::move(*results));
+            _callback({}, std::move(*results));
         }
     }
 
-
     Entry& importExistingEntry(std::string key, Entry entry);
-
-    tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
 
     struct TableData
     {
@@ -214,12 +213,16 @@ private:
             entries;
         bool dirty = false;
     };
+
+    // data members
     tbb::concurrent_unordered_map<std::string_view,
         std::tuple<std::unique_ptr<std::string>, TableData>, std::hash<std::string_view>>
         m_data;
+    tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
     protocol::BlockNumber m_blockNumber = 0;
 
     std::shared_ptr<StorageInterface> m_prev;
     std::shared_ptr<crypto::Hash> m_hashImpl;
+    bool m_checkVersion = true;
 };
 }  // namespace bcos::storage

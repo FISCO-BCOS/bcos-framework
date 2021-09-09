@@ -20,6 +20,7 @@
 #include "../../../testutils/TestPromptFixture.h"
 #include "interfaces/storage/Table.h"
 #include "libstorage/StateStorage.h"
+#include "libutilities/Error.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
@@ -167,6 +168,13 @@ BOOST_AUTO_TEST_CASE(nullTableInfo)
     BOOST_CHECK_NO_THROW(entry->setField(1, "value22"));
     BOOST_CHECK_EQUAL(entry->getField(1), "value22");
     BOOST_CHECK_THROW(entry->setField(2, "value3"), bcos::Error);
+}
+
+BOOST_AUTO_TEST_CASE(EmptyEntry)
+{
+    Entry empty;
+    BOOST_CHECK_THROW(empty.getField("value1"), bcos::Error);
+    BOOST_CHECK_THROW(empty.setField(2, "hello world!"), bcos::Error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

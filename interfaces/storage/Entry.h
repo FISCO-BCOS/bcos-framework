@@ -21,12 +21,11 @@ public:
         DELETED = 1
     };
 
-    Entry() : m_num(0), m_data(Data{nullptr, std::vector<std::string>(), 0}) {}
+    Entry() : m_data({std::vector<std::string>(), 0}) {}
 
-    explicit Entry(TableInfo::ConstPtr tableInfo, protocol::BlockNumber _num = 0) : m_num(_num)
-    {
-        m_data.reset(Data{std::move(tableInfo), std::vector<std::string>(), 0});
-    }
+    explicit Entry(TableInfo::ConstPtr tableInfo, protocol::BlockNumber _num = 0)
+      : m_data({std::vector<std::string>(), 0}), m_tableInfo(std::move(tableInfo)), m_num(_num)
+    {}
 
     Entry(const Entry&) = default;
     Entry(Entry&&) = default;
@@ -51,16 +50,14 @@ public:
 
     std::string_view getField(const std::string_view& field) const
     {
-        auto data = m_data.get();
-        auto& tableInfo = data->tableInfo;
-        if (!tableInfo)
+        if (!m_tableInfo)
         {
             BOOST_THROW_EXCEPTION(
                 BCOS_ERROR(-1, "Get field: " + std::string(field) + " error, tableInfo is null"));
         }
 
-        auto index = tableInfo->fieldIndex(field);
-        return (m_data.get()->fields)[index];
+        auto index = m_tableInfo->fieldIndex(field);
+        return getField(index);
     }
 
     void setField(size_t index, std::string value)
@@ -85,20 +82,18 @@ public:
 
     void setField(const std::string_view& field, std::string value)
     {
-        auto& tableInfo = m_data.get()->tableInfo;
-
-        if (!tableInfo)
+        if (!m_tableInfo)
         {
             BOOST_THROW_EXCEPTION(
                 BCOS_ERROR(-1, "Set field: " + std::string(field) + " error, tableInfo is null"));
         }
 
-        auto index = tableInfo->fieldIndex(field);
+        auto index = m_tableInfo->fieldIndex(field);
 
         auto data = m_data.mutableGet();
-        if (data->fields.size() < tableInfo->fields().size())
+        if (data->fields.size() < m_tableInfo->fields().size())
         {
-            data->fields.resize(tableInfo->fields().size());
+            data->fields.resize(m_tableInfo->fields().size());
         }
 
         auto& fieldValue = (data->fields)[index];
@@ -166,24 +161,25 @@ public:
         return std::move(data->fields);
     }
 
-    TableInfo::ConstPtr tableInfo() const { return m_data.get()->tableInfo; }
+    TableInfo::ConstPtr tableInfo() const { return m_tableInfo; }
+    void setTableInfo(TableInfo::ConstPtr tableInfo) { m_tableInfo = std::move(tableInfo); }
 
     bool valid() const noexcept { return ((m_status != Status::DELETED) && (!m_rollbacked)); }
 
 private:
     struct Data
     {
-        TableInfo::ConstPtr tableInfo;
         std::vector<std::string> fields;
         ssize_t capacityOfHashField;
     };
 
     // should serialization
-    protocol::BlockNumber m_num = 0;
     Status m_status = Status::NORMAL;
     bcos::ConcurrentCOW<Data> m_data;
 
     // no need to serialization
+    TableInfo::ConstPtr m_tableInfo;
+    protocol::BlockNumber m_num = 0;
     size_t m_version = 0;
     bool m_dirty = false;
     bool m_rollbacked = false;

@@ -84,6 +84,20 @@ BOOST_AUTO_TEST_CASE(constructor)
     auto tableFactory = std::make_shared<StateStorage>(memoryStorage, hashImpl, 0);
 }
 
+BOOST_AUTO_TEST_CASE(tableInfo)
+{
+    std::vector<std::string> fields = {"value9", "value8", "value7", "value6"};
+    TableInfo tableInfo("test-table", fields);
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(
+        fields.begin(), fields.end(), tableInfo.fields().begin(), tableInfo.fields().end());
+
+    BOOST_CHECK_EQUAL(tableInfo.fieldIndex("value9"), 0);
+    BOOST_CHECK_EQUAL(tableInfo.fieldIndex("value8"), 1);
+    BOOST_CHECK_EQUAL(tableInfo.fieldIndex("value7"), 2);
+    BOOST_CHECK_EQUAL(tableInfo.fieldIndex("value6"), 3);
+}
+
 BOOST_AUTO_TEST_CASE(dump_hash)
 {
     std::string tableName("t_test");
@@ -91,16 +105,17 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     std::string valueField("value");
 
     std::promise<bool> createPromise;
-    tableFactory->asyncCreateTable(tableName, valueField, [&](Error::Ptr&& error, bool success) {
-        BOOST_CHECK_EQUAL(error, nullptr);
-        createPromise.set_value(success);
-    });
+    tableFactory->asyncCreateTable(
+        tableName, valueField, [&](std::optional<Error>&& error, bool success) {
+            BOOST_CHECK(!error);
+            createPromise.set_value(success);
+        });
 
     BOOST_CHECK_EQUAL(createPromise.get_future().get(), true);
 
     std::promise<std::optional<Table>> tablePromise;
     tableFactory->asyncOpenTable("t_test", [&](auto&& error, auto&& table) {
-        BOOST_CHECK_EQUAL(error, nullptr);
+        BOOST_CHECK(!error);
         tablePromise.set_value(std::move(table));
     });
     auto table = tablePromise.get_future().get();
@@ -145,15 +160,16 @@ BOOST_AUTO_TEST_CASE(setRow)
     std::string valueField("value1,value2");
 
     std::promise<bool> createPromise;
-    tableFactory->asyncCreateTable(tableName, valueField, [&](Error::Ptr&& error, bool success) {
-        BOOST_CHECK_EQUAL(error, nullptr);
-        createPromise.set_value(success);
-    });
+    tableFactory->asyncCreateTable(
+        tableName, valueField, [&](std::optional<Error>&& error, bool success) {
+            BOOST_CHECK(!error);
+            createPromise.set_value(success);
+        });
     BOOST_CHECK_EQUAL(createPromise.get_future().get(), true);
 
     std::promise<std::optional<Table>> tablePromise;
     tableFactory->asyncOpenTable("t_test", [&](auto&& error, auto&& table) {
-        BOOST_CHECK_EQUAL(error, nullptr);
+        BOOST_CHECK(!error);
         tablePromise.set_value(std::move(table));
     });
     auto table = tablePromise.get_future().get();
@@ -174,7 +190,7 @@ BOOST_AUTO_TEST_CASE(setRow)
     // check fields order of SYS_TABLE
     std::promise<std::optional<Table>> sysTablePromise;
     tableFactory->asyncOpenTable(StorageInterface::SYS_TABLES, [&](auto&& error, auto&& table) {
-        BOOST_CHECK_EQUAL(error, nullptr);
+        BOOST_CHECK(!error);
         BOOST_TEST(table);
         sysTablePromise.set_value(std::move(table));
     });
@@ -192,7 +208,7 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     std::string keyField("key");
     std::string valueField("value1,value2");
 
-    auto ret = tableFactory->createTable(tableName, keyField, valueField);
+    auto ret = tableFactory->createTable(tableName, valueField);
     BOOST_TEST(ret);
     auto table = tableFactory->openTable("t_test");
     BOOST_TEST(table);
@@ -217,7 +233,7 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     auto hashs = tableFactory->tableHashes();
 
     auto tableFactory2 = std::make_shared<StateStorage>(nullptr, hashImpl, 0);
-    BOOST_CHECK_EQUAL(tableFactory2->createTable(tableName, keyField, valueField), true);
+    BOOST_CHECK_EQUAL(tableFactory2->createTable(tableName, valueField), true);
     auto table2 = tableFactory2->openTable(tableName);
     BOOST_TEST(table2);
 

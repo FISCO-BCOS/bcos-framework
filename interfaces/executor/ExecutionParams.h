@@ -77,8 +77,8 @@ public:
     virtual void setDepth(int32_t depth) = 0;
 
     // for solidity
-    virtual std::string_view createSalt() const = 0;
-    virtual void setCreateSalt(std::string createSalt) = 0;
+    virtual std::optional<u256> createSalt() const = 0;
+    virtual void setCreateSalt(u256 createSalt) = 0;
 };
 
 class ExecutionParamsFactory

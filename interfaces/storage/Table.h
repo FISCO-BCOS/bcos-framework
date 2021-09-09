@@ -50,15 +50,16 @@ public:
     bool setRow(const std::string_view& _key, Entry _entry);
 
     void asyncGetPrimaryKeys(Condition const& _condition,
-        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _callback) noexcept;
+        std::function<void(std::optional<Error>&&, std::vector<std::string>&&)> _callback) noexcept;
     void asyncGetRow(const std::string_view& _key,
-        std::function<void(Error::Ptr&&, std::optional<Entry>&&)> _callback) noexcept;
+        std::function<void(std::optional<Error>&&, std::optional<Entry>&&)> _callback) noexcept;
     void asyncGetRows(
         const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
-        std::function<void(Error::Ptr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept;
+        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)>
+            _callback) noexcept;
 
     void asyncSetRow(const std::string_view& key, Entry entry,
-        std::function<void(Error::Ptr&&, bool)> callback) noexcept;
+        std::function<void(std::optional<Error>&&, bool)> callback) noexcept;
 
     TableInfo::ConstPtr tableInfo() const { return m_tableInfo; }
     Entry newEntry() { return Entry(m_tableInfo, m_blockNumber); }

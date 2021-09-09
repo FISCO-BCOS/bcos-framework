@@ -32,12 +32,6 @@
 #define BCOS_ERROR_WITH_PREV(errorCode, errorMessage, prev) \
     ::bcos::Error::buildError(                              \
         BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, prev)
-#define BCOS_ERROR_PTR(errorCode, errorMessage)              \
-    std::make_unique<bcos::Error>(::bcos::Error::buildError( \
-        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage))
-#define BCOS_ERROR_WITH_PREV_PTR(errorCode, errorMessage, prev) \
-    std::make_unique<bcos::Error>(::bcos::Error::buildError(    \
-        BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, prev))
 
 namespace bcos
 {
@@ -50,7 +44,6 @@ public:
     using UPtr = std::unique_ptr<Error>;
     using UConstPtr = std::unique_ptr<const Error>;
 
-    using PrevError = boost::error_info<struct PrevErrorTag, Error>;
     using PrevStdError = boost::error_info<struct PrevErrorTag, std::string>;
 
     static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
@@ -65,34 +58,10 @@ public:
     }
 
     static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
-        const std::string& errorMessage, const std::shared_ptr<Error>& prev)
-    {
-        auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevError(*prev);
-        return error;
-    }
-
-    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
-        const std::string& errorMessage, std::shared_ptr<Error>&& prev)
-    {
-        auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevError(std::move(*prev));
-        return error;
-    }
-
-    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
         const std::string& errorMessage, const Error& prev)
     {
         auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevError(prev);
-        return error;
-    }
-
-    static Error buildError(char const* func, char const* file, int line, int32_t errorCode,
-        const std::string& errorMessage, Error&& prev)
-    {
-        auto error = buildError(func, file, line, errorCode, errorMessage);
-        error << PrevError(std::move(prev));
+        error << PrevStdError(boost::diagnostic_information(prev));
         return error;
     }
 

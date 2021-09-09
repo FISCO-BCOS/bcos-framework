@@ -67,7 +67,7 @@ public:
     virtual void setGasUsed(int64_t gasUsed) = 0;
 
     virtual gsl::span<LogEntry> logEntries() const = 0;
-    virtual void setLogEntries(std::vector<LogEntry> logEntries) = 0;
+    virtual void setLogEntries(LogEntriesPtr logEntries) = 0;
 
     // Only when status is EXTERNAL_CALL, it is not empty
     virtual std::string_view to() const = 0;
@@ -76,6 +76,10 @@ public:
     // For evm
     virtual std::string_view newEVMContractAddress() const = 0;
     virtual void setNewEVMContractAddress(std::string newEVMContractAddress) = 0;
+
+    // for solidity
+    virtual std::optional<u256> createSalt() const = 0;
+    virtual void setCreateSalt(u256 createSalt) = 0;
 };
 
 class ExecutionResultFactory

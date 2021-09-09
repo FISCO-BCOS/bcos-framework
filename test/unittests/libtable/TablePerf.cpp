@@ -46,7 +46,7 @@ BOOST_FIXTURE_TEST_SUITE(TablePerf, TablePerfFixture)
 
 BOOST_AUTO_TEST_CASE(syncGet)
 {
-    tableFactory->createTable("test_table", "key", "field1,field2,field3");
+    tableFactory->createTable("test_table", "field1,field2,field3");
     auto table = tableFactory->openTable("test_table");
 
     auto entries = createTestData(*table);
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(syncGet)
 
 BOOST_AUTO_TEST_CASE(asyncGet)
 {
-    tableFactory->createTable("test_table", "key", "field1,field2,field3");
+    tableFactory->createTable("test_table", "field1,field2,field3");
     auto table = tableFactory->openTable("test_table");
 
     auto entries = createTestData(*table);
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(asyncGet)
 
 BOOST_AUTO_TEST_CASE(asyncToSyncGet)
 {
-    tableFactory->createTable("test_table", "key", "field1,field2,field3");
+    tableFactory->createTable("test_table", "field1,field2,field3");
     auto table = tableFactory->openTable("test_table");
 
     auto entries = createTestData(*table);

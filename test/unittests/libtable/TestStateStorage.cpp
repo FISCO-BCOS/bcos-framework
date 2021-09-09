@@ -77,8 +77,8 @@ struct TableFactoryFixture
     {
         std::promise<bool> createPromise;
         tableFactory->asyncCreateTable(
-            testTableName, valueField, [&](Error::Ptr&& error, bool success) {
-                BOOST_CHECK_EQUAL(error, nullptr);
+            testTableName, valueField, [&](std::optional<Error>&& error, bool success) {
+                BOOST_CHECK(!error);
                 createPromise.set_value(success);
             });
         return createPromise.get_future().get();
@@ -105,13 +105,13 @@ BOOST_AUTO_TEST_CASE(create_Table)
     auto table = tableFactory->openTable(tableName);
 
     BOOST_TEST(!table);
-    auto ret = tableFactory->createTable(tableName, keyField, valueField);
+    auto ret = tableFactory->createTable(tableName, valueField);
     BOOST_TEST(ret == true);
 
     table = tableFactory->openTable(tableName);
     BOOST_TEST(table);
 
-    ret = tableFactory->createTable(tableName, keyField, valueField);
+    ret = tableFactory->createTable(tableName, valueField);
     BOOST_TEST(ret == false);
 }
 
@@ -419,7 +419,7 @@ BOOST_AUTO_TEST_CASE(openAndCommit)
 
         std::string tableName = "testTable" + boost::lexical_cast<std::string>(i);
         auto key = "testKey" + boost::lexical_cast<std::string>(i);
-        tableFactory2->createTable(tableName, "key", "value");
+        tableFactory2->createTable(tableName, "value");
         auto table = tableFactory2->openTable(tableName);
 
         auto entry = std::make_optional(table->newEntry());
@@ -428,7 +428,7 @@ BOOST_AUTO_TEST_CASE(openAndCommit)
 
         std::promise<bool> getRow;
         table->asyncGetRow(key, [&](auto&& error, auto&& result) {
-            BOOST_CHECK_EQUAL(error, nullptr);
+            BOOST_CHECK(!error);
             BOOST_CHECK_EQUAL(result->getField("value"), "hello world!");
 
             getRow.set_value(true);
@@ -441,7 +441,6 @@ BOOST_AUTO_TEST_CASE(openAndCommit)
 BOOST_AUTO_TEST_CASE(chainLink)
 {
     std::vector<StateStorage::Ptr> storages;
-    auto keyField = "key";
     auto valueFields = "value1,value2,value3";
 
     StateStorage::Ptr prev = nullptr;
@@ -452,7 +451,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
         {
             auto tableName = "table_" + boost::lexical_cast<std::string>(i) + "_" +
                              boost::lexical_cast<std::string>(j);
-            BOOST_CHECK_EQUAL(tableStorage->createTable(tableName, keyField, valueFields), true);
+            BOOST_CHECK_EQUAL(tableStorage->createTable(tableName, valueFields), true);
 
             auto table = tableStorage->openTable(tableName);
             BOOST_TEST(table);
@@ -550,10 +549,10 @@ BOOST_AUTO_TEST_CASE(chainLink)
         // dirty should be false
         totalCount = 0;
         tbb::concurrent_vector<std::function<void()>> checks;
-        storage->parallelTraverse(false, [&](auto&& tableInfo, auto&&, auto&& entry) {
-            checks.push_back([index, tableInfo, entry] {
+        storage->parallelTraverse(false, [&](auto&& table, auto&&, auto&& entry) {
+            checks.push_back([index, table, entry] {
                 // BOOST_CHECK_NE(tableInfo, nullptr);
-                if (tableInfo.name() != "s_tables")
+                if (table != "s_tables")
                 {
                     auto i = boost::lexical_cast<int>(entry.getField("value1"));
                     auto j = boost::lexical_cast<int>(entry.getField("value2"));
@@ -578,10 +577,10 @@ BOOST_AUTO_TEST_CASE(chainLink)
 
         checks.clear();
         dirtyCount = 0;
-        storage->parallelTraverse(true, [&](auto&& tableInfo, auto&&, auto&& entry) {
-            checks.push_back([index, tableInfo, entry]() {
+        storage->parallelTraverse(true, [&](auto&& table, auto&&, auto&& entry) {
+            checks.push_back([index, table, entry]() {
                 // BOOST_CHECK_NE(tableInfo, nullptr);
-                if (tableInfo.name() != "s_tables")
+                if (table != "s_tables")
                 {
                     auto i = boost::lexical_cast<int>(entry.getField("value1"));
                     auto j = boost::lexical_cast<int>(entry.getField("value2"));
@@ -617,14 +616,13 @@ BOOST_AUTO_TEST_CASE(chainLink)
 BOOST_AUTO_TEST_CASE(getRows)
 {
     std::vector<StateStorage::Ptr> storages;
-    auto keyField = "key";
     auto valueFields = "value1,value2,value3";
 
     StateStorage::Ptr prev = nullptr;
     prev = std::make_shared<StateStorage>(prev, hashImpl, 0);
     auto tableStorage = std::make_shared<StateStorage>(prev, hashImpl, 1);
 
-    BOOST_CHECK_EQUAL(prev->createTable("t_test", keyField, valueFields), true);
+    BOOST_CHECK_EQUAL(prev->createTable("t_test", valueFields), true);
 
     auto table = prev->openTable("t_test");
     BOOST_TEST(table);
@@ -706,6 +704,25 @@ BOOST_AUTO_TEST_CASE(getRows)
             BOOST_CHECK_EQUAL(entry->num(), 0);
         }
     }
+}
+
+BOOST_AUTO_TEST_CASE(checkVersion)
+{
+    BOOST_CHECK_NO_THROW(tableFactory->createTable("testTable", "value1, value2, value3"));
+    auto table = tableFactory->openTable("testTable");
+
+    Entry value1;
+    value1.importFields({"v1"});
+    table->setRow("abc", std::move(value1));
+
+    Entry value2;
+    value2.importFields({"v2"});
+    BOOST_CHECK_THROW(table->setRow("abc", std::move(value2)), bcos::Error);
+
+    Entry value3;
+    value3.importFields({"v3"});
+    tableFactory->setCheckVersion(false);
+    BOOST_CHECK_NO_THROW(table->setRow("abc", std::move(value3)));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
