@@ -21,8 +21,7 @@ public:
         NORMAL = 0,
         DELETED = 1
     };
-    using ValueType = std::variant<std::string, std::vector<unsigned char>, std::vector<char>,
-        std::vector<bcos::byte>>;
+    using ValueType = std::variant<std::string, std::vector<unsigned char>, std::vector<char>>;
 
     Entry() : m_data(EntryData()) {}
 
@@ -199,12 +198,6 @@ private:
         case 2:
         {
             auto& data = std::get<2>(value);
-            return std::string_view((char*)data.data(), data.size());
-            break;
-        }
-        case 3:
-        {
-            auto& data = std::get<3>(value);
             return std::string_view((char*)data.data(), data.size());
             break;
         }
