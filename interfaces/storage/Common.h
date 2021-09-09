@@ -47,6 +47,7 @@ enum StorageError
 {
     SUCCESS = 0,
     TableNotExists = 1,
+    UnknownEntryType = 2,
 };
 
 struct Condition : public std::enable_shared_from_this<Condition>

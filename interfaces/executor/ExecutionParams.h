@@ -79,6 +79,10 @@ public:
     // for solidity
     virtual std::optional<u256> createSalt() const = 0;
     virtual void setCreateSalt(u256 createSalt) = 0;
+
+    // for evm
+    virtual bool staticCall() const = 0;
+    virtual void setStaticCall(bool staticCall) = 0;
 };
 
 class ExecutionParamsFactory

@@ -363,7 +363,7 @@ std::vector<std::tuple<std::string, crypto::HashType>> StateStorage::tableHashes
                     auto& entry = std::get<Entry>(table.find(key)->second);
                     if (entry.status() != Entry::DELETED)
                     {
-                        for (auto& field : entry)
+                        for (auto field : entry)
                         {
                             memcpy(&(data.data()[offset]), field.data(), field.size());
                             offset += field.size();
