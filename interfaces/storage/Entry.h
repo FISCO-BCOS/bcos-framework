@@ -9,6 +9,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/throw_exception.hpp>
 #include <exception>
+#include <variant>
 
 namespace bcos::storage
 {
