@@ -18,6 +18,9 @@
  */
 
 #include "interfaces/dispatcher/DispatcherInterface.h"
+#include "interfaces/gateway/GatewayInterface.h"
+#include "interfaces/multigroup/GroupManagerInterface.h"
+#include "interfaces/rpc/RPCInterface.h"
 #include <boost/test/unit_test.hpp>
 #include <string>
 
@@ -37,11 +40,22 @@ struct DispatcherFixture
 };
 BOOST_FIXTURE_TEST_SUITE(DispatcherTest, DispatcherFixture)
 
-BOOST_AUTO_TEST_CASE(constructor)
+BOOST_AUTO_TEST_CASE(dispatcherConstructor)
 {
     shared_ptr<DispatcherInterface> dp = nullptr;
 }
-
+BOOST_AUTO_TEST_CASE(groupMgrConstructor)
+{
+    std::shared_ptr<bcos::group::GroupManagerInterface> groupMgr = nullptr;
+}
+BOOST_AUTO_TEST_CASE(GatewayConstructor)
+{
+    std::shared_ptr<bcos::gateway::GatewayInterface> gateway = nullptr;
+}
+BOOST_AUTO_TEST_CASE(rpcConstructor)
+{
+    std::shared_ptr<bcos::rpc::RPCInterface> rpc = nullptr;
+}
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
 }  // namespace bcos

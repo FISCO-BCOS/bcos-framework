@@ -20,6 +20,7 @@
  */
 #pragma once
 #include "../../interfaces/crypto/KeyInterface.h"
+#include "../../interfaces/multigroup/GroupManagerInterface.h"
 #include "../../libutilities/Common.h"
 #include "../../libutilities/Error.h"
 
@@ -86,6 +87,16 @@ public:
      */
     virtual void asyncSendBroadcastMessage(const std::string& _groupID,
         bcos::crypto::NodeIDPtr _srcNodeID, bytesConstRef _payload) = 0;
+
+    /// multi-group related interfaces
+
+    /**
+     * @brief receive the latest group information notification from the GroupManagerInterface
+     *
+     * @param _groupInfo the latest group information
+     */
+    virtual void asyncNotifyGroupInfo(
+        bcos::group::GroupInfo::Ptr _groupInfo, std::function<void(Error::Ptr&&)>) = 0;
 };
 
 }  // namespace gateway

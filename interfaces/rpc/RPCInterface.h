@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "../../interfaces/multigroup/GroupManagerInterface.h"
 #include "../../interfaces/protocol/ProtocolTypeDef.h"
 #include "../../libutilities/Error.h"
 
@@ -46,6 +47,15 @@ public:
      */
     virtual void asyncNotifyBlockNumber(
         bcos::protocol::BlockNumber _blockNumber, std::function<void(Error::Ptr)> _callback) = 0;
+
+    /// multi-group manager related interfaces
+    /**
+     * @brief receive the latest group information notification from the GroupManagerInterface
+     *
+     * @param _groupInfo the latest group information
+     */
+    virtual void asyncNotifyGroupInfo(
+        bcos::group::GroupInfo::Ptr _groupInfo, std::function<void(Error::Ptr&&)>) = 0;
 };
 }  // namespace rpc
 }  // namespace bcos
