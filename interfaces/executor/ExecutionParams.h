@@ -73,12 +73,12 @@ public:
     virtual void setMessage(std::string message) = 0;
 
     // for solidity
-    virtual int32_t depth() const = 0;
-    virtual void setDepth(int32_t depth) = 0;
-
-    // for solidity
     virtual std::optional<u256> createSalt() const = 0;
     virtual void setCreateSalt(u256 createSalt) = 0;
+
+    // for evm
+    virtual bool staticCall() const = 0;
+    virtual void setStaticCall(bool staticCall) = 0;
 };
 
 class ExecutionParamsFactory

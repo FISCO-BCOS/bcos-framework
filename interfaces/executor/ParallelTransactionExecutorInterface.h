@@ -30,7 +30,6 @@
 #include "../protocol/TransactionReceipt.h"
 #include "ExecutionParams.h"
 #include "ExecutionResult.h"
-#include "TableHash.h"
 #include <memory>
 
 namespace bcos

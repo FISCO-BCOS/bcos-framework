@@ -141,8 +141,7 @@ BOOST_AUTO_TEST_CASE(nullTableInfo)
     entry->importFields({"value1", "value2"});
 
     BOOST_CHECK_EQUAL(entry->fields().size(), 2);
-    BOOST_CHECK_EQUAL_COLLECTIONS(
-        entry->fields().begin(), entry->fields().end(), fields.begin(), fields.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(entry->begin(), entry->end(), fields.begin(), fields.end());
     BOOST_CHECK_EQUAL(entry->getField(0), "value1");
     BOOST_CHECK_EQUAL(entry->getField(1), "value2");
     BOOST_CHECK_THROW(entry->getField("field1"), bcos::Error);
@@ -158,8 +157,7 @@ BOOST_AUTO_TEST_CASE(nullTableInfo)
     entry->importFields({"value1", "value2"});
 
     BOOST_CHECK_EQUAL(entry->fields().size(), 2);
-    BOOST_CHECK_EQUAL_COLLECTIONS(
-        entry->fields().begin(), entry->fields().end(), fields.begin(), fields.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(entry->begin(), entry->end(), fields.begin(), fields.end());
     BOOST_CHECK_EQUAL(entry->getField(0), "value1");
     BOOST_CHECK_EQUAL(entry->getField(1), "value2");
     BOOST_CHECK_THROW(entry->getField("field1"), bcos::Error);
@@ -175,6 +173,31 @@ BOOST_AUTO_TEST_CASE(EmptyEntry)
     Entry empty;
     BOOST_CHECK_THROW(empty.getField("value1"), bcos::Error);
     BOOST_CHECK_THROW(empty.setField(2, "hello world!"), bcos::Error);
+}
+
+BOOST_AUTO_TEST_CASE(BytesField)
+{
+    Entry entry;
+
+    std::string value = "abcdefghijklmn";
+    std::vector<char> data, data2;
+    data.assign(value.begin(), value.end());
+    data2.assign(value.begin(), value.end());
+
+    entry.importFields({std::string(value), std::string(value)});
+
+    for (auto it : entry)
+    {
+        BOOST_CHECK_EQUAL(it, value);
+    }
+
+    Entry entry2;
+    entry2.importFields({data, data2});
+
+    for (auto it : entry)
+    {
+        BOOST_CHECK_EQUAL(it, value);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -51,6 +51,9 @@ public:
     virtual int64_t contextID() const = 0;
     virtual void setContextID(int64_t contextID) = 0;
 
+    virtual int64_t gasAvailable() const = 0;
+    virtual void setGasAvailable(int64_t gasAvailable) = 0;
+
     virtual int32_t status() const = 0;
     virtual void setStatus(int32_t status) = 0;
 
@@ -62,9 +65,6 @@ public:
     // the next call
     virtual bcos::bytesConstRef output() const = 0;
     virtual void setOutput(bytes output) = 0;
-
-    virtual int64_t gasUsed() const = 0;
-    virtual void setGasUsed(int64_t gasUsed) = 0;
 
     virtual gsl::span<LogEntry> logEntries() const = 0;
     virtual void setLogEntries(LogEntriesPtr logEntries) = 0;
@@ -80,6 +80,10 @@ public:
     // for solidity
     virtual std::optional<u256> createSalt() const = 0;
     virtual void setCreateSalt(u256 createSalt) = 0;
+
+    // for evm
+    virtual bool staticCall() const = 0;
+    virtual void setStaticCall(bool staticCall) = 0;
 };
 
 class ExecutionResultFactory

@@ -33,6 +33,10 @@
     ::bcos::Error::buildError(                              \
         BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, errorCode, errorMessage, prev)
 
+#define BCOS_ERROR_PTR(code, message) std::make_shared<Error>(BCOS_ERROR(code, message))
+#define BCOS_ERROR_WITH_PREV_PTR(code, message, prev) \
+    std::make_shared<Error>(BCOS_ERROR_WITH_PREV(code, message, prev))
+
 namespace bcos
 {
 class Error : public bcos::Exception
