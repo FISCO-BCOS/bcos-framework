@@ -37,6 +37,10 @@
 #define BCOS_ERROR_WITH_PREV_PTR(code, message, prev) \
     std::make_shared<Error>(BCOS_ERROR_WITH_PREV(code, message, prev))
 
+#define BCOS_ERROR_UNIQUE_PTR(code, message) std::make_unique<Error>(BCOS_ERROR(code, message))
+#define BCOS_ERROR_WITH_PREV_UNIQUE_PTR(code, message, prev) \
+    std::make_unique<Error>(BCOS_ERROR_WITH_PREV(code, message, prev))
+
 namespace bcos
 {
 class Error : public bcos::Exception
@@ -45,8 +49,8 @@ public:
     using Ptr = std::shared_ptr<Error>;
     using ConstPtr = std::shared_ptr<const Error>;
 
-    using UPtr = std::unique_ptr<Error>;
-    using UConstPtr = std::unique_ptr<const Error>;
+    using UniquePtr = std::unique_ptr<Error>;
+    using UniqueConstPtr = std::unique_ptr<const Error>;
 
     using PrevStdError = boost::error_info<struct PrevErrorTag, std::string>;
 

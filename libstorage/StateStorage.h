@@ -67,20 +67,21 @@ public:
 
     void asyncGetPrimaryKeys(const std::string_view& table,
         const std::optional<storage::Condition const>& _condition,
-        std::function<void(std::optional<Error>&&, std::vector<std::string>&&)> _callback) noexcept
+        std::function<void(Error::UniquePtr&&, std::vector<std::string>&&)> _callback) noexcept
         override;
 
     void asyncGetRow(const std::string_view& table, const std::string_view& _key,
-        std::function<void(std::optional<Error>&&, std::optional<Entry>&&)> _callback) noexcept
+        std::function<void(Error::UniquePtr&&, std::optional<Entry>&&)> _callback) noexcept
         override;
 
     void asyncGetRows(const std::string_view& table,
-        const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
-        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)>
+        const std::variant<const gsl::span<std::string_view const>,
+            const gsl::span<std::string const>>& _keys,
+        std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)>
             _callback) noexcept override;
 
     void asyncSetRow(const std::string_view& table, const std::string_view& key, Entry entry,
-        std::function<void(std::optional<Error>&&, bool)> callback) noexcept override;
+        std::function<void(Error::UniquePtr&&, bool)> callback) noexcept override;
 
     void parallelTraverse(bool onlyDirty, std::function<bool(const std::string_view& table,
                                               const std::string_view& key, const Entry& entry)>
@@ -106,23 +107,21 @@ public:
 private:
     struct Change
     {
-        enum Kind : int
+        enum Kind : int8_t
         {
             Set,
             Remove,
         };
-        std::string table;
-        Kind kind;  ///< The kind of the change.
-        std::string key;
+
+        std::string_view table;
+        std::string_view key;
         std::optional<Entry> entry;
+        Kind kind;  ///< The kind of the change.
         bool tableDirty;
-        Change(std::string _table, Kind _kind, std::string _key, std::optional<Entry> _entry,
-            bool _tableDirty)
-          : table(std::move(_table)),
-            kind(_kind),
-            key(std::move(_key)),
-            entry(std::move(_entry)),
-            tableDirty(_tableDirty)
+
+        Change(std::string_view _table, Kind _kind, std::string_view _key,
+            std::optional<Entry> _entry, bool _tableDirty)
+          : table(_table), key(_key), entry(std::move(_entry)), kind(_kind), tableDirty(_tableDirty)
         {}
     };
 
@@ -130,10 +129,10 @@ private:
 
     template <class T>
     void multiAsyncGetRows(const std::string_view& table, const gsl::span<T const>& _keys,
-        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)> _callback)
+        std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)> _callback)
     {
-        auto results = std::make_shared<std::vector<std::optional<Entry>>>(_keys.size());
-        auto missings = std::make_shared<std::tuple<std::vector<std::string_view>,
+        auto results = std::make_unique<std::vector<std::optional<Entry>>>(_keys.size());
+        auto missinges = std::make_shared<std::tuple<std::vector<std::string_view>,
             std::vector<std::tuple<std::string, size_t>>>>();
 
         long existsCount = 0;
@@ -152,8 +151,8 @@ private:
                 }
                 else
                 {
-                    std::get<1>(*missings).emplace_back(std::string(key), i);
-                    std::get<0>(*missings).emplace_back(key);
+                    std::get<1>(*missinges).emplace_back(std::string(key), i);
+                    std::get<0>(*missinges).emplace_back(key);
                 }
 
                 ++i;
@@ -163,18 +162,20 @@ private:
         {
             for (long i = 0; i < _keys.size(); ++i)
             {
-                std::get<1>(*missings).emplace_back(std::string(_keys[i]), i);
-                std::get<0>(*missings).emplace_back(_keys[i]);
+                std::get<1>(*missinges).emplace_back(std::string(_keys[i]), i);
+                std::get<0>(*missinges).emplace_back(_keys[i]);
             }
         }
 
         if (existsCount < _keys.size() && m_prev)
         {
-            m_prev->asyncGetRows(table, std::get<0>(*missings),
-                [this, _callback, missings, results](auto&& error, auto&& entries) {
+            m_prev->asyncGetRows(table, std::get<0>(*missinges),
+                [this, _callback, missinges, results = std::move(results)](
+                    auto&& error, auto&& entries) mutable {
                     if (error)
                     {
-                        _callback(BCOS_ERROR_WITH_PREV(-1, "async get perv rows failed!", *error),
+                        _callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
+                                      -1, "async get perv rows failed!", *error),
                             std::vector<std::optional<Entry>>());
                         return;
                     }
@@ -185,38 +186,38 @@ private:
 
                         if (entry)
                         {
-                            (*results)[std::get<1>(std::get<1>(*missings)[i])] =
+                            (*results)[std::get<1>(std::get<1>(*missinges)[i])] =
                                 Entry(importExistingEntry(
-                                    std::move(std::get<0>(std::get<1>(*missings)[i])),
+                                    std::move(std::get<0>(std::get<1>(*missinges)[i])),
                                     std::move(*entry)));
                         }
                     }
 
-                    _callback({}, std::move(*results));
+                    _callback(nullptr, std::move(*results));
                 });
         }
         else
         {
-            _callback({}, std::move(*results));
+            _callback(nullptr, std::move(*results));
         }
     }
 
-    Entry& importExistingEntry(std::string key, Entry entry);
+    Entry& importExistingEntry(const std::string_view& key, Entry entry);
 
     struct TableData
     {
         TableData(TableInfo::ConstPtr tableInfo) : tableInfo(std::move(tableInfo)) {}
 
         TableInfo::ConstPtr tableInfo;
-        tbb::concurrent_unordered_map<std::string_view,
-            std::tuple<std::unique_ptr<std::string>, Entry>, std::hash<std::string_view>>
+        tbb::concurrent_unordered_map<std::string_view, std::tuple<std::vector<char>, Entry>,
+            std::hash<std::string_view>>
             entries;
         bool dirty = false;
     };
 
     // data members
-    tbb::concurrent_unordered_map<std::string_view,
-        std::tuple<std::unique_ptr<std::string>, TableData>, std::hash<std::string_view>>
+    tbb::concurrent_unordered_map<std::string_view, std::tuple<std::vector<char>, TableData>,
+        std::hash<std::string_view>>
         m_data;
     tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
     protocol::BlockNumber m_blockNumber = 0;

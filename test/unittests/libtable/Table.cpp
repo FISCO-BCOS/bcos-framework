@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(dump_hash)
 
     std::promise<bool> createPromise;
     tableFactory->asyncCreateTable(
-        tableName, valueField, [&](std::optional<Error>&& error, bool success) {
+        tableName, valueField, [&](auto&& error, bool success) {
             BOOST_CHECK(!error);
             createPromise.set_value(success);
         });
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE(setRow)
 
     std::promise<bool> createPromise;
     tableFactory->asyncCreateTable(
-        tableName, valueField, [&](std::optional<Error>&& error, bool success) {
+        tableName, valueField, [&](auto&& error, bool success) {
             BOOST_CHECK(!error);
             createPromise.set_value(success);
         });

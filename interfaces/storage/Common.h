@@ -50,25 +50,25 @@ enum StorageError
     UnknownEntryType = 2,
 };
 
-struct Condition : public std::enable_shared_from_this<Condition>
+struct Condition
 {
     Condition() = default;
-    virtual ~Condition() = default;
-    virtual void NE(const std::string& value) { m_conditions.emplace_back(Comparator::NE, value); }
+    ~Condition() = default;
+    void NE(const std::string& value) { m_conditions.emplace_back(Comparator::NE, value); }
     // string compare, "2" > "12"
-    virtual void GT(const std::string& value) { m_conditions.emplace_back(Comparator::GT, value); }
-    virtual void GE(const std::string& value) { m_conditions.emplace_back(Comparator::GE, value); }
+    void GT(const std::string& value) { m_conditions.emplace_back(Comparator::GT, value); }
+    void GE(const std::string& value) { m_conditions.emplace_back(Comparator::GE, value); }
     // string compare, "12" < "2"
-    virtual void LT(const std::string& value) { m_conditions.emplace_back(Comparator::LT, value); }
-    virtual void LE(const std::string& value) { m_conditions.emplace_back(Comparator::LE, value); }
-    virtual void limit(size_t start, size_t end)
+    void LT(const std::string& value) { m_conditions.emplace_back(Comparator::LT, value); }
+    void LE(const std::string& value) { m_conditions.emplace_back(Comparator::LE, value); }
+    void limit(size_t start, size_t end)
     {
         m_limit = std::pair<size_t, size_t>(start, end);
     }
 
-    virtual std::pair<size_t, size_t> getLimit() const { return m_limit; }
+    std::pair<size_t, size_t> getLimit() const { return m_limit; }
 
-    virtual bool isValid(const std::string_view& key) const
+    bool isValid(const std::string_view& key) const
     {  // all conditions must be satisfied
         for (auto& cond : m_conditions)
         {  // conditions should few, so not parallel check for now
@@ -127,6 +127,7 @@ struct Condition : public std::enable_shared_from_this<Condition>
         Comparator cmp;
         std::string value;
     };
+
     std::vector<cond> m_conditions;
     std::pair<size_t, size_t> m_limit;
 };
