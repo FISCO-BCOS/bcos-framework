@@ -131,7 +131,7 @@ public:
     }
 
     // the txpool module use this interface to store txs
-    void asyncStoreTransactions(std::shared_ptr<std::vector<bytesPointer>> _txToStore,
+    void asyncStoreTransactions(std::shared_ptr<const std::vector<bytesConstPtr>> _txToStore,
         HashListPtr _txHashList, std::function<void(Error::Ptr)> _onTxStored) override
     {
         WriteGuard l(x_txsHashToData);
@@ -290,7 +290,7 @@ public:
         return m_txsHashToData.size();
     }
     // Note thread-safe
-    std::map<HashType, bytesPointer> txsHashToData()
+    std::map<HashType, bytesConstPtr> txsHashToData()
     {
         ReadGuard l(x_txsHashToData);
         return m_txsHashToData;
@@ -336,7 +336,7 @@ private:
     std::map<HashType, BlockNumber> m_hash2Block;
     SharedMutex x_ledger;
 
-    std::map<HashType, bytesPointer> m_txsHashToData;
+    std::map<HashType, bytesConstPtr> m_txsHashToData;
     SharedMutex x_txsHashToData;
 
     std::map<std::string, std::string> m_systemConfig;
