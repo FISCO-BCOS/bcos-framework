@@ -16,6 +16,16 @@ public:
     Item() {}
     Item(const Item&) { ++copyCount; }
     Item(Item&&) { ++moveCount; }
+    Item& operator=(const Item&)
+    {
+        ++copyCount;
+        return *this;
+    }
+    Item& operator=(Item&&)
+    {
+        ++moveCount;
+        return *this;
+    }
 
     int copyCount = 0;
     int moveCount = 0;

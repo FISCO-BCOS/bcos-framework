@@ -77,8 +77,7 @@ public:
         auto mutableData = m_data.mutableGet();
         auto& fieldValue = (mutableData->values)[index];
 
-        auto view = valueView(value);
-        ssize_t updatedCapacity = view.size() - std::get<0>(fieldValue).size();
+        ssize_t updatedCapacity = valueView(value).size() - std::get<0>(fieldValue).size();
 
         fieldValue = std::move(value);
         mutableData->capacityOfHashField += updatedCapacity;
@@ -93,21 +92,14 @@ public:
                 BCOS_ERROR(-1, "Set field: " + std::string(field) + " error, tableInfo is null"));
         }
 
-        auto index = m_tableInfo->fieldIndex(field);
-
         auto data = m_data.mutableGet();
         if (data->values.size() < m_tableInfo->fields().size())
         {
             data->values.resize(m_tableInfo->fields().size());
         }
 
-        auto& fieldValue = (data->values)[index];
-
-        auto view = valueView(value);
-        ssize_t updatedCapacity = view.size() - std::get<0>(fieldValue).size();
-        fieldValue = std::move(value);
-        data->capacityOfHashField += updatedCapacity;
-        m_dirty = true;
+        auto index = m_tableInfo->fieldIndex(field);
+        setField(index, std::move(value));
     }
 
     auto begin() const noexcept
@@ -151,17 +143,15 @@ public:
 
     void importFields(std::initializer_list<ValueType> values) noexcept
     {
-        auto data = m_data.mutableGet();
-        data->values.clear();
-        data->capacityOfHashField = 0;
+        EntryData data;
+        data.values.reserve(values.size());
         for (auto& value : values)
         {
-            auto view = valueView(value);
-            data->capacityOfHashField += view.size();
-
-            data->values.emplace_back(std::move(value));
+            data.capacityOfHashField += valueView(value).size();
+            data.values.emplace_back(std::move(value));
         }
 
+        m_data.reset(std::move(data));
         m_dirty = true;
     }
 

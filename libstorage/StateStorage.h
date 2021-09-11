@@ -30,6 +30,7 @@
 #include <boost/throw_exception.hpp>
 #include <future>
 #include <memory>
+#include <optional>
 
 namespace bcos::storage
 {
@@ -131,7 +132,7 @@ private:
     void multiAsyncGetRows(const std::string_view& table, const gsl::span<T const>& _keys,
         std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)> _callback)
     {
-        auto results = std::make_unique<std::vector<std::optional<Entry>>>(_keys.size());
+        auto results = std::make_shared<std::vector<std::optional<Entry>>>(_keys.size());
         auto missinges = std::make_shared<std::tuple<std::vector<std::string_view>,
             std::vector<std::tuple<std::string, size_t>>>>();
 
@@ -170,12 +171,12 @@ private:
         if (existsCount < _keys.size() && m_prev)
         {
             m_prev->asyncGetRows(table, std::get<0>(*missinges),
-                [this, _callback, missinges, results = std::move(results)](
-                    auto&& error, auto&& entries) mutable {
+                [this, callback = std::move(_callback), missinges, results = std::move(results)](
+                    auto&& error, std::vector<std::optional<Entry>>&& entries) {
                     if (error)
                     {
-                        _callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
-                                      -1, "async get perv rows failed!", *error),
+                        callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
+                                     -1, "async get perv rows failed!", *error),
                             std::vector<std::optional<Entry>>());
                         return;
                     }
@@ -187,13 +188,13 @@ private:
                         if (entry)
                         {
                             (*results)[std::get<1>(std::get<1>(*missinges)[i])] =
-                                Entry(importExistingEntry(
+                                std::make_optional(importExistingEntry(
                                     std::move(std::get<0>(std::get<1>(*missinges)[i])),
                                     std::move(*entry)));
                         }
                     }
 
-                    _callback(nullptr, std::move(*results));
+                    callback(nullptr, std::move(*results));
                 });
         }
         else
