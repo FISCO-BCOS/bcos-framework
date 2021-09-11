@@ -57,7 +57,7 @@ public:
      * @param _txHashList tx hash list
      * @param _onTxsStored callback
      */
-    virtual void asyncStoreTransactions(std::shared_ptr<const std::vector<bytesConstPtr>> _txToStore,
+    virtual void asyncStoreTransactions(std::shared_ptr<std::vector<bytesConstPtr>> _txToStore,
         crypto::HashListPtr _txHashList, std::function<void(Error::Ptr)> _onTxStored) = 0;
 
     /**
