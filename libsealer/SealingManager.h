@@ -78,7 +78,7 @@ public:
             return;
         }
         // non-continuous sealing request
-        if (_startSealingNumber != (m_endSealingNumber + 1))
+        if (m_sealingNumber > m_endSealingNumber || _startSealingNumber != (m_endSealingNumber + 1))
         {
             clearPendingTxs();
             m_startSealingNumber = _startSealingNumber;
