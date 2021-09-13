@@ -10,7 +10,7 @@ using namespace bcos::storage;
 
 void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
     const std::optional<Condition const>& _condition,
-    std::function<void(std::optional<Error>&&, std::vector<std::string>&&)> _callback) noexcept
+    std::function<void(Error::UniquePtr&&, std::vector<std::string>&&)> _callback) noexcept
 {
     std::map<std::string_view, storage::Entry::Status> localKeys;
 
@@ -40,7 +40,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
             }
         }
 
-        _callback({}, std::move(resultKeys));
+        _callback(nullptr, std::move(resultKeys));
         return;
     }
 
@@ -49,7 +49,8 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
             auto&& error, auto&& remoteKeys) mutable {
             if (error)
             {
-                callback(BCOS_ERROR_WITH_PREV(-1, "Get primary keys from prev failed!", *error),
+                callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
+                             -1, "Get primary keys from prev failed!", *error),
                     std::vector<std::string>());
                 return;
             }
@@ -76,12 +77,12 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
                 }
             }
 
-            callback({}, std::move(remoteKeys));
+            callback(nullptr, std::move(remoteKeys));
         });
 }
 
 void StateStorage::asyncGetRow(const std::string_view& table, const std::string_view& _key,
-    std::function<void(std::optional<Error>&&, std::optional<Entry>&&)> _callback) noexcept
+    std::function<void(Error::UniquePtr&&, std::optional<Entry>&&)> _callback) noexcept
 {
     auto tableIt = m_data.find(table);
     if (tableIt != m_data.end())
@@ -90,31 +91,32 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
         if (entryIt != std::get<TableData>(tableIt->second).entries.end() &&
             !std::get<Entry>(entryIt->second).rollbacked())
         {
-            _callback({}, Entry(std::get<Entry>(entryIt->second)));
+            _callback(nullptr, std::make_optional(std::get<Entry>(entryIt->second)));
             return;
         }
     }
 
     if (m_prev)
     {
-        m_prev->asyncGetRow(table, _key,
-            [this, table = std::string(table), key = std::string(_key), _callback](
-                auto&& error, auto&& entry) {
+        m_prev->asyncGetRow(
+            table, _key, [this, key = std::string(_key), _callback](auto&& error, auto&& entry) {
                 if (error)
                 {
                     _callback(
-                        BCOS_ERROR_WITH_PREV(-1, "Get row from tableStorage failed!", *error), {});
+                        BCOS_ERROR_WITH_PREV_UNIQUE_PTR(-1, "Get row from storage failed!", *error),
+                        {});
                     return;
                 }
 
                 if (entry)
                 {
                     // If the entry exists, add it to the local cache, for version comparison
-                    _callback({}, Entry(importExistingEntry(key, std::move(*entry))));
+                    _callback(
+                        nullptr, std::make_optional(importExistingEntry(key, std::move(*entry))));
                 }
                 else
                 {
-                    _callback({}, {});
+                    _callback(nullptr, {});
                 }
             });
     }
@@ -125,33 +127,35 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
 }
 
 void StateStorage::asyncGetRows(const std::string_view& table,
-    const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
-    std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)>
-        _callback) noexcept
+    const std::variant<const gsl::span<std::string_view const>, const gsl::span<std::string const>>&
+        _keys,
+    std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
 {
     if (_keys.index() == 0)
     {
-        multiAsyncGetRows(table, std::get<0>(_keys), _callback);
+        multiAsyncGetRows(table, std::get<0>(_keys), std::move(_callback));
     }
     else if (_keys.index() == 1)
     {
-        multiAsyncGetRows(table, std::get<1>(_keys), _callback);
+        multiAsyncGetRows(table, std::get<1>(_keys), std::move(_callback));
     }
 }
 
 void StateStorage::asyncSetRow(const std::string_view& table, const std::string_view& key,
-    Entry entry, std::function<void(std::optional<Error>&&, bool)> callback) noexcept
+    Entry entry, std::function<void(Error::UniquePtr&&, bool)> callback) noexcept
 {
     entry.setNum(m_blockNumber);
 
-    auto setEntryToTable = [this, entry = std::move(entry), tableName = std::string(table),
-                               callback](const std::string_view& key,
-                               std::unique_ptr<std::string> keyPtr, TableData& table) mutable {
+    auto setEntryToTable = [this, entry = std::move(entry)](const std::string_view& key,
+                               std::vector<char> keyVec, TableData& table,
+                               std::function<void(Error::UniquePtr&&, bool)> callback) mutable {
         if (!entry.tableInfo())
         {
             entry.setTableInfo(table.tableInfo);
         }
+
         std::optional<Entry> entryOld;
+        std::string_view keyView;
         auto entryIt = table.entries.find(key);
         if (entryIt != table.entries.end())
         {
@@ -161,7 +165,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                 if (m_checkVersion && (entry.version() - existsEntry.version() != 1))
                 {
                     callback(
-                        BCOS_ERROR(-1,
+                        BCOS_ERROR_UNIQUE_PTR(-1,
                             "Entry version: " + boost::lexical_cast<std::string>(entry.version()) +
                                 " mismatch (current version + 1): " +
                                 boost::lexical_cast<std::string>(existsEntry.version())),
@@ -171,73 +175,65 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                 entryOld = std::move(existsEntry);
             }
             std::get<Entry>(entryIt->second) = std::move(entry);
+
+            keyView = entryIt->first;
         }
         else
         {
-            std::unique_ptr<std::string> keyToInsert;
-            if (keyPtr)
-            {
-                table.entries.emplace(key, std::make_tuple(std::move(keyPtr), std::move(entry)));
-            }
-            else
-            {
-                auto keyToInsert = std::make_unique<std::string>(key);
-                std::string_view keyView(*keyToInsert);
-                table.entries.emplace(
-                    keyView, std::make_tuple(std::move(keyToInsert), std::move(entry)));
-            }
+            keyView = std::string_view(keyVec.data(), keyVec.size());
+            table.entries.emplace(keyView, std::make_tuple(std::move(keyVec), std::move(entry)));
         }
 
-        getChangeLog().push_back(
-            Change(tableName, Change::Set, std::string(key), std::move(entryOld),
-                table.dirty));  // TODO: fix null tableInfo ptr
+        getChangeLog().emplace_back(
+            table.tableInfo->name(), Change::Set, keyView, std::move(entryOld), table.dirty);
         table.dirty = true;
 
-        callback({}, true);
+        callback(nullptr, true);
     };
 
     auto tableIt = m_data.find(table);
     if (tableIt != m_data.end())
     {
-        setEntryToTable(key, nullptr, std::get<1>(tableIt->second));
+        setEntryToTable(key, std::vector<char>(key.begin(), key.end()),
+            std::get<1>(tableIt->second), std::move(callback));
     }
     else
     {
-        asyncOpenTable(table, [this, callback, setEntryToTable = std::move(setEntryToTable),
-                                  key = std::string(key),
-                                  tableName = std::string(table)](std::optional<Error>&& error,
-                                  std::optional<Table>&& table) mutable {
+        asyncOpenTable(table, [this, callback = std::move(callback),
+                                  setEntryToTable = std::move(setEntryToTable),
+                                  keyVec = std::vector<char>(key.begin(), key.end())](
+                                  Error::UniquePtr&& error, std::optional<Table>&& table) mutable {
             if (error)
             {
-                callback(BCOS_ERROR_WITH_PREV(-1, "Open table: " + tableName + " failed", *error),
-                    false);
+                callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(-1, "Open table failed", *error), false);
                 return;
             }
 
             if (table)
             {
-                auto tableNamePtr = std::make_unique<std::string>(std::move(tableName));
-                std::string_view tableNameView(*tableNamePtr);
+                auto tableName = table->tableInfo()->name();
+                std::vector<char> tableNameVec(tableName.begin(), tableName.end());
+                std::string_view tableNameView(tableNameVec.data(), tableNameVec.size());
                 auto [tableIt, inserted] = m_data.emplace(tableNameView,
-                    std::make_tuple(std::move(tableNamePtr), TableData(table->tableInfo())));
+                    std::make_tuple(std::move(tableNameVec), TableData(table->tableInfo())));
 
                 if (!inserted)
                 {
-                    callback(BCOS_ERROR(-1, "Insert table: " + std::string(tableIt->first) +
-                                                " into tableFactory failed!"),
+                    callback(
+                        BCOS_ERROR_UNIQUE_PTR(-1, "Insert table: " + std::string(tableIt->first) +
+                                                      " into tableFactory failed!"),
                         false);
                     return;
                 }
 
-                auto keyPtr = std::make_unique<std::string>(std::move(key));
-                std::string_view keyView(*keyPtr);
-                setEntryToTable(keyView, std::move(keyPtr), std::get<1>(tableIt->second));
+                std::string_view keyView(keyVec.data(), keyVec.size());
+                setEntryToTable(
+                    keyView, std::move(keyVec), std::get<1>(tableIt->second), std::move(callback));
                 return;
             }
             else
             {
-                callback(BCOS_ERROR(
-                             -1, "Async set row failed, table: " + tableName + " does not exists"),
+                callback(BCOS_ERROR_UNIQUE_PTR(-1, "Async set row failed, table does not exists"),
                     false);
             }
         });
@@ -250,8 +246,7 @@ void StateStorage::parallelTraverse(bool onlyDirty,
         callback) const
 {
     tbb::parallel_do(m_data.begin(), m_data.end(),
-        [&](const std::pair<const std::string_view,
-            std::tuple<std::unique_ptr<std::string>, TableData>>& it) {
+        [&](const std::pair<const std::string_view, std::tuple<std::vector<char>, TableData>>& it) {
             for (auto& entryIt : std::get<TableData>(it.second).entries)
             {
                 auto entry = std::get<Entry>(entryIt.second);
@@ -272,7 +267,7 @@ void StateStorage::parallelTraverse(bool onlyDirty,
 
 std::optional<Table> StateStorage::openTable(const std::string& tableName)
 {
-    std::promise<std::tuple<std::optional<Error>, std::optional<Table>>> openPromise;
+    std::promise<std::tuple<Error::UniquePtr, std::optional<Table>>> openPromise;
     asyncOpenTable(tableName, [&](auto&& error, auto&& table) {
         openPromise.set_value({std::move(error), std::move(table)});
     });
@@ -289,8 +284,8 @@ std::optional<Table> StateStorage::openTable(const std::string& tableName)
 
 bool StateStorage::createTable(const std::string& _tableName, const std::string& _valueFields)
 {
-    std::promise<std::tuple<std::optional<Error>, bool>> createPromise;
-    asyncCreateTable(_tableName, _valueFields, [&](std::optional<Error>&& error, bool success) {
+    std::promise<std::tuple<Error::UniquePtr, bool>> createPromise;
+    asyncCreateTable(_tableName, _valueFields, [&](Error::UniquePtr&& error, bool success) {
         createPromise.set_value({std::move(error), success});
     });
     auto [error, success] = createPromise.get_future().get();
@@ -433,7 +428,7 @@ void StateStorage::rollback(size_t _savepoint)
     }
 }
 
-Entry& StateStorage::importExistingEntry(std::string key, Entry entry)
+Entry& StateStorage::importExistingEntry(const std::string_view& key, Entry entry)
 {
     entry.setVersion(0);
     entry.setDirty(false);
@@ -442,17 +437,18 @@ Entry& StateStorage::importExistingEntry(std::string key, Entry entry)
     auto tableIt = m_data.find(entry.tableInfo()->name());
     if (tableIt == m_data.end())
     {
-        auto tableNamePtr = std::make_unique<std::string>(entry.tableInfo()->name());
-        auto tableNameView = std::string_view(*tableNamePtr);
+        auto tableName = entry.tableInfo()->name();
+        auto tableNameVec = std::vector<char>(tableName.begin(), tableName.end());
+        auto tableNameView = std::string_view(tableNameVec.data(), tableNameVec.size());
         std::tie(tableIt, inserted) = m_data.emplace(
-            tableNameView, std::make_tuple(std::move(tableNamePtr), TableData(entry.tableInfo())));
+            tableNameView, std::make_tuple(std::move(tableNameVec), TableData(entry.tableInfo())));
     }
 
-    auto keyPtr = std::make_unique<std::string>(std::move(key));
-    auto keyView = std::string_view(*keyPtr);
+    auto keyVec = std::vector<char>(key.begin(), key.end());
+    auto keyView = std::string_view(keyVec.data(), keyVec.size());
     auto [it, success] =
         std::get<TableData>(tableIt->second)
-            .entries.emplace(keyView, std::make_tuple(std::move(keyPtr), std::move(entry)));
+            .entries.emplace(keyView, std::make_tuple(std::move(keyVec), std::move(entry)));
 
     if (!success)
     {

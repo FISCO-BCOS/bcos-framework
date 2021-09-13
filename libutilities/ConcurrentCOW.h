@@ -18,7 +18,18 @@ public:
     void operator=(ConcurrentCOW&& cow) noexcept { m_obj = std::move(cow.m_obj); }
     ~ConcurrentCOW() noexcept {}
 
-    void reset(T&& obj) { m_obj = std::make_shared<T>(std::forward<T>(obj)); }
+    void reset(T&& obj)
+    {
+        if (!m_obj.unique())
+        {
+            m_obj = std::make_shared<T>(std::forward<T>(obj));
+        }
+        else
+        {
+            *m_obj = std::forward<T>(obj);
+        }
+    }
+
     void clear() noexcept { m_obj.reset(); }
 
     bool empty() const noexcept { return m_obj.get() == nullptr; }
@@ -32,10 +43,9 @@ public:
 
     T* mutableGet()
     {
-        if (refCount() > 1)
+        if (!m_obj.unique())
         {
-            std::shared_ptr<T> obj = std::make_shared<T>(*m_obj);
-            m_obj = obj;
+            m_obj = std::make_shared<T>(*m_obj);
         }
 
         return m_obj.get();

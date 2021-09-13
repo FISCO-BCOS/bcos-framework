@@ -76,11 +76,10 @@ struct TableFactoryFixture
     bool createDefaultTable()
     {
         std::promise<bool> createPromise;
-        tableFactory->asyncCreateTable(
-            testTableName, valueField, [&](std::optional<Error>&& error, bool success) {
-                BOOST_CHECK(!error);
-                createPromise.set_value(success);
-            });
+        tableFactory->asyncCreateTable(testTableName, valueField, [&](auto&& error, bool success) {
+            BOOST_CHECK(!error);
+            createPromise.set_value(success);
+        });
         return createPromise.get_future().get();
     }
     std::shared_ptr<crypto::Hash> hashImpl = nullptr;

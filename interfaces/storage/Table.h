@@ -40,26 +40,27 @@ public:
     Table(Table&&) = default;
     Table& operator=(const Table&) = default;
     Table& operator=(Table&&) = default;
-    virtual ~Table() {}
+    ~Table() {}
 
     std::optional<Entry> getRow(const std::string_view& _key);
     std::vector<std::optional<Entry>> getRows(
-        const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys);
-    std::vector<std::string> getPrimaryKeys(const Condition& _condition);
+        const std::variant<const gsl::span<std::string_view const>,
+            const gsl::span<std::string const>>& _keys);
+    std::vector<std::string> getPrimaryKeys(const std::optional<const Condition>& _condition);
 
     bool setRow(const std::string_view& _key, Entry _entry);
 
-    void asyncGetPrimaryKeys(Condition const& _condition,
-        std::function<void(std::optional<Error>&&, std::vector<std::string>&&)> _callback) noexcept;
+    void asyncGetPrimaryKeys(std::optional<const Condition> const& _condition,
+        std::function<void(Error::UniquePtr&&, std::vector<std::string>&&)> _callback) noexcept;
     void asyncGetRow(const std::string_view& _key,
-        std::function<void(std::optional<Error>&&, std::optional<Entry>&&)> _callback) noexcept;
-    void asyncGetRows(
-        const std::variant<gsl::span<std::string_view const>, gsl::span<std::string const>>& _keys,
-        std::function<void(std::optional<Error>&&, std::vector<std::optional<Entry>>&&)>
+        std::function<void(Error::UniquePtr&&, std::optional<Entry>&&)> _callback) noexcept;
+    void asyncGetRows(const std::variant<const gsl::span<std::string_view const>,
+                          const gsl::span<std::string const>>& _keys,
+        std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)>
             _callback) noexcept;
 
     void asyncSetRow(const std::string_view& key, Entry entry,
-        std::function<void(std::optional<Error>&&, bool)> callback) noexcept;
+        std::function<void(Error::UniquePtr&&, bool)> callback) noexcept;
 
     TableInfo::ConstPtr tableInfo() const { return m_tableInfo; }
     Entry newEntry() { return Entry(m_tableInfo, m_blockNumber); }
