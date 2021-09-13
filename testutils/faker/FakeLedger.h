@@ -131,8 +131,8 @@ public:
     }
 
     // the txpool module use this interface to store txs
-    void asyncStoreTransactions(std::shared_ptr<const std::vector<bytesConstPtr>> _txToStore,
-        HashListPtr _txHashList, std::function<void(Error::Ptr)> _onTxStored) override
+    void asyncStoreTransactions(std::shared_ptr<std::vector<bytesConstPtr>> _txToStore,
+        crypto::HashListPtr _txHashList, std::function<void(Error::Ptr)> _onTxStored) override
     {
         WriteGuard l(x_txsHashToData);
         size_t i = 0;
