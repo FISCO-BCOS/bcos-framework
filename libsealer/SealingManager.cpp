@@ -124,6 +124,15 @@ void SealingManager::notifyResetTxsFlag(HashListPtr _txsHashList, bool _flag, si
         });
 }
 
+void SealingManager::notifyResetProposal(bcos::protocol::Block::Ptr _block)
+{
+    auto txsHashList = std::make_shared<HashList>();
+    for (size_t i = 0; i < _block->transactionsHashSize(); i++)
+    {
+        txsHashList->push_back(_block->transactionHash(i));
+    }
+    notifyResetTxsFlag(txsHashList, false);
+}
 std::pair<bool, bcos::protocol::Block::Ptr> SealingManager::generateProposal()
 {
     if (!shouldGenerateProposal())
@@ -131,6 +140,7 @@ std::pair<bool, bcos::protocol::Block::Ptr> SealingManager::generateProposal()
         return std::pair(false, nullptr);
     }
     WriteGuard l(x_pendingTxs);
+    m_sealingNumber = std::max(m_sealingNumber.load(), m_currentNumber.load() + 1);
     auto block = m_config->blockFactory()->createBlock();
     auto blockHeader = m_config->blockFactory()->blockHeaderFactory()->createBlockHeader();
     blockHeader->setNumber(m_sealingNumber);

@@ -103,6 +103,7 @@ public:
     }
 
     virtual void appendTransactions(bcos::crypto::HashListPtr _fetchedTxs, bool _systemTx);
+    virtual void notifyResetProposal(bcos::protocol::Block::Ptr _block);
 
 protected:
     virtual bool reachMinSealTimeCondition();
@@ -137,7 +138,7 @@ private:
 
     std::atomic_bool m_fetchingTxs = {false};
 
-    std::atomic<int64_t> m_currentNumber = {0};
+    std::atomic<ssize_t> m_currentNumber = {0};
 };
 }  // namespace sealer
 }  // namespace bcos
