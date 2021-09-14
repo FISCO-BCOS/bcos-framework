@@ -115,7 +115,7 @@ void Sealer::submitProposal(bool _containSysTxs, bcos::protocol::Block::Ptr _blo
 {
     if (_block->blockHeader()->number() <= m_sealingManager->currentNumber())
     {
-        m_sealingManager->resetSealing();
+        m_sealingManager->notifyResetProposal(_block);
         return;
     }
     // supplement the header info: set sealerList and weightList
