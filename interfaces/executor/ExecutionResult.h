@@ -71,7 +71,7 @@ public:
 
     // Only when status is EXTERNAL_CALL, it is not empty
     virtual std::string_view to() const = 0;
-    virtual void setTo(std::string to);
+    virtual void setTo(std::string to) = 0;
 
     // For evm
     virtual std::string_view newEVMContractAddress() const = 0;
