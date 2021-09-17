@@ -38,27 +38,6 @@ namespace bcos
 {
 namespace storage
 {
-// TODO: implement this function
-class KVStorageInterface
-{
-public:
-    using Ptr = std::shared_ptr<KVStorageInterface>;
-    KVStorageInterface() = default;
-    virtual ~KVStorageInterface() {}
-
-    virtual void asyncGet(const std::string_view& _columnFamily, const std::string_view& _key,
-        std::function<void(const Error::Ptr&, const std::string& value)> _callback) = 0;
-
-    virtual void asyncGetBatch(const std::string_view& _columnFamily,
-        const std::shared_ptr<std::vector<std::string>>& _keys,
-        std::function<void(const Error::Ptr&, const std::shared_ptr<std::vector<std::string>>&)>
-            callback) = 0;
-    virtual void asyncPut(const std::string_view& _columnFamily, const std::string_view& _key,
-        const std::string_view& _value, std::function<void(const Error::Ptr&)> _callback) = 0;
-    virtual void asyncRemove(const std::string_view& _columnFamily, const std::string_view& _key,
-        std::function<void(const Error::Ptr&)> _callback) = 0;
-};
-
 class Table;
 class StorageInterface
 {
@@ -87,10 +66,10 @@ public:
             _callback) noexcept = 0;
 
     virtual void asyncSetRow(const std::string_view& table, const std::string_view& key,
-        Entry entry, std::function<void(Error::UniquePtr&&, bool)> callback) noexcept = 0;
+        Entry entry, std::function<void(Error::UniquePtr&&)> callback) noexcept = 0;
 
     virtual void asyncCreateTable(std::string _tableName, std::string _valueFields,
-        std::function<void(Error::UniquePtr&&, bool)> callback) noexcept;
+        std::function<void(Error::UniquePtr&&, std::optional<Table>&&)> callback) noexcept;
 
     virtual void asyncOpenTable(std::string_view tableName,
         std::function<void(Error::UniquePtr&&, std::optional<Table>&&)> callback) noexcept;
@@ -108,17 +87,6 @@ public:
         std::function<bool(
             const std::string_view& table, const std::string_view& key, Entry const& entry)>
             callback) const = 0;
-};
-
-class MergeableStorageInterface : public StorageInterface
-{
-public:
-    using Ptr = std::shared_ptr<MergeableStorageInterface>;
-    using ConstPtr = std::shared_ptr<const MergeableStorageInterface>;
-
-    virtual ~MergeableStorageInterface() = default;
-
-    virtual void merge(const TraverseStorageInterface::ConstPtr& storage) = 0;
 };
 
 class TransactionalStorageInterface : public StorageInterface

@@ -39,30 +39,15 @@ class StateStorage : public storage::TraverseStorageInterface,
 {
 public:
     typedef std::shared_ptr<StateStorage> Ptr;
-    StateStorage(std::shared_ptr<StorageInterface> prev, std::shared_ptr<crypto::Hash> _hashImpl,
-        protocol::BlockNumber _blockNum)
-      : m_blockNumber(_blockNum), m_prev(std::move(prev)), m_hashImpl(std::move(_hashImpl))
+    StateStorage(std::shared_ptr<StorageInterface> prev, std::shared_ptr<crypto::Hash> _hashImpl)
+      : m_prev(std::move(prev)), m_hashImpl(std::move(_hashImpl))
     {}
 
-    // TODO: check if needed
-    StateStorage(std::shared_ptr<TraverseStorageInterface> prev,
-        std::shared_ptr<StorageInterface> backend, std::shared_ptr<crypto::Hash> _hashImpl,
-        protocol::BlockNumber blockNumber, protocol::BlockNumber commitedBlockNumber)
-      : m_blockNumber(blockNumber), m_prev(std::move(backend)), m_hashImpl(std::move(_hashImpl))
-    {
-        if (!prev)
-        {
-            BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Null prev storage"));
-        }
+    StateStorage(const StateStorage&) = delete;
+    StateStorage& operator=(const StateStorage&) = delete;
 
-        prev->parallelTraverse(false, [&](auto&&, auto&& key, auto&& entry) {
-            if (entry.num() > commitedBlockNumber)
-            {
-                importExistingEntry(std::string(key), std::move(entry));
-            }
-            return true;
-        });
-    }
+    StateStorage(StateStorage&&) = default;
+    StateStorage& operator=(StateStorage&&) = default;
 
     virtual ~StateStorage() { getChangeLog().clear(); }
 
@@ -82,15 +67,15 @@ public:
             _callback) noexcept override;
 
     void asyncSetRow(const std::string_view& table, const std::string_view& key, Entry entry,
-        std::function<void(Error::UniquePtr&&, bool)> callback) noexcept override;
+        std::function<void(Error::UniquePtr&&)> callback) noexcept override;
 
     void parallelTraverse(bool onlyDirty, std::function<bool(const std::string_view& table,
                                               const std::string_view& key, const Entry& entry)>
                                               callback) const override;
 
-    std::optional<Table> openTable(const std::string& table);
+    std::optional<Table> openTable(const std::string_view& table);
 
-    bool createTable(const std::string& _tableName, const std::string& _valueFields);
+    std::optional<Table> createTable(std::string _tableName, std::string _valueFields);
 
     std::vector<std::tuple<std::string, crypto::HashType>> tableHashes();
 
@@ -100,8 +85,6 @@ public:
         return changeLog.size();
     }
     void rollback(size_t _savepoint);
-
-    protocol::BlockNumber blockNumber() const { return m_blockNumber; }
 
     void setCheckVersion(bool checkVersion) { m_checkVersion = checkVersion; }
 
@@ -221,7 +204,6 @@ private:
         std::hash<std::string_view>>
         m_data;
     tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
-    protocol::BlockNumber m_blockNumber = 0;
 
     std::shared_ptr<StorageInterface> m_prev;
     std::shared_ptr<crypto::Hash> m_hashImpl;

@@ -66,20 +66,21 @@ struct TableFactoryFixture
     TableFactoryFixture()
     {
         hashImpl = make_shared<Header256Hash>();
-        memoryStorage = make_shared<StateStorage>(nullptr, hashImpl, 0);
+        memoryStorage = make_shared<StateStorage>(nullptr, hashImpl);
         BOOST_TEST(memoryStorage != nullptr);
-        tableFactory = make_shared<StateStorage>(memoryStorage, hashImpl, m_blockNumber);
+        tableFactory = make_shared<StateStorage>(memoryStorage, hashImpl);
         BOOST_TEST(tableFactory != nullptr);
     }
 
     ~TableFactoryFixture() {}
-    bool createDefaultTable()
+    std::optional<Table> createDefaultTable()
     {
-        std::promise<bool> createPromise;
-        tableFactory->asyncCreateTable(testTableName, valueField, [&](auto&& error, bool success) {
-            BOOST_CHECK(!error);
-            createPromise.set_value(success);
-        });
+        std::promise<std::optional<Table>> createPromise;
+        tableFactory->asyncCreateTable(
+            testTableName, valueField, [&](auto&& error, std::optional<Table> table) {
+                BOOST_CHECK(!error);
+                createPromise.set_value(table);
+            });
         return createPromise.get_future().get();
     }
     std::shared_ptr<crypto::Hash> hashImpl = nullptr;
@@ -95,7 +96,7 @@ BOOST_FIXTURE_TEST_SUITE(TableFactoryTest, TableFactoryFixture)
 BOOST_AUTO_TEST_CASE(constructor)
 {
     auto threadPool = ThreadPool("a", 1);
-    auto tf = std::make_shared<StateStorage>(memoryStorage, nullptr, 0);
+    auto tf = std::make_shared<StateStorage>(memoryStorage, nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(create_Table)
@@ -105,30 +106,30 @@ BOOST_AUTO_TEST_CASE(create_Table)
 
     BOOST_TEST(!table);
     auto ret = tableFactory->createTable(tableName, valueField);
-    BOOST_TEST(ret == true);
+    BOOST_TEST(ret);
 
     table = tableFactory->openTable(tableName);
     BOOST_TEST(table);
 
     ret = tableFactory->createTable(tableName, valueField);
-    BOOST_TEST(ret == false);
+    BOOST_TEST(!ret);
 }
 
 BOOST_AUTO_TEST_CASE(rollback)
 {
     auto ret = createDefaultTable();
-    BOOST_TEST(ret == true);
+    BOOST_TEST(ret);
     auto table = tableFactory->openTable(testTableName);
 
     auto deleteEntry = table->newEntry();
     deleteEntry.setStatus(Entry::DELETED);
-    BOOST_CHECK_EQUAL(table->setRow("name", deleteEntry), true);
+    BOOST_CHECK_NO_THROW(table->setRow("name", deleteEntry));
 
     auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
     BOOST_CHECK_NO_THROW(entry->setField("value", "Lili"));
     entry->setVersion(1);
-    BOOST_CHECK_EQUAL(table->setRow("name", *entry), true);
+    BOOST_CHECK_NO_THROW(table->setRow("name", *entry));
     entry = table->getRow("name");
     BOOST_TEST(entry);
     // BOOST_TEST(table->dirty() == true);
@@ -195,7 +196,7 @@ BOOST_AUTO_TEST_CASE(rollback)
     // insert without version
     entry = table->newEntry();
     entry->setField("value", "new record");
-    BOOST_CHECK_EQUAL(table->setRow("id", *entry), true);
+    BOOST_CHECK_NO_THROW(table->setRow("id", *entry));
     // BOOST_TEST(table->dirty() == true);
 
     // tableFactory->commit();
@@ -207,7 +208,7 @@ BOOST_AUTO_TEST_CASE(rollback2)
     auto hash0 = tableFactory->tableHashes();
     auto savePoint0 = tableFactory->savepoint();
     auto ret = createDefaultTable();
-    BOOST_TEST(ret == true);
+    BOOST_TEST(ret);
     auto table = tableFactory->openTable(testTableName);
 
     auto deleteEntry = table->newDeletedEntry();
@@ -254,19 +255,18 @@ BOOST_AUTO_TEST_CASE(rollback2)
 BOOST_AUTO_TEST_CASE(hash)
 {
     auto ret = createDefaultTable();
-    BOOST_TEST(ret == true);
+    BOOST_TEST(ret);
     auto table = tableFactory->openTable(testTableName);
     auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
     entry->setField("value", "Lili");
-    ret = table->setRow("name", *entry);
-    BOOST_TEST(ret == true);
+    BOOST_CHECK_NO_THROW(table->setRow("name", *entry));
     entry = table->getRow("name");
     BOOST_TEST(entry);
     // BOOST_TEST(table->dirty() == true);
     auto dbHash0 = tableFactory->tableHashes();
     // auto data0 = tableFactory->exportData(m_blockNumber);
-    auto tableFactory0 = make_shared<StateStorage>(tableFactory, hashImpl, m_blockNumber);
+    auto tableFactory0 = make_shared<StateStorage>(tableFactory, hashImpl);
     // tableFactory0->importData(data0.first, data0.second);
     /*
     BOOST_TEST(dbHash0 == tableFactory0->hash());
@@ -278,8 +278,7 @@ BOOST_AUTO_TEST_CASE(hash)
     entry = std::make_optional(table->newEntry());
     // entry->setField("key", "id");
     entry->setField("value", "12345");
-    ret = table->setRow("id", *entry);
-    BOOST_TEST(ret == true);
+    BOOST_CHECK_NO_THROW(table->setRow("id", *entry));
     entry = table->getRow("id");
     BOOST_TEST(entry);
     entry = table->getRow("name");
@@ -308,7 +307,7 @@ BOOST_AUTO_TEST_CASE(hash)
 
     auto deletedEntry = std::make_optional(table->newDeletedEntry());
     deletedEntry->setVersion(idEntry->version() + 1);
-    BOOST_CHECK_EQUAL(table->setRow("id", *deletedEntry), true);
+    BOOST_CHECK_NO_THROW(table->setRow("id", *deletedEntry));
     entry = table->getRow("id");
     BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     /*
@@ -347,18 +346,15 @@ BOOST_AUTO_TEST_CASE(hash)
     // entry->setField("key", "id");
     entry->setField("value", "12345");
     entry->setVersion(entry->version() + 1);
-    ret = table->setRow("id", *entry);
-    BOOST_TEST(ret == true);
+    BOOST_CHECK_NO_THROW(table->setRow("id", *entry));
     entry = table->getRow("name");
     entry->setField("value", "Wang");
     entry->setVersion(entry->version() + 1);
-    ret = table->setRow("name", *entry);
-    BOOST_TEST(ret == true);
+    BOOST_CHECK_NO_THROW(table->setRow("name", *entry));
     entry = table->newEntry();
     // entry->setField("key", "balance");
     entry->setField("value", "12345");
-    ret = table->setRow("balance", *entry);
-    BOOST_TEST(ret == true);
+    BOOST_CHECK_NO_THROW(table->setRow("balance", *entry));
     BOOST_TEST(entry);
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 3);
@@ -375,8 +371,7 @@ BOOST_AUTO_TEST_CASE(hash)
     auto nameEntry = table->getRow("name");
     auto deletedEntry2 = std::make_optional(table->newDeletedEntry());
     deletedEntry2->setVersion(nameEntry->version() + 1);
-    ret = table->setRow("name", *deletedEntry2);
-    BOOST_TEST(ret == true);
+    BOOST_CHECK_NO_THROW(table->setRow("name", *deletedEntry2));
     entry = table->getRow("name");
     BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     keys = table->getPrimaryKeys({});
@@ -388,8 +383,7 @@ BOOST_AUTO_TEST_CASE(hash)
     auto idEntry2 = table->getRow("id");
     auto deletedEntry3 = std::make_optional(table->newDeletedEntry());
     deletedEntry3->setVersion(idEntry2->version() + 1);
-    ret = table->setRow("id", *deletedEntry3);
-    BOOST_TEST(ret == true);
+    BOOST_CHECK_NO_THROW(table->setRow("id", *deletedEntry3));
     entry = table->getRow("id");
     BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     keys = table->getPrimaryKeys({});
@@ -409,8 +403,8 @@ BOOST_AUTO_TEST_CASE(open_sysTables)
 BOOST_AUTO_TEST_CASE(openAndCommit)
 {
     auto hashImpl2 = make_shared<Header256Hash>();
-    auto memoryStorage2 = make_shared<StateStorage>(nullptr, hashImpl2, 0);
-    auto tableFactory2 = make_shared<StateStorage>(memoryStorage2, hashImpl2, 10);
+    auto memoryStorage2 = make_shared<StateStorage>(nullptr, hashImpl2);
+    auto tableFactory2 = make_shared<StateStorage>(memoryStorage2, hashImpl2);
 
     for (int i = 10; i < 20; ++i)
     {
@@ -445,12 +439,12 @@ BOOST_AUTO_TEST_CASE(chainLink)
     StateStorage::Ptr prev = nullptr;
     for (int i = 0; i < 20; ++i)
     {
-        auto tableStorage = std::make_shared<StateStorage>(prev, hashImpl, i);
+        auto tableStorage = std::make_shared<StateStorage>(prev, hashImpl);
         for (int j = 0; j < 10; ++j)
         {
             auto tableName = "table_" + boost::lexical_cast<std::string>(i) + "_" +
                              boost::lexical_cast<std::string>(j);
-            BOOST_CHECK_EQUAL(tableStorage->createTable(tableName, valueFields), true);
+            BOOST_CHECK(tableStorage->createTable(tableName, valueFields));
 
             auto table = tableStorage->openTable(tableName);
             BOOST_TEST(table);
@@ -463,7 +457,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
                 entry->setField("value1", boost::lexical_cast<std::string>(i));
                 entry->setField("value2", boost::lexical_cast<std::string>(j));
                 entry->setField("value3", boost::lexical_cast<std::string>(k));
-                BOOST_CHECK_EQUAL(table->setRow(key, *entry), true);
+                BOOST_CHECK_NO_THROW(table->setRow(key, *entry));
             }
         }
 
@@ -618,10 +612,10 @@ BOOST_AUTO_TEST_CASE(getRows)
     auto valueFields = "value1,value2,value3";
 
     StateStorage::Ptr prev = nullptr;
-    prev = std::make_shared<StateStorage>(prev, hashImpl, 0);
-    auto tableStorage = std::make_shared<StateStorage>(prev, hashImpl, 1);
+    prev = std::make_shared<StateStorage>(prev, hashImpl);
+    auto tableStorage = std::make_shared<StateStorage>(prev, hashImpl);
 
-    BOOST_CHECK_EQUAL(prev->createTable("t_test", valueFields), true);
+    BOOST_CHECK(prev->createTable("t_test", valueFields));
 
     auto table = prev->openTable("t_test");
     BOOST_TEST(table);
@@ -657,7 +651,6 @@ BOOST_AUTO_TEST_CASE(getRows)
         {
             BOOST_TEST(entry);
             BOOST_CHECK_EQUAL(entry->dirty(), false);
-            BOOST_CHECK_EQUAL(entry->num(), 0);
             BOOST_CHECK_GT(entry->capacityOfHashField(), 0);
         }
         else
@@ -694,13 +687,11 @@ BOOST_AUTO_TEST_CASE(getRows)
         {
             BOOST_TEST(entry);
             BOOST_CHECK_EQUAL(entry->dirty(), true);
-            BOOST_CHECK_EQUAL(entry->num(), 1);
         }
         else
         {
             BOOST_TEST(entry);
             BOOST_CHECK_EQUAL(entry->dirty(), false);
-            BOOST_CHECK_EQUAL(entry->num(), 0);
         }
     }
 }

@@ -22,6 +22,7 @@
 #include "../../interfaces/protocol/CommonError.h"
 #include "../../interfaces/storage/StorageInterface.h"
 #include "../../libutilities/Error.h"
+#include "../../libutilities/KVStorageHelper.h"
 #include <atomic>
 #include <memory>
 
@@ -31,75 +32,80 @@ namespace bcos
 {
 namespace test
 {
-class FakeKVStorage : public KVStorageInterface
+class FakeKVStorage : public bcos::storage::KVStorageHelper
 {
-public:
-    using Ptr = std::shared_ptr<FakeKVStorage>;
-    FakeKVStorage() = default;
-    ~FakeKVStorage() override {}
-
-    void asyncGet(const std::string_view& _columnFamily, const std::string_view& _key,
-        std::function<void(const Error::Ptr&, const std::string& value)> _callback) override
-    {
-        auto key = getKey(_columnFamily, _key);
-        if (!m_key2Data.count(key))
-        {
-            _callback(std::make_shared<Error>(
-                          (int32_t)bcos::protocol::StorageErrorCode::NotFound, "key NotFound"),
-                "");
-            return;
-        }
-        _callback(nullptr, m_key2Data[key]);
-    }
-
-    void asyncGetBatch(const std::string_view& _columnFamily,
-        const std::shared_ptr<std::vector<std::string>>& _keys,
-        std::function<void(const Error::Ptr&, const std::shared_ptr<std::vector<std::string>>&)>
-            callback) override
-    {
-        auto result = std::make_shared<std::vector<std::string>>();
-        for (auto const& _key : *_keys)
-        {
-            auto key = getKey(_columnFamily, _key);
-            if (!m_key2Data.count(key))
-            {
-                result->push_back("");
-                continue;
-            }
-            result->push_back(m_key2Data[key]);
-        }
-        callback(nullptr, result);
-    }
-
-    void asyncPut(const std::string_view& _columnFamily, const std::string_view& _key,
-        const std::string_view& _value, std::function<void(const Error::Ptr&)> _callback) override
-    {
-        auto key = getKey(_columnFamily, _key);
-        m_key2Data[key] = _value;
-        _callback(nullptr);
-    }
-    void asyncRemove(const std::string_view& _columnFamily, const std::string_view& _key,
-        std::function<void(const Error::Ptr&)> _callback) override
-    {
-        auto key = getKey(_columnFamily, _key);
-        if (!m_key2Data.count(key))
-        {
-            _callback(std::make_shared<Error>(
-                (int32_t)bcos::protocol::StorageErrorCode::NotFound, "key NotFound"));
-            return;
-        }
-        m_key2Data.erase(key);
-        _callback(nullptr);
-    }
-
-protected:
-    std::string getKey(const std::string_view& _columnFamily, const std::string_view& _key)
-    {
-        std::string columnFamily(_columnFamily.data(), _columnFamily.size());
-        std::string key(_key.data(), _key.size());
-        return columnFamily + "_" + key;
-    }
-    std::map<std::string, std::string> m_key2Data;
 };
+
+// class FakeKVStorage : public KVStorageHelper
+// {
+// public:
+//     using Ptr = std::shared_ptr<FakeKVStorage>;
+//     FakeKVStorage() = default;
+//     ~FakeKVStorage() override {}
+
+//     void asyncGet(const std::string_view& _columnFamily, const std::string_view& _key,
+//         std::function<void(const Error::Ptr&, const std::string& value)> _callback) override
+//     {
+//         auto key = getKey(_columnFamily, _key);
+//         if (!m_key2Data.count(key))
+//         {
+//             _callback(std::make_shared<Error>(
+//                           (int32_t)bcos::protocol::StorageErrorCode::NotFound, "key NotFound"),
+//                 "");
+//             return;
+//         }
+//         _callback(nullptr, m_key2Data[key]);
+//     }
+
+//     void asyncGetBatch(const std::string_view& _columnFamily,
+//         const std::shared_ptr<std::vector<std::string>>& _keys,
+//         std::function<void(const Error::Ptr&, const std::shared_ptr<std::vector<std::string>>&)>
+//             callback) override
+//     {
+//         auto result = std::make_shared<std::vector<std::string>>();
+//         for (auto const& _key : *_keys)
+//         {
+//             auto key = getKey(_columnFamily, _key);
+//             if (!m_key2Data.count(key))
+//             {
+//                 result->push_back("");
+//                 continue;
+//             }
+//             result->push_back(m_key2Data[key]);
+//         }
+//         callback(nullptr, result);
+//     }
+
+//     void asyncPut(const std::string_view& _columnFamily, const std::string_view& _key,
+//         const std::string_view& _value, std::function<void(const Error::Ptr&)> _callback)
+//         override
+//     {
+//         auto key = getKey(_columnFamily, _key);
+//         m_key2Data[key] = _value;
+//         _callback(nullptr);
+//     }
+//     void asyncRemove(const std::string_view& _columnFamily, const std::string_view& _key,
+//         std::function<void(const Error::Ptr&)> _callback) override
+//     {
+//         auto key = getKey(_columnFamily, _key);
+//         if (!m_key2Data.count(key))
+//         {
+//             _callback(std::make_shared<Error>(
+//                 (int32_t)bcos::protocol::StorageErrorCode::NotFound, "key NotFound"));
+//             return;
+//         }
+//         m_key2Data.erase(key);
+//         _callback(nullptr);
+//     }
+
+// protected:
+//     std::string getKey(const std::string_view& _columnFamily, const std::string_view& _key)
+//     {
+//         std::string columnFamily(_columnFamily.data(), _columnFamily.size());
+//         std::string key(_key.data(), _key.size());
+//         return columnFamily + "_" + key;
+//     }
+//     std::map<std::string, std::string> m_key2Data;
+// };
 }  // namespace test
 }  // namespace bcos
