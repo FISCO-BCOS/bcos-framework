@@ -21,7 +21,15 @@ public:
                     callback(std::move(error), std::string_view());
                     return;
                 }
-                callback(std::move(error), entry->getField(0));
+
+                if (entry)
+                {
+                    callback(nullptr, entry->getField(0));
+                }
+                else
+                {
+                    callback(nullptr, "");
+                }
             });
     };
 
@@ -55,7 +63,7 @@ public:
                 callback(std::move(error), std::move(values));
             });
     }
-    
+
     void asyncPut(const std::string_view& _columnFamily, const std::string_view& _key,
         std::string _value, std::function<void(Error::UniquePtr&&)> _callback)
     {
