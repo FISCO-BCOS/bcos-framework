@@ -131,12 +131,12 @@ void Sealer::submitProposal(bool _containSysTxs, bcos::protocol::Block::Ptr _blo
     _block->blockHeader()->setConsensusWeights(std::move(weightList));
     auto encodedData = std::make_shared<bytes>();
     _block->encode(*encodedData);
-    SEAL_LOG(DEBUG) << LOG_DESC("++++++++++++++++ Generate proposal")
-                    << LOG_KV("index", _block->blockHeader()->number())
-                    << LOG_KV("curNum", m_sealingManager->currentNumber())
-                    << LOG_KV("hash", _block->blockHeader()->hash().abridged())
-                    << LOG_KV("sysTxs", _containSysTxs)
-                    << LOG_KV("txsSize", _block->transactionsHashSize());
+    SEAL_LOG(INFO) << LOG_DESC("++++++++++++++++ Generate proposal")
+                   << LOG_KV("index", _block->blockHeader()->number())
+                   << LOG_KV("curNum", m_sealingManager->currentNumber())
+                   << LOG_KV("hash", _block->blockHeader()->hash().abridged())
+                   << LOG_KV("sysTxs", _containSysTxs)
+                   << LOG_KV("txsSize", _block->transactionsHashSize());
     m_sealerConfig->consensus()->asyncSubmitProposal(_containSysTxs, ref(*encodedData),
         _block->blockHeader()->number(), _block->blockHeader()->hash(),
         [_block](Error::Ptr _error) {

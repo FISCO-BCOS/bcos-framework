@@ -75,6 +75,10 @@ public:
     virtual void stop();
     virtual void restart()
     {
+        if (!m_working)
+        {
+            return;
+        }
         stop();
         start();
     }

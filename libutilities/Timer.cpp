@@ -31,12 +31,20 @@ void Timer::start()
     {
         return;
     }
-    startTimer();
+    try
+    {
+        startTimer();
+    }
+    catch (std::exception const& e)
+    {
+        BCOS_LOG(WARNING) << LOG_DESC("startTimer exception")
+                          << LOG_KV("error", boost::diagnostic_information(e));
+    }
 }
 
 void Timer::startTimer()
 {
-    if (m_running)
+    if (m_running || !m_timer)
     {
         return;
     }
@@ -75,7 +83,7 @@ void Timer::startTimer()
 // stop the timer
 void Timer::stop()
 {
-    if (!m_working)
+    if (!m_working || !m_timer)
     {
         return;
     }
