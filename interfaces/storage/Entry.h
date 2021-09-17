@@ -27,8 +27,8 @@ public:
 
     Entry() : m_data(EntryData()) {}
 
-    explicit Entry(TableInfo::ConstPtr tableInfo, protocol::BlockNumber _num = 0)
-      : m_data(EntryData()), m_tableInfo(std::move(tableInfo)), m_num(_num)
+    explicit Entry(TableInfo::ConstPtr tableInfo)
+      : m_data(EntryData()), m_tableInfo(std::move(tableInfo))
     {}
 
     Entry(const Entry&) = default;
@@ -123,9 +123,6 @@ public:
         m_dirty = true;
     }
 
-    protocol::BlockNumber num() const noexcept { return m_num; }
-    void setNum(protocol::BlockNumber num) noexcept { m_num = num; }
-
     bool dirty() const noexcept { return m_dirty; }
     void setDirty(bool dirty) noexcept { m_dirty = dirty; }
 
@@ -201,7 +198,6 @@ private:
 
     bcos::ConcurrentCOW<EntryData> m_data;  // should serialization
     TableInfo::ConstPtr m_tableInfo;        // no need to serialization
-    protocol::BlockNumber m_num = 0;        // no need to serialization
     int32_t m_version = 0;                  // no need to serialization
     Status m_status = Status::NORMAL;       // should serialization
     bool m_dirty = false;                   // no need to serialization

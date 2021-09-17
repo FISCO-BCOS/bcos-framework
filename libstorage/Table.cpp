@@ -86,21 +86,17 @@ std::vector<std::string> Table::getPrimaryKeys(std::optional<const Condition> co
     return std::get<1>(result);
 }
 
-bool Table::setRow(const std::string_view& _key, Entry _entry)
+void Table::setRow(const std::string_view& _key, Entry _entry)
 {
-    std::promise<std::tuple<Error::UniquePtr, bool>> promise;
-    m_storage->asyncSetRow(
-        m_tableInfo->name(), _key, std::move(_entry), [&promise](auto&& error, auto success) {
-            promise.set_value(std::tuple{std::move(error), success});
-        });
+    std::promise<Error::UniquePtr> promise;
+    m_storage->asyncSetRow(m_tableInfo->name(), _key, std::move(_entry),
+        [&promise](auto&& error) { promise.set_value(std::move(error)); });
     auto result = promise.get_future().get();
 
-    if (std::get<0>(result))
+    if (result)
     {
-        BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
+        BOOST_THROW_EXCEPTION(*result);
     }
-
-    return std::get<1>(result);
 }
 
 void Table::asyncGetPrimaryKeys(std::optional<const Condition> const& _condition,
@@ -124,7 +120,7 @@ void Table::asyncGetRows(
 }
 
 void Table::asyncSetRow(const std::string_view& key, Entry entry,
-    std::function<void(Error::UniquePtr&&, bool)> callback) noexcept
+    std::function<void(Error::UniquePtr&&)> callback) noexcept
 {
     m_storage->asyncSetRow(m_tableInfo->name(), key, std::move(entry), callback);
 }

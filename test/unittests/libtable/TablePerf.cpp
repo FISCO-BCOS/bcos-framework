@@ -15,9 +15,9 @@ struct TablePerfFixture
     TablePerfFixture()
     {
         auto hashImpl = std::make_shared<bcos::crypto::Header256Hash>();
-        auto memoryStorage = std::make_shared<StateStorage>(nullptr, hashImpl, 0);
+        auto memoryStorage = std::make_shared<StateStorage>(nullptr, hashImpl);
         BOOST_TEST(memoryStorage != nullptr);
-        tableFactory = std::make_shared<StateStorage>(memoryStorage, hashImpl, 0);
+        tableFactory = std::make_shared<StateStorage>(memoryStorage, hashImpl);
         BOOST_TEST(tableFactory != nullptr);
     }
 

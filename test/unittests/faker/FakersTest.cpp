@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(fakeLedgerConstructor)
 }
 BOOST_AUTO_TEST_CASE(fakeKVStorage)
 {
-    std::make_shared<FakeKVStorage>();
+    // std::make_shared<FakeKVStorage>(nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(fakeStorageConstructor)

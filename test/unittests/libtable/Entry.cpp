@@ -120,8 +120,6 @@ BOOST_AUTO_TEST_CASE(functions)
 {
     auto entry = std::make_shared<Entry>(tableInfo);
     BOOST_TEST(entry->dirty() == false);
-    entry->setNum(1);
-    BOOST_TEST(entry->num() == 1);
     BOOST_TEST(entry->status() == Entry::Status::NORMAL);
     entry->setStatus(Entry::Status::DELETED);
     BOOST_TEST(entry->status() == Entry::Status::DELETED);
@@ -151,7 +149,7 @@ BOOST_AUTO_TEST_CASE(nullTableInfo)
     BOOST_CHECK_EQUAL(entry->getField(1), "value22");
     BOOST_CHECK_THROW(entry->setField(2, "value3"), bcos::Error);
 
-    entry = std::make_shared<Entry>(nullptr, 0);
+    entry = std::make_shared<Entry>(nullptr);
     BOOST_CHECK_EQUAL(entry->capacityOfHashField(), 0);
 
     entry->importFields({"value1", "value2"});
