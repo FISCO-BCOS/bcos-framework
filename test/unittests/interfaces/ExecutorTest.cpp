@@ -18,8 +18,6 @@
  */
 
 #include "interfaces/executor/ExecutorInterface.h"
-#include "interfaces/executor/ExecutionParams.h"
-#include "interfaces/executor/ExecutionResult.h"
 #include "interfaces/executor/ParallelTransactionExecutorInterface.h"
 #include <boost/test/unit_test.hpp>
 #include <string>

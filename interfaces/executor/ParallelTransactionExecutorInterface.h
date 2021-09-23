@@ -28,8 +28,9 @@
 #include "../protocol/ProtocolTypeDef.h"
 #include "../protocol/Transaction.h"
 #include "../protocol/TransactionReceipt.h"
-#include "ExecutionParams.h"
-#include "ExecutionResult.h"
+#include "ExecutionMessage.h"
+#include <boost/iterator/iterator_categories.hpp>
+#include <boost/range/any_range.hpp>
 #include <memory>
 
 namespace bcos
@@ -48,23 +49,25 @@ public:
     using ConstPtr = std::shared_ptr<const ParallelTransactionExecutorInterface>;
 
     virtual void nextBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
-        std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
+        std::function<void(bcos::Error::UniquePtr&&)> callback) noexcept = 0;
 
-    virtual void executeTransaction(const bcos::protocol::ExecutionParams::ConstPtr& inputs,
-        std::function<void(bcos::Error::Ptr&&, bcos::protocol::ExecutionResult::Ptr&&)>
+    virtual void executeTransaction(bcos::protocol::ExecutionMessage::UniquePtr input,
+        std::function<void(bcos::Error::UniquePtr&&, bcos::protocol::ExecutionMessage::UniquePtr&&)>
             callback) noexcept = 0;
 
     virtual void dagExecuteTransactions(
-        const gsl::span<bcos::protocol::ExecutionParams::ConstPtr>& inputs,
-        std::function<void(bcos::Error::Ptr&&, std::vector<bcos::protocol::ExecutionResult::Ptr>&&)>
+        const gsl::span<bcos::protocol::ExecutionMessage::UniquePtr>& inputs,
+        std::function<void(
+            bcos::Error::UniquePtr&&, std::vector<bcos::protocol::ExecutionMessage::UniquePtr>&&)>
             callback) noexcept = 0;
 
-    virtual void call(const bcos::protocol::ExecutionParams::ConstPtr& input,
-        std::function<void(bcos::Error::Ptr&&, bcos::protocol::ExecutionResult::Ptr&&)>
+    virtual void call(bcos::protocol::ExecutionMessage::UniquePtr input,
+        std::function<void(bcos::Error::UniquePtr&&, bcos::protocol::ExecutionMessage::UniquePtr&&)>
             callback) noexcept = 0;
 
     virtual void getTableHashes(bcos::protocol::BlockNumber number,
-        std::function<void(bcos::Error::Ptr&&, std::vector<std::tuple<std::string, crypto::HashType>>&&)>
+        std::function<void(
+            bcos::Error::UniquePtr&&, std::vector<std::tuple<std::string, crypto::HashType>>&&)>
             callback) noexcept = 0;
 
     /* ----- XA Transaction interface Start ----- */

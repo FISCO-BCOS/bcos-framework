@@ -77,10 +77,10 @@ public:
         auto mutableData = m_data.mutableGet();
         auto& fieldValue = (mutableData->values)[index];
 
-        ssize_t updatedCapacity = valueView(value).size() - std::get<0>(fieldValue).size();
+        int32_t updatedCapacity = valueView(value).size() - std::get<0>(fieldValue).size();
 
         fieldValue = std::move(value);
-        mutableData->capacityOfHashField += updatedCapacity;
+        m_capacityOfHashField += updatedCapacity;
         m_dirty = true;
     }
 
@@ -128,11 +128,8 @@ public:
 
     ssize_t capacityOfHashField() const noexcept
     {  // the capacity is used to calculate gas, must return the same value in different DB
-        return m_data.get()->capacityOfHashField;
+        return m_capacityOfHashField;
     }
-
-    int32_t version() const noexcept { return m_version; }
-    void setVersion(int32_t version) noexcept { m_version = version; }
 
     ssize_t refCount() const noexcept { return m_data.refCount(); }
 
@@ -142,9 +139,11 @@ public:
     {
         EntryData data;
         data.values.reserve(values.size());
+        m_capacityOfHashField = 0;
+
         for (auto& value : values)
         {
-            data.capacityOfHashField += valueView(value).size();
+            m_capacityOfHashField += valueView(value).size();
             data.values.emplace_back(std::move(value));
         }
 
@@ -155,7 +154,7 @@ public:
     std::vector<ValueType>&& exportFields() noexcept
     {
         auto data = m_data.mutableGet();
-        data->capacityOfHashField = 0;
+        m_capacityOfHashField = 0;
         return std::move(data->values);
     }
 
@@ -165,12 +164,6 @@ public:
     bool valid() const noexcept { return ((m_status != Status::DELETED) && (!m_rollbacked)); }
 
 private:
-    struct EntryData
-    {
-        std::vector<ValueType> values;
-        ssize_t capacityOfHashField = 0;
-    };
-
     std::string_view valueView(const ValueType& value) const
     {
         switch (value.index())
@@ -196,9 +189,14 @@ private:
             "Unknown entry type: " + boost::lexical_cast<std::string>(value.index())));
     }
 
+    struct EntryData
+    {
+        std::vector<ValueType> values;
+    };
+
     bcos::ConcurrentCOW<EntryData> m_data;  // should serialization
     TableInfo::ConstPtr m_tableInfo;        // no need to serialization
-    int32_t m_version = 0;                  // no need to serialization
+    int32_t m_capacityOfHashField = 0;      // no need to serialization
     Status m_status = Status::NORMAL;       // should serialization
     bool m_dirty = false;                   // no need to serialization
     bool m_rollbacked = false;              // no need to serialization

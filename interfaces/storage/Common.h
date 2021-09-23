@@ -45,9 +45,10 @@ namespace storage
 {
 enum StorageError
 {
-    SUCCESS = 0,
+    Success = 0,
     TableNotExists = 1,
     UnknownEntryType = 2,
+    TableInfoNotExists = 3,
 };
 
 struct Condition
@@ -61,10 +62,7 @@ struct Condition
     // string compare, "12" < "2"
     void LT(const std::string& value) { m_conditions.emplace_back(Comparator::LT, value); }
     void LE(const std::string& value) { m_conditions.emplace_back(Comparator::LE, value); }
-    void limit(size_t start, size_t end)
-    {
-        m_limit = std::pair<size_t, size_t>(start, end);
-    }
+    void limit(size_t start, size_t end) { m_limit = std::pair<size_t, size_t>(start, end); }
 
     std::pair<size_t, size_t> getLimit() const { return m_limit; }
 
