@@ -121,7 +121,7 @@ public:
 
     virtual ~ExecutionMessageFactory(){};
 
-    virtual ExecutionMessage::UniquePtr createExecutionParams() = 0;
+    virtual ExecutionMessage::UniquePtr createExecutionMessage() = 0;
 };
 }  // namespace protocol
 }  // namespace bcos
