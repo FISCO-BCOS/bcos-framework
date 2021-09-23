@@ -44,7 +44,9 @@ public:
         REVERT,      // Send/Receive a revert to/from previous external call
     };
 
+    // -----------------------------------------------
     // Request fields
+    // -----------------------------------------------
     virtual Type type() const = 0;
     virtual void setType(Type type) = 0;
 
@@ -69,7 +71,9 @@ public:
     virtual int32_t depth() const = 0;
     virtual void setDepth(int32_t depth) = 0;
 
-    // Request / Response fields
+    // -----------------------------------------------
+    // Request / Response common fields
+    // -----------------------------------------------
     virtual int64_t gasAvailable() const = 0;
     virtual void setGasAvailable(int64_t gasAvailable) = 0;
 
@@ -80,7 +84,13 @@ public:
     virtual bool staticCall() const = 0;
     virtual void setStaticCall(bool staticCall) = 0;
 
+    // for evm
+    virtual std::optional<u256> createSalt() const = 0;
+    virtual void setCreateSalt(u256 createSalt) = 0;
+
+    // -----------------------------------------------
     // Response fields
+    // -----------------------------------------------
     virtual int32_t status() const = 0;
     virtual void setStatus(int32_t status) = 0;
 
@@ -90,11 +100,16 @@ public:
     virtual gsl::span<LogEntry> logEntries() const = 0;
     virtual void setLogEntries(std::vector<LogEntry> logEntries) = 0;
 
-    virtual std::optional<u256> createSalt() const = 0;
-    virtual void setCreateSalt(u256 createSalt) = 0;
-
+    // for evm
     virtual std::string_view newEVMContractAddress() const = 0;
     virtual void setNewEVMContractAddress(std::string newEVMContractAddress) = 0;
+
+    // -----------------------------------------------
+    // Key locks
+    // -----------------------------------------------
+    virtual gsl::span<std::string const> const keyLocks() const = 0;
+    virtual std::vector<std::string>&& takeKeyLocks() = 0;
+    virtual void setKeyLocks(std::vector<std::string> keyLocks) = 0;
 };
 
 class ExecutionMessageFactory
