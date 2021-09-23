@@ -116,8 +116,8 @@ public:
 class ExecutionMessageFactory
 {
 public:
-    using Ptr = std::shared_ptr<ExecutionMessage>;
-    using ConstPtr = std::shared_ptr<const ExecutionMessage>;
+    using Ptr = std::shared_ptr<ExecutionMessageFactory>;
+    using ConstPtr = std::shared_ptr<const ExecutionMessageFactory>;
 
     virtual ~ExecutionMessageFactory(){};
 

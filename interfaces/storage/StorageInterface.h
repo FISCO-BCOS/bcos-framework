@@ -43,7 +43,7 @@ class StorageInterface
 {
 public:
     static constexpr const char SYS_TABLES[] = "s_tables";
-    static constexpr const char SYS_TABLE_VALUE_FIELDS[] = "value_fields";
+    static constexpr const char SYS_TABLE_VALUE_FIELDS[] = "value_fields,key_field";
 
     static TableInfo::ConstPtr getSysTableInfo(const std::string_view& tableName);
 

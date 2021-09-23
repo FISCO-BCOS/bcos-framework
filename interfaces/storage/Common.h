@@ -172,7 +172,7 @@ public:
 private:
     std::string m_name;
     std::vector<std::string> m_fields;
-    std::vector<std::tuple<std::string, size_t>> m_order;
+    std::vector<std::tuple<std::string_view, size_t>> m_order;
 
 private:
     void* operator new(size_t s) { return malloc(s); };
