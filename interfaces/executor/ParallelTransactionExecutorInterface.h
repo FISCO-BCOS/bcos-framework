@@ -51,7 +51,7 @@ public:
     virtual void nextBlockHeader(bcos::protocol::BlockHeader::Ptr blockHeader,
         std::function<void(bcos::Error::UniquePtr&&)> callback) noexcept = 0;
 
-    virtual void executeTransaction(bcos::protocol::ExecutionMessage::UniquePtr inputs,
+    virtual void executeTransaction(bcos::protocol::ExecutionMessage::UniquePtr input,
         std::function<void(
             bcos::Error::UniquePtr&&, bcos::protocol::ExecutionMessage::UniqueConstPtr&&)>
             callback) noexcept = 0;

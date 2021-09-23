@@ -34,20 +34,22 @@ public:
     using UniquePtr = std::unique_ptr<ExecutionMessage>;
     using UniqueConstPtr = std::unique_ptr<const ExecutionMessage>;
 
-    enum Type
+    enum Type : int8_t
     {
         TXHASH = 0,  // Received an new transaction from scheduler
         MESSAGE,     // Send/Receive an external call to/from another contract
         FINISHED,    // Send a finish to another contract
-        REVERT,      // Send/Receive a revert to / from previous external call, response
+        WAIT_KEY,    // Send a wait key to scheduler
+        SEND_BACK,   // Send a dag refuse to scheduler
+        REVERT,      // Send/Receive a revert to/from previous external call
     };
 
     // Request fields
-    virtual crypto::HashType transactionHash() const = 0;
-    virtual void setTransactionHash(crypto::HashType hash) = 0;
-
     virtual Type type() const = 0;
     virtual void setType(Type type) = 0;
+
+    virtual crypto::HashType transactionHash() const = 0;
+    virtual void setTransactionHash(crypto::HashType hash) = 0;
 
     virtual int64_t contextID() const = 0;
     virtual void setContextID(int64_t contextID) = 0;
@@ -55,13 +57,13 @@ public:
     virtual int64_t seq() const = 0;
     virtual void setSeq(int64_t seq) = 0;
 
-    virtual std::string_view origin() const = 0;
+    virtual std::string_view origin() const = 0;  // readable format
     virtual void setOrigin(std::string origin) = 0;
 
-    virtual std::string_view from() const = 0;
+    virtual std::string_view from() const = 0;  // readable format
     virtual void setFrom(std::string from) = 0;
 
-    virtual std::string_view to() const = 0;
+    virtual std::string_view to() const = 0;  // readable format
     virtual void setTo(std::string to) = 0;
 
     virtual int32_t depth() const = 0;
