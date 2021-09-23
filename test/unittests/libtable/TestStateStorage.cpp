@@ -128,7 +128,6 @@ BOOST_AUTO_TEST_CASE(rollback)
     auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
     BOOST_CHECK_NO_THROW(entry->setField("value", "Lili"));
-    entry->setVersion(1);
     BOOST_CHECK_NO_THROW(table->setRow("name", *entry));
     entry = table->getRow("name");
     BOOST_TEST(entry);
@@ -165,7 +164,6 @@ BOOST_AUTO_TEST_CASE(rollback)
     auto savePoint2 = tableFactory->savepoint();
 
     auto deleteEntry2 = std::make_optional(table->newDeletedEntry());
-    deleteEntry2->setVersion(entry->version() + 1);
     table->setRow("name", *deleteEntry2);
 
     // table->remove("name");
@@ -216,7 +214,6 @@ BOOST_AUTO_TEST_CASE(rollback2)
     auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
     entry->setField("value", "Lili");
-    entry->setVersion(1);
     table->setRow("name", *entry);
     entry = table->getRow("name");
     BOOST_TEST(entry);
@@ -306,7 +303,6 @@ BOOST_AUTO_TEST_CASE(hash)
     auto idEntry = table->getRow("id");
 
     auto deletedEntry = std::make_optional(table->newDeletedEntry());
-    deletedEntry->setVersion(idEntry->version() + 1);
     BOOST_CHECK_NO_THROW(table->setRow("id", *deletedEntry));
     entry = table->getRow("id");
     BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
@@ -345,11 +341,9 @@ BOOST_AUTO_TEST_CASE(hash)
     entry = table->newEntry();
     // entry->setField("key", "id");
     entry->setField("value", "12345");
-    entry->setVersion(entry->version() + 1);
     BOOST_CHECK_NO_THROW(table->setRow("id", *entry));
     entry = table->getRow("name");
     entry->setField("value", "Wang");
-    entry->setVersion(entry->version() + 1);
     BOOST_CHECK_NO_THROW(table->setRow("name", *entry));
     entry = table->newEntry();
     // entry->setField("key", "balance");
@@ -370,7 +364,6 @@ BOOST_AUTO_TEST_CASE(hash)
 
     auto nameEntry = table->getRow("name");
     auto deletedEntry2 = std::make_optional(table->newDeletedEntry());
-    deletedEntry2->setVersion(nameEntry->version() + 1);
     BOOST_CHECK_NO_THROW(table->setRow("name", *deletedEntry2));
     entry = table->getRow("name");
     BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
@@ -382,7 +375,6 @@ BOOST_AUTO_TEST_CASE(hash)
 
     auto idEntry2 = table->getRow("id");
     auto deletedEntry3 = std::make_optional(table->newDeletedEntry());
-    deletedEntry3->setVersion(idEntry2->version() + 1);
     BOOST_CHECK_NO_THROW(table->setRow("id", *deletedEntry3));
     entry = table->getRow("id");
     BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
@@ -707,11 +699,10 @@ BOOST_AUTO_TEST_CASE(checkVersion)
 
     Entry value2;
     value2.importFields({"v2"});
-    BOOST_CHECK_THROW(table->setRow("abc", std::move(value2)), bcos::Error);
+    BOOST_CHECK_NO_THROW(table->setRow("abc", std::move(value2)));
 
     Entry value3;
     value3.importFields({"v3"});
-    tableFactory->setCheckVersion(false);
     BOOST_CHECK_NO_THROW(table->setRow("abc", std::move(value3)));
 }
 

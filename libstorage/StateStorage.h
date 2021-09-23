@@ -86,8 +86,6 @@ public:
     }
     void rollback(size_t _savepoint);
 
-    void setCheckVersion(bool checkVersion) { m_checkVersion = checkVersion; }
-
 private:
     struct Change
     {
@@ -207,6 +205,5 @@ private:
 
     std::shared_ptr<StorageInterface> m_prev;
     std::shared_ptr<crypto::Hash> m_hashImpl;
-    bool m_checkVersion = true;
 };
 }  // namespace bcos::storage

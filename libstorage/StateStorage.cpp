@@ -4,6 +4,7 @@
 #include <tbb/parallel_sort.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/throw_exception.hpp>
+#include <optional>
 
 using namespace bcos;
 using namespace bcos::storage;
@@ -160,15 +161,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
             auto& existsEntry = std::get<Entry>(entryIt->second);
             if (!existsEntry.rollbacked())
             {
-                if (m_checkVersion && (entry.version() - existsEntry.version() != 1))
-                {
-                    callback(BCOS_ERROR_UNIQUE_PTR(
-                        -1, "Entry version: " + boost::lexical_cast<std::string>(entry.version()) +
-                                " mismatch (current version + 1): " +
-                                boost::lexical_cast<std::string>(existsEntry.version())));
-                    return;
-                }
-                entryOld = std::move(existsEntry);
+                entryOld = std::make_optional(std::move(existsEntry));
             }
             std::get<Entry>(entryIt->second) = std::move(entry);
 
@@ -426,7 +419,6 @@ void StateStorage::rollback(size_t _savepoint)
 
 Entry& StateStorage::importExistingEntry(const std::string_view& key, Entry entry)
 {
-    entry.setVersion(0);
     entry.setDirty(false);
 
     bool inserted;

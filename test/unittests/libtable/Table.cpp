@@ -226,7 +226,6 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
 
     auto deleteEntry = std::make_optional(table->newEntry());
     deleteEntry->setStatus(Entry::DELETED);
-    deleteEntry->setVersion(entry->version() + 1);
     BOOST_CHECK_NO_THROW(table->setRow("name", *deleteEntry));
 
     auto hashs = tableFactory->tableHashes();
