@@ -97,7 +97,8 @@ public:
     virtual std::string_view message() const = 0;
     virtual void setMessage(std::string message) = 0;
 
-    virtual gsl::span<LogEntry> logEntries() const = 0;
+    virtual gsl::span<LogEntry const> const logEntries() const = 0;
+    virtual std::vector<LogEntry>&& takeLogEntries() = 0;
     virtual void setLogEntries(std::vector<LogEntry> logEntries) = 0;
 
     // for evm
