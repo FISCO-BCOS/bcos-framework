@@ -48,7 +48,7 @@ public:
     using Ptr = std::shared_ptr<ParallelTransactionExecutorInterface>;
     using ConstPtr = std::shared_ptr<const ParallelTransactionExecutorInterface>;
 
-    virtual void nextBlockHeader(bcos::protocol::BlockHeader::Ptr blockHeader,
+    virtual void nextBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
         std::function<void(bcos::Error::UniquePtr&&)> callback) noexcept = 0;
 
     virtual void executeTransaction(bcos::protocol::ExecutionMessage::UniquePtr input,
