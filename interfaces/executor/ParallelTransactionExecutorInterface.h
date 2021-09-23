@@ -52,13 +52,11 @@ public:
         std::function<void(bcos::Error::UniquePtr&&)> callback) noexcept = 0;
 
     virtual void executeTransaction(bcos::protocol::ExecutionMessage::UniquePtr input,
-        std::function<void(
-            bcos::Error::UniquePtr&&, bcos::protocol::ExecutionMessage::UniqueConstPtr&&)>
+        std::function<void(bcos::Error::UniquePtr&&, bcos::protocol::ExecutionMessage::UniquePtr&&)>
             callback) noexcept = 0;
 
     virtual void dagExecuteTransactions(
-        boost::any_range<bcos::protocol::ExecutionMessage::UniquePtr, boost::forward_traversal_tag>
-            inputs,
+        const gsl::span<bcos::protocol::ExecutionMessage::UniquePtr>& inputs,
         std::function<void(
             bcos::Error::UniquePtr&&, std::vector<bcos::protocol::ExecutionMessage::UniquePtr>&&)>
             callback) noexcept = 0;
