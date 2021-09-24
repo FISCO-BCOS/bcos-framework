@@ -90,9 +90,12 @@ private:
 };
 inline std::string printNodeInfo(NodeInfo::Ptr _nodeInfo)
 {
+    if (!_nodeInfo)
+    {
+        return "";
+    }
     std::stringstream oss;
-    oss << LOG_KV("name", _nodeInfo->nodeName())
-        << LOG_KV("status", std::to_string((int32_t)_nodeInfo->status()))
+    oss << LOG_KV("name", _nodeInfo->nodeName()) << LOG_KV("status", _nodeInfo->status())
         << LOG_KV("type", std::to_string((int32_t)_nodeInfo->nodeType()))
         << LOG_KV("deployedIps", _nodeInfo->deployInfo().size());
     return oss.str();

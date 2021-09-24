@@ -39,6 +39,7 @@ public:
     virtual std::string const& iniConfig() const { return m_iniConfig; }
     virtual NodeInfo::ConstPtr nodeInfo(std::string const& _nodeName) const
     {
+        ReadGuard l(x_nodeInfos);
         if (!m_nodeInfos.count(_nodeName))
         {
             return nullptr;
@@ -56,11 +57,13 @@ public:
     virtual void setIniConfig(std::string const& _iniConfig) { m_iniConfig = _iniConfig; }
     virtual bool appendNodeInfo(NodeInfo::Ptr _nodeInfo)
     {
+        UpgradableGuard l(x_nodeInfos);
         auto const& nodeName = _nodeInfo->nodeName();
         if (m_nodeInfos.count(nodeName))
         {
             return false;
         }
+        UpgradeGuard ul(l);
         m_nodeInfos[nodeName] = _nodeInfo;
         return true;
     }
@@ -71,9 +74,14 @@ public:
     virtual void setStatus(int32_t _status) { m_status = (GroupStatus)_status; }
     virtual GroupStatus status() const { return m_status; }
 
-    virtual ssize_t nodesNum() const { return m_nodeInfos.size(); }
+    virtual ssize_t nodesNum() const
+    {
+        ReadGuard l(x_nodeInfos);
+        return m_nodeInfos.size();
+    }
 
-    std::map<std::string, NodeInfo::Ptr> const& nodeInfos() { return m_nodeInfos; }
+    // return copied nodeInfos to ensure thread-safe
+    std::map<std::string, NodeInfo::Ptr> nodeInfos() { return m_nodeInfos; }
 
 private:
     std::string m_chainID;
@@ -84,16 +92,20 @@ private:
     std::string m_iniConfig;
     // node name to node deployment information mapping
     std::map<std::string, NodeInfo::Ptr> m_nodeInfos;
+    mutable SharedMutex x_nodeInfos;
     // the group status
     GroupStatus m_status;
 };
 
 inline std::string printGroupInfo(GroupInfo::Ptr _groupInfo)
 {
+    if (!_groupInfo)
+    {
+        return "";
+    }
     std::stringstream oss;
     oss << LOG_KV("group", _groupInfo->groupID()) << LOG_KV("chain", _groupInfo->chainID())
-        << LOG_KV("status", std::to_string((int32_t)_groupInfo->status()))
-        << LOG_KV("nodeSize", _groupInfo->nodesNum());
+        << LOG_KV("status", _groupInfo->status()) << LOG_KV("nodeSize", _groupInfo->nodesNum());
     return oss.str();
 }
 }  // namespace group
