@@ -18,7 +18,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
     auto tableIt = m_data.find(table);
     if (tableIt != m_data.end())
     {
-        for (auto& entryIt : std::get<TableData>(tableIt->second).entries)
+        for (auto& entryIt : tableIt->second.entries)
         {
             if (!_condition || _condition->isValid(entryIt.first))
             {
@@ -51,7 +51,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
             if (error)
             {
                 callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
-                             -1, "Get primary keys from prev failed!", *error),
+                             StorageError::ReadError, "Get primary keys from prev failed!", *error),
                     std::vector<std::string>());
                 return;
             }
@@ -88,8 +88,8 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
     auto tableIt = m_data.find(table);
     if (tableIt != m_data.end())
     {
-        auto entryIt = std::get<TableData>(tableIt->second).entries.find(_key);
-        if (entryIt != std::get<TableData>(tableIt->second).entries.end() &&
+        auto entryIt = tableIt->second.entries.find(_key);
+        if (entryIt != tableIt->second.entries.end() &&
             !std::get<Entry>(entryIt->second).rollbacked())
         {
             _callback(nullptr, std::make_optional(std::get<Entry>(entryIt->second)));
@@ -103,15 +103,14 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
             table, _key, [this, key = std::string(_key), _callback](auto&& error, auto&& entry) {
                 if (error)
                 {
-                    _callback(
-                        BCOS_ERROR_WITH_PREV_UNIQUE_PTR(-1, "Get row from storage failed!", *error),
+                    _callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
+                                  StorageError::ReadError, "Get row from storage failed!", *error),
                         {});
                     return;
                 }
 
                 if (entry)
                 {
-                    // If the entry exists, add it to the local cache, for version comparison
                     _callback(
                         nullptr, std::make_optional(importExistingEntry(key, std::move(*entry))));
                 }
@@ -183,8 +182,8 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
     auto tableIt = m_data.find(table);
     if (tableIt != m_data.end())
     {
-        setEntryToTable(key, std::vector<char>(key.begin(), key.end()),
-            std::get<1>(tableIt->second), std::move(callback));
+        setEntryToTable(
+            key, std::vector<char>(key.begin(), key.end()), tableIt->second, std::move(callback));
     }
     else
     {
@@ -194,34 +193,32 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                                   Error::UniquePtr&& error, std::optional<Table>&& table) mutable {
             if (error)
             {
-                callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(-1, "Open table failed", *error));
+                callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
+                    StorageError::ReadError, "Open table failed", *error));
                 return;
             }
 
             if (table)
             {
-                auto tableName = table->tableInfo()->name();
-                std::vector<char> tableNameVec(tableName.begin(), tableName.end());
-                std::string_view tableNameView(tableNameVec.data(), tableNameVec.size());
-                auto [tableIt, inserted] = m_data.emplace(tableNameView,
-                    std::make_tuple(std::move(tableNameVec), TableData(table->tableInfo())));
+                auto [tableIt, inserted] =
+                    m_data.emplace(table->tableInfo()->name(), TableData(table->tableInfo()));
 
                 if (!inserted)
                 {
-                    callback(
-                        BCOS_ERROR_UNIQUE_PTR(-1, "Insert table: " + std::string(tableIt->first) +
+                    callback(BCOS_ERROR_UNIQUE_PTR(
+                        StorageError::WriteError, "Insert table: " + std::string(tableIt->first) +
                                                       " into tableFactory failed!"));
                     return;
                 }
 
                 std::string_view keyView(keyVec.data(), keyVec.size());
-                setEntryToTable(
-                    keyView, std::move(keyVec), std::get<1>(tableIt->second), std::move(callback));
+                setEntryToTable(keyView, std::move(keyVec), tableIt->second, std::move(callback));
                 return;
             }
             else
             {
-                callback(BCOS_ERROR_UNIQUE_PTR(-1, "Async set row failed, table does not exists"));
+                callback(BCOS_ERROR_UNIQUE_PTR(
+                    StorageError::TableNotExists, "Async set row failed, table does not exists"));
             }
         });
     }
@@ -232,9 +229,9 @@ void StateStorage::parallelTraverse(bool onlyDirty,
         const std::string_view& table, const std::string_view& key, const Entry& entry)>
         callback) const
 {
-    tbb::parallel_do(m_data.begin(), m_data.end(),
-        [&](const std::pair<const std::string_view, std::tuple<std::vector<char>, TableData>>& it) {
-            for (auto& entryIt : std::get<TableData>(it.second).entries)
+    tbb::parallel_do(
+        m_data.begin(), m_data.end(), [&](const std::pair<const std::string_view, TableData>& it) {
+            for (auto& entryIt : it.second.entries)
             {
                 auto entry = std::get<Entry>(entryIt.second);
                 if (onlyDirty)
@@ -262,8 +259,7 @@ std::optional<Table> StateStorage::openTable(const std::string_view& tableName)
     auto [error, table] = openPromise.get_future().get();
     if (error)
     {
-        BOOST_THROW_EXCEPTION(
-            BCOS_ERROR_WITH_PREV(-1, "Open table: " + std::string(tableName) + " failed", *error));
+        BOOST_THROW_EXCEPTION(*error);
     }
 
     return table;
@@ -279,8 +275,7 @@ std::optional<Table> StateStorage::createTable(std::string _tableName, std::stri
     auto [error, table] = createPromise.get_future().get();
     if (error)
     {
-        BOOST_THROW_EXCEPTION(BCOS_ERROR_WITH_PREV(-1,
-            "Create table: " + _tableName + " valueFields: " + _valueFields + " failed", *error));
+        BOOST_THROW_EXCEPTION(*error);
     }
 
     return table;
@@ -292,7 +287,7 @@ std::vector<std::tuple<std::string, crypto::HashType>> StateStorage::tableHashes
 
     for (auto& tableIt : m_data)
     {
-        if (!std::get<TableData>(tableIt.second).dirty)
+        if (!tableIt.second.dirty)
         {
             continue;
         }
@@ -311,7 +306,7 @@ std::vector<std::tuple<std::string, crypto::HashType>> StateStorage::tableHashes
             for (auto i = range.begin(); i != range.end(); ++i)
             {
                 auto& key = std::get<0>(result[i]);
-                auto& table = std::get<TableData>(m_data.find(key)->second).entries;
+                auto& table = m_data.find(key)->second.entries;
 
                 std::vector<std::string> sortedEntries;
                 size_t totalSize = 0;
@@ -376,7 +371,7 @@ void StateStorage::rollback(size_t _savepoint)
         auto tableIt = m_data.find(change.table);
         if (tableIt != m_data.end())
         {
-            auto& tableMap = std::get<TableData>(tableIt->second).entries;
+            auto& tableMap = tableIt->second.entries;
             switch (change.kind)
             {
             case Change::Set:
@@ -425,22 +420,19 @@ Entry& StateStorage::importExistingEntry(const std::string_view& key, Entry entr
     auto tableIt = m_data.find(entry.tableInfo()->name());
     if (tableIt == m_data.end())
     {
-        auto tableName = entry.tableInfo()->name();
-        auto tableNameVec = std::vector<char>(tableName.begin(), tableName.end());
-        auto tableNameView = std::string_view(tableNameVec.data(), tableNameVec.size());
-        std::tie(tableIt, inserted) = m_data.emplace(
-            tableNameView, std::make_tuple(std::move(tableNameVec), TableData(entry.tableInfo())));
+        std::tie(tableIt, inserted) =
+            m_data.emplace(entry.tableInfo()->name(), TableData(entry.tableInfo()));
     }
 
     auto keyVec = std::vector<char>(key.begin(), key.end());
     auto keyView = std::string_view(keyVec.data(), keyVec.size());
-    auto [it, success] =
-        std::get<TableData>(tableIt->second)
-            .entries.emplace(keyView, std::make_tuple(std::move(keyVec), std::move(entry)));
+    auto [it, success] = tableIt->second.entries.emplace(
+        keyView, std::make_tuple(std::move(keyVec), std::move(entry)));
 
     if (!success)
     {
-        BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Insert existing entry failed, entry exists"));
+        BOOST_THROW_EXCEPTION(
+            BCOS_ERROR(StorageError::WriteError, "Insert existing entry failed, entry exists"));
     }
 
     return std::get<1>(it->second);

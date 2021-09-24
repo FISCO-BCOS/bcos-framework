@@ -125,8 +125,8 @@ private:
             size_t i = 0;
             for (auto& key : _keys)
             {
-                auto entryIt = std::get<TableData>(tableIt->second).entries.find(key);
-                if (entryIt != std::get<TableData>(tableIt->second).entries.end())
+                auto entryIt = tableIt->second.entries.find(key);
+                if (entryIt != tableIt->second.entries.end())
                 {
                     (*results)[i] = Entry(std::get<Entry>(entryIt->second));
                     ++existsCount;
@@ -156,8 +156,8 @@ private:
                     auto&& error, std::vector<std::optional<Entry>>&& entries) {
                     if (error)
                     {
-                        callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
-                                     -1, "async get perv rows failed!", *error),
+                        callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(StorageError::ReadError,
+                                     "async get perv rows failed!", *error),
                             std::vector<std::optional<Entry>>());
                         return;
                     }
@@ -198,9 +198,7 @@ private:
     };
 
     // data members
-    tbb::concurrent_unordered_map<std::string_view, std::tuple<std::vector<char>, TableData>,
-        std::hash<std::string_view>>
-        m_data;
+    tbb::concurrent_unordered_map<std::string_view, TableData, std::hash<std::string_view>> m_data;
     tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
 
     std::shared_ptr<StorageInterface> m_prev;
