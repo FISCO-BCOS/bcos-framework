@@ -29,8 +29,6 @@ using namespace bcos;
 namespace logging = boost::log;
 namespace expr = boost::log::expressions;
 
-BOOST_LOG_ATTRIBUTE_KEYWORD(group_id, "GroupId", std::string)
-
 /// handler to solve log rotate
 bool BoostLogInitializer::canRotate(size_t const& _index)
 {
@@ -48,6 +46,7 @@ bool BoostLogInitializer::canRotate(size_t const& _index)
 void BoostLogInitializer::initStatLog(boost::property_tree::ptree const& _pt,
     std::string const& _logger, std::string const& _logPrefix)
 {
+    m_running.store(true);
     // not set the log path before init
     if (m_logPath.size() == 0)
     {
@@ -79,6 +78,7 @@ void BoostLogInitializer::initStatLog(boost::property_tree::ptree const& _pt,
 void BoostLogInitializer::initLog(boost::property_tree::ptree const& _pt,
     std::string const& _logger, std::string const& _logPrefix)
 {
+    m_running.store(true);
     // not set the log path before init
     if (m_logPath.size() == 0)
     {
@@ -92,13 +92,13 @@ void BoostLogInitializer::initLog(boost::property_tree::ptree const& _pt,
 
     /// set file format
     /// log-level|timestamp |[g:groupId] message
-    sink->set_formatter(
-        expr::stream
-        << boost::log::expressions::attr<boost::log::trivial::severity_level>("Severity") << "|"
-        << boost::log::expressions::format_date_time<boost::posix_time::ptime>(
-               "TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
-        << "|" << expr::if_(expr::has_attr(group_id))[expr::stream << "[g:" << group_id << "]"]
-        << boost::log::expressions::smessage);
+    sink->set_formatter(expr::stream
+                        << boost::log::expressions::attr<boost::log::trivial::severity_level>(
+                               "Severity")
+                        << "|"
+                        << boost::log::expressions::format_date_time<boost::posix_time::ptime>(
+                               "TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
+                        << "|" << boost::log::expressions::smessage);
 }
 
 boost::shared_ptr<bcos::BoostLogInitializer::sink_t> BoostLogInitializer::initLogSink(
@@ -161,8 +161,15 @@ unsigned BoostLogInitializer::getLogLevel(std::string const& levelStr)
 /// stop and remove all sinks after the program exit
 void BoostLogInitializer::stopLogging()
 {
+    if (!m_running)
+    {
+        return;
+    }
+    m_running.store(false);
     for (auto const& sink : m_sinks)
+    {
         stopLogging(sink);
+    }
     m_sinks.clear();
 }
 
