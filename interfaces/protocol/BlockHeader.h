@@ -120,10 +120,10 @@ public:
     virtual bcos::crypto::HashType const& stateRoot() const = 0;
     // number returns the number of the current block
     virtual BlockNumber number() const = 0;
-    virtual u256 const& gasUsed() = 0;
-    virtual int64_t timestamp() = 0;
+    virtual u256 const& gasUsed() const = 0;
+    virtual int64_t timestamp() const = 0;
     // sealer returns the sealer that generate this block
-    virtual int64_t sealer() = 0;
+    virtual int64_t sealer() const = 0;
     // sealerList returns the current sealer list
     virtual gsl::span<const bytes> sealerList() const = 0;
     virtual bytesConstRef extraData() const = 0;
