@@ -39,19 +39,22 @@ void StorageInterface::asyncCreateTable(std::string _tableName, std::string _val
             return;
         }
 
-        sysTable->asyncGetRow(tableName, [this, tableName, callback, &sysTable,
-                                             valueFields = std::move(valueFields)](
+        sysTable->asyncGetRow(tableName, [this, tableName, callback = std::move(callback),
+                                             &sysTable, valueFields = std::move(valueFields)](
                                              auto&& error, auto&& entry) {
             if (error)
             {
-                callback(
-                    BCOS_ERROR_WITH_PREV_UNIQUE_PTR(-1, "Get table info row failed!", *error), {});
+                callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
+                             StorageError::ReadError, "Get table info row failed!", *error),
+                    {});
                 return;
             }
 
             if (entry)
             {
-                callback(nullptr, {});
+                callback(BCOS_ERROR_UNIQUE_PTR(
+                             StorageError::TableExists, "Table: " + tableName + " already exists"),
+                    {});
                 return;
             }
 
@@ -105,8 +108,8 @@ void StorageInterface::asyncOpenTable(std::string_view tableName,
 
                 if (!sysTable)
                 {
-                    callback(BCOS_ERROR_UNIQUE_PTR(
-                                 -1, "System table: " + std::string(SYS_TABLES) + " not found!"),
+                    callback(BCOS_ERROR_UNIQUE_PTR(StorageError::SystemTableNotExists,
+                                 "System table: " + std::string(SYS_TABLES) + " not found!"),
                         {});
                     return;
                 }

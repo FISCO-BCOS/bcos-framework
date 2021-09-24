@@ -46,9 +46,12 @@ namespace storage
 enum StorageError
 {
     Success = 0,
-    TableNotExists = 1,
-    UnknownEntryType = 2,
-    TableInfoNotExists = 3,
+    TableNotExists,
+    SystemTableNotExists,
+    TableExists,
+    UnknownEntryType,
+    ReadError,
+    WriteError,
 };
 
 struct Condition

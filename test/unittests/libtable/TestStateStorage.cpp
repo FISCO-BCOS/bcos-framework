@@ -21,6 +21,7 @@
 #include "../libstorage/StateStorage.h"
 #include "Hash.h"
 #include "interfaces/storage/StorageInterface.h"
+#include "libutilities/Error.h"
 #include "libutilities/ThreadPool.h"
 #include <tbb/concurrent_vector.h>
 #include <boost/lexical_cast.hpp>
@@ -111,8 +112,7 @@ BOOST_AUTO_TEST_CASE(create_Table)
     table = tableFactory->openTable(tableName);
     BOOST_TEST(table);
 
-    ret = tableFactory->createTable(tableName, valueField);
-    BOOST_TEST(!ret);
+    BOOST_CHECK_THROW(tableFactory->createTable(tableName, valueField), bcos::Error);
 }
 
 BOOST_AUTO_TEST_CASE(rollback)
