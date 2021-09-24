@@ -45,7 +45,7 @@ namespace storage
 {
 enum StorageError
 {
-    UnknownError = 200000,
+    UnknownError = -60000,
     TableNotExists,
     SystemTableNotExists,
     TableExists,
