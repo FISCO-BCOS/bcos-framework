@@ -66,7 +66,7 @@ public:
     int64_t transactionIndex() const override { return m_transactionIndex; }
 
     void setNonce(NonceType const& _nonce) override { m_nonce = _nonce; }
-    NonceType const& nonce() override { return m_nonce; }
+    NonceType const& nonce() const override { return m_nonce; }
 
 private:
     uint32_t m_status = (uint32_t)TransactionStatus::None;
