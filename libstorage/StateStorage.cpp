@@ -111,7 +111,6 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
 
                 if (entry)
                 {
-                    // If the entry exists, add it to the local cache, for version comparison
                     _callback(
                         nullptr, std::make_optional(importExistingEntry(key, std::move(*entry))));
                 }
@@ -194,7 +193,8 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                                   Error::UniquePtr&& error, std::optional<Table>&& table) mutable {
             if (error)
             {
-                callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(-1, "Open table failed", *error));
+                callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
+                    StorageError::ReadError, "Open table failed", *error));
                 return;
             }
 
@@ -205,8 +205,8 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
 
                 if (!inserted)
                 {
-                    callback(
-                        BCOS_ERROR_UNIQUE_PTR(-1, "Insert table: " + std::string(tableIt->first) +
+                    callback(BCOS_ERROR_UNIQUE_PTR(
+                        StorageError::WriteError, "Insert table: " + std::string(tableIt->first) +
                                                       " into tableFactory failed!"));
                     return;
                 }
@@ -217,7 +217,8 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
             }
             else
             {
-                callback(BCOS_ERROR_UNIQUE_PTR(-1, "Async set row failed, table does not exists"));
+                callback(BCOS_ERROR_UNIQUE_PTR(
+                    StorageError::TableNotExists, "Async set row failed, table does not exists"));
             }
         });
     }
