@@ -19,6 +19,7 @@
  * @date 2021-09-08
  */
 #pragma once
+#include "GroupTypeDef.h"
 #include "NodeInfo.h"
 namespace bcos
 {
@@ -29,6 +30,9 @@ class GroupInfo
 public:
     using Ptr = std::shared_ptr<GroupInfo>;
     GroupInfo() = default;
+    GroupInfo(std::string const& _chainID, std::string const& _groupID)
+      : m_chainID(_chainID), m_groupID(_groupID)
+    {}
     virtual ~GroupInfo() {}
 
     virtual std::string const& genesisConfig() const { return m_genesisConfig; }
@@ -64,6 +68,13 @@ public:
     virtual void setGroupID(std::string const& _groupID) { m_groupID = _groupID; }
     virtual void setChainID(std::string const& _chainID) { m_chainID = _chainID; }
 
+    virtual void setStatus(int32_t _status) { m_status = (GroupStatus)_status; }
+    virtual GroupStatus status() const { return m_status; }
+
+    virtual ssize_t nodesNum() const { return m_nodeInfos.size(); }
+
+    std::map<std::string, NodeInfo::Ptr> const& nodeInfos() { return m_nodeInfos; }
+
 private:
     std::string m_chainID;
     std::string m_groupID;
@@ -73,6 +84,17 @@ private:
     std::string m_iniConfig;
     // node name to node deployment information mapping
     std::map<std::string, NodeInfo::Ptr> m_nodeInfos;
+    // the group status
+    GroupStatus m_status;
 };
+
+inline std::string printGroupInfo(GroupInfo::Ptr _groupInfo)
+{
+    std::stringstream oss;
+    oss << LOG_KV("group", _groupInfo->groupID()) << LOG_KV("chain", _groupInfo->chainID())
+        << LOG_KV("status", std::to_string((int32_t)_groupInfo->status()))
+        << LOG_KV("nodeSize", _groupInfo->nodesNum());
+    return oss.str();
+}
 }  // namespace group
 }  // namespace bcos

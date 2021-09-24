@@ -20,6 +20,7 @@
  */
 #pragma once
 #include "../../libutilities/Common.h"
+#include "GroupTypeDef.h"
 #include <memory>
 namespace bcos
 {
@@ -37,6 +38,9 @@ public:
     using ConstPtr = std::shared_ptr<const NodeInfo>;
     using ServiceToDeployIpMap = std::map<std::string, std::string>;
     NodeInfo() = default;
+    NodeInfo(std::string const& _nodeName, int32_t _type)
+      : m_nodeName(_nodeName), m_nodeType((NodeType)_type)
+    {}
     virtual ~NodeInfo() {}
 
     virtual std::string const& nodeName() const { return m_nodeName; }
@@ -62,6 +66,16 @@ public:
         m_serviceToDeployIp[_serviceName] = _deployIp;
     }
 
+    virtual void setStatus(int32_t _status) { m_status = (GroupStatus)_status; }
+    virtual GroupStatus status() const { return m_status; }
+
+    virtual ServiceToDeployIpMap const& deployInfo() const { return m_serviceToDeployIp; }
+
+    virtual void setDeployInfo(ServiceToDeployIpMap&& _deployInfo)
+    {
+        m_serviceToDeployIp = std::move(_deployInfo);
+    }
+
 private:
     // the node name
     std::string m_nodeName;
@@ -71,6 +85,17 @@ private:
     // the private key of the node
     bytesPointer m_privateKey;
     std::string const c_emptyIp = "";
+
+    GroupStatus m_status;
 };
+inline std::string printNodeInfo(NodeInfo::Ptr _nodeInfo)
+{
+    std::stringstream oss;
+    oss << LOG_KV("name", _nodeInfo->nodeName())
+        << LOG_KV("status", std::to_string((int32_t)_nodeInfo->status()))
+        << LOG_KV("type", std::to_string((int32_t)_nodeInfo->nodeType()))
+        << LOG_KV("deployedIps", _nodeInfo->deployInfo().size());
+    return oss.str();
+}
 }  // namespace group
 }  // namespace bcos
