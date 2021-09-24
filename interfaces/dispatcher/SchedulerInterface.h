@@ -30,7 +30,7 @@
 #include <memory>
 #include <string_view>
 
-namespace bcos::dispatcher
+namespace bcos::scheduler
 {
 class SchedulerInterface
 {
@@ -72,4 +72,4 @@ public:
     // clear all status
     virtual void reset(std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 };
-}  // namespace bcos::dispatcher
+}  // namespace bcos::scheduler
