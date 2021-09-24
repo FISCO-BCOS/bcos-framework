@@ -66,10 +66,10 @@ public:
     bcos::crypto::HashType const& stateRoot() const override { return m_stateRoot; }
     // the number of the current block
     BlockNumber number() const override { return m_number; }
-    u256 const& gasUsed() override { return m_gasUsed; }
-    int64_t timestamp() override { return m_timestamp; }
+    u256 const& gasUsed() const override { return m_gasUsed; }
+    int64_t timestamp() const override { return m_timestamp; }
     // the sealer that generate this block
-    int64_t sealer() override { return m_sealer; }
+    int64_t sealer() const override { return m_sealer; }
     // the current sealer list
     gsl::span<const bytes> sealerList() const override { return m_sealerList; }
     bytesConstRef extraData() const override

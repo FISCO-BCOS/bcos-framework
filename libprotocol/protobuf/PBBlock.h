@@ -83,6 +83,7 @@ public:
 
     BlockType blockType() const override { return (BlockType)m_pbRawBlock->type(); }
     // get blockHeader
+    BlockHeader::ConstPtr blockHeaderConst() const override { return m_blockHeader; }
     BlockHeader::Ptr blockHeader() override { return m_blockHeader; }
     // get transactions
     TransactionsConstPtr transactions() const { return m_transactions; }  // removed

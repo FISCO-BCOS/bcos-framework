@@ -117,6 +117,7 @@ public:
     virtual void setVersion(int32_t _version) = 0;
     virtual BlockType blockType() const = 0;
     // blockHeader gets blockHeader
+    virtual BlockHeader::ConstPtr blockHeaderConst() const = 0;
     virtual BlockHeader::Ptr blockHeader() = 0;
     // get transactions
     virtual Transaction::ConstPtr transaction(size_t _index) const = 0;

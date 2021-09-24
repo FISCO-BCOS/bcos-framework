@@ -37,7 +37,7 @@ public:
     virtual int64_t transactionIndex() const = 0;
 
     virtual void setNonce(NonceType const& _nonce) = 0;
-    virtual NonceType const& nonce() = 0;
+    virtual NonceType const& nonce() const = 0;
 };
 
 using TransactionSubmitResults = std::vector<TransactionSubmitResult::Ptr>;
