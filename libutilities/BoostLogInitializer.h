@@ -88,5 +88,6 @@ private:
     std::vector<boost::shared_ptr<sink_t>> m_sinks;
     std::vector<int> m_currentHourVec;
     std::string m_logPath;
+    std::atomic_bool m_running = {false};
 };
 }  // namespace bcos
