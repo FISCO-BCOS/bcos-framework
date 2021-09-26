@@ -39,7 +39,7 @@ class StateStorage : public storage::TraverseStorageInterface,
 {
 public:
     typedef std::shared_ptr<StateStorage> Ptr;
-    StateStorage(std::shared_ptr<StorageInterface> prev) : m_prev(std::move(prev)) {}
+    explicit StateStorage(std::shared_ptr<StorageInterface> prev) : m_prev(std::move(prev)) {}
 
     StateStorage(const StateStorage&) = delete;
     StateStorage& operator=(const StateStorage&) = delete;
