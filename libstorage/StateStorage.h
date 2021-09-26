@@ -39,9 +39,7 @@ class StateStorage : public storage::TraverseStorageInterface,
 {
 public:
     typedef std::shared_ptr<StateStorage> Ptr;
-    StateStorage(std::shared_ptr<StorageInterface> prev, std::shared_ptr<crypto::Hash> _hashImpl)
-      : m_prev(std::move(prev)), m_hashImpl(std::move(_hashImpl))
-    {}
+    StateStorage(std::shared_ptr<StorageInterface> prev) : m_prev(std::move(prev)) {}
 
     StateStorage(const StateStorage&) = delete;
     StateStorage& operator=(const StateStorage&) = delete;
@@ -49,7 +47,7 @@ public:
     StateStorage(StateStorage&&) = default;
     StateStorage& operator=(StateStorage&&) = default;
 
-    virtual ~StateStorage() { getChangeLog().clear(); }
+    virtual ~StateStorage() { m_recoder.clear(); }
 
     void asyncGetPrimaryKeys(const std::string_view& table,
         const std::optional<storage::Condition const>& _condition,
@@ -77,38 +75,45 @@ public:
 
     std::optional<Table> createTable(std::string _tableName, std::string _valueFields);
 
-    std::vector<std::tuple<std::string, crypto::HashType>> tableHashes();
+    // TODO: change to XOR
+    std::vector<std::tuple<std::string, crypto::HashType>> tableHashes(
+        const bcos::crypto::Hash::Ptr& hashImpl);
 
-    size_t savepoint()
+    class Recoder
     {
-        auto& changeLog = getChangeLog();
-        return changeLog.size();
-    }
-    void rollback(size_t _savepoint);
+    public:
+        using Ptr = std::shared_ptr<Recoder>;
 
-private:
-    struct Change
-    {
-        enum Kind : int8_t
+        struct Change
         {
-            Set,
-            Remove,
+            Change(std::string_view _table, std::string_view _key, std::optional<Entry> _entry,
+                bool _tableDirty)
+              : table(_table), key(_key), entry(std::move(_entry)), tableDirty(_tableDirty)
+            {}
+            Change(const Change&) = delete;
+            Change& operator=(const Change&) = delete;
+            Change(Change&&) = default;
+            Change& operator=(Change&&) = default;
+
+            std::string_view table;
+            std::string_view key;
+            std::optional<Entry> entry;
+            bool tableDirty;
         };
 
-        std::string_view table;
-        std::string_view key;
-        std::optional<Entry> entry;
-        Kind kind;  ///< The kind of the change.
-        bool tableDirty;
+        void log(Change&& change) { m_changes.emplace_front(std::move(change)); }
+        auto begin() { return m_changes.begin(); }
+        auto end() { return m_changes.end(); }
 
-        Change(std::string_view _table, Kind _kind, std::string_view _key,
-            std::optional<Entry> _entry, bool _tableDirty)
-          : table(_table), key(_key), entry(std::move(_entry)), kind(_kind), tableDirty(_tableDirty)
-        {}
+    private:
+        std::list<Change> m_changes;
     };
 
-    std::vector<Change>& getChangeLog() { return s_changeLog.local(); }
+    Recoder::Ptr newRecoder() { return std::make_shared<Recoder>(); }
+    void setRecoder(Recoder::Ptr recoder) { m_recoder.local().swap(recoder); }
+    void rollback(const Recoder::Ptr& recoder);
 
+private:
     template <class T>
     void multiAsyncGetRows(const std::string_view& table, const gsl::span<T const>& _keys,
         std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)> _callback)
@@ -197,11 +202,13 @@ private:
         bool dirty = false;
     };
 
-    // data members
     tbb::concurrent_unordered_map<std::string_view, TableData, std::hash<std::string_view>> m_data;
-    tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
+
+    // Since transaction is execute in the coroutine, thread local changeLog will be useless
+    // tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
+
+    tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
 
     std::shared_ptr<StorageInterface> m_prev;
-    std::shared_ptr<crypto::Hash> m_hashImpl;
 };
 }  // namespace bcos::storage

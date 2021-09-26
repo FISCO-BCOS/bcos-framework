@@ -172,8 +172,11 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
             table.entries.emplace(keyView, std::make_tuple(std::move(keyVec), std::move(entry)));
         }
 
-        getChangeLog().emplace_back(
-            table.tableInfo->name(), Change::Set, keyView, std::move(entryOld), table.dirty);
+        if (m_recoder.local())
+        {
+            m_recoder.local()->log(Recoder::Change(
+                table.tableInfo->name(), keyView, std::move(entryOld), table.dirty));
+        }
         table.dirty = true;
 
         callback(nullptr);
@@ -281,7 +284,8 @@ std::optional<Table> StateStorage::createTable(std::string _tableName, std::stri
     return table;
 }
 
-std::vector<std::tuple<std::string, crypto::HashType>> StateStorage::tableHashes()
+std::vector<std::tuple<std::string, crypto::HashType>> StateStorage::tableHashes(
+    const bcos::crypto::Hash::Ptr& hashImpl)
 {
     std::vector<std::tuple<std::string, crypto::HashType>> result;
 
@@ -352,19 +356,17 @@ std::vector<std::tuple<std::string, crypto::HashType>> StateStorage::tableHashes
                     ++offset;
                 }
 
-                std::get<1>(result[i]) = m_hashImpl->hash(data);
+                std::get<1>(result[i]) = hashImpl->hash(data);
             }
         });
 
     return result;
 }
 
-void StateStorage::rollback(size_t _savepoint)
+void StateStorage::rollback(const Recoder::Ptr& recoder)
 {
-    auto& changeLog = getChangeLog();
-    while (_savepoint < changeLog.size())
+    for (auto& change : *recoder)
     {
-        auto& change = changeLog.back();
         // Public Table API cannot be used here because it will add another change log entry.
 
         // change->table->rollback(change);
@@ -372,43 +374,20 @@ void StateStorage::rollback(size_t _savepoint)
         if (tableIt != m_data.end())
         {
             auto& tableMap = tableIt->second.entries;
-            switch (change.kind)
+            if (change.entry)
             {
-            case Change::Set:
-            {
-                if (change.entry)
-                {
-                    std::get<Entry>(tableMap[change.key]) = std::move(*(change.entry));
-                }
-                else
-                {  // nullptr means the key is not exist in m_cache
-                    Entry oldEntry;
-                    oldEntry.setRollbacked(true);
+                std::get<Entry>(tableMap[change.key]) = std::move(*(change.entry));
+            }
+            else
+            {  // nullptr means the key is not exist in m_cache
+                Entry oldEntry;
+                oldEntry.setRollbacked(true);
 
-                    std::get<Entry>(tableMap[change.key]) = std::move(oldEntry);
-                }
+                std::get<Entry>(tableMap[change.key]) = std::move(oldEntry);
+            }
 
-                break;
-            }
-            case Change::Remove:
-            {
-                std::get<Entry>(tableMap[change.key]).setStatus(storage::Entry::Status::NORMAL);
-                if (change.entry)
-                {
-                    std::get<Entry>(tableMap[change.key]) = std::move(*(change.entry));
-                }
-                else
-                {
-                    std::get<Entry>(tableMap[change.key]).setRollbacked(true);
-                }
-                break;
-            }
-            default:
-                break;
-            }
+            tableIt->second.dirty = change.tableDirty;
         }
-
-        changeLog.pop_back();
     }
 }
 
