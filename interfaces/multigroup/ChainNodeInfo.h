@@ -39,7 +39,7 @@ public:
     using ServiceToDeployIpMap = std::map<std::string, std::string>;
     ChainNodeInfo() = default;
     ChainNodeInfo(std::string const& _nodeName, int32_t _type)
-      : m_nodeName(_nodeName), m_nodeType((NodeType)_type)
+      : m_nodeName(_nodeName), m_nodeType((NodeType)_type), m_privateKey(std::make_shared<bytes>())
     {}
     virtual ~ChainNodeInfo() {}
 
@@ -89,8 +89,7 @@ private:
     std::string m_iniConfig = "";
     // the private key of the node
     bytesPointer m_privateKey;
-    std::string const c_emptyIp = "";
-
+    std::string c_emptyIp = "";
     GroupStatus m_status;
 };
 inline std::string printNodeInfo(ChainNodeInfo::Ptr _nodeInfo)

@@ -37,7 +37,7 @@ public:
 
     virtual std::string const& genesisConfig() const { return m_genesisConfig; }
     virtual std::string const& iniConfig() const { return m_iniConfig; }
-    virtual ChainNodeInfo::ConstPtr nodeInfo(std::string const& _nodeName) const
+    virtual ChainNodeInfo::Ptr nodeInfo(std::string const& _nodeName) const
     {
         ReadGuard l(x_nodeInfos);
         if (!m_nodeInfos.count(_nodeName))
@@ -68,10 +68,43 @@ public:
         return true;
     }
 
+    virtual void updateNodeInfo(ChainNodeInfo::Ptr _nodeInfo)
+    {
+        WriteGuard l(x_nodeInfos);
+        auto const& nodeName = _nodeInfo->nodeName();
+        if (m_nodeInfos.count(nodeName))
+        {
+            *(m_nodeInfos[nodeName]) = *_nodeInfo;
+            return;
+        }
+        m_nodeInfos[nodeName] = _nodeInfo;
+    }
+
+    virtual bool removeNodeInfo(ChainNodeInfo::Ptr _nodeInfo)
+    {
+        UpgradableGuard l(x_nodeInfos);
+        auto const& nodeName = _nodeInfo->nodeName();
+        if (!m_nodeInfos.count(nodeName))
+        {
+            return false;
+        }
+        UpgradeGuard ul(l);
+        m_nodeInfos.erase(nodeName);
+        return true;
+    }
+
     virtual void setGroupID(std::string const& _groupID) { m_groupID = _groupID; }
     virtual void setChainID(std::string const& _chainID) { m_chainID = _chainID; }
 
-    virtual void setStatus(int32_t _status) { m_status = (GroupStatus)_status; }
+    virtual void setStatus(int32_t _status)
+    {
+        m_status = (GroupStatus)_status;
+        auto const& nodes = nodeInfos();
+        for (auto& it : nodes)
+        {
+            it.second->setStatus(_status);
+        }
+    }
     virtual GroupStatus status() const { return m_status; }
 
     virtual ssize_t nodesNum() const

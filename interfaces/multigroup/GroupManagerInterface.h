@@ -124,7 +124,7 @@ public:
      * @param _onGetChainList return the chainID list
      */
     virtual void asyncGetChainList(
-        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _onGetChainList) = 0;
+        std::function<void(Error::Ptr&&, std::set<std::string>&&)> _onGetChainList) = 0;
 
     /**
      * @brief get all the groupID list of a given chainID
@@ -133,7 +133,7 @@ public:
      * @param _onGetGroupList return all the groupID list of a given chain
      */
     virtual void asyncGetGroupList(std::string _chainID,
-        std::function<void(Error::Ptr&&, std::vector<std::string>&&)> _onGetGroupList) = 0;
+        std::function<void(Error::Ptr&&, std::set<std::string>&&)> _onGetGroupList) = 0;
 
     /**
      * @brief get all the group informations of a given chainID
@@ -151,7 +151,7 @@ public:
      * @param _groupID the id of the group
      * @param _onGetGroupInfo return the queried group information
      */
-    virtual void asycnGetGroupInfo(std::string _chainID, std::string _groupID,
+    virtual void asyncGetGroupInfo(std::string _chainID, std::string _groupID,
         std::function<void(Error::Ptr&&, GroupInfo::Ptr&&)> _onGetGroupInfo) = 0;
 
     /**
@@ -162,7 +162,7 @@ public:
      * @param _nodeName the name of the node being queried
      * @param _onGetNodeInfo return the node information
      */
-    virtual void asycnGetNodeInfo(std::string _chainID, std::string _groupID, std::string _nodeName,
+    virtual void asyncGetNodeInfo(std::string _chainID, std::string _groupID, std::string _nodeName,
         std::function<void(Error::Ptr&&, ChainNodeInfo::Ptr&&)> _onGetNodeInfo) = 0;
 };
 }  // namespace group
