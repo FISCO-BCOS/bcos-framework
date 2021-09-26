@@ -40,5 +40,40 @@ enum class GroupStatus : int32_t
     Stopping = 7,
     Stopped = 8,
 };
+
+inline std::ostream& operator<<(std::ostream& _out, GroupStatus const& _er)
+{
+    switch (_er)
+    {
+    case GroupStatus::Creating:
+        _out << "Creating";
+        break;
+    case GroupStatus::Created:
+        _out << "Created";
+        break;
+    case GroupStatus::Deleting:
+        _out << "Deleting";
+        break;
+    case GroupStatus::Deleted:
+        _out << "Deleted";
+        break;
+    case GroupStatus::Starting:
+        _out << "Starting";
+        break;
+    case GroupStatus::Started:
+        _out << "Started";
+        break;
+    case GroupStatus::Stopping:
+        _out << "Stopping";
+        break;
+    case GroupStatus::Stopped:
+        _out << "Stopped";
+        break;
+    default:
+        _out << "Unknown";
+        break;
+    }
+    return _out;
+}
 }  // namespace group
 }  // namespace bcos
