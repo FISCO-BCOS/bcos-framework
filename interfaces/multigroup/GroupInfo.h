@@ -19,8 +19,8 @@
  * @date 2021-09-08
  */
 #pragma once
+#include "ChainNodeInfo.h"
 #include "GroupTypeDef.h"
-#include "NodeInfo.h"
 namespace bcos
 {
 namespace group
@@ -37,7 +37,7 @@ public:
 
     virtual std::string const& genesisConfig() const { return m_genesisConfig; }
     virtual std::string const& iniConfig() const { return m_iniConfig; }
-    virtual NodeInfo::ConstPtr nodeInfo(std::string const& _nodeName) const
+    virtual ChainNodeInfo::ConstPtr nodeInfo(std::string const& _nodeName) const
     {
         ReadGuard l(x_nodeInfos);
         if (!m_nodeInfos.count(_nodeName))
@@ -55,7 +55,7 @@ public:
         m_genesisConfig = _genesisConfig;
     }
     virtual void setIniConfig(std::string const& _iniConfig) { m_iniConfig = _iniConfig; }
-    virtual bool appendNodeInfo(NodeInfo::Ptr _nodeInfo)
+    virtual bool appendNodeInfo(ChainNodeInfo::Ptr _nodeInfo)
     {
         UpgradableGuard l(x_nodeInfos);
         auto const& nodeName = _nodeInfo->nodeName();
@@ -81,7 +81,7 @@ public:
     }
 
     // return copied nodeInfos to ensure thread-safe
-    std::map<std::string, NodeInfo::Ptr> nodeInfos() { return m_nodeInfos; }
+    std::map<std::string, ChainNodeInfo::Ptr> nodeInfos() { return m_nodeInfos; }
 
 private:
     std::string m_chainID;
@@ -91,7 +91,7 @@ private:
     // the iniConfig for the group
     std::string m_iniConfig;
     // node name to node deployment information mapping
-    std::map<std::string, NodeInfo::Ptr> m_nodeInfos;
+    std::map<std::string, ChainNodeInfo::Ptr> m_nodeInfos;
     mutable SharedMutex x_nodeInfos;
     // the group status
     GroupStatus m_status;

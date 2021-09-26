@@ -31,17 +31,17 @@ enum NodeType : uint32_t
     NON_SM_NODE = 0,
     SM_NODE = 1,
 };
-class NodeInfo
+class ChainNodeInfo
 {
 public:
-    using Ptr = std::shared_ptr<NodeInfo>;
-    using ConstPtr = std::shared_ptr<const NodeInfo>;
+    using Ptr = std::shared_ptr<ChainNodeInfo>;
+    using ConstPtr = std::shared_ptr<const ChainNodeInfo>;
     using ServiceToDeployIpMap = std::map<std::string, std::string>;
-    NodeInfo() = default;
-    NodeInfo(std::string const& _nodeName, int32_t _type)
+    ChainNodeInfo() = default;
+    ChainNodeInfo(std::string const& _nodeName, int32_t _type)
       : m_nodeName(_nodeName), m_nodeType((NodeType)_type)
     {}
-    virtual ~NodeInfo() {}
+    virtual ~ChainNodeInfo() {}
 
     virtual std::string const& nodeName() const { return m_nodeName; }
     virtual NodeType const& nodeType() const { return m_nodeType; }
@@ -88,7 +88,7 @@ private:
 
     GroupStatus m_status;
 };
-inline std::string printNodeInfo(NodeInfo::Ptr _nodeInfo)
+inline std::string printNodeInfo(ChainNodeInfo::Ptr _nodeInfo)
 {
     if (!_nodeInfo)
     {
