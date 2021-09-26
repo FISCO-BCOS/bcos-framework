@@ -76,12 +76,17 @@ public:
         m_serviceToDeployIp = std::move(_deployInfo);
     }
 
+    virtual void setIniConfig(std::string const& _iniConfig) { m_iniConfig = _iniConfig; }
+    virtual std::string const& iniConfig() const { return m_iniConfig; }
+
 private:
     // the node name
     std::string m_nodeName;
     NodeType m_nodeType;
     // mapping of service to deployed machine
     ServiceToDeployIpMap m_serviceToDeployIp;
+    // the ini config maintained by the node, use the iniConfig of the node if empty
+    std::string m_iniConfig = "";
     // the private key of the node
     bytesPointer m_privateKey;
     std::string const c_emptyIp = "";
