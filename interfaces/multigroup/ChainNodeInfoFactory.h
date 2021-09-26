@@ -13,27 +13,27 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- * @brief factory to build the NodeInfo
- * @file NodeInfoFactory.h
+ * @brief factory to build the ChainNodeInfo
+ * @file ChainNodeInfoFactory.h
  * @author: yujiechen
  * @date 2021-09-18
  */
 #pragma once
-#include "NodeInfo.h"
+#include "ChainNodeInfo.h"
 namespace bcos
 {
 namespace group
 {
-class NodeInfoFactory
+class ChainNodeInfoFactory
 {
 public:
-    using Ptr = std::shared_ptr<NodeInfoFactory>;
-    NodeInfoFactory() = default;
-    virtual ~NodeInfoFactory() {}
-    virtual NodeInfo::Ptr createNodeInfo() { return std::make_shared<NodeInfo>(); }
-    virtual NodeInfo::Ptr createNodeInfo(std::string const& _nodeName, int32_t _type)
+    using Ptr = std::shared_ptr<ChainNodeInfoFactory>;
+    ChainNodeInfoFactory() = default;
+    virtual ~ChainNodeInfoFactory() {}
+    virtual ChainNodeInfo::Ptr createNodeInfo() { return std::make_shared<ChainNodeInfo>(); }
+    virtual ChainNodeInfo::Ptr createNodeInfo(std::string const& _nodeName, int32_t _type)
     {
-        return std::make_shared<NodeInfo>(_nodeName, _type);
+        return std::make_shared<ChainNodeInfo>(_nodeName, _type);
     }
 };
 }  // namespace group

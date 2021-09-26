@@ -21,8 +21,8 @@
 #pragma once
 #include "../../libutilities/Common.h"
 #include "../../libutilities/Error.h"
+#include "ChainNodeInfo.h"
 #include "GroupInfo.h"
-#include "NodeInfo.h"
 
 namespace bcos
 {
@@ -52,7 +52,7 @@ public:
      * @param _callback return group expansion result
      */
     virtual void asyncExpandGroupNode(std::string const& _chainID, std::string const& _groupID,
-        NodeInfo::Ptr _nodeInfo, std::function<void(Error::Ptr&&)> _callback) = 0;
+        ChainNodeInfo::Ptr _nodeInfo, std::function<void(Error::Ptr&&)> _callback) = 0;
 
     /**
      * @brief remove the given group from the given chain
@@ -163,7 +163,7 @@ public:
      * @param _onGetNodeInfo return the node information
      */
     virtual void asycnGetNodeInfo(std::string _chainID, std::string _groupID, std::string _nodeName,
-        std::function<void(Error::Ptr&&, NodeInfo::Ptr&&)> _onGetNodeInfo) = 0;
+        std::function<void(Error::Ptr&&, ChainNodeInfo::Ptr&&)> _onGetNodeInfo) = 0;
 };
 }  // namespace group
 }  // namespace bcos

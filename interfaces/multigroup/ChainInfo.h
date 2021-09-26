@@ -37,9 +37,19 @@ public:
         return appendData(x_groupList, m_groupList, _groupID);
     }
 
+    virtual bool removeGroup(std::string const& _groupID)
+    {
+        return removeData(x_groupList, m_groupList, _groupID);
+    }
+
     virtual bool appendService(std::string const& _serviceName)
     {
         return appendData(x_serviceList, m_serviceList, _serviceName);
+    }
+
+    virtual bool removeService(std::string const& _serviceName)
+    {
+        return removeData(x_serviceList, m_serviceList, _serviceName);
     }
 
     virtual std::string const& chainID() const { return m_chainID; }
@@ -73,6 +83,18 @@ protected:
         return true;
     }
 
+    bool removeData(SharedMutex& _lock, std::set<std::string>& _dataList, std::string const& _data)
+    {
+        UpgradableGuard l(_lock);
+        if (!_dataList.count(_data))
+        {
+            return false;
+        }
+        UpgradeGuard ul(l);
+        _dataList.erase(_data);
+        return true;
+    }
+
 private:
     std::string m_chainID;
     std::set<std::string> m_groupList;
@@ -86,9 +108,12 @@ private:
 
 inline std::string printChainInfo(ChainInfo::Ptr _chainInfo)
 {
+    if (!_chainInfo)
+    {
+        return "";
+    }
     std::stringstream oss;
-    oss << LOG_KV("id", _chainInfo->chainID())
-        << LOG_KV("status", std::to_string((int32_t)_chainInfo->status()))
+    oss << LOG_KV("id", _chainInfo->chainID()) << LOG_KV("status", _chainInfo->status())
         << LOG_KV("groupNum", _chainInfo->groupList().size());
     return oss.str();
 }
