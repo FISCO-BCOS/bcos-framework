@@ -56,6 +56,12 @@ inline ostream& operator<<(ostream& os, const std::unique_ptr<Error>& error)
     os << error->what();
     return os;
 }
+
+inline ostream& operator<<(ostream& os, const std::tuple<std::string, crypto::HashType>& pair)
+{
+    os << std::get<0>(pair) << " " << std::get<1>(pair).hex();
+    return os;
+}
 }  // namespace std
 
 namespace bcos
@@ -67,9 +73,9 @@ struct TableFactoryFixture
     TableFactoryFixture()
     {
         hashImpl = make_shared<Header256Hash>();
-        memoryStorage = make_shared<StateStorage>(nullptr, hashImpl);
+        memoryStorage = make_shared<StateStorage>(nullptr);
         BOOST_TEST(memoryStorage != nullptr);
-        tableFactory = make_shared<StateStorage>(memoryStorage, hashImpl);
+        tableFactory = make_shared<StateStorage>(memoryStorage);
         BOOST_TEST(tableFactory != nullptr);
     }
 
@@ -97,7 +103,7 @@ BOOST_FIXTURE_TEST_SUITE(TableFactoryTest, TableFactoryFixture)
 BOOST_AUTO_TEST_CASE(constructor)
 {
     auto threadPool = ThreadPool("a", 1);
-    auto tf = std::make_shared<StateStorage>(memoryStorage, nullptr);
+    auto tf = std::make_shared<StateStorage>(memoryStorage);
 }
 
 BOOST_AUTO_TEST_CASE(create_Table)
@@ -135,7 +141,9 @@ BOOST_AUTO_TEST_CASE(rollback)
     BOOST_TEST(entry->dirty() == true);
     BOOST_TEST(entry->getField("value") == "Lili");
 
-    auto savePoint = tableFactory->savepoint();
+    // auto savePoint = tableFactory->savepoint();
+    auto savePoint = tableFactory->newRecoder();
+    tableFactory->setRecoder(savePoint);
 
     entry = table->newEntry();
     // entry->setField("key", "id");
@@ -147,7 +155,9 @@ BOOST_AUTO_TEST_CASE(rollback)
     BOOST_TEST(entry);
     // BOOST_TEST(table->dirty() == true);
 
-    auto savePoint1 = tableFactory->savepoint();
+    // auto savePoint1 = tableFactory->savepoint();
+    auto savePoint1 = tableFactory->newRecoder();
+    tableFactory->setRecoder(savePoint1);
 
     entry = table->newEntry();
     // entry->setField("key", "balance");
@@ -161,7 +171,9 @@ BOOST_AUTO_TEST_CASE(rollback)
     BOOST_TEST(entry);
     // BOOST_TEST(table->dirty() == true);
 
-    auto savePoint2 = tableFactory->savepoint();
+    // auto savePoint2 = tableFactory->savepoint();
+    auto savePoint2 = tableFactory->newRecoder();
+    tableFactory->setRecoder(savePoint2);
 
     auto deleteEntry2 = std::make_optional(table->newDeletedEntry());
     table->setRow("name", *deleteEntry2);
@@ -203,8 +215,11 @@ BOOST_AUTO_TEST_CASE(rollback)
 
 BOOST_AUTO_TEST_CASE(rollback2)
 {
-    auto hash0 = tableFactory->tableHashes();
-    auto savePoint0 = tableFactory->savepoint();
+    auto hash0 = tableFactory->tableHashes(hashImpl);
+    // auto savePoint0 = tableFactory->savepoint();
+    auto savePoint0 = tableFactory->newRecoder();
+    tableFactory->setRecoder(savePoint0);
+
     auto ret = createDefaultTable();
     BOOST_TEST(ret);
     auto table = tableFactory->openTable(testTableName);
@@ -221,7 +236,9 @@ BOOST_AUTO_TEST_CASE(rollback2)
     BOOST_TEST(entry->dirty() == true);
     BOOST_TEST(entry->getField("value") == "Lili");
 
-    auto savePoint = tableFactory->savepoint();
+    // auto savePoint = tableFactory->savepoint();
+    auto savePoint = tableFactory->newRecoder();
+    tableFactory->setRecoder(savePoint);
 
     entry = table->newEntry();
     // entry->setField("key", "id");
@@ -234,6 +251,7 @@ BOOST_AUTO_TEST_CASE(rollback2)
     // BOOST_TEST(table->dirty() == true);
 
     tableFactory->rollback(savePoint);
+
     entry = table->getRow("name");
     BOOST_TEST(entry);
     entry = table->getRow("balance");
@@ -242,9 +260,13 @@ BOOST_AUTO_TEST_CASE(rollback2)
     BOOST_TEST(!entry);
     // BOOST_TEST(table->dirty() == true);
     tableFactory->rollback(savePoint0);
-    auto hash00 = tableFactory->tableHashes();
-    // BOOST_CHECK_EQUAL_COLLECTIONS(hash0.begin(), hash0.end(), hash00.begin(), hash00.end());
-    // BOOST_TEST(hash00 == hash0);
+    
+    entry = table->getRow("name");
+    BOOST_CHECK(!entry);
+
+    auto hash00 = tableFactory->tableHashes(hashImpl);
+    BOOST_CHECK_EQUAL_COLLECTIONS(hash0.begin(), hash0.end(), hash00.begin(), hash00.end());
+    BOOST_TEST(hash00 == hash0);
     table = tableFactory->openTable(testTableName);
     BOOST_TEST(!table);
 }
@@ -261,9 +283,9 @@ BOOST_AUTO_TEST_CASE(hash)
     entry = table->getRow("name");
     BOOST_TEST(entry);
     // BOOST_TEST(table->dirty() == true);
-    auto dbHash0 = tableFactory->tableHashes();
+    auto dbHash0 = tableFactory->tableHashes(hashImpl);
     // auto data0 = tableFactory->exportData(m_blockNumber);
-    auto tableFactory0 = make_shared<StateStorage>(tableFactory, hashImpl);
+    auto tableFactory0 = make_shared<StateStorage>(tableFactory);
     // tableFactory0->importData(data0.first, data0.second);
     /*
     BOOST_TEST(dbHash0 == tableFactory0->hash());
@@ -299,7 +321,9 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(crypto::HashType() == tableFactory1->hash());
     */
 
-    auto savePoint = tableFactory->savepoint();
+    // auto savePoint = tableFactory->savepoint();
+    auto savePoint = tableFactory->newRecoder();
+    tableFactory->setRecoder(savePoint);
     auto idEntry = table->getRow("id");
 
     auto deletedEntry = std::make_optional(table->newDeletedEntry());
@@ -395,8 +419,8 @@ BOOST_AUTO_TEST_CASE(open_sysTables)
 BOOST_AUTO_TEST_CASE(openAndCommit)
 {
     auto hashImpl2 = make_shared<Header256Hash>();
-    auto memoryStorage2 = make_shared<StateStorage>(nullptr, hashImpl2);
-    auto tableFactory2 = make_shared<StateStorage>(memoryStorage2, hashImpl2);
+    auto memoryStorage2 = make_shared<StateStorage>(nullptr);
+    auto tableFactory2 = make_shared<StateStorage>(memoryStorage2);
 
     for (int i = 10; i < 20; ++i)
     {
@@ -431,7 +455,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
     StateStorage::Ptr prev = nullptr;
     for (int i = 0; i < 20; ++i)
     {
-        auto tableStorage = std::make_shared<StateStorage>(prev, hashImpl);
+        auto tableStorage = std::make_shared<StateStorage>(prev);
         for (int j = 0; j < 10; ++j)
         {
             auto tableName = "table_" + boost::lexical_cast<std::string>(i) + "_" +
@@ -604,8 +628,8 @@ BOOST_AUTO_TEST_CASE(getRows)
     auto valueFields = "value1,value2,value3";
 
     StateStorage::Ptr prev = nullptr;
-    prev = std::make_shared<StateStorage>(prev, hashImpl);
-    auto tableStorage = std::make_shared<StateStorage>(prev, hashImpl);
+    prev = std::make_shared<StateStorage>(prev);
+    auto tableStorage = std::make_shared<StateStorage>(prev);
 
     BOOST_CHECK(prev->createTable("t_test", valueFields));
 

@@ -83,7 +83,7 @@ public:
     void preCommitBlock(const Block::Ptr& _block, BlockHeader::Ptr _header,
         std::function<void(const Error::Ptr&, const BlockHeader::Ptr&)> _callback)
     {
-        auto tableFactory = std::make_shared<StateStorage>(m_storage, m_cryptoSuite->hashImpl());
+        auto tableFactory = std::make_shared<StateStorage>(m_storage);
         for (size_t i = 0; i < _block->transactionsHashSize(); i++)
         {
             _block->appendReceipt(testPBTransactionReceipt(m_cryptoSuite));

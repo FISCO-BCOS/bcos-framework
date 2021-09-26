@@ -26,7 +26,7 @@ struct TestKVStorageHelperFixture
     TestKVStorageHelperFixture()
     {
         auto hash = std::make_shared<KVHash>();
-        stateStorage = std::make_shared<bcos::storage::StateStorage>(nullptr, hash);
+        stateStorage = std::make_shared<bcos::storage::StateStorage>(nullptr);
         kvStorageHelper = std::make_unique<bcos::storage::KVStorageHelper>(stateStorage);
     }
 
