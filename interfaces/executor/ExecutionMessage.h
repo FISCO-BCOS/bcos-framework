@@ -22,6 +22,7 @@
 #pragma once
 #include "../../libprotocol/LogEntry.h"
 #include "../protocol/ProtocolTypeDef.h"
+#include "libutilities/Common.h"
 #include <memory>
 
 namespace bcos
@@ -70,6 +71,9 @@ public:
 
     virtual int32_t depth() const = 0;
     virtual void setDepth(int32_t depth) = 0;
+
+    virtual bool create() const = 0;
+    virtual void setCreate(bool create) = 0;
 
     // -----------------------------------------------
     // Request / Response common fields

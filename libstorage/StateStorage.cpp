@@ -89,11 +89,14 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
     if (tableIt != m_data.end())
     {
         auto entryIt = tableIt->second.entries.find(_key);
-        if (entryIt != tableIt->second.entries.end() &&
-            !std::get<Entry>(entryIt->second).rollbacked())
+        if (entryIt != tableIt->second.entries.end())
         {
-            _callback(nullptr, std::make_optional(std::get<Entry>(entryIt->second)));
-            return;
+            auto& entry = std::get<Entry>(entryIt->second);
+            if (!entry.rollbacked() && entry.status() != Entry::DELETED)
+            {
+                _callback(nullptr, std::make_optional(std::get<Entry>(entryIt->second)));
+                return;
+            }
         }
     }
 
