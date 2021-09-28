@@ -131,10 +131,11 @@ private:
             for (auto& key : _keys)
             {
                 auto entryIt = tableIt->second.entries.find(key);
-                if (entryIt != tableIt->second.entries.end())
+                if (entryIt != tableIt->second.entries.end() &&
+                    !std::get<Entry>(entryIt->second).rollbacked())
                 {
                     Entry& entry = std::get<Entry>(entryIt->second);
-                    if (!entry.rollbacked() && entry.status() != Entry::DELETED)
+                    if (entry.status() != Entry::DELETED)
                     {
                         results[i] = std::make_optional(entry);
                     }

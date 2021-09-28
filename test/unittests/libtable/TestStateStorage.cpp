@@ -272,6 +272,11 @@ BOOST_AUTO_TEST_CASE(rollback2)
     BOOST_TEST(!table);
 }
 
+BOOST_AUTO_TEST_CASE(rollback3)
+{
+    // Test rollback multi state storage
+}
+
 BOOST_AUTO_TEST_CASE(hash)
 {
     auto ret = createDefaultTable();
@@ -734,6 +739,42 @@ BOOST_AUTO_TEST_CASE(getRows)
         {
             BOOST_CHECK(values2[i]);
         }
+    }
+
+    // Test rollback
+    auto recoder = tableStorage->newRecoder();
+    tableStorage->setRecoder(recoder);
+    for (size_t i = 70; i < 80; ++i)
+    {
+        Entry myEntry;
+        myEntry.importFields({"ddd1", "ddd2", "ddd3"});
+        queryTable->setRow("key" + boost::lexical_cast<std::string>(i), std::move(myEntry));
+    }
+
+    keys.clear();
+    for (size_t i = 70; i < 80; ++i)
+    {
+        keys.push_back("key" + boost::lexical_cast<std::string>(i));
+    }
+
+    auto values3 = queryTable->getRows(keys);
+    for (auto& it : values3)
+    {
+        BOOST_CHECK(it);
+        BOOST_CHECK_EQUAL(it->getField(0), "ddd1");
+        BOOST_CHECK_EQUAL(it->dirty(), true);
+    }
+
+    tableStorage->rollback(recoder);
+
+    auto values4 = queryTable->getRows(keys);
+    size_t count = 70;
+    for (auto& it : values4)
+    {
+        BOOST_CHECK(it);
+        BOOST_CHECK_EQUAL(it->getField(0), "data" + boost::lexical_cast<std::string>(count));
+        BOOST_CHECK_EQUAL(it->dirty(), false);
+        ++count;
     }
 }
 
