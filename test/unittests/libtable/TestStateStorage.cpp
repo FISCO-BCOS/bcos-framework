@@ -180,7 +180,8 @@ BOOST_AUTO_TEST_CASE(rollback)
 
     // table->remove("name");
     entry = table->getRow("name");
-    BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
+    BOOST_CHECK(!entry);
+    // BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
 
     tableFactory->rollback(savePoint2);
     entry = table->getRow("name");
@@ -260,7 +261,7 @@ BOOST_AUTO_TEST_CASE(rollback2)
     BOOST_TEST(!entry);
     // BOOST_TEST(table->dirty() == true);
     tableFactory->rollback(savePoint0);
-    
+
     entry = table->getRow("name");
     BOOST_CHECK(!entry);
 
@@ -329,7 +330,9 @@ BOOST_AUTO_TEST_CASE(hash)
     auto deletedEntry = std::make_optional(table->newDeletedEntry());
     BOOST_CHECK_NO_THROW(table->setRow("id", *deletedEntry));
     entry = table->getRow("id");
-    BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
+    BOOST_CHECK(!entry);
+
+    // BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     /*
     auto data2 = tableFactory->exportData(m_blockNumber);
     auto dbHash2 = tableFactory->hash();
@@ -390,7 +393,8 @@ BOOST_AUTO_TEST_CASE(hash)
     auto deletedEntry2 = std::make_optional(table->newDeletedEntry());
     BOOST_CHECK_NO_THROW(table->setRow("name", *deletedEntry2));
     entry = table->getRow("name");
-    BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
+    BOOST_CHECK(!entry);
+    // BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 2);
 
@@ -401,7 +405,8 @@ BOOST_AUTO_TEST_CASE(hash)
     auto deletedEntry3 = std::make_optional(table->newDeletedEntry());
     BOOST_CHECK_NO_THROW(table->setRow("id", *deletedEntry3));
     entry = table->getRow("id");
-    BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
+    BOOST_CHECK(!entry);
+    // BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
     keys = table->getPrimaryKeys({});
     BOOST_TEST(keys.size() == 1);
 
@@ -708,6 +713,26 @@ BOOST_AUTO_TEST_CASE(getRows)
         {
             BOOST_TEST(entry);
             BOOST_CHECK_EQUAL(entry->dirty(), false);
+        }
+    }
+
+    // Test deleted entry
+    for (size_t i = 10; i < 20; ++i)
+    {
+        queryTable->setRow(
+            "key" + boost::lexical_cast<std::string>(i), queryTable->newDeletedEntry());
+    }
+
+    auto values2 = queryTable->getRows(keys);
+    for (size_t i = 0; i < values2.size(); ++i)
+    {
+        if (i >= 10 && i < 20)
+        {
+            BOOST_CHECK(!values2[i]);
+        }
+        else
+        {
+            BOOST_CHECK(values2[i]);
         }
     }
 }

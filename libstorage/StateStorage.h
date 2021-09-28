@@ -118,9 +118,9 @@ private:
     void multiAsyncGetRows(const std::string_view& table, const gsl::span<T const>& _keys,
         std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)> _callback)
     {
-        auto results = std::make_shared<std::vector<std::optional<Entry>>>(_keys.size());
-        auto missinges = std::make_shared<std::tuple<std::vector<std::string_view>,
-            std::vector<std::tuple<std::string, size_t>>>>();
+        std::vector<std::optional<Entry>> results(_keys.size());
+        auto missinges = std::tuple<std::vector<std::string_view>,
+            std::vector<std::tuple<std::string, size_t>>>();
 
         long existsCount = 0;
 
@@ -133,13 +133,21 @@ private:
                 auto entryIt = tableIt->second.entries.find(key);
                 if (entryIt != tableIt->second.entries.end())
                 {
-                    (*results)[i] = Entry(std::get<Entry>(entryIt->second));
+                    Entry& entry = std::get<Entry>(entryIt->second);
+                    if (!entry.rollbacked() && entry.status() != Entry::DELETED)
+                    {
+                        results[i] = std::make_optional(entry);
+                    }
+                    else
+                    {
+                        results[i] = {};
+                    }
                     ++existsCount;
                 }
                 else
                 {
-                    std::get<1>(*missinges).emplace_back(std::string(key), i);
-                    std::get<0>(*missinges).emplace_back(key);
+                    std::get<1>(missinges).emplace_back(std::string(key), i);
+                    std::get<0>(missinges).emplace_back(key);
                 }
 
                 ++i;
@@ -149,16 +157,18 @@ private:
         {
             for (long i = 0; i < _keys.size(); ++i)
             {
-                std::get<1>(*missinges).emplace_back(std::string(_keys[i]), i);
-                std::get<0>(*missinges).emplace_back(_keys[i]);
+                std::get<1>(missinges).emplace_back(std::string(_keys[i]), i);
+                std::get<0>(missinges).emplace_back(_keys[i]);
             }
         }
 
         if (existsCount < _keys.size() && m_prev)
         {
-            m_prev->asyncGetRows(table, std::get<0>(*missinges),
-                [this, callback = std::move(_callback), missinges, results = std::move(results)](
-                    auto&& error, std::vector<std::optional<Entry>>&& entries) {
+            m_prev->asyncGetRows(table, std::get<0>(missinges),
+                [this, callback = std::move(_callback),
+                    missingIndexes = std::move(std::get<1>(missinges)),
+                    results = std::move(results)](
+                    auto&& error, std::vector<std::optional<Entry>>&& entries) mutable {
                     if (error)
                     {
                         callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(StorageError::ReadError,
@@ -173,19 +183,18 @@ private:
 
                         if (entry)
                         {
-                            (*results)[std::get<1>(std::get<1>(*missinges)[i])] =
+                            results[std::get<1>(missingIndexes[i])] =
                                 std::make_optional(importExistingEntry(
-                                    std::move(std::get<0>(std::get<1>(*missinges)[i])),
-                                    std::move(*entry)));
+                                    std::move(std::get<0>(missingIndexes[i])), std::move(*entry)));
                         }
                     }
 
-                    callback(nullptr, std::move(*results));
+                    callback(nullptr, std::move(results));
                 });
         }
         else
         {
-            _callback(nullptr, std::move(*results));
+            _callback(nullptr, std::move(results));
         }
     }
 
