@@ -23,7 +23,10 @@
 #include "../../libprotocol/LogEntry.h"
 #include "../protocol/ProtocolTypeDef.h"
 #include "libutilities/Common.h"
+#include <boost/iterator/iterator_categories.hpp>
+#include <boost/range/any_range.hpp>
 #include <memory>
+#include <string_view>
 
 namespace bcos
 {
@@ -112,9 +115,12 @@ public:
     // -----------------------------------------------
     // Key locks
     // -----------------------------------------------
-    virtual gsl::span<std::string const> const keyLocks() const = 0;
-    virtual std::vector<std::string>&& takeKeyLocks() = 0;
-    virtual void setKeyLocks(std::vector<std::string> keyLocks) = 0;
+    virtual boost::any_range<std::string_view, boost::forward_traversal_tag> keyLocks() const = 0;
+    virtual void setKeyLocks(
+        boost::any_range<std::string, boost::forward_traversal_tag> keyLocks) = 0;
+
+    virtual std::string_view keyLockAcquired() const = 0;
+    virtual void setKeyLockAcquired(std::string keyLock) = 0;
 };
 
 class ExecutionMessageFactory
