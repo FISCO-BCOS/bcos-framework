@@ -99,12 +99,15 @@ public:
 
     struct TwoPCParams
     {
-        bcos::protocol::BlockNumber number;
+        bcos::protocol::BlockNumber number = 0;
+        std::string primaryTableName;
+        std::string primaryTableKey;
+        uint64_t startTS = 0;
     };
 
     virtual void asyncPrepare(const TwoPCParams& params,
         const TraverseStorageInterface::ConstPtr& storage,
-        std::function<void(Error::Ptr&&)> callback) noexcept = 0;
+        std::function<void(Error::Ptr&&, uint64_t)> callback) noexcept = 0;
 
     virtual void asyncCommit(
         const TwoPCParams& params, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
