@@ -151,6 +151,22 @@ public:
         m_dirty = true;
     }
 
+    void importFields(std::vector<std::string> values) noexcept
+    {
+        EntryData data;
+        data.values.reserve(values.size());
+        m_capacityOfHashField = 0;
+
+        for (auto& value : values)
+        {
+            m_capacityOfHashField += value.size();
+            data.values.emplace_back(std::move(value));
+        }
+
+        m_data.reset(std::move(data));
+        m_dirty = true;
+    }
+
     std::vector<ValueType>&& exportFields() noexcept
     {
         auto data = m_data.mutableGet();
