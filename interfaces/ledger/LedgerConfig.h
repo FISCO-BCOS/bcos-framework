@@ -83,9 +83,13 @@ public:
         m_leaderSwitchPeriod = _leaderSwitchPeriod;
     }
 
-    // Note enforce to set this field
+    // Not enforce to set this field, in memory data
     void setSealerId(int64_t _sealerId) { m_sealerId = _sealerId; }
     int64_t sealerId() const { return m_sealerId; }
+
+    // Not enforce to set this field, in memory data
+    void setTxsSize(int64_t _txsSize) { m_txsSize = _txsSize; }
+    int64_t txsSize() const { return m_txsSize; }
 
 protected:
     bcos::consensus::ConsensusNodeListPtr m_consensusNodeList;
@@ -95,7 +99,9 @@ protected:
     uint64_t m_consensusTimeout;
     uint64_t m_blockTxCountLimit;
     uint64_t m_leaderSwitchPeriod = 1;
+    // no need to store, in memory data
     int64_t m_sealerId = -1;
+    int64_t m_txsSize = -1;
 };
 }  // namespace ledger
 }  // namespace bcos

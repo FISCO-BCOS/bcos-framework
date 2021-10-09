@@ -54,7 +54,7 @@ public:
     virtual bool shouldGenerateProposal();
     virtual bool shouldFetchTransaction();
 
-    bcos::protocol::Block::Ptr generateProposal();
+    std::pair<bool, bcos::protocol::Block::Ptr> generateProposal();
     virtual void setUnsealedTxsSize(size_t _unsealedTxsSize)
     {
         m_unsealedTxsSize = _unsealedTxsSize;
@@ -74,12 +74,23 @@ public:
     virtual void resetSealingInfo(
         ssize_t _startSealingNumber, ssize_t _endSealingNumber, size_t _maxTxsPerBlock)
     {
-        clearPendingTxs();
-        m_startSealingNumber = _startSealingNumber;
+        if (_startSealingNumber > _endSealingNumber)
+        {
+            return;
+        }
+        // non-continuous sealing request
+        if (m_sealingNumber > m_endSealingNumber || _startSealingNumber != (m_endSealingNumber + 1))
+        {
+            clearPendingTxs();
+            m_startSealingNumber = _startSealingNumber;
+            m_sealingNumber = _startSealingNumber;
+            m_lastSealTime = utcSteadyTime();
+        }
         m_endSealingNumber = _endSealingNumber;
         m_maxTxsPerBlock = _maxTxsPerBlock;
-        m_sealingNumber = _startSealingNumber;
-        m_lastSealTime = utcSteadyTime();
+        SEAL_LOG(INFO) << LOG_DESC("resetSealingInfo") << LOG_KV("start", m_startSealingNumber)
+                       << LOG_KV("end", m_endSealingNumber)
+                       << LOG_KV("sealingNumber", m_sealingNumber);
     }
 
     virtual void resetCurrentNumber(int64_t _currentNumber) { m_currentNumber = _currentNumber; }
@@ -91,6 +102,7 @@ public:
     {
         return m_onReady.add(_t);
     }
+    virtual void notifyResetProposal(bcos::protocol::Block::Ptr _block);
 
 protected:
     virtual void appendTransactions(
@@ -127,7 +139,7 @@ private:
 
     std::atomic_bool m_fetchingTxs = {false};
 
-    std::atomic<int64_t> m_currentNumber = {0};
+    std::atomic<ssize_t> m_currentNumber = {0};
 };
 }  // namespace sealer
 }  // namespace bcos
