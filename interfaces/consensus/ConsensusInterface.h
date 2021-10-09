@@ -43,7 +43,7 @@ public:
     virtual void stop() = 0;
 
     // TODO: Supplement the consensus-related interfaces required by RPC
-    virtual void asyncSubmitProposal(bytesConstRef _proposalData,
+    virtual void asyncSubmitProposal(bool _containSysTxs, bytesConstRef _proposalData,
         bcos::protocol::BlockNumber _proposalIndex, bcos::crypto::HashType const& _proposalHash,
         std::function<void(Error::Ptr)> _onProposalSubmitted) = 0;
 
@@ -67,6 +67,10 @@ public:
 
     virtual void asyncNoteUnSealedTxsSize(
         size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse) = 0;
+
+    // get the consensusNodeList
+    // Note: if seperate sealer with the PBFT module, should implement with notify
+    virtual ConsensusNodeList consensusNodeList() const { return ConsensusNodeList(); }
 };
 }  // namespace consensus
 }  // namespace bcos

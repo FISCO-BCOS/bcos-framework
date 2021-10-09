@@ -19,7 +19,7 @@
  * @date 2021-04-26
  */
 #pragma once
-#include "ThreadPool.h"
+#include "Common.h"
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
 namespace bcos
@@ -27,14 +27,16 @@ namespace bcos
 class Timer : public std::enable_shared_from_this<Timer>
 {
 public:
-    explicit Timer(uint64_t _timeout)
+    explicit Timer(uint64_t _timeout, std::string const& _threadName = "timer")
       : m_timeout(_timeout),
         m_ioService(std::make_shared<boost::asio::io_service>()),
         m_timer(std::make_shared<boost::asio::steady_timer>(*m_ioService)),
-        m_work(*m_ioService)
+        m_work(*m_ioService),
+        m_threadName(_threadName)
     {
         m_working = true;
-        m_worker = std::make_shared<std::thread>([&] {
+        m_worker.reset(new std::thread([&]() {
+            bcos::pthread_setThreadName(m_threadName);
             while (m_working)
             {
                 try
@@ -48,7 +50,7 @@ public:
                 }
                 m_ioService->reset();
             }
-        });
+        }));
     }
 
     virtual ~Timer() { destroy(); }
@@ -59,15 +61,24 @@ public:
         {
             return;
         }
-        stop();
-        m_working = false;
-        m_ioService->stop();
-        m_worker->join();
+        boost::unique_lock<boost::mutex> l(x_worker);
+        if (m_worker)
+        {
+            m_working = false;
+            stop();
+            m_ioService->stop();
+            m_worker->join();
+            m_worker.reset();
+        }
     }
     virtual void start();
     virtual void stop();
     virtual void restart()
     {
+        if (!m_working)
+        {
+            return;
+        }
         stop();
         start();
     }
@@ -107,10 +118,13 @@ private:
 
     std::shared_ptr<boost::asio::io_service> m_ioService;
     std::shared_ptr<boost::asio::steady_timer> m_timer;
-    std::shared_ptr<std::thread> m_worker;
+    std::unique_ptr<std::thread> m_worker;
+    mutable boost::mutex x_worker;
 
     std::function<void()> m_timeoutHandler;
     // m_work ensures that io_service's run() function will not exit while work is underway
     boost::asio::io_service::work m_work;
+
+    std::string m_threadName;
 };
 }  // namespace bcos
