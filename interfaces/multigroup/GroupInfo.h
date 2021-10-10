@@ -19,8 +19,9 @@
  * @date 2021-09-08
  */
 #pragma once
-#include "ChainNodeInfo.h"
+#include "ChainNodeInfoFactory.h"
 #include "GroupTypeDef.h"
+#include <json/json.h>
 namespace bcos
 {
 namespace group
@@ -33,6 +34,12 @@ public:
     GroupInfo(std::string const& _chainID, std::string const& _groupID)
       : m_chainID(_chainID), m_groupID(_groupID)
     {}
+    GroupInfo(ChainNodeInfoFactory::Ptr _chainNodeInfoFactory, std::string const& _jsonGroupInfoStr)
+      : m_chainNodeInfoFactory(_chainNodeInfoFactory)
+    {
+        deserialize(_jsonGroupInfoStr);
+    }
+
     virtual ~GroupInfo() {}
 
     virtual std::string const& genesisConfig() const { return m_genesisConfig; }
@@ -116,7 +123,45 @@ public:
     // return copied nodeInfos to ensure thread-safe
     std::map<std::string, ChainNodeInfo::Ptr> nodeInfos() { return m_nodeInfos; }
 
+protected:
+    virtual void deserialize(std::string const& _groupInfo)
+    {
+        Json::Value value;
+        Json::Reader jsonReader;
+        auto ret = jsonReader.parse(_groupInfo, value);
+        if (!ret)
+        {
+            BOOST_THROW_EXCEPTION(InvalidGroupInfo() << errinfo_comment(
+                                      "The group information must be valid json string."));
+        }
+        if (!value.isMember("chainID") || !value.isMember("groupID") || !value.isMember("nodes") ||
+            !value["nodes"].isArray())
+        {
+            BOOST_THROW_EXCEPTION(
+                InvalidGroupInfo() << errinfo_comment(
+                    "Invalid group information, must contain chainID, groupID and nodes fields"));
+        }
+        // required: parse chainID
+        setChainID(value["chainID"].asString());
+        // required: parse groupID
+        setGroupID(value["groupID"].asString());
+        // required: parse nodeInfos
+        auto const& nodeInfos = value["nodes"];
+        for (Json::ArrayIndex i = 0; i < nodeInfos.size(); i++)
+        {
+            auto const& nodeInfoItem = nodeInfos[i];
+            appendNodeInfo(m_chainNodeInfoFactory->createNodeInfo(nodeInfoItem.asString()));
+        }
+        // optional: parse status
+        if (value.isMember("status"))
+        {
+            setStatus((int32_t)(value["status"].asInt()));
+        }
+    }
+
 private:
+    ChainNodeInfoFactory::Ptr m_chainNodeInfoFactory;
+
     std::string m_chainID;
     std::string m_groupID;
     // the genesis config for the group

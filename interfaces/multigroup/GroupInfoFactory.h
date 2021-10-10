@@ -19,6 +19,7 @@
  * @date 2021-09-18
  */
 #pragma once
+#include "ChainNodeInfoFactory.h"
 #include "GroupInfo.h"
 namespace bcos
 {
@@ -34,6 +35,12 @@ public:
     virtual GroupInfo::Ptr createGroupInfo(std::string const& _chainID, std::string const& _groupID)
     {
         return std::make_shared<GroupInfo>(_chainID, _groupID);
+    }
+
+    virtual GroupInfo::Ptr createGroupInfo(
+        ChainNodeInfoFactory::Ptr _nodeInfoFactory, std::string const& _groupInfo)
+    {
+        return std::make_shared<GroupInfo>(_nodeInfoFactory, _groupInfo);
     }
 };
 }  // namespace group
