@@ -117,14 +117,14 @@ public:
     std::vector<bcos::protocol::LogEntry> m_logEntries;
     std::string m_newEVMContractAddress;
 
+    std::vector<std::string> m_keyLocks;
+    std::string m_keyLockAcquired;
+
     int32_t m_status = 0;
     int32_t m_depth = 0;
     Type m_type = TXHASH;
     bool m_create = false;
     bool m_staticCall = false;
-
-    std::vector<std::string> m_keyLocks;
-    std::string m_keyLockAcquired;
 };
 
 class NativeExecutionMessageFactory : public protocol::ExecutionMessageFactory
