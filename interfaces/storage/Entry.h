@@ -133,6 +133,8 @@ public:
 
     ssize_t refCount() const noexcept { return m_data.refCount(); }
 
+    auto&& fields() const noexcept { return m_data.get()->values; }
+
     void importFields(std::initializer_list<ValueType> values) noexcept
     {
         EntryData data;
