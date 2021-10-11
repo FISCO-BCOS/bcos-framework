@@ -136,15 +136,6 @@ public:
         std::function<void(Error::Ptr&&, std::set<std::string>&&)> _onGetGroupList) = 0;
 
     /**
-     * @brief get all the group informations of a given chainID
-     *
-     * @param _chainID the chainID
-     * @param _onGetGroupListInfo return all the group informations of a given chain
-     */
-    virtual void asyncGetGroupInfoList(std::string _chainID,
-        std::function<void(Error::Ptr&&, std::vector<GroupInfo::Ptr>&&)> _onGetGroupListInfo) = 0;
-
-    /**
      * @brief get the group information of a given group
      *
      * @param _chainID the chainID of the group

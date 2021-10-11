@@ -19,6 +19,7 @@
  * @date 2021-09-16
  */
 #pragma once
+#include "../../libutilities/Exceptions.h"
 #include "../../libutilities/Log.h"
 #include <memory>
 
@@ -40,6 +41,9 @@ enum class GroupStatus : int32_t
     Stopping = 7,
     Stopped = 8,
 };
+
+DERIVE_BCOS_EXCEPTION(InvalidGroupInfo);
+DERIVE_BCOS_EXCEPTION(InvalidChainNodeInfo);
 
 inline std::ostream& operator<<(std::ostream& _out, GroupStatus const& _er)
 {

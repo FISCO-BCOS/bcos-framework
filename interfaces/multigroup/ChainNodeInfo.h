@@ -21,6 +21,7 @@
 #pragma once
 #include "../../libutilities/Common.h"
 #include "GroupTypeDef.h"
+#include <json/json.h>
 #include <memory>
 namespace bcos
 {
@@ -39,8 +40,11 @@ public:
     using ServiceToDeployIpMap = std::map<std::string, std::string>;
     ChainNodeInfo() = default;
     ChainNodeInfo(std::string const& _nodeName, int32_t _type)
-      : m_nodeName(_nodeName), m_nodeType((NodeType)_type), m_privateKey(std::make_shared<bytes>())
+      : m_nodeName(_nodeName), m_nodeType((NodeType)_type)
     {}
+
+    explicit ChainNodeInfo(std::string const& _jsonGroupInfoStr) { deserialize(_jsonGroupInfoStr); }
+
     virtual ~ChainNodeInfo() {}
 
     virtual std::string const& nodeName() const { return m_nodeName; }
@@ -53,13 +57,13 @@ public:
         }
         return m_serviceToDeployIp.at(_serviceName);
     }
-    virtual bytes const& privateKey() const { return *m_privateKey; }
+    virtual std::string const& privateKey() const { return m_privateKey; }
 
     virtual void setNodeName(std::string const& _nodeName) { m_nodeName = _nodeName; }
     virtual void setNodeType(NodeType const& _nodeType) { m_nodeType = _nodeType; }
-    virtual void setPrivateKey(bytes&& _privateKey) { *m_privateKey = std::move(_privateKey); }
+    virtual void setPrivateKey(std::string&& _privateKey) { m_privateKey = std::move(_privateKey); }
 
-    virtual void setPrivateKey(bytes const& _privateKey) { *m_privateKey = _privateKey; }
+    virtual void setPrivateKey(std::string const& _privateKey) { m_privateKey = _privateKey; }
 
     virtual void appendDeployInfo(std::string const& _serviceName, std::string const& _deployIp)
     {
@@ -79,6 +83,73 @@ public:
     virtual void setIniConfig(std::string const& _iniConfig) { m_iniConfig = _iniConfig; }
     virtual std::string const& iniConfig() const { return m_iniConfig; }
 
+protected:
+    virtual void deserialize(std::string const& _jsonNodeInfo)
+    {
+        Json::Value value;
+        Json::Reader jsonReader;
+        auto ret = jsonReader.parse(_jsonNodeInfo, value);
+        if (!ret)
+        {
+            BOOST_THROW_EXCEPTION(InvalidChainNodeInfo() << errinfo_comment(
+                                      "The chain node information must be valid json string."));
+        }
+        // required: parse nodeNmae
+        if (!value.isMember("name"))
+        {
+            BOOST_THROW_EXCEPTION(
+                InvalidChainNodeInfo() << errinfo_comment("Must set the chain node name."));
+        }
+        setNodeName(value["name"].asString());
+        // required: parse nodeType
+        if (!value.isMember("type"))
+        {
+            BOOST_THROW_EXCEPTION(
+                InvalidChainNodeInfo() << errinfo_comment("Must set the chain node type."));
+        }
+        NodeType type = (NodeType)(value["type"].asUInt());
+        setNodeType(type);
+        // required: parse deployInfo
+        if (!value.isMember("deploy"))
+        {
+            BOOST_THROW_EXCEPTION(
+                InvalidChainNodeInfo() << errinfo_comment("Must contain the deploy info."));
+        }
+        if (!value["deploy"].isArray())
+        {
+            BOOST_THROW_EXCEPTION(
+                InvalidChainNodeInfo() << errinfo_comment("The deploy info must be array."));
+        }
+        auto const& deployInfo = value["deploy"];
+        for (Json::ArrayIndex i = 0; i < deployInfo.size(); i++)
+        {
+            auto const& deployItem = deployInfo[i];
+            if (!deployItem.isObject() || !deployItem.isMember("service") ||
+                !deployItem.isMember("ip"))
+            {
+                BOOST_THROW_EXCEPTION(
+                    InvalidChainNodeInfo() << errinfo_comment(
+                        "Invalid deploy info: must contain the service name and the ip"));
+            }
+            appendDeployInfo(deployItem["service"].asString(), deployItem["ip"].asString());
+        }
+        // optional: parse privateKey
+        if (value.isMember("privateKey"))
+        {
+            setPrivateKey(value["privateKey"].asString());
+        }
+        // optional: parse status
+        if (value.isMember("status"))
+        {
+            setStatus((NodeType)(value["status"].asInt()));
+        }
+        // optional: parse iniConfig
+        if (value.isMember("ini"))
+        {
+            setIniConfig(value["ini"].asString());
+        }
+    }
+
 private:
     // the node name
     std::string m_nodeName;
@@ -87,8 +158,8 @@ private:
     ServiceToDeployIpMap m_serviceToDeployIp;
     // the ini config maintained by the node, use the iniConfig of the node if empty
     std::string m_iniConfig = "";
-    // the private key of the node
-    bytesPointer m_privateKey;
+    // the private key of the node in pem format
+    std::string m_privateKey;
     std::string c_emptyIp = "";
     GroupStatus m_status;
 };

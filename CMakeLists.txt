@@ -127,6 +127,8 @@ add_subdirectory(libtool)
 
 # test releated
 if (TESTS)
+    hunter_add_package(jsoncpp)
+    find_package(jsoncpp CONFIG REQUIRED)
     enable_testing()
     set(CTEST_OUTPUT_ON_FAILURE True)
     add_subdirectory(test)
