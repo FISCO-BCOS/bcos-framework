@@ -73,6 +73,8 @@ public:
 
     virtual void asyncOpenTable(std::string_view tableName,
         std::function<void(Error::UniquePtr&&, std::optional<Table>&&)> callback) noexcept;
+
+    virtual TableInfo::ConstPtr getTableInfo(const std::string_view& tableName) noexcept;
 };
 
 class TraverseStorageInterface : public StorageInterface
