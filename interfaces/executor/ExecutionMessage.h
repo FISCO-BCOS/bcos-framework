@@ -114,9 +114,8 @@ public:
     // -----------------------------------------------
     // Key locks
     // -----------------------------------------------
-    virtual boost::any_range<std::string_view, boost::forward_traversal_tag> keyLocks() const = 0;
-    virtual void setKeyLocks(
-        boost::any_range<std::string, boost::forward_traversal_tag> keyLocks) = 0;
+    virtual gsl::span<std::string const> keyLocks() const = 0;
+    virtual void setKeyLocks(std::vector<std::string> keyLocks) = 0;
 
     virtual std::string_view keyLockAcquired() const = 0;
     virtual void setKeyLockAcquired(std::string keyLock) = 0;
