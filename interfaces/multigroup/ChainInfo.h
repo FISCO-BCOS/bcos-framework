@@ -53,7 +53,8 @@ public:
     }
 
     virtual std::string const& chainID() const { return m_chainID; }
-    virtual std::set<std::string> const& groupList() const { return m_groupList; }
+    // copy to ensure thread-safe
+    virtual std::set<std::string> groupList() const { return m_groupList; }
     virtual std::set<std::string> const& serviceList() const { return m_serviceList; }
     virtual GroupStatus status() const { return m_status; }
     virtual void setStatus(GroupStatus _status) { m_status = _status; }
