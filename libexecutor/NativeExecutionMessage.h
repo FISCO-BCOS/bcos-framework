@@ -82,19 +82,11 @@ public:
 
     std::string_view toStringView(const std::string& it) const { return std::string_view(it); }
 
-    boost::any_range<std::string_view, boost::forward_traversal_tag> keyLocks() const override
-    {
-        return boost::adaptors::transform(
-            m_keyLocks, [](auto&& it) { return std::string_view(it); });
-    }
+    gsl::span<std::string const> keyLocks() const override { return m_keyLocks; }
 
-    void setKeyLocks(boost::any_range<std::string, boost::forward_traversal_tag> keyLocks) override
+    void setKeyLocks(std::vector<std::string> keyLocks) override
     {
-        m_keyLocks.clear();
-        for (auto& it : keyLocks)
-        {
-            m_keyLocks.emplace_back(std::move(it));
-        }
+        m_keyLocks = std::move(keyLocks);
     }
 
     std::string_view keyLockAcquired() const override { return m_keyLockAcquired; }
