@@ -23,7 +23,7 @@
 #include "../../testutils/faker/FakeLedger.h"
 
 using namespace bcos;
-using namespace bcos::dispatcher;
+using namespace bcos::scheduler;
 namespace bcos
 {
 namespace test
@@ -36,23 +36,22 @@ public:
       : m_ledger(_ledger), m_blockFactory(_blockFactory)
     {}
     ~FakeScheduler() override {}
-    void executeBlock(const bcos::protocol::Block::ConstPtr& _block, bool _verify,
+    void executeBlock(bcos::protocol::Block::Ptr _block, bool,
         std::function<void(bcos::Error::Ptr&&, bcos::protocol::BlockHeader::Ptr&&)>
             _callback) noexcept override
     {
-        auto nonConstBlock = std::const_pointer_cast<bcos::protocol::Block>(_block);
-        auto blockHeader = nonConstBlock->blockHeader();
+        auto blockHeader = _block->blockHeader();
         if (m_blockFactory)
         {
-            blockHeader = m_blockFactory->blockHeaderFactory()->populateBlockHeader(
-                nonConstBlock->blockHeader());
+            blockHeader =
+                m_blockFactory->blockHeaderFactory()->populateBlockHeader(_block->blockHeader());
         }
         _callback(nullptr, std::move(blockHeader));
         return;
     }
 
     // Consensus and block-sync module use this interface to commit block
-    void commitBlock(const bcos::protocol::BlockHeader::ConstPtr& _blockHeader,
+    void commitBlock(bcos::protocol::BlockHeader::Ptr _blockHeader,
         std::function<void(bcos::Error::Ptr&&, bcos::ledger::LedgerConfig::Ptr&&)>
             _onCommitBlock) noexcept override
     {
@@ -65,13 +64,12 @@ public:
     {}
 
     // by rpc
-    void call(const protocol::Transaction::ConstPtr&,
+    void call(protocol::Transaction::Ptr,
         std::function<void(Error::Ptr&&, protocol::TransactionReceipt::Ptr&&)>) noexcept override
     {}
 
     // by executor
-    void registerExecutor(const std::string&,
-        const bcos::executor::ParallelTransactionExecutorInterface::Ptr&,
+    void registerExecutor(std::string, bcos::executor::ParallelTransactionExecutorInterface::Ptr,
         std::function<void(Error::Ptr&&)>) noexcept override
     {}
 

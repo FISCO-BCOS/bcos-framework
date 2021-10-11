@@ -22,6 +22,7 @@
 #include <testutils/faker/FakeFrontService.h>
 #include <testutils/faker/FakeKVStorage.h>
 #include <testutils/faker/FakeLedger.h>
+#include <testutils/faker/FakeScheduler.h>
 #include <testutils/faker/FakeSealer.h>
 #include <testutils/faker/FakeTxPool.h>
 #include <boost/test/unit_test.hpp>
@@ -32,6 +33,11 @@ namespace bcos
 namespace test
 {
 BOOST_FIXTURE_TEST_SUITE(FakersTest, TestPromptFixture)
+
+BOOST_AUTO_TEST_CASE(fakeSchedulerTest)
+{
+    std::make_shared<FakeScheduler>(nullptr, nullptr);
+}
 
 BOOST_AUTO_TEST_CASE(fakeDispatcherConstructor)
 {
