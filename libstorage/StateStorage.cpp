@@ -2,6 +2,7 @@
 #include "../libutilities/Error.h"
 #include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
+#include <tbb/spin_mutex.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/throw_exception.hpp>
 #include <optional>
@@ -287,84 +288,131 @@ std::optional<Table> StateStorage::createTable(std::string _tableName, std::stri
     return table;
 }
 
-std::vector<std::tuple<std::string, crypto::HashType>> StateStorage::tableHashes(
-    const bcos::crypto::Hash::Ptr& hashImpl)
+crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
 {
-    std::vector<std::tuple<std::string, crypto::HashType>> result;
+    bcos::h256 totalHash;
 
-    for (auto& tableIt : m_data)
-    {
-        if (!tableIt.second.dirty)
+    tbb::spin_mutex mutex;
+    tbb::parallel_for(m_data.range(), [&totalHash, &mutex, &hashImpl](auto&& range) {
+        for (auto& item : range)
         {
-            continue;
-        }
-
-        result.push_back({std::string(tableIt.first), crypto::HashType()});
-    }
-
-    tbb::parallel_sort(result.begin(), result.end(),
-        [](const std::tuple<std::string, crypto::HashType>& lhs,
-            const std::tuple<std::string, crypto::HashType>& rhs) {
-            return std::get<0>(lhs) < std::get<0>(rhs);
-        });
-
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, result.size()), [&](const tbb::blocked_range<size_t>& range) {
-            for (auto i = range.begin(); i != range.end(); ++i)
+            size_t bufferLength = 0;
+            for (auto& it : item.second.entries)
             {
-                auto& key = std::get<0>(result[i]);
-                auto& table = m_data.find(key)->second.entries;
-
-                std::vector<std::string> sortedEntries;
-                size_t totalSize = 0;
-                sortedEntries.reserve(table.size());
-                for (auto& entryIt : table)
+                auto& entry = std::get<1>(it.second);
+                if (entry.rollbacked())
                 {
-                    if (!std::get<Entry>(entryIt.second).rollbacked())
-                    {
-                        sortedEntries.push_back(std::string(entryIt.first));
-                        if (std::get<Entry>(entryIt.second).status() == Entry::DELETED)
-                        {
-                            totalSize += (entryIt.first.size() + 1);
-                        }
-                        else
-                        {
-                            totalSize +=
-                                (entryIt.first.size() +
-                                    std::get<Entry>(entryIt.second).capacityOfHashField() + 1);
-                        }
-                    }
+                    continue;
                 }
-
-                tbb::parallel_sort(sortedEntries.begin(), sortedEntries.end());
-
-                bcos::bytes data(totalSize);
-                size_t offset = 0;
-                for (auto& key : sortedEntries)
-                {
-                    memcpy(&(data.data()[offset]), key.data(), key.size());
-                    offset += key.size();
-
-                    auto& entry = std::get<Entry>(table.find(key)->second);
-                    if (entry.status() != Entry::DELETED)
-                    {
-                        for (auto field : entry)
-                        {
-                            memcpy(&(data.data()[offset]), field.data(), field.size());
-                            offset += field.size();
-                        }
-                    }
-
-                    data.data()[offset] = (char)entry.status();
-                    ++offset;
-                }
-
-                std::get<1>(result[i]) = hashImpl->hash(data);
+                bufferLength += entry.capacityOfHashField();
             }
-        });
 
-    return result;
+            bcos::bytes buffer;
+            buffer.reserve(bufferLength);
+            for (auto& it : item.second.entries)
+            {
+                auto& entry = std::get<1>(it.second);
+                if (entry.rollbacked())
+                {
+                    continue;
+                }
+
+                for (auto value : entry)
+                {
+                    buffer.insert(buffer.end(), value.begin(), value.end());
+                }
+            }
+
+            auto hash = hashImpl->hash(buffer);
+
+            tbb::spin_mutex::scoped_lock lock(mutex);
+            totalHash ^= hash;
+        }
+    });
+
+
+    return totalHash;
 }
+
+// std::vector<std::tuple<std::string, crypto::HashType StateStorage::tableHashes(
+//     const bcos::crypto::Hash::Ptr& hashImpl)
+// {
+//     std::vector<std::tuple<std::string, crypto::HashType>> result;
+
+//     for (auto& tableIt : m_data)
+//     {
+//         if (!tableIt.second.dirty)
+//         {
+//             continue;
+//         }
+
+//         result.push_back({std::string(tableIt.first), crypto::HashType()});
+//     }
+
+//     tbb::parallel_sort(result.begin(), result.end(),
+//         [](const std::tuple<std::string, crypto::HashType>& lhs,
+//             const std::tuple<std::string, crypto::HashType>& rhs) {
+//             return std::get<0>(lhs) < std::get<0>(rhs);
+//         });
+
+//     tbb::parallel_for(
+//         tbb::blocked_range<size_t>(0, result.size()), [&](const tbb::blocked_range<size_t>&
+//         range) {
+//             for (auto i = range.begin(); i != range.end(); ++i)
+//             {
+//                 auto& key = std::get<0>(result[i]);
+//                 auto& table = m_data.find(key)->second.entries;
+
+//                 std::vector<std::string> sortedEntries;
+//                 size_t totalSize = 0;
+//                 sortedEntries.reserve(table.size());
+//                 for (auto& entryIt : table)
+//                 {
+//                     if (!std::get<Entry>(entryIt.second).rollbacked())
+//                     {
+//                         sortedEntries.push_back(std::string(entryIt.first));
+//                         if (std::get<Entry>(entryIt.second).status() == Entry::DELETED)
+//                         {
+//                             totalSize += (entryIt.first.size() + 1);
+//                         }
+//                         else
+//                         {
+//                             totalSize +=
+//                                 (entryIt.first.size() +
+//                                     std::get<Entry>(entryIt.second).capacityOfHashField() + 1);
+//                         }
+//                     }
+//                 }
+
+//                 tbb::parallel_sort(sortedEntries.begin(), sortedEntries.end());
+
+//                 bcos::bytes data(totalSize);
+//                 size_t offset = 0;
+//                 for (auto& key : sortedEntries)
+//                 {
+//                     memcpy(&(data.data()[offset]), key.data(), key.size());
+//                     offset += key.size();
+
+//                     auto& entry = std::get<Entry>(table.find(key)->second);
+//                     if (entry.status() != Entry::DELETED)
+//                     {
+//                         for (auto field : entry)
+//                         {
+//                             memcpy(&(data.data()[offset]), field.data(), field.size());
+//                             offset += field.size();
+//                         }
+//                     }
+
+//                     data.data()[offset] = (char)entry.status();
+//                     ++offset;
+//                 }
+
+//                 std::get<1>(result[i]) = hashImpl->hash(data);
+//             }
+//         });
+
+//     return result;
+// }
 
 void StateStorage::rollback(const Recoder::Ptr& recoder)
 {

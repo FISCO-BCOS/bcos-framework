@@ -75,9 +75,7 @@ public:
 
     std::optional<Table> createTable(std::string _tableName, std::string _valueFields);
 
-    // TODO: change to XOR
-    std::vector<std::tuple<std::string, crypto::HashType>> tableHashes(
-        const bcos::crypto::Hash::Ptr& hashImpl);
+    crypto::HashType hash(const bcos::crypto::Hash::Ptr& hashImpl);
 
     class Recoder
     {
@@ -213,9 +211,6 @@ private:
     };
 
     tbb::concurrent_unordered_map<std::string_view, TableData, std::hash<std::string_view>> m_data;
-
-    // Since transaction is execute in the coroutine, thread local changeLog will be useless
-    // tbb::enumerable_thread_specific<std::vector<Change>> s_changeLog;
 
     tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
 

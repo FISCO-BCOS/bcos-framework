@@ -36,7 +36,7 @@ public:
     bcos::storage::Entry& operator=(const Entry&) noexcept = default;
     bcos::storage::Entry& operator=(Entry&&) noexcept = default;
 
-    ~Entry() {}
+    ~Entry() noexcept {}
 
     std::string_view getField(size_t index) const
     {
@@ -102,12 +102,12 @@ public:
         setField(index, std::move(value));
     }
 
-    auto begin() const noexcept
+    auto begin() const
     {
         return boost::make_transform_iterator(m_data.get()->values.cbegin(),
             std::bind(&Entry::valueView, this, std::placeholders::_1));
     }
-    auto end() const noexcept
+    auto end() const
     {
         return boost::make_transform_iterator(
             m_data.get()->values.cend(), std::bind(&Entry::valueView, this, std::placeholders::_1));
@@ -131,11 +131,11 @@ public:
         return m_capacityOfHashField;
     }
 
-    ssize_t refCount() const noexcept { return m_data.refCount(); }
+    ssize_t refCount() const { return m_data.refCount(); }
 
     auto&& fields() const noexcept { return m_data.get()->values; }
 
-    void importFields(std::initializer_list<ValueType> values) noexcept
+    void importFields(std::initializer_list<ValueType> values)
     {
         EntryData data;
         data.values.reserve(values.size());
@@ -151,7 +151,7 @@ public:
         m_dirty = true;
     }
 
-    void importFields(std::vector<std::string> values) noexcept
+    void importFields(std::vector<std::string> values)
     {
         EntryData data;
         data.values.reserve(values.size());
@@ -167,7 +167,7 @@ public:
         m_dirty = true;
     }
 
-    auto&& exportFields() noexcept
+    auto&& exportFields()
     {
         auto data = m_data.mutableGet();
         m_capacityOfHashField = 0;
