@@ -58,6 +58,12 @@ install(
     DESTINATION "${DESTINATION_INCLUDE_DIR}"
     FILES_MATCHING PATTERN "*.h"
 )
+#executor
+install(
+    DIRECTORY "libexecutor"
+    DESTINATION "${DESTINATION_INCLUDE_DIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
 #tool
 install(
     DIRECTORY "libtool"

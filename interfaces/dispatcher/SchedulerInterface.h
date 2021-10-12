@@ -40,30 +40,26 @@ public:
     virtual ~SchedulerInterface() {}
 
     // by pbft & sync
-    virtual void executeBlock(const bcos::protocol::Block::ConstPtr& block, bool verify,
+    virtual void executeBlock(bcos::protocol::Block::Ptr block, bool verify,
         std::function<void(bcos::Error::Ptr&&, bcos::protocol::BlockHeader::Ptr&&)>
             callback) noexcept = 0;
 
-    /**
-     * @brief async commit a block in consensus/sync module
-     * @param _blockHeader the header to commit, this header should have signList
-     * @param _onCommitBlock trigger this callback when commit block in storage
-     *                       return the system ledger config to the sync/consensus module
-     */
-    virtual void commitBlock(const bcos::protocol::BlockHeader::ConstPtr& header,
-        std::function<void(bcos::Error::Ptr&&, bcos::ledger::LedgerConfig::Ptr&&)>) noexcept = 0;
+    // by pbft & sync
+    virtual void commitBlock(bcos::protocol::BlockHeader::Ptr header,
+        std::function<void(bcos::Error::Ptr&&, bcos::ledger::LedgerConfig::Ptr&&)>
+            callback) noexcept = 0;
 
     // by console, query committed committing executing
     virtual void status(std::function<void(Error::Ptr&&, bcos::protocol::Session::ConstPtr&&)>
             callback) noexcept = 0;
 
     // by rpc
-    virtual void call(const protocol::Transaction::ConstPtr& tx,
+    virtual void call(protocol::Transaction::Ptr tx,
         std::function<void(Error::Ptr&&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
 
     // by executor
-    virtual void registerExecutor(const std::string& name,
-        const bcos::executor::ParallelTransactionExecutorInterface::Ptr& executor,
+    virtual void registerExecutor(std::string name,
+        bcos::executor::ParallelTransactionExecutorInterface::Ptr executor,
         std::function<void(Error::Ptr&&)> callback) noexcept = 0;
 
     virtual void unregisterExecutor(

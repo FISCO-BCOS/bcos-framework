@@ -22,7 +22,6 @@
 #pragma once
 #include "../../libprotocol/LogEntry.h"
 #include "../protocol/ProtocolTypeDef.h"
-#include "libutilities/Common.h"
 #include <boost/iterator/iterator_categories.hpp>
 #include <boost/range/any_range.hpp>
 #include <memory>
