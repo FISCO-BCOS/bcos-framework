@@ -23,7 +23,7 @@
 #include "../../testutils/faker/FakeLedger.h"
 
 using namespace bcos;
-using namespace bcos::dispatcher;
+using namespace bcos::scheduler;
 namespace bcos
 {
 namespace test

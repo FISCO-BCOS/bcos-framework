@@ -81,6 +81,7 @@ public:
 
         m_storage->asyncSetRow(_columnFamily, _key, std::move(value), std::move(_callback));
     }
+    StorageInterface::Ptr storage() { return m_storage; }
 
 private:
     StorageInterface::Ptr m_storage;
