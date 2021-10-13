@@ -82,6 +82,8 @@ public:
 
     virtual void setIniConfig(std::string const& _iniConfig) { m_iniConfig = _iniConfig; }
     virtual std::string const& iniConfig() const { return m_iniConfig; }
+    virtual std::string const& nodeID() const { return m_nodeID; }
+    virtual void setNodeID(std::string const& _nodeID) { m_nodeID = _nodeID; }
 
 protected:
     virtual void deserialize(std::string const& _jsonNodeInfo)
@@ -154,6 +156,9 @@ private:
     // the node name
     std::string m_nodeName;
     NodeType m_nodeType;
+    // the nodeID
+    std::string m_nodeID;
+
     // mapping of service to deployed machine
     ServiceToDeployIpMap m_serviceToDeployIp;
     // the ini config maintained by the node, use the iniConfig of the node if empty
