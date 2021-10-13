@@ -42,7 +42,10 @@ class ParallelTransactionExecutorInterface
 public:
     struct TwoPCParams
     {
-        bcos::protocol::BlockNumber number;
+        bcos::protocol::BlockNumber number = 0;
+        std::string primaryTableName;
+        std::string primaryTableKey;
+        uint64_t startTS = 0;
     };
 
     using Ptr = std::shared_ptr<ParallelTransactionExecutorInterface>;
