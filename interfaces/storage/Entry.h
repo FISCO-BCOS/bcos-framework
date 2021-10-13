@@ -31,12 +31,12 @@ public:
       : m_data(EntryData()), m_tableInfo(std::move(tableInfo))
     {}
 
-    Entry(const Entry&) = default;
-    Entry(Entry&&) = default;
-    bcos::storage::Entry& operator=(const Entry&) = default;
-    bcos::storage::Entry& operator=(Entry&&) = default;
+    Entry(const Entry&) noexcept = default;
+    Entry(Entry&&) noexcept = default;
+    bcos::storage::Entry& operator=(const Entry&) noexcept = default;
+    bcos::storage::Entry& operator=(Entry&&) noexcept = default;
 
-    ~Entry() {}
+    ~Entry() noexcept {}
 
     std::string_view getField(size_t index) const
     {
@@ -102,12 +102,12 @@ public:
         setField(index, std::move(value));
     }
 
-    auto begin() const noexcept
+    auto begin() const
     {
         return boost::make_transform_iterator(m_data.get()->values.cbegin(),
             std::bind(&Entry::valueView, this, std::placeholders::_1));
     }
-    auto end() const noexcept
+    auto end() const
     {
         return boost::make_transform_iterator(
             m_data.get()->values.cend(), std::bind(&Entry::valueView, this, std::placeholders::_1));
@@ -131,11 +131,11 @@ public:
         return m_capacityOfHashField;
     }
 
-    ssize_t refCount() const noexcept { return m_data.refCount(); }
+    ssize_t refCount() const { return m_data.refCount(); }
 
-    const std::vector<ValueType>& fields() const noexcept { return m_data.get()->values; }
+    auto&& fields() const noexcept { return m_data.get()->values; }
 
-    void importFields(std::initializer_list<ValueType> values) noexcept
+    void importFields(std::initializer_list<ValueType> values)
     {
         EntryData data;
         data.values.reserve(values.size());
@@ -151,7 +151,7 @@ public:
         m_dirty = true;
     }
 
-    void importFields(std::vector<std::string> values) noexcept
+    void importFields(std::vector<std::string> values)
     {
         EntryData data;
         data.values.reserve(values.size());
@@ -167,7 +167,7 @@ public:
         m_dirty = true;
     }
 
-    std::vector<ValueType>&& exportFields() noexcept
+    auto&& exportFields()
     {
         auto data = m_data.mutableGet();
         m_capacityOfHashField = 0;
@@ -182,32 +182,18 @@ public:
 private:
     std::string_view valueView(const ValueType& value) const
     {
-        switch (value.index())
-        {
-        case 0:
-            return std::get<0>(value);
-            break;
-        case 1:
-        {
-            auto& data = std::get<1>(value);
-            return std::string_view((char*)data.data(), data.size());
-            break;
-        }
-        case 2:
-        {
-            auto& data = std::get<2>(value);
-            return std::string_view((char*)data.data(), data.size());
-            break;
-        }
-        }
+        std::string_view view;
+        std::visit(
+            [&view](
+                auto&& value) { view = std::string_view((const char*)value.data(), value.size()); },
+            value);
 
-        BOOST_THROW_EXCEPTION(BCOS_ERROR(UnknownEntryType,
-            "Unknown entry type: " + boost::lexical_cast<std::string>(value.index())));
+        return view;
     }
 
     struct EntryData
     {
-        std::vector<ValueType> values;
+        boost::container::small_vector<ValueType, 1> values;
     };
 
     bcos::ConcurrentCOW<EntryData> m_data;  // should serialization

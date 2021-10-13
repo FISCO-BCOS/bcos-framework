@@ -65,10 +65,8 @@ public:
         std::function<void(bcos::Error::UniquePtr&&, bcos::protocol::ExecutionMessage::UniquePtr&&)>
             callback) noexcept = 0;
 
-    virtual void getTableHashes(bcos::protocol::BlockNumber number,
-        std::function<void(
-            bcos::Error::UniquePtr&&, std::vector<std::tuple<std::string, crypto::HashType>>&&)>
-            callback) noexcept = 0;
+    virtual void getHash(bcos::protocol::BlockNumber number,
+        std::function<void(bcos::Error::UniquePtr&&, crypto::HashType&&)> callback) noexcept = 0;
 
     /* ----- XA Transaction interface Start ----- */
 

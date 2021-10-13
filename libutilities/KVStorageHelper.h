@@ -65,7 +65,7 @@ public:
     }
 
     void asyncPut(const std::string_view& _columnFamily, const std::string_view& _key,
-        std::string _value, std::function<void(Error::UniquePtr&&)> _callback)
+        Entry::ValueType _value, std::function<void(Error::UniquePtr&&)> _callback)
     {
         Entry value;
         value.importFields({std::move(_value)});

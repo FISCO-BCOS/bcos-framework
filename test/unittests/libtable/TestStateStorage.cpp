@@ -216,7 +216,7 @@ BOOST_AUTO_TEST_CASE(rollback)
 
 BOOST_AUTO_TEST_CASE(rollback2)
 {
-    auto hash0 = tableFactory->tableHashes(hashImpl);
+    auto hash0 = tableFactory->hash(hashImpl);
     // auto savePoint0 = tableFactory->savepoint();
     auto savePoint0 = tableFactory->newRecoder();
     tableFactory->setRecoder(savePoint0);
@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE(rollback2)
     entry = table->getRow("name");
     BOOST_CHECK(!entry);
 
-    auto hash00 = tableFactory->tableHashes(hashImpl);
+    auto hash00 = tableFactory->hash(hashImpl);
     BOOST_CHECK_EQUAL_COLLECTIONS(hash0.begin(), hash0.end(), hash00.begin(), hash00.end());
     BOOST_TEST(hash00 == hash0);
     table = tableFactory->openTable(testTableName);
@@ -288,17 +288,7 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_CHECK_NO_THROW(table->setRow("name", *entry));
     entry = table->getRow("name");
     BOOST_TEST(entry);
-    // BOOST_TEST(table->dirty() == true);
-    auto dbHash0 = tableFactory->tableHashes(hashImpl);
-    // auto data0 = tableFactory->exportData(m_blockNumber);
     auto tableFactory0 = make_shared<StateStorage>(tableFactory);
-    // tableFactory0->importData(data0.first, data0.second);
-    /*
-    BOOST_TEST(dbHash0 == tableFactory0->hash());
-    tableFactory0 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
-    tableFactory0->importData(data0.first, data0.second, false);
-    BOOST_TEST(crypto::HashType() == tableFactory0->hash());
-    */
 
     entry = std::make_optional(table->newEntry());
     // entry->setField("key", "id");

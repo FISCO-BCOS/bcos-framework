@@ -18,6 +18,7 @@
 #pragma once
 
 #include <sys/time.h>
+#include <boost/container/options.hpp>
 #include <chrono>
 #include <functional>
 #include <map>
@@ -35,6 +36,7 @@
 #pragma GCC diagnostic pop
 #include "Log.h"
 #include "RefDataContainer.h"
+#include <boost/container/small_vector.hpp>
 #include <boost/thread.hpp>
 #include <atomic>
 #include <condition_variable>
@@ -51,6 +53,8 @@ using bytesPointer = std::shared_ptr<std::vector<byte>>;
 using bytesConstPtr = std::shared_ptr<const bytes>;
 using bytesRef = RefDataContainer<byte>;
 using bytesConstRef = RefDataContainer<byte const>;
+
+using smallBytes = boost::container::small_vector<byte, 40>;
 
 // Numeric types.
 using bigint = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<>>;
