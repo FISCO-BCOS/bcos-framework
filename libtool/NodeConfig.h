@@ -53,6 +53,23 @@ public:
         boost::property_tree::read_ini(_genesisConfigPath, genesisConfig);
         loadGenesisConfig(genesisConfig);
     }
+
+    virtual void loadConfigFromString(std::string const& _content)
+    {
+        boost::property_tree::ptree iniConfig;
+        std::stringstream contentStream(_content);
+        boost::property_tree::read_ini(contentStream, iniConfig);
+        loadConfig(iniConfig);
+    }
+
+    virtual void loadGenesisConfigFromString(std::string const& _content)
+    {
+        boost::property_tree::ptree genesisConfig;
+        std::stringstream contentStream(_content);
+        boost::property_tree::read_ini(contentStream, genesisConfig);
+        loadGenesisConfig(genesisConfig);
+    }
+
     virtual void loadConfig(boost::property_tree::ptree const& _pt);
     virtual void loadGenesisConfig(boost::property_tree::ptree const& _genesisConfig);
 
@@ -84,6 +101,10 @@ public:
 
     bool isWasm() const { return m_isWasm; }
 
+    std::string const& rpcServiceName() const { return m_rpcServiceName; }
+    std::string const& gatewayServiceName() const { return m_gatewayServiceName; }
+    std::string const& groupManagerServiceName() const { return m_groupManagerServiceName; }
+
 protected:
     virtual void loadTxPoolConfig(boost::property_tree::ptree const& _pt);
     virtual void loadChainConfig(boost::property_tree::ptree const& _pt);
@@ -96,6 +117,8 @@ protected:
     virtual void loadLedgerConfig(boost::property_tree::ptree const& _genesisConfig);
 
     void loadExecutorConfig(boost::property_tree::ptree const& _pt);
+
+    void loadServiceConfig(boost::property_tree::ptree const& _pt);
 
 private:
     bcos::consensus::ConsensusNodeListPtr parseConsensusNodeList(
@@ -139,6 +162,10 @@ private:
 
     // executor config
     bool m_isWasm = false;
+
+    std::string m_rpcServiceName;
+    std::string m_gatewayServiceName;
+    std::string m_groupManagerServiceName;
 };
 }  // namespace tool
 }  // namespace bcos
