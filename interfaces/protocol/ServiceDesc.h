@@ -26,8 +26,8 @@ namespace bcos
 {
 namespace protocol
 {
-const std::string STORAGE_SERVANT_NAME = "StorageServiceObj";
-const std::string STORAGE_SERVICE_NAME = "StorageService." + STORAGE_SERVANT_NAME;
+const std::string LEDGER_SERVANT_NAME = "LedgerServiceObj";
+const std::string LEDGER_SERVICE_NAME = "LedgerService." + LEDGER_SERVANT_NAME;
 
 const std::string DISPATCHER_SERVANT_NAME = "DispatcherServiceObj";
 const std::string DISPATCHER_SERVICE_NAME = "DispatcherService." + DISPATCHER_SERVANT_NAME;
@@ -50,6 +50,9 @@ const std::string CONSENSUS_SERVICE_NAME = "PBFTService." + CONSENSUS_SERVANT_NA
 const std::string RPC_SERVANT_NAME = "RpcServiceObj";
 const std::string RPC_SERVICE_NAME = "RpcService." + RPC_SERVANT_NAME;
 
+const std::string GROUPMANAGER_SERVANT_NAME = "GroupManagerServiceObj";
+const std::string GROUPMANAGER_SERVICE_NAME = "GroupManagerService." + GROUPMANAGER_SERVANT_NAME;
+
 inline std::string getApplicationName(
     std::string const& _chainID, std::string const& _groupID, std::string const& _nodeName)
 {
@@ -60,6 +63,5 @@ inline std::string getPrxDesc(std::string const& _appName, const std::string& se
 {
     return _appName + "." + serviceName;
 }
-
 }  // namespace protocol
 }  // namespace bcos
