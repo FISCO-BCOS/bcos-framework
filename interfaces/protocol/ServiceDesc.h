@@ -19,7 +19,9 @@
  * @date: 2021-10-11
  */
 #pragma once
-
+#include <iostream>
+#include <memory>
+#include <string>
 namespace bcos
 {
 namespace protocol
