@@ -132,7 +132,7 @@ public:
      * @param _chainID the chainID
      * @param _onGetGroupList return all the groupID list of a given chain
      */
-    virtual void asyncGetGroupList(std::string _chainID,
+    virtual void asyncGetGroupList(std::string const& _chainID,
         std::function<void(Error::Ptr&&, std::set<std::string>&&)> _onGetGroupList) = 0;
 
     /**
@@ -142,7 +142,7 @@ public:
      * @param _groupID the id of the group
      * @param _onGetGroupInfo return the queried group information
      */
-    virtual void asyncGetGroupInfo(std::string _chainID, std::string _groupID,
+    virtual void asyncGetGroupInfo(std::string const& _chainID, std::string const& _groupID,
         std::function<void(Error::Ptr&&, GroupInfo::Ptr&&)> _onGetGroupInfo) = 0;
 
     /**
@@ -153,8 +153,13 @@ public:
      * @param _nodeName the name of the node being queried
      * @param _onGetNodeInfo return the node information
      */
-    virtual void asyncGetNodeInfo(std::string _chainID, std::string _groupID, std::string _nodeName,
+    virtual void asyncGetNodeInfo(std::string const& _chainID, std::string const& _groupID,
+        std::string const& _nodeName,
         std::function<void(Error::Ptr&&, ChainNodeInfo::Ptr&&)> _onGetNodeInfo) = 0;
+
+    virtual void asyncGetGroupInfos(std::string const& _chainID,
+        std::vector<std::string> const& _groupList,
+        std::function<void(Error::Ptr&&, std::vector<GroupInfo::Ptr>&&)> _onGetNodeInfos) = 0;
 };
 }  // namespace group
 }  // namespace bcos
