@@ -45,7 +45,7 @@ public:
      * @param _callback: resp callback
      * @return void
      */
-    virtual void asyncNotifyBlockNumber(
+    virtual void asyncNotifyBlockNumber(std::string const& _groupID, std::string const& _nodeName,
         bcos::protocol::BlockNumber _blockNumber, std::function<void(Error::Ptr)> _callback) = 0;
 
     /// multi-group manager related interfaces
