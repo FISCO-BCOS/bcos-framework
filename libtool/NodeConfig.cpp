@@ -21,10 +21,12 @@
 #include "NodeConfig.h"
 #include "../interfaces/consensus/ConsensusNode.h"
 #include "../interfaces/ledger/LedgerTypeDef.h"
+#include "../interfaces/protocol/ServiceDesc.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
+
 
 #define MAX_BLOCK_LIMIT 5000
 
@@ -33,6 +35,7 @@ using namespace bcos::crypto;
 using namespace bcos::tool;
 using namespace bcos::consensus;
 using namespace bcos::ledger;
+using namespace bcos::protocol;
 
 NodeConfig::NodeConfig(KeyFactory::Ptr _keyFactory)
   : m_keyFactory(_keyFactory), m_ledgerConfig(std::make_shared<LedgerConfig>())
@@ -47,11 +50,32 @@ void NodeConfig::loadConfig(boost::property_tree::ptree const& _pt)
     loadConsensusConfig(_pt);
     loadStorageConfig(_pt);
     loadExecutorConfig(_pt);
+    loadServiceConfig(_pt);
 }
 
 void NodeConfig::loadGenesisConfig(boost::property_tree::ptree const& _genesisConfig)
 {
     loadLedgerConfig(_genesisConfig);
+}
+
+void NodeConfig::loadServiceConfig(boost::property_tree::ptree const& _pt)
+{
+    // TODO: check the service name
+    // rpc service name
+    auto rpcAppName = _pt.get<std::string>("service.rpc", "rpc");
+    m_rpcServiceName = getPrxDesc(rpcAppName, RPC_SERVICE_NAME);
+
+    // gateway service name
+    auto gatewayAppName = _pt.get<std::string>("service.gateway", "gateway");
+    m_gatewayServiceName = getPrxDesc(gatewayAppName, GATEWAY_SERVICE_NAME);
+
+    // group manager service name
+    auto groupMgrAppName = _pt.get<std::string>("service.groupMgr", "groupMgr");
+    m_groupManagerServiceName = getPrxDesc(groupMgrAppName, GROUPMANAGER_SERVICE_NAME);
+    NodeConfig_LOG(INFO) << LOG_DESC("loadServiceConfig")
+                         << LOG_KV("rpcServiceName", m_rpcServiceName)
+                         << LOG_KV("gatewayServiceName", m_gatewayServiceName)
+                         << LOG_KV("groupManagerServiceName", m_groupManagerServiceName);
 }
 
 // load the txpool related params
@@ -84,8 +108,8 @@ void NodeConfig::loadTxPoolConfig(boost::property_tree::ptree const& _pt)
 void NodeConfig::loadChainConfig(boost::property_tree::ptree const& _pt)
 {
     m_smCryptoType = _pt.get<bool>("chain.sm_crypto", false);
-    m_groupId = _pt.get<std::string>("chain.group_id", "test_group");
-    m_chainId = _pt.get<std::string>("chain.chain_id", "test_chain");
+    m_groupId = _pt.get<std::string>("chain.group_id", "group");
+    m_chainId = _pt.get<std::string>("chain.chain_id", "chain");
     m_blockLimit = checkAndGetValue(_pt, "chain.block_limit", "1000");
     if (m_blockLimit <= 0 || m_blockLimit > MAX_BLOCK_LIMIT)
     {
