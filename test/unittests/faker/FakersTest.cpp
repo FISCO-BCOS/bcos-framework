@@ -18,7 +18,6 @@
  */
 #include "../../../interfaces/executor/PrecompiledTypeDef.h"
 #include "../../../testutils/TestPromptFixture.h"
-#include <testutils/faker/FakeDispatcher.h>
 #include <testutils/faker/FakeFrontService.h>
 #include <testutils/faker/FakeKVStorage.h>
 #include <testutils/faker/FakeLedger.h>
@@ -37,11 +36,6 @@ BOOST_FIXTURE_TEST_SUITE(FakersTest, TestPromptFixture)
 BOOST_AUTO_TEST_CASE(fakeSchedulerTest)
 {
     std::make_shared<FakeScheduler>(nullptr, nullptr);
-}
-
-BOOST_AUTO_TEST_CASE(fakeDispatcherConstructor)
-{
-    std::make_shared<FakeDispatcher>();
 }
 
 BOOST_AUTO_TEST_CASE(fakeFrontServiceConstructor)
