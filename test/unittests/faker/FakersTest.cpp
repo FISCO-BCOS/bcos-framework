@@ -38,11 +38,6 @@ BOOST_AUTO_TEST_CASE(fakeSchedulerTest)
     std::make_shared<FakeScheduler>(nullptr, nullptr);
 }
 
-BOOST_AUTO_TEST_CASE(fakeDispatcherConstructor)
-{
-    std::make_shared<FakeDispatcher>();
-}
-
 BOOST_AUTO_TEST_CASE(fakeFrontServiceConstructor)
 {
     std::make_shared<FakeFrontService>(nullptr);

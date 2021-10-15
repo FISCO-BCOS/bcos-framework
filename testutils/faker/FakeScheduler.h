@@ -79,6 +79,10 @@ public:
     // clear all status
     void reset(std::function<void(Error::Ptr&&)>) noexcept override {}
 
+    void registerBlockNumberReceiver(
+        std::function<void(protocol::BlockNumber blockNumber)>) override
+    {}
+
 private:
     FakeLedger::Ptr m_ledger;
     BlockFactory::Ptr m_blockFactory;
