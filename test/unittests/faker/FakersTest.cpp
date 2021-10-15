@@ -18,7 +18,6 @@
  */
 #include "../../../interfaces/executor/PrecompiledTypeDef.h"
 #include "../../../testutils/TestPromptFixture.h"
-#include <testutils/faker/FakeDispatcher.h>
 #include <testutils/faker/FakeFrontService.h>
 #include <testutils/faker/FakeKVStorage.h>
 #include <testutils/faker/FakeLedger.h>

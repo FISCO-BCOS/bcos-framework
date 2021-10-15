@@ -41,31 +41,33 @@ public:
 
     // by pbft & sync
     virtual void executeBlock(bcos::protocol::Block::Ptr block, bool verify,
-        std::function<void(bcos::Error::Ptr&&, bcos::protocol::BlockHeader::Ptr&&)>
-            callback) noexcept = 0;
+        std::function<void(bcos::Error::Ptr&&, bcos::protocol::BlockHeader::Ptr&&)> callback) = 0;
 
     // by pbft & sync
     virtual void commitBlock(bcos::protocol::BlockHeader::Ptr header,
-        std::function<void(bcos::Error::Ptr&&, bcos::ledger::LedgerConfig::Ptr&&)>
-            callback) noexcept = 0;
+        std::function<void(bcos::Error::Ptr&&, bcos::ledger::LedgerConfig::Ptr&&)> callback) = 0;
 
     // by console, query committed committing executing
-    virtual void status(std::function<void(Error::Ptr&&, bcos::protocol::Session::ConstPtr&&)>
-            callback) noexcept = 0;
+    virtual void status(
+        std::function<void(Error::Ptr&&, bcos::protocol::Session::ConstPtr&&)> callback) = 0;
 
     // by rpc
     virtual void call(protocol::Transaction::Ptr tx,
-        std::function<void(Error::Ptr&&, protocol::TransactionReceipt::Ptr&&)>) noexcept = 0;
+        std::function<void(Error::Ptr&&, protocol::TransactionReceipt::Ptr&&)>) = 0;
 
     // by executor
     virtual void registerExecutor(std::string name,
         bcos::executor::ParallelTransactionExecutorInterface::Ptr executor,
-        std::function<void(Error::Ptr&&)> callback) noexcept = 0;
+        std::function<void(Error::Ptr&&)> callback) = 0;
 
     virtual void unregisterExecutor(
-        const std::string& name, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
+        const std::string& name, std::function<void(Error::Ptr&&)> callback) = 0;
 
     // clear all status
-    virtual void reset(std::function<void(Error::Ptr&&)> callback) noexcept = 0;
+    virtual void reset(std::function<void(Error::Ptr&&)> callback) = 0;
+
+    // register a block number receiver
+    virtual void registerBlockNumberReceiver(
+        std::function<void(protocol::BlockNumber blockNumber)> callback) = 0;
 };
 }  // namespace bcos::scheduler
