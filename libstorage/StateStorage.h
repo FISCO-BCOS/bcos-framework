@@ -17,6 +17,10 @@
  * @file Table.h
  * @author: xingqiangbai
  * @date: 2021-04-07
+ * @brief interface of Table
+ * @file StateStorage.h
+ * @author: ancelmo
+ * @date: 2021-09-01
  */
 #pragma once
 
@@ -81,6 +85,7 @@ public:
     {
     public:
         using Ptr = std::shared_ptr<Recoder>;
+        using ConstPtr = std::shared_ptr<Recoder>;
 
         struct Change
         {
@@ -109,7 +114,7 @@ public:
 
     Recoder::Ptr newRecoder() { return std::make_shared<Recoder>(); }
     void setRecoder(Recoder::Ptr recoder) { m_recoder.local().swap(recoder); }
-    void rollback(const Recoder::Ptr& recoder);
+    void rollback(const Recoder::ConstPtr& recoder);
 
 private:
     Entry& importExistingEntry(const std::string_view& key, Entry entry);
@@ -124,9 +129,8 @@ private:
     };
 
     tbb::concurrent_unordered_map<std::string_view, TableData, std::hash<std::string_view>> m_data;
-
     tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
-
     std::shared_ptr<StorageInterface> m_prev;
+    size_t m_capacity = 0;
 };
 }  // namespace bcos::storage
