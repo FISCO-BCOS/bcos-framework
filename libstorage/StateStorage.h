@@ -83,6 +83,8 @@ public:
 
     size_t capacity() const { return m_capacity; }
 
+    void setPrev(std::shared_ptr<StorageInterface> prev) { m_prev = std::move(prev); }
+
     class Recoder
     {
     public:
