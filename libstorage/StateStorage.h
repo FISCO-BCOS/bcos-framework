@@ -81,6 +81,8 @@ public:
 
     crypto::HashType hash(const bcos::crypto::Hash::Ptr& hashImpl);
 
+    size_t capacity() const { return m_capacity; }
+
     class Recoder
     {
     public:
