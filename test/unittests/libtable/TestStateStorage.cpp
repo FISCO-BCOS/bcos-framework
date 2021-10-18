@@ -241,6 +241,8 @@ BOOST_AUTO_TEST_CASE(rollback2)
     auto savePoint = tableFactory->newRecoder();
     tableFactory->setRecoder(savePoint);
 
+    BOOST_CHECK_GT(tableFactory->capacity(), 0);
+
     entry = table->newEntry();
     // entry->setField("key", "id");
     entry->setField("value", "12345");
@@ -305,19 +307,8 @@ BOOST_AUTO_TEST_CASE(hash)
     auto entries = table->getRows(keys);
     BOOST_TEST(entries.size() == 2);
 
-    /*
-    auto data1 = tableFactory->exportData(m_blockNumber);
-    auto dbHash1 = tableFactory->hash();
-    BOOST_TEST(dbHash1 != dbHash0);
-    auto tableFactory1 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
-    tableFactory1->importData(data1.first, data1.second);
-    BOOST_TEST(dbHash1 == tableFactory1->hash());
-    tableFactory1 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
-    tableFactory1->importData(data0.first, data0.second, false);
-    BOOST_TEST(crypto::HashType() == tableFactory1->hash());
-    */
+    auto dbHash1 = tableFactory->hash(hashImpl);
 
-    // auto savePoint = tableFactory->savepoint();
     auto savePoint = tableFactory->newRecoder();
     tableFactory->setRecoder(savePoint);
     auto idEntry = table->getRow("id");
@@ -327,18 +318,6 @@ BOOST_AUTO_TEST_CASE(hash)
     entry = table->getRow("id");
     BOOST_CHECK(!entry);
 
-    // BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
-    /*
-    auto data2 = tableFactory->exportData(m_blockNumber);
-    auto dbHash2 = tableFactory->hash();
-    auto tableFactory2 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
-    tableFactory2->importData(data2.first, data2.second);
-    BOOST_TEST(dbHash2 == tableFactory2->hash());
-    cout << LOG_KV("dbHash1", dbHash1) << LOG_KV("dbHash2", dbHash2);
-
-    BOOST_TEST(dbHash1 != dbHash2);
-    */
-
     tableFactory->rollback(savePoint);
     entry = table->getRow("name");
     BOOST_TEST(entry);
@@ -346,18 +325,8 @@ BOOST_AUTO_TEST_CASE(hash)
     BOOST_TEST(!entry);
     // BOOST_TEST(table->dirty() == true);
 
-    /*
-    auto data3 = tableFactory->exportData(m_blockNumber);
-    auto dbHash3 = tableFactory->hash();
-    cout << LOG_KV("dbHash3", dbHash3) << LOG_KV("dbHash1", dbHash1);
-    BOOST_TEST(dbHash3 == dbHash1);
-    auto tableFactory3 = make_shared<TableFactory>(memoryStorage, hashImpl, m_blockNumber);
-    tableFactory3->importData(data3.first, data3.second);
-    BOOST_TEST(dbHash3 == tableFactory3->hash());
-    tableFactory->commit();
-    tableFactory = make_shared<TableFactory>(memoryStorage, hashImpl, 1);
-    table = tableFactory->openTable(testTableName);
-    */
+    auto dbHash2 = tableFactory->hash(hashImpl);
+    BOOST_CHECK_EQUAL(dbHash1.hex(), dbHash2.hex());
 
     // getPrimaryKeys and getRows
     entry = table->newEntry();

@@ -49,46 +49,45 @@ public:
     };
 
     using Ptr = std::shared_ptr<ParallelTransactionExecutorInterface>;
-    using ConstPtr = std::shared_ptr<const ParallelTransactionExecutorInterface>;
 
     virtual void nextBlockHeader(const bcos::protocol::BlockHeader::ConstPtr& blockHeader,
-        std::function<void(bcos::Error::UniquePtr&&)> callback) noexcept = 0;
+        std::function<void(bcos::Error::UniquePtr)> callback) = 0;
 
     virtual void executeTransaction(bcos::protocol::ExecutionMessage::UniquePtr input,
-        std::function<void(bcos::Error::UniquePtr&&, bcos::protocol::ExecutionMessage::UniquePtr&&)>
-            callback) noexcept = 0;
+        std::function<void(bcos::Error::UniquePtr, bcos::protocol::ExecutionMessage::UniquePtr)>
+            callback) = 0;
 
     virtual void dagExecuteTransactions(
-        const gsl::span<bcos::protocol::ExecutionMessage::UniquePtr>& inputs,
+        gsl::span<bcos::protocol::ExecutionMessage::UniquePtr> inputs,
         std::function<void(
-            bcos::Error::UniquePtr&&, std::vector<bcos::protocol::ExecutionMessage::UniquePtr>&&)>
-            callback) noexcept = 0;
+            bcos::Error::UniquePtr, std::vector<bcos::protocol::ExecutionMessage::UniquePtr>)>
+            callback) = 0;
 
     virtual void call(bcos::protocol::ExecutionMessage::UniquePtr input,
-        std::function<void(bcos::Error::UniquePtr&&, bcos::protocol::ExecutionMessage::UniquePtr&&)>
-            callback) noexcept = 0;
+        std::function<void(bcos::Error::UniquePtr, bcos::protocol::ExecutionMessage::UniquePtr)>
+            callback) = 0;
 
     virtual void getHash(bcos::protocol::BlockNumber number,
-        std::function<void(bcos::Error::UniquePtr&&, crypto::HashType&&)> callback) noexcept = 0;
+        std::function<void(bcos::Error::UniquePtr, crypto::HashType)> callback) = 0;
 
     /* ----- XA Transaction interface Start ----- */
 
     // Write data to storage uncommitted
     virtual void prepare(
-        const TwoPCParams& params, std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
+        const TwoPCParams& params, std::function<void(bcos::Error::Ptr)> callback) = 0;
 
     // Commit uncommitted data
     virtual void commit(
-        const TwoPCParams& params, std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
+        const TwoPCParams& params, std::function<void(bcos::Error::Ptr)> callback) = 0;
 
     // Rollback the changes
     virtual void rollback(
-        const TwoPCParams& params, std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
+        const TwoPCParams& params, std::function<void(bcos::Error::Ptr)> callback) = 0;
 
     /* ----- XA Transaction interface End ----- */
 
     // drop all status
-    virtual void reset(std::function<void(bcos::Error::Ptr&&)> callback) noexcept = 0;
+    virtual void reset(std::function<void(bcos::Error::Ptr)> callback) = 0;
 };
 }  // namespace executor
 }  // namespace bcos

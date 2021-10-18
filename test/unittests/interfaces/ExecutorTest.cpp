@@ -17,7 +17,6 @@
  * @file ExecutorTest.cpp
  */
 
-#include "interfaces/executor/ExecutorInterface.h"
 #include "interfaces/executor/ParallelTransactionExecutorInterface.h"
 #include <boost/test/unit_test.hpp>
 #include <string>
@@ -40,11 +39,6 @@ struct ExecutorTestFixture
 };
 
 BOOST_FIXTURE_TEST_SUITE(ExecutorTest, ExecutorTestFixture)
-
-BOOST_AUTO_TEST_CASE(constructor)
-{
-    shared_ptr<ExecutorInterface> executor = nullptr;
-}
 
 BOOST_AUTO_TEST_CASE(ExecutionParams)
 {
