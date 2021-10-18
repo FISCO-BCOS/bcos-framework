@@ -29,17 +29,14 @@ namespace protocol
 const std::string LEDGER_SERVANT_NAME = "LedgerServiceObj";
 const std::string LEDGER_SERVICE_NAME = "LedgerService." + LEDGER_SERVANT_NAME;
 
-const std::string DISPATCHER_SERVANT_NAME = "DispatcherServiceObj";
-const std::string DISPATCHER_SERVICE_NAME = "DispatcherService." + DISPATCHER_SERVANT_NAME;
+const std::string SCHEDULER_SERVANT_NAME = "SchedulerServiceObj";
+const std::string SCHEDULER_SERVICE_NAME = "SchedulerService." + SCHEDULER_SERVANT_NAME;
 
 const std::string FRONT_SERVANT_NAME = "FrontServiceObj";
 const std::string FRONT_SERVICE_NAME = "FrontService." + FRONT_SERVANT_NAME;
 
 const std::string GATEWAY_SERVANT_NAME = "GatewayServiceObj";
 const std::string GATEWAY_SERVICE_NAME = "GatewayService." + GATEWAY_SERVANT_NAME;
-
-const std::string EXECUTOR_SERVANT_NAME = "ExecutorServiceObj";
-const std::string EXECUTOR_SERVICE_NAME = "ExecutorService." + EXECUTOR_SERVANT_NAME;
 
 const std::string TXPOOL_SERVANT_NAME = "TxPoolServiceObj";
 const std::string TXPOOL_SERVICE_NAME = "TxPoolService." + TXPOOL_SERVANT_NAME;
