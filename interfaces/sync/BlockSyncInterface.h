@@ -50,6 +50,8 @@ public:
 
     virtual void asyncNotifyCommittedIndex(
         bcos::protocol::BlockNumber _number, std::function<void(Error::Ptr _error)> _onRecv) = 0;
+    virtual void notifyConnectedNodes(bcos::crypto::NodeIDSet const& _connectedNodes,
+        std::function<void(Error::Ptr)> _onResponse) = 0;
 };
 }  // namespace sync
 }  // namespace bcos
