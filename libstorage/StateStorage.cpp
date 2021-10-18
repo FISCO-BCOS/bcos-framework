@@ -3,6 +3,7 @@
 #include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
 #include <tbb/spin_mutex.h>
+#include <boost/core/ignore_unused.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/throw_exception.hpp>
 #include <optional>
@@ -230,10 +231,11 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
             entry.setTableInfo(table.tableInfo);
         }
 
+        ssize_t updatedCapacity = entry.capacityOfHashField();
         std::optional<Entry> entryOld;
         std::string_view keyView;
-        auto entryIt = table.entries.find(key);
-        if (entryIt != table.entries.end())
+        auto entryIt = table.entries.lower_bound(key);
+        if (entryIt != table.entries.end() && entryIt->first == key)
         {
             auto& existsEntry = entryIt->second;
             if (!existsEntry.rollbacked())
@@ -242,12 +244,12 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
             }
             entryIt->second = std::move(entry);
 
+            updatedCapacity = updatedCapacity - entryOld->capacityOfHashField();
             keyView = entryIt->first;
         }
         else
         {
-            auto [it, inserted] = table.entries.emplace(std::string(key), std::move(entry));
-            (void)inserted;
+            auto it = table.entries.emplace_hint(entryIt, std::string(key), std::move(entry));
             keyView = it->first;
         }
 
@@ -258,6 +260,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
         }
         table.dirty = true;
 
+        m_capacity += updatedCapacity;
         callback(nullptr);
     };
 
@@ -409,7 +412,7 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
     return totalHash;
 }
 
-void StateStorage::rollback(const Recoder::Ptr& recoder)
+void StateStorage::rollback(const Recoder::ConstPtr& recoder)
 {
     for (auto& change : *recoder)
     {
@@ -422,29 +425,30 @@ void StateStorage::rollback(const Recoder::Ptr& recoder)
             auto& tableMap = tableIt->second.entries;
             if (change.entry)
             {
-                auto entryIt = tableMap.find(change.key);
-                if (entryIt == tableMap.end())
-                {
-                    tableMap.emplace(std::string(change.key), std::move(*(change.entry)));
-                }
-                else
+                auto entryIt = tableMap.lower_bound(change.key);
+                if (entryIt != tableMap.end() && entryIt->first == entryIt->first)
                 {
                     entryIt->second = std::move(*(change.entry));
                 }
+                else
+                {
+                    tableMap.emplace_hint(
+                        entryIt, std::string(change.key), std::move(*(change.entry)));
+                }
             }
             else
-            {  // nullptr means the key is not exist in m_cache
+            {  // nullopt means the key is not exist in m_cache
                 Entry oldEntry;
                 oldEntry.setRollbacked(true);
 
-                auto entryIt = tableMap.find(change.key);
-                if (entryIt == tableMap.end())
+                auto entryIt = tableMap.lower_bound(change.key);
+                if (entryIt != tableMap.end() && entryIt->first == entryIt->first)
                 {
-                    tableMap.emplace(std::string(change.key), std::move(oldEntry));
+                    entryIt->second = std::move(oldEntry);
                 }
                 else
                 {
-                    entryIt->second = std::move(oldEntry);
+                    tableMap.emplace_hint(entryIt, std::string(change.key), std::move(oldEntry));
                 }
             }
 

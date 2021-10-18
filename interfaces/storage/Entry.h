@@ -77,7 +77,7 @@ public:
         auto mutableData = m_data.mutableGet();
         auto& fieldValue = (mutableData->values)[index];
 
-        int32_t updatedCapacity = valueView(value).size() - std::get<0>(fieldValue).size();
+        int32_t updatedCapacity = valueView(value).size() - valueView(fieldValue).size();
 
         fieldValue = std::move(value);
         m_capacityOfHashField += updatedCapacity;
