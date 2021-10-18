@@ -68,17 +68,29 @@ BOOST_AUTO_TEST_CASE(testBase64Codec)
     std::string org =
         "aabbddeejlaskdjfaksldfjaksdjflkasdjfkasldjfkasdjfkalsdjfkaljfdk98qe9r8eq-"
         "9r0qw0eriq0wepotlasadf";
+    auto toBase64Length = [](size_t l) -> size_t { return (l + 2) / 3 * 4; };
     for (int i = 0; i < 100; ++i)
     {
         std::string s = org + std::to_string(i);
         auto base64 = base64Encode(s);
-
+        BOOST_CHECK_EQUAL(base64.size(), toBase64Length(s.size()));
         auto s0 = base64Decode(base64);
-        auto bytes = base64DecodeBytes(base64);
-        auto s1 = std::string(bytes->begin(), bytes->end());
+        BOOST_CHECK_EQUAL(s0.size(), s.size());
         BOOST_CHECK_EQUAL(s, s0);
+        auto bytes = base64DecodeBytes(base64);
+        BOOST_CHECK_EQUAL(bytes->size(), s.size());
+        auto s1 = std::string(bytes->begin(), bytes->end());
+        BOOST_CHECK_EQUAL(s1.size(), s.size());
         BOOST_CHECK_EQUAL(s, s1);
     }
+}
+
+BOOST_AUTO_TEST_CASE(testBase64CodecZero)
+{
+    std::vector<char> v(100, '\0');
+    auto ev = base64Encode((uint8_t*)v.data(), v.size());
+    auto ov = base64Decode(ev);
+    BOOST_CHECK_EQUAL(ov.size(), 100);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
