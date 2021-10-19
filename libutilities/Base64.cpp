@@ -45,9 +45,22 @@ std::string bcos::base64Encode(bytesConstRef _data)
 
 std::string bcos::base64Decode(std::string const& _data)
 {
+    size_t suffix = 0;
+    for (size_t i = _data.size() - 1; i >= _data.size() - 3; --i)
+    {
+        if (_data[i] == '=')
+        {
+            ++suffix;
+        }
+        else
+        {
+            break;
+        }
+    }
     using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
-    return boost::algorithm::trim_right_copy_if(
-        std::string(It(std::begin(_data)), It(std::end(_data))), [](char c) { return c == '\0'; });
+    auto ret = std::string(It(_data.begin()), It(std::end(_data)));
+    ret.resize(ret.size() - suffix);
+    return ret;
 }
 
 std::shared_ptr<bcos::bytes> bcos::base64DecodeBytes(std::string const& _data)

@@ -67,6 +67,9 @@ public:
     void notifyObserverNodeList(ConsensusNodeList const&, std::function<void(Error::Ptr)>) override
     {}
 
+    void notifyConnectedNodes(
+        bcos::crypto::NodeIDSet const&, std::function<void(Error::Ptr)>) override
+    {}
     void asyncSealTxs(size_t, TxsHashSetPtr,
         std::function<void(Error::Ptr, bcos::protocol::Block::Ptr, bcos::protocol::Block::Ptr)>)
         override
