@@ -85,6 +85,9 @@ public:
     virtual std::string const& nodeID() const { return m_nodeID; }
     virtual void setNodeID(std::string const& _nodeID) { m_nodeID = _nodeID; }
 
+    void setMicroService(bool _microService) { m_microService = _microService; }
+    bool microService() const { return m_microService; }
+
 protected:
     virtual void deserialize(std::string const& _jsonNodeInfo)
     {
@@ -135,11 +138,13 @@ protected:
             }
             appendDeployInfo(deployItem["service"].asString(), deployItem["ip"].asString());
         }
-        // optional: parse privateKey
+        // required: parse privateKey
         if (value.isMember("privateKey"))
         {
-            setPrivateKey(value["privateKey"].asString());
+            BOOST_THROW_EXCEPTION(InvalidChainNodeInfo()
+                                  << errinfo_comment("must contain the privateKey of the node"));
         }
+        setPrivateKey(value["privateKey"].asString());
         // optional: parse status
         if (value.isMember("status"))
         {
@@ -153,6 +158,7 @@ protected:
     }
 
 private:
+    bool m_microService = false;
     // the node name
     std::string m_nodeName;
     NodeType m_nodeType;
