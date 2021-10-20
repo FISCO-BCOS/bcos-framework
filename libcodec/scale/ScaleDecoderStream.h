@@ -253,7 +253,8 @@ public:
         catch (const std::bad_alloc&)
         {
             BOOST_THROW_EXCEPTION(
-                ScaleDecodeException() << errinfo_comment("exception for TOO_MANY_ITEMS"));
+                ScaleDecodeException()
+                << errinfo_comment("exception for TOO_MANY_ITEMS: " + std::to_string(item_count)));
         }
         if constexpr (sizeof(T) == 1u)
         {
@@ -298,8 +299,8 @@ public:
         }
         catch (const std::bad_alloc&)
         {
-            BOOST_THROW_EXCEPTION(
-                ScaleDecodeException() << errinfo_comment("exception for TOO_MANY_ITEMS"));
+            BOOST_THROW_EXCEPTION(ScaleDecodeException() << errinfo_comment(
+                                      "exception for TOO_MANY_ITEMS" + std::to_string(item_count)));
         }
 
         for (size_type i = 0u; i < item_count; ++i)
