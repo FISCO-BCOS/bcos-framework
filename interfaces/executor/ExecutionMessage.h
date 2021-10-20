@@ -37,6 +37,8 @@ public:
     using UniquePtr = std::unique_ptr<ExecutionMessage>;
     using UniqueConstPtr = std::unique_ptr<const ExecutionMessage>;
 
+    virtual ~ExecutionMessage() = default;
+
     enum Type : int8_t
     {
         TXHASH = 0,  // Received an new transaction from scheduler
