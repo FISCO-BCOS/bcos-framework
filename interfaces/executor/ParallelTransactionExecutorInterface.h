@@ -40,6 +40,8 @@ namespace executor
 class ParallelTransactionExecutorInterface
 {
 public:
+    virtual ~ParallelTransactionExecutorInterface() = default;
+
     struct TwoPCParams
     {
         bcos::protocol::BlockNumber number = 0;
