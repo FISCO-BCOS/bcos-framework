@@ -26,29 +26,32 @@ namespace bcos
 {
 namespace protocol
 {
+const std::string NATIVE_SERVANT_NAME = "NativeNodeObj";
+const std::string NATIVE_SERVICE_NAME = "NativeNode";
+
 const std::string LEDGER_SERVANT_NAME = "LedgerServiceObj";
-const std::string LEDGER_SERVICE_NAME = "LedgerService." + LEDGER_SERVANT_NAME;
+const std::string LEDGER_SERVICE_NAME = "LedgerService";
 
 const std::string SCHEDULER_SERVANT_NAME = "SchedulerServiceObj";
-const std::string SCHEDULER_SERVICE_NAME = "SchedulerService." + SCHEDULER_SERVANT_NAME;
+const std::string SCHEDULER_SERVICE_NAME = "SchedulerService";
 
 const std::string FRONT_SERVANT_NAME = "FrontServiceObj";
-const std::string FRONT_SERVICE_NAME = "FrontService." + FRONT_SERVANT_NAME;
+const std::string FRONT_SERVICE_NAME = "FrontService";
 
 const std::string GATEWAY_SERVANT_NAME = "GatewayServiceObj";
-const std::string GATEWAY_SERVICE_NAME = "GatewayService." + GATEWAY_SERVANT_NAME;
+const std::string GATEWAY_SERVICE_NAME = "GatewayService";
 
 const std::string TXPOOL_SERVANT_NAME = "TxPoolServiceObj";
-const std::string TXPOOL_SERVICE_NAME = "TxPoolService." + TXPOOL_SERVANT_NAME;
+const std::string TXPOOL_SERVICE_NAME = "TxPoolService";
 
 const std::string CONSENSUS_SERVANT_NAME = "PBFTServiceObj";
-const std::string CONSENSUS_SERVICE_NAME = "PBFTService." + CONSENSUS_SERVANT_NAME;
+const std::string CONSENSUS_SERVICE_NAME = "PBFTService";
 
 const std::string RPC_SERVANT_NAME = "RpcServiceObj";
-const std::string RPC_SERVICE_NAME = "RpcService." + RPC_SERVANT_NAME;
+const std::string RPC_SERVICE_NAME = "RpcService";
 
 const std::string GROUPMANAGER_SERVANT_NAME = "GroupManagerServiceObj";
-const std::string GROUPMANAGER_SERVICE_NAME = "GroupManagerService." + GROUPMANAGER_SERVANT_NAME;
+const std::string GROUPMANAGER_SERVICE_NAME = "GroupManagerService";
 
 inline std::string getApplicationName(
     std::string const& _chainID, std::string const& _groupID, std::string const& _nodeName)
@@ -56,9 +59,10 @@ inline std::string getApplicationName(
     return (_chainID + _groupID + _nodeName);
 }
 
-inline std::string getPrxDesc(std::string const& _appName, const std::string& serviceName)
+inline std::string getPrxDesc(
+    std::string const& _appName, const std::string& serviceName, std::string const& _objName)
 {
-    return _appName + "." + serviceName;
+    return _appName + "." + serviceName + "." + _objName;
 }
 }  // namespace protocol
 }  // namespace bcos

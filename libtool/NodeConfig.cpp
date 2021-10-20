@@ -63,15 +63,16 @@ void NodeConfig::loadServiceConfig(boost::property_tree::ptree const& _pt)
     // TODO: check the service name
     // rpc service name
     auto rpcAppName = _pt.get<std::string>("service.rpc", "rpc");
-    m_rpcServiceName = getPrxDesc(rpcAppName, RPC_SERVICE_NAME);
+    m_rpcServiceName = getPrxDesc(rpcAppName, RPC_SERVICE_NAME, RPC_SERVANT_NAME);
 
     // gateway service name
     auto gatewayAppName = _pt.get<std::string>("service.gateway", "gateway");
-    m_gatewayServiceName = getPrxDesc(gatewayAppName, GATEWAY_SERVICE_NAME);
+    m_gatewayServiceName = getPrxDesc(gatewayAppName, GATEWAY_SERVICE_NAME, GATEWAY_SERVANT_NAME);
 
     // group manager service name
     auto groupMgrAppName = _pt.get<std::string>("service.groupMgr", "groupMgr");
-    m_groupManagerServiceName = getPrxDesc(groupMgrAppName, GROUPMANAGER_SERVICE_NAME);
+    m_groupManagerServiceName =
+        getPrxDesc(groupMgrAppName, GROUPMANAGER_SERVICE_NAME, GROUPMANAGER_SERVANT_NAME);
     NodeConfig_LOG(INFO) << LOG_DESC("loadServiceConfig")
                          << LOG_KV("rpcServiceName", m_rpcServiceName)
                          << LOG_KV("gatewayServiceName", m_gatewayServiceName)
