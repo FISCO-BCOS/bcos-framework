@@ -46,7 +46,7 @@ public:
     void setGasAvailable(int64_t gasAvailable) override { m_gasAvailable = gasAvailable; }
 
     bcos::bytesConstRef data() const override { return ref(m_data); }
-    bcos::bytes&& takeData() override { return std::move(m_data); }
+    bcos::bytes takeData() override { return std::move(m_data); }
     void setData(bcos::bytes input) override { m_data = std::move(input); }
 
     bool staticCall() const override { return m_staticCall; }
@@ -65,7 +65,7 @@ public:
     {
         return m_logEntries;
     }
-    std::vector<bcos::protocol::LogEntry>&& takeLogEntries() override
+    std::vector<bcos::protocol::LogEntry> takeLogEntries() override
     {
         return std::move(m_logEntries);
     }
@@ -83,6 +83,8 @@ public:
     std::string_view toStringView(const std::string& it) const { return std::string_view(it); }
 
     gsl::span<std::string const> keyLocks() const override { return m_keyLocks; }
+
+    std::vector<std::string> takeKeyLocks() override { return std::move(m_keyLocks); }
 
     void setKeyLocks(std::vector<std::string> keyLocks) override
     {
