@@ -60,17 +60,21 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
 
             for (auto it = remoteKeys.begin(); it != remoteKeys.end();)
             {
+                bool deleted = false;
+
                 auto localIt = localKeys.find(*it);
                 if (localIt != localKeys.end())
                 {
                     if (localIt->second == Entry::DELETED)
                     {
                         it = remoteKeys.erase(it);
+                        deleted = true;
                     }
 
                     localKeys.erase(localIt);
                 }
-                else
+
+                if (!deleted)
                 {
                     ++it;
                 }
