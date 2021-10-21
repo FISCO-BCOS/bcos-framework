@@ -102,9 +102,17 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
         if (entryIt != tableIt->second.entries.end())
         {
             auto& entry = entryIt->second;
-            if (!entry.rollbacked() && entry.status() != Entry::DELETED)
+
+            if (!entry.rollbacked())
             {
-                _callback(nullptr, std::make_optional(entryIt->second));
+                if (entry.status() == Entry::DELETED)
+                {
+                    _callback(nullptr, std::nullopt);
+                }
+                else
+                {
+                    _callback(nullptr, std::make_optional(entry));
+                }
                 return;
             }
         }
@@ -112,8 +120,9 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
 
     if (m_prev)
     {
-        m_prev->asyncGetRow(
-            table, _key, [this, key = std::string(_key), _callback](auto&& error, auto&& entry) {
+        m_prev->asyncGetRow(table, _key,
+            [this, key = std::string(_key), _callback](
+                Error::UniquePtr error, std::optional<Entry> entry) {
                 if (error)
                 {
                     _callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
@@ -168,7 +177,7 @@ void StateStorage::asyncGetRows(const std::string_view& table,
                         }
                         else
                         {
-                            results[i] = {};
+                            results[i] = std::nullopt;
                         }
                         ++existsCount;
                     }
@@ -477,13 +486,19 @@ Entry& StateStorage::importExistingEntry(const std::string_view& key, Entry entr
             m_data.emplace(entry.tableInfo()->name(), TableData(entry.tableInfo()));
     }
 
-    auto [it, success] = tableIt->second.entries.emplace(std::string(key), std::move(entry));
-
-    if (!success)
+    auto it = tableIt->second.entries.lower_bound(key);
+    if (it != tableIt->second.entries.end() && it->first == key)
     {
-        BOOST_THROW_EXCEPTION(
-            BCOS_ERROR(StorageError::WriteError, "Insert existing entry failed, entry exists"));
+        if (!it->second.rollbacked())
+        {
+            BOOST_THROW_EXCEPTION(
+                BCOS_ERROR(StorageError::WriteError, "Insert existing entry failed, entry exists"));
+        }
+
+        it->second = std::move(entry);
+        return it->second;
     }
 
-    return it->second;
+    auto insertedIt = tableIt->second.entries.emplace_hint(it, std::string(key), std::move(entry));
+    return insertedIt->second;
 }
