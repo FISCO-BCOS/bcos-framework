@@ -13,7 +13,7 @@ using namespace bcos::storage;
 
 void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
     const std::optional<Condition const>& _condition,
-    std::function<void(Error::UniquePtr&&, std::vector<std::string>&&)> _callback) noexcept
+    std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback) noexcept
 {
     std::map<std::string_view, storage::Entry::Status> localKeys;
 
@@ -58,7 +58,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
                 return;
             }
 
-            for (auto it = remoteKeys.begin(); it != remoteKeys.end(); ++it)
+            for (auto it = remoteKeys.begin(); it != remoteKeys.end();)
             {
                 auto localIt = localKeys.find(*it);
                 if (localIt != localKeys.end())
@@ -69,6 +69,10 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
                     }
 
                     localKeys.erase(localIt);
+                }
+                else
+                {
+                    ++it;
                 }
             }
 
@@ -85,7 +89,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
 }
 
 void StateStorage::asyncGetRow(const std::string_view& table, const std::string_view& _key,
-    std::function<void(Error::UniquePtr&&, std::optional<Entry>&&)> _callback) noexcept
+    std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback) noexcept
 {
     auto tableIt = m_data.find(table);
     if (tableIt != m_data.end())
@@ -134,7 +138,7 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
 void StateStorage::asyncGetRows(const std::string_view& table,
     const std::variant<const gsl::span<std::string_view const>, const gsl::span<std::string const>>&
         _keys,
-    std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
+    std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)> _callback) noexcept
 {
     std::visit(
         [this, table, callback = std::move(_callback)](auto&& _keys) {
@@ -221,7 +225,7 @@ void StateStorage::asyncGetRows(const std::string_view& table,
 }
 
 void StateStorage::asyncSetRow(const std::string_view& table, const std::string_view& key,
-    Entry entry, std::function<void(Error::UniquePtr&&)> callback) noexcept
+    Entry entry, std::function<void(Error::UniquePtr)> callback) noexcept
 {
     auto setEntryToTable = [this, entry = std::move(entry)](const std::string_view& key,
                                TableData& table,

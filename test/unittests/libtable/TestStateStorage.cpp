@@ -24,6 +24,7 @@
 #include "libutilities/Error.h"
 #include "libutilities/ThreadPool.h"
 #include <tbb/concurrent_vector.h>
+#include <boost/exception/diagnostic_information.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
@@ -753,6 +754,40 @@ BOOST_AUTO_TEST_CASE(checkVersion)
     Entry value3;
     value3.importFields({"v3"});
     BOOST_CHECK_NO_THROW(table->setRow("abc", std::move(value3)));
+}
+
+BOOST_AUTO_TEST_CASE(deleteAndQuery)
+{
+    StateStorage::Ptr storage1 = std::make_shared<StateStorage>(nullptr);
+
+    storage1->asyncCreateTable(
+        "table", "value", [](Error::UniquePtr error, std::optional<Table> table) {
+            BOOST_CHECK(!error);
+            BOOST_CHECK(table);
+        });
+
+    Entry entry1;
+    entry1.importFields({"value1"});
+    storage1->asyncSetRow(
+        "table", "key1", std::move(entry1), [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+    Entry entry2;
+    entry2.importFields({"value2"});
+    storage1->asyncSetRow(
+        "table", "key2", std::move(entry2), [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+
+    StateStorage::Ptr storage2 = std::make_shared<StateStorage>(storage1);
+    Entry deleteEntry;
+    deleteEntry.setStatus(Entry::DELETED);
+    storage2->asyncSetRow("table", "key2", std::move(deleteEntry),
+        [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+
+    StateStorage::Ptr storage3 = std::make_shared<StateStorage>(storage2);
+    storage3->asyncGetPrimaryKeys(
+        "table", std::nullopt, [](Error::UniquePtr error, std::vector<std::string> keys) {
+            BOOST_CHECK(!error);
+            BOOST_CHECK_EQUAL(keys.size(), 1);
+            BOOST_CHECK_EQUAL(keys[0], "key1");
+        });
 }
 
 BOOST_AUTO_TEST_SUITE_END()
