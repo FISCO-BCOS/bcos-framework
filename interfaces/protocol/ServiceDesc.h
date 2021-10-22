@@ -26,11 +26,24 @@ namespace bcos
 {
 namespace protocol
 {
+enum ServiceType : int32_t
+{
+    NATIVE = 0,
+    EXECUTOR = 1,
+    LEDGER = 2,
+    SCHEDULER = 3,
+    FRONT = 4,
+    CONSENSUS = 5,
+    GATEWAY = 6,
+    RPC = 7,
+    TXPOOL = 8,
+};
 const std::string NATIVE_SERVANT_NAME = "NativeNodeObj";
-const std::string NATIVE_SERVICE_NAME = "NativeNode";
 
 const std::string LEDGER_SERVANT_NAME = "LedgerServiceObj";
-const std::string LEDGER_SERVICE_NAME = "LedgerService";
+
+const std::string EXECUTOR_SERVANT_NAME = "ExecutorServiceObj";
+const std::string EXECUTOR_SERVICE_NAME = "ExecutorService";
 
 const std::string SCHEDULER_SERVANT_NAME = "SchedulerServiceObj";
 const std::string SCHEDULER_SERVICE_NAME = "SchedulerService";
@@ -39,7 +52,6 @@ const std::string FRONT_SERVANT_NAME = "FrontServiceObj";
 const std::string FRONT_SERVICE_NAME = "FrontService";
 
 const std::string GATEWAY_SERVANT_NAME = "GatewayServiceObj";
-const std::string GATEWAY_SERVICE_NAME = "GatewayService";
 
 const std::string TXPOOL_SERVANT_NAME = "TxPoolServiceObj";
 const std::string TXPOOL_SERVICE_NAME = "TxPoolService";
@@ -48,21 +60,41 @@ const std::string CONSENSUS_SERVANT_NAME = "PBFTServiceObj";
 const std::string CONSENSUS_SERVICE_NAME = "PBFTService";
 
 const std::string RPC_SERVANT_NAME = "RpcServiceObj";
-const std::string RPC_SERVICE_NAME = "RpcService";
 
-const std::string GROUPMANAGER_SERVANT_NAME = "GroupManagerServiceObj";
-const std::string GROUPMANAGER_SERVICE_NAME = "GroupManagerService";
+const std::string UNKNOWN_SERVANT = "Unknown";
 
-inline std::string getApplicationName(
-    std::string const& _chainID, std::string const& _groupID, std::string const& _nodeName)
+inline std::string getPrxDesc(std::string const& _serviceName, std::string const& _objName)
 {
-    return (_chainID + _groupID + _nodeName);
+    return _serviceName + "." + _objName;
 }
 
-inline std::string getPrxDesc(
-    std::string const& _appName, const std::string& serviceName, std::string const& _objName)
+inline std::string getServiceObjByType(ServiceType _type)
 {
-    return _appName + "." + serviceName + "." + _objName;
+    switch (_type)
+    {
+    case NATIVE:
+        return NATIVE_SERVANT_NAME;
+    case EXECUTOR:
+        return EXECUTOR_SERVANT_NAME;
+    case LEDGER:
+        return LEDGER_SERVANT_NAME;
+    case SCHEDULER:
+        return SCHEDULER_SERVANT_NAME;
+    case FRONT:
+        return FRONT_SERVANT_NAME;
+    case CONSENSUS:
+        return CONSENSUS_SERVANT_NAME;
+    case GATEWAY:
+        return GATEWAY_SERVANT_NAME;
+    case RPC:
+        return RPC_SERVANT_NAME;
+    case TXPOOL:
+        return TXPOOL_SERVANT_NAME;
+    default:
+        // undefined Comparator
+        break;
+    }
+    return UNKNOWN_SERVANT;
 }
 }  // namespace protocol
 }  // namespace bcos

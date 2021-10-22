@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "../../interfaces/multigroup/GroupManagerInterface.h"
+#include "../../interfaces/multigroup/GroupInfo.h"
 #include "../../interfaces/protocol/ProtocolTypeDef.h"
 #include "../../libutilities/Error.h"
 
