@@ -23,6 +23,8 @@
 #include "../../libutilities/Common.h"
 #include "../../libutilities/DataConvertUtility.h"
 #include <boost/algorithm/string.hpp>
+#include <vector>
+#include <utility>
 
 namespace bcos
 {
@@ -39,6 +41,16 @@ struct ABIElementType : std::false_type
 // string
 template <>
 struct ABIElementType<std::string> : std::true_type
+{
+};
+
+template<>
+struct ABIElementType<std::uint8_t> : std::true_type
+{
+};
+
+template<>
+struct ABIElementType<std::uint32_t> : std::true_type
 {
 };
 
@@ -64,6 +76,18 @@ struct ABIElementType<bool> : std::true_type
 template <>
 struct ABIElementType<string32> : std::true_type
 {
+};
+
+template <typename T1, typename T2>
+struct ABIElementType<std::pair<T1, T2>>
+{
+    static bool constexpr value = ABIElementType<T1>::value && ABIElementType<T2>::value;
+};
+
+template <typename T>
+struct ABIElementType<std::vector<T>>
+{
+    static bool constexpr value = ABIElementType<T>::value;
 };
 
 // check if T type of string
