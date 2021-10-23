@@ -560,7 +560,6 @@ BOOST_AUTO_TEST_CASE(ContractABI_ABIType)
     BOOST_CHECK(at.extent(1) == 10);
     BOOST_CHECK(at.rank() == 1);
 
-
     ok = at.reset("string[10][][20]");
     BOOST_CHECK(ok == true);
     BOOST_CHECK(at.getType() == "string[10][][20]");
