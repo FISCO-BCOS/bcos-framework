@@ -37,6 +37,8 @@ public:
     using UniquePtr = std::unique_ptr<ExecutionMessage>;
     using UniqueConstPtr = std::unique_ptr<const ExecutionMessage>;
 
+    virtual ~ExecutionMessage() = default;
+
     enum Type : int8_t
     {
         TXHASH = 0,  // Received an new transaction from scheduler
@@ -128,7 +130,7 @@ public:
     using Ptr = std::shared_ptr<ExecutionMessageFactory>;
     using ConstPtr = std::shared_ptr<const ExecutionMessageFactory>;
 
-    virtual ~ExecutionMessageFactory(){};
+    virtual ~ExecutionMessageFactory() = default;
 
     virtual ExecutionMessage::UniquePtr createExecutionMessage() = 0;
 };

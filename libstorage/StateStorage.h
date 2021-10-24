@@ -55,21 +55,20 @@ public:
 
     void asyncGetPrimaryKeys(const std::string_view& table,
         const std::optional<storage::Condition const>& _condition,
-        std::function<void(Error::UniquePtr&&, std::vector<std::string>&&)> _callback) noexcept
+        std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback) noexcept
         override;
 
     void asyncGetRow(const std::string_view& table, const std::string_view& _key,
-        std::function<void(Error::UniquePtr&&, std::optional<Entry>&&)> _callback) noexcept
-        override;
+        std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback) noexcept override;
 
     void asyncGetRows(const std::string_view& table,
         const std::variant<const gsl::span<std::string_view const>,
             const gsl::span<std::string const>>& _keys,
-        std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)>
-            _callback) noexcept override;
+        std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)> _callback) noexcept
+        override;
 
     void asyncSetRow(const std::string_view& table, const std::string_view& key, Entry entry,
-        std::function<void(Error::UniquePtr&&)> callback) noexcept override;
+        std::function<void(Error::UniquePtr)> callback) noexcept override;
 
     void parallelTraverse(bool onlyDirty, std::function<bool(const std::string_view& table,
                                               const std::string_view& key, const Entry& entry)>
