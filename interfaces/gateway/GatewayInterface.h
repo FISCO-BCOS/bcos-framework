@@ -20,7 +20,7 @@
  */
 #pragma once
 #include "../../interfaces/crypto/KeyInterface.h"
-#include "../../interfaces/multigroup/GroupManagerInterface.h"
+#include "../../interfaces/multigroup/GroupInfo.h"
 #include "../../libutilities/Common.h"
 #include "../../libutilities/Error.h"
 

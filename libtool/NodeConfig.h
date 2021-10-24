@@ -46,6 +46,10 @@ public:
         boost::property_tree::read_ini(_configPath, iniConfig);
         loadConfig(iniConfig);
     }
+    virtual void loadServiceConfig(boost::property_tree::ptree const& _pt);
+
+    virtual void loadNodeServiceConfig(
+        std::string const& _nodeID, boost::property_tree::ptree const& _pt);
 
     virtual void loadGenesisConfig(std::string const& _genesisConfigPath)
     {
@@ -103,7 +107,18 @@ public:
 
     std::string const& rpcServiceName() const { return m_rpcServiceName; }
     std::string const& gatewayServiceName() const { return m_gatewayServiceName; }
-    std::string const& groupManagerServiceName() const { return m_groupManagerServiceName; }
+
+    std::string const& schedulerServiceName() const { return m_schedulerServiceName; }
+    std::string const& txpoolServiceName() const { return m_txpoolServiceName; }
+    std::string const& consensusServiceName() const { return m_consensusServiceName; }
+    std::string const& frontServiceName() const { return m_frontServiceName; }
+    std::string const& exeutorServiceName() const { return m_exeutorServiceName; }
+    std::string const& nodeName() const { return m_nodeName; }
+
+    std::string getDefaultServiceName(std::string const& _nodeName, std::string const& _serviceName)
+    {
+        return m_chainId + "." + _nodeName + _serviceName;
+    }
 
 protected:
     virtual void loadTxPoolConfig(boost::property_tree::ptree const& _pt);
@@ -118,7 +133,10 @@ protected:
 
     void loadExecutorConfig(boost::property_tree::ptree const& _pt);
 
-    void loadServiceConfig(boost::property_tree::ptree const& _pt);
+    std::string getServiceName(boost::property_tree::ptree const& _pt,
+        std::string const& _configSection, std::string const& _objName,
+        std::string const& _defaultValue = "", bool _require = true);
+    void checkService(std::string const& _serviceType, std::string const& _serviceName);
 
 private:
     bcos::consensus::ConsensusNodeListPtr parseConsensusNodeList(
@@ -165,7 +183,14 @@ private:
 
     std::string m_rpcServiceName;
     std::string m_gatewayServiceName;
-    std::string m_groupManagerServiceName;
+
+    // the serviceName of other modules
+    std::string m_schedulerServiceName;
+    std::string m_txpoolServiceName;
+    std::string m_consensusServiceName;
+    std::string m_frontServiceName;
+    std::string m_exeutorServiceName;
+    std::string m_nodeName;
 };
 }  // namespace tool
 }  // namespace bcos
