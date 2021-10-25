@@ -19,7 +19,11 @@
  * @date: 2021-08-20
  */
 #pragma once
+#include "../../interfaces/crypto/Hash.h"
 #include "../../interfaces/crypto/KeyInterface.h"
+#include "Transaction.h"
+#include "TransactionSubmitResult.h"
+
 namespace bcos
 {
 namespace protocol
@@ -38,6 +42,8 @@ public:
 
     virtual void setHash(bcos::crypto::HashType const& _hash) = 0;
     virtual void setTo(std::string const& _to) = 0;
+
+    virtual void setSubmitCallback(TxSubmitCallback _submitCallback) = 0;
 };
 using TransactionMetaDataList = std::vector<TransactionMetaData::Ptr>;
 using TransactionMetaDataListPtr = std::shared_ptr<TransactionMetaDataList>;
