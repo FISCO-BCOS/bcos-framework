@@ -99,6 +99,7 @@ public:
 
     virtual bytesConstRef signatureData() const = 0;
 
+    virtual TxSubmitCallback takeSubmitCallback() { return std::move(m_submitCallback); }
     virtual TxSubmitCallback submitCallback() const { return m_submitCallback; }
     virtual void setSubmitCallback(TxSubmitCallback _submitCallback)
     {
