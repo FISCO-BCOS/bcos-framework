@@ -62,17 +62,6 @@ public:
             m_receiptFactory, _data, _calculateHash, _checkSig);
     }
 
-    TransactionMetaData::Ptr createTransactionMetaData() override
-    {
-        return std::make_shared<PBTransactionMetaData>();
-    }
-    TransactionMetaData::Ptr createTransactionMetaData(
-        bcos::crypto::HashType const _hash, std::string const& _to) override
-    {
-        return std::make_shared<PBTransactionMetaData>(_hash, _to);
-    }
-
-
     bcos::crypto::CryptoSuite::Ptr cryptoSuite() override
     {
         return m_transactionFactory->cryptoSuite();

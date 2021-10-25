@@ -19,12 +19,14 @@
  * @date: 2021-03-23
  */
 #pragma once
+#include "../../libprotocol/NativeTransactionMetaData.h"
 #include "libprotocol/protobuf/PBBlock.h"
 #include "libprotocol/protobuf/PBBlockFactory.h"
 #include "testutils/crypto/HashImpl.h"
 #include "testutils/protocol/FakeBlockHeader.h"
 #include "testutils/protocol/FakeTransaction.h"
 #include "testutils/protocol/FakeTransactionReceipt.h"
+#include <boost/core/ignore_unused.hpp>
 #include <boost/test/unit_test.hpp>
 using namespace bcos;
 using namespace bcos::protocol;
@@ -161,8 +163,13 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
     {
         auto content = "transaction: " + std::to_string(i);
         auto hash = _cryptoSuite->hashImpl()->hash(content);
-        auto txMetaData = _blockFactory->createTransactionMetaData(hash, *toHexString(hash));
-        block->appendTransactionMetaData(txMetaData);
+        boost::ignore_unused(hash);
+
+        auto metaData = std::make_shared<PBTransactionMetaData>();
+        metaData->setHash(hash);
+        metaData->setTo(*toHexString(hash));
+        // auto txMetaData = _blockFactory->createTransactionMetaData(hash, *toHexString(hash));
+        block->appendTransactionMetaData(metaData);
     }
 
     // encode block
