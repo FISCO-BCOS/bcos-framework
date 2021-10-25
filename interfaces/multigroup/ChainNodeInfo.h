@@ -20,6 +20,7 @@
  */
 #pragma once
 #include "../../libutilities/Common.h"
+#include "../protocol/ServiceDesc.h"
 #include "GroupTypeDef.h"
 #include <json/json.h>
 #include <memory>
@@ -37,47 +38,37 @@ class ChainNodeInfo
 public:
     using Ptr = std::shared_ptr<ChainNodeInfo>;
     using ConstPtr = std::shared_ptr<const ChainNodeInfo>;
-    using ServiceToDeployIpMap = std::map<std::string, std::string>;
+    using ServicesInfo = std::map<bcos::protocol::ServiceType, std::string>;
     ChainNodeInfo() = default;
     ChainNodeInfo(std::string const& _nodeName, int32_t _type)
       : m_nodeName(_nodeName), m_nodeType((NodeType)_type)
     {}
-
-    explicit ChainNodeInfo(std::string const& _jsonGroupInfoStr) { deserialize(_jsonGroupInfoStr); }
-
     virtual ~ChainNodeInfo() {}
 
     virtual std::string const& nodeName() const { return m_nodeName; }
     virtual NodeType const& nodeType() const { return m_nodeType; }
-    virtual std::string const& deployIp(std::string const& _serviceName) const
+    virtual std::string const& serviceName(bcos::protocol::ServiceType _type) const
     {
-        if (!m_serviceToDeployIp.count(_serviceName))
+        if (!m_servicesInfo.count(_type))
         {
-            return c_emptyIp;
+            return c_emptyServiceName;
         }
-        return m_serviceToDeployIp.at(_serviceName);
+        return m_servicesInfo.at(_type);
     }
-    virtual std::string const& privateKey() const { return m_privateKey; }
 
     virtual void setNodeName(std::string const& _nodeName) { m_nodeName = _nodeName; }
     virtual void setNodeType(NodeType const& _nodeType) { m_nodeType = _nodeType; }
-    virtual void setPrivateKey(std::string&& _privateKey) { m_privateKey = std::move(_privateKey); }
-
-    virtual void setPrivateKey(std::string const& _privateKey) { m_privateKey = _privateKey; }
-
-    virtual void appendDeployInfo(std::string const& _serviceName, std::string const& _deployIp)
+    virtual void appendServiceInfo(
+        bcos::protocol::ServiceType _type, std::string const& _serviceName)
     {
-        m_serviceToDeployIp[_serviceName] = _deployIp;
+        m_servicesInfo[_type] = _serviceName;
     }
 
-    virtual void setStatus(int32_t _status) { m_status = (GroupStatus)_status; }
-    virtual GroupStatus status() const { return m_status; }
+    virtual ServicesInfo const& serviceInfo() const { return m_servicesInfo; }
 
-    virtual ServiceToDeployIpMap const& deployInfo() const { return m_serviceToDeployIp; }
-
-    virtual void setDeployInfo(ServiceToDeployIpMap&& _deployInfo)
+    virtual void setServicesInfo(ServicesInfo&& _servicesInfo)
     {
-        m_serviceToDeployIp = std::move(_deployInfo);
+        m_servicesInfo = std::move(_servicesInfo);
     }
 
     virtual void setIniConfig(std::string const& _iniConfig) { m_iniConfig = _iniConfig; }
@@ -85,74 +76,11 @@ public:
     virtual std::string const& nodeID() const { return m_nodeID; }
     virtual void setNodeID(std::string const& _nodeID) { m_nodeID = _nodeID; }
 
-protected:
-    virtual void deserialize(std::string const& _jsonNodeInfo)
-    {
-        Json::Value value;
-        Json::Reader jsonReader;
-        auto ret = jsonReader.parse(_jsonNodeInfo, value);
-        if (!ret)
-        {
-            BOOST_THROW_EXCEPTION(InvalidChainNodeInfo() << errinfo_comment(
-                                      "The chain node information must be valid json string."));
-        }
-        // required: parse nodeNmae
-        if (!value.isMember("name"))
-        {
-            BOOST_THROW_EXCEPTION(
-                InvalidChainNodeInfo() << errinfo_comment("Must set the chain node name."));
-        }
-        setNodeName(value["name"].asString());
-        // required: parse nodeType
-        if (!value.isMember("type"))
-        {
-            BOOST_THROW_EXCEPTION(
-                InvalidChainNodeInfo() << errinfo_comment("Must set the chain node type."));
-        }
-        NodeType type = (NodeType)(value["type"].asUInt());
-        setNodeType(type);
-        // required: parse deployInfo
-        if (!value.isMember("deploy"))
-        {
-            BOOST_THROW_EXCEPTION(
-                InvalidChainNodeInfo() << errinfo_comment("Must contain the deploy info."));
-        }
-        if (!value["deploy"].isArray())
-        {
-            BOOST_THROW_EXCEPTION(
-                InvalidChainNodeInfo() << errinfo_comment("The deploy info must be array."));
-        }
-        auto const& deployInfo = value["deploy"];
-        for (Json::ArrayIndex i = 0; i < deployInfo.size(); i++)
-        {
-            auto const& deployItem = deployInfo[i];
-            if (!deployItem.isObject() || !deployItem.isMember("service") ||
-                !deployItem.isMember("ip"))
-            {
-                BOOST_THROW_EXCEPTION(
-                    InvalidChainNodeInfo() << errinfo_comment(
-                        "Invalid deploy info: must contain the service name and the ip"));
-            }
-            appendDeployInfo(deployItem["service"].asString(), deployItem["ip"].asString());
-        }
-        // optional: parse privateKey
-        if (value.isMember("privateKey"))
-        {
-            setPrivateKey(value["privateKey"].asString());
-        }
-        // optional: parse status
-        if (value.isMember("status"))
-        {
-            setStatus((NodeType)(value["status"].asInt()));
-        }
-        // optional: parse iniConfig
-        if (value.isMember("ini"))
-        {
-            setIniConfig(value["ini"].asString());
-        }
-    }
+    void setMicroService(bool _microService) { m_microService = _microService; }
+    bool microService() const { return m_microService; }
 
 private:
+    bool m_microService = false;
     // the node name
     std::string m_nodeName;
     NodeType m_nodeType;
@@ -160,13 +88,10 @@ private:
     std::string m_nodeID;
 
     // mapping of service to deployed machine
-    ServiceToDeployIpMap m_serviceToDeployIp;
+    ServicesInfo m_servicesInfo;
     // the ini config maintained by the node, use the iniConfig of the node if empty
     std::string m_iniConfig = "";
-    // the private key of the node in pem format
-    std::string m_privateKey;
-    std::string c_emptyIp = "";
-    GroupStatus m_status;
+    std::string c_emptyServiceName = "";
 };
 inline std::string printNodeInfo(ChainNodeInfo::Ptr _nodeInfo)
 {
@@ -175,9 +100,8 @@ inline std::string printNodeInfo(ChainNodeInfo::Ptr _nodeInfo)
         return "";
     }
     std::stringstream oss;
-    oss << LOG_KV("name", _nodeInfo->nodeName()) << LOG_KV("status", _nodeInfo->status())
-        << LOG_KV("type", std::to_string((int32_t)_nodeInfo->nodeType()))
-        << LOG_KV("deployedIps", _nodeInfo->deployInfo().size());
+    oss << LOG_KV("name", _nodeInfo->nodeName())
+        << LOG_KV("type", std::to_string((int32_t)_nodeInfo->nodeType()));
     return oss.str();
 }
 }  // namespace group

@@ -142,6 +142,18 @@ inline int stringCmpIgnoreCase(const std::string& lhs, const std::string& rhs)
     return strcasecmp(lhs.c_str(), rhs.c_str());
 }
 
+inline bool isalNumStr(std::string const& _stringData)
+{
+    for (auto ch : _stringData)
+    {
+        if (isalnum(ch))
+        {
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
 
 enum class WithExisting : int
 {

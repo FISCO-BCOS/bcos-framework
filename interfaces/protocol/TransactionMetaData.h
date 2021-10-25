@@ -42,6 +42,7 @@ public:
     virtual void setHash(bcos::crypto::HashType _hash) = 0;
     virtual void setTo(std::string _to) = 0;
 
+    virtual TxSubmitCallback& submitCallback() = 0;
     virtual void setSubmitCallback(TxSubmitCallback _submitCallback) = 0;
 };
 
