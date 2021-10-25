@@ -36,12 +36,6 @@ public:
     {
         return std::make_shared<GroupInfo>(_chainID, _groupID);
     }
-
-    virtual GroupInfo::Ptr createGroupInfo(
-        ChainNodeInfoFactory::Ptr _nodeInfoFactory, std::string const& _groupInfo)
-    {
-        return std::make_shared<GroupInfo>(_nodeInfoFactory, _groupInfo);
-    }
 };
 }  // namespace group
 }  // namespace bcos

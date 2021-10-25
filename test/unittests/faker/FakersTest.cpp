@@ -17,6 +17,8 @@
  * @file FakersTest.cpp
  */
 #include "../../../interfaces/executor/PrecompiledTypeDef.h"
+#include "../../../interfaces/multigroup/ChainNodeInfo.h"
+#include "../../../interfaces/multigroup/GroupInfo.h"
 #include "../../../testutils/TestPromptFixture.h"
 #include <testutils/faker/FakeFrontService.h>
 #include <testutils/faker/FakeKVStorage.h>
@@ -32,6 +34,14 @@ namespace bcos
 namespace test
 {
 BOOST_FIXTURE_TEST_SUITE(FakersTest, TestPromptFixture)
+BOOST_AUTO_TEST_CASE(testGroupInfo)
+{
+    std::make_shared<bcos::group::GroupInfo>("", "");
+}
+BOOST_AUTO_TEST_CASE(testNodeInfo)
+{
+    std::make_shared<bcos::group::ChainNodeInfo>("", 0);
+}
 
 BOOST_AUTO_TEST_CASE(fakeSchedulerTest)
 {

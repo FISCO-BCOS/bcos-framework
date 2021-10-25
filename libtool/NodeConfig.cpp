@@ -50,7 +50,6 @@ void NodeConfig::loadConfig(boost::property_tree::ptree const& _pt)
     loadConsensusConfig(_pt);
     loadStorageConfig(_pt);
     loadExecutorConfig(_pt);
-    loadServiceConfig(_pt);
 }
 
 void NodeConfig::loadGenesisConfig(boost::property_tree::ptree const& _genesisConfig)
@@ -58,25 +57,98 @@ void NodeConfig::loadGenesisConfig(boost::property_tree::ptree const& _genesisCo
     loadLedgerConfig(_genesisConfig);
 }
 
+std::string NodeConfig::getServiceName(boost::property_tree::ptree const& _pt,
+    std::string const& _configSection, std::string const& _objName,
+    std::string const& _defaultValue, bool _require)
+{
+    auto serviceName = _pt.get<std::string>(_configSection, _defaultValue);
+    if (!_require)
+    {
+        return serviceName;
+    }
+    checkService(_configSection, serviceName);
+    return getPrxDesc(serviceName, _objName);
+}
+
+void NodeConfig::loadRpcServiceConfig(boost::property_tree::ptree const& _pt)
+{
+    // rpc service name
+    m_rpcServiceName = getServiceName(_pt, "service.rpc", RPC_SERVANT_NAME);
+    NodeConfig_LOG(INFO) << LOG_DESC("loadServiceConfig")
+                         << LOG_KV("rpcServiceName", m_rpcServiceName);
+}
+
+void NodeConfig::loadGatewayServiceConfig(boost::property_tree::ptree const& _pt)
+{
+    // gateway service name
+    m_gatewayServiceName = getServiceName(_pt, "service.gateway", GATEWAY_SERVANT_NAME);
+    NodeConfig_LOG(INFO) << LOG_DESC("loadServiceConfig")
+                         << LOG_KV("gatewayServiceName", m_gatewayServiceName);
+}
 void NodeConfig::loadServiceConfig(boost::property_tree::ptree const& _pt)
 {
-    // TODO: check the service name
-    // rpc service name
-    auto rpcAppName = _pt.get<std::string>("service.rpc", "rpc");
-    m_rpcServiceName = getPrxDesc(rpcAppName, RPC_SERVICE_NAME);
-
-    // gateway service name
-    auto gatewayAppName = _pt.get<std::string>("service.gateway", "gateway");
-    m_gatewayServiceName = getPrxDesc(gatewayAppName, GATEWAY_SERVICE_NAME);
-
-    // group manager service name
-    auto groupMgrAppName = _pt.get<std::string>("service.groupMgr", "groupMgr");
-    m_groupManagerServiceName = getPrxDesc(groupMgrAppName, GROUPMANAGER_SERVICE_NAME);
-    NodeConfig_LOG(INFO) << LOG_DESC("loadServiceConfig")
-                         << LOG_KV("rpcServiceName", m_rpcServiceName)
-                         << LOG_KV("gatewayServiceName", m_gatewayServiceName)
-                         << LOG_KV("groupManagerServiceName", m_groupManagerServiceName);
+    loadGatewayServiceConfig(_pt);
+    loadRpcServiceConfig(_pt);
 }
+
+void NodeConfig::loadNodeServiceConfig(
+    std::string const& _nodeID, boost::property_tree::ptree const& _pt)
+{
+    auto nodeName = _pt.get<std::string>("service.node_name", "");
+    if (nodeName.size() == 0)
+    {
+        nodeName = _nodeID;
+    }
+    if (!isalNumStr(nodeName))
+    {
+        BOOST_THROW_EXCEPTION(
+            InvalidConfig() << errinfo_comment("The node name must be number or digit"));
+    }
+    m_nodeName = nodeName;
+    m_schedulerServiceName = getServiceName(_pt, "service.scheduler", SCHEDULER_SERVANT_NAME,
+        getDefaultServiceName(nodeName, SCHEDULER_SERVICE_NAME), false);
+    m_txpoolServiceName = getServiceName(_pt, "service.txpool", TXPOOL_SERVANT_NAME,
+        getDefaultServiceName(nodeName, TXPOOL_SERVICE_NAME), false);
+    m_consensusServiceName = getServiceName(_pt, "service.consensus", CONSENSUS_SERVANT_NAME,
+        getDefaultServiceName(nodeName, CONSENSUS_SERVICE_NAME), false);
+    m_frontServiceName = getServiceName(_pt, "service.front", FRONT_SERVANT_NAME,
+        getDefaultServiceName(nodeName, FRONT_SERVICE_NAME), false);
+    m_exeutorServiceName = getServiceName(_pt, "service.executor", EXECUTOR_SERVANT_NAME,
+        getDefaultServiceName(nodeName, EXECUTOR_SERVICE_NAME), false);
+
+    NodeConfig_LOG(INFO) << LOG_DESC("load node service") << LOG_KV("nodeName", m_nodeName)
+                         << LOG_KV("schedulerServiceName", m_schedulerServiceName)
+                         << LOG_KV("txpoolServiceName", m_txpoolServiceName)
+                         << LOG_KV("consensusServiceName", m_consensusServiceName)
+                         << LOG_KV("frontServiceName", m_frontServiceName)
+                         << LOG_KV("exeutorServiceName", m_exeutorServiceName);
+}
+void NodeConfig::checkService(std::string const& _serviceType, std::string const& _serviceName)
+{
+    if (_serviceName.size() == 0)
+    {
+        BOOST_THROW_EXCEPTION(
+            InvalidConfig() << errinfo_comment("Must set service name for " + _serviceType + "!"));
+    }
+    std::vector<std::string> serviceNameList;
+    boost::split(serviceNameList, _serviceName, boost::is_any_of("."));
+    std::string errorMsg =
+        "Must set service name in format of application_name.server_name with only include letters "
+        "and numbers for " +
+        _serviceType + ", invalid config now is:" + _serviceName;
+    if (serviceNameList.size() != 2)
+    {
+        BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(errorMsg));
+    }
+    for (auto serviceName : serviceNameList)
+    {
+        if (!isalNumStr(serviceName))
+        {
+            BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(errorMsg));
+        }
+    }
+}
+
 
 // load the txpool related params
 void NodeConfig::loadTxPoolConfig(boost::property_tree::ptree const& _pt)
@@ -110,6 +182,11 @@ void NodeConfig::loadChainConfig(boost::property_tree::ptree const& _pt)
     m_smCryptoType = _pt.get<bool>("chain.sm_crypto", false);
     m_groupId = _pt.get<std::string>("chain.group_id", "group");
     m_chainId = _pt.get<std::string>("chain.chain_id", "chain");
+    if (!isalNumStr(m_chainId))
+    {
+        BOOST_THROW_EXCEPTION(
+            InvalidConfig() << errinfo_comment("The chainId must be number or digit"));
+    }
     m_blockLimit = checkAndGetValue(_pt, "chain.block_limit", "1000");
     if (m_blockLimit <= 0 || m_blockLimit > MAX_BLOCK_LIMIT)
     {

@@ -72,7 +72,6 @@ public:
         return std::make_shared<PBTransactionMetaData>(_hash, _to);
     }
 
-
     bcos::crypto::CryptoSuite::Ptr cryptoSuite() override
     {
         return m_transactionFactory->cryptoSuite();
