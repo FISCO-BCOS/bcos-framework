@@ -34,12 +34,6 @@ public:
     GroupInfo(std::string const& _chainID, std::string const& _groupID)
       : m_chainID(_chainID), m_groupID(_groupID)
     {}
-    GroupInfo(ChainNodeInfoFactory::Ptr _chainNodeInfoFactory, std::string const& _jsonGroupInfoStr)
-      : m_chainNodeInfoFactory(_chainNodeInfoFactory)
-    {
-        deserialize(_jsonGroupInfoStr);
-    }
-
     virtual ~GroupInfo() {}
 
     virtual std::string const& genesisConfig() const { return m_genesisConfig; }
@@ -102,18 +96,6 @@ public:
 
     virtual void setGroupID(std::string const& _groupID) { m_groupID = _groupID; }
     virtual void setChainID(std::string const& _chainID) { m_chainID = _chainID; }
-
-    virtual void setStatus(int32_t _status)
-    {
-        m_status = (GroupStatus)_status;
-        auto const& nodes = nodeInfos();
-        for (auto& it : nodes)
-        {
-            it.second->setStatus(_status);
-        }
-    }
-    virtual GroupStatus status() const { return m_status; }
-
     virtual ssize_t nodesNum() const
     {
         ReadGuard l(x_nodeInfos);
@@ -122,42 +104,6 @@ public:
 
     // return copied nodeInfos to ensure thread-safe
     std::map<std::string, ChainNodeInfo::Ptr> nodeInfos() { return m_nodeInfos; }
-
-protected:
-    virtual void deserialize(std::string const& _groupInfo)
-    {
-        Json::Value value;
-        Json::Reader jsonReader;
-        auto ret = jsonReader.parse(_groupInfo, value);
-        if (!ret)
-        {
-            BOOST_THROW_EXCEPTION(InvalidGroupInfo() << errinfo_comment(
-                                      "The group information must be valid json string."));
-        }
-        if (!value.isMember("chainID") || !value.isMember("groupID") || !value.isMember("nodes") ||
-            !value["nodes"].isArray())
-        {
-            BOOST_THROW_EXCEPTION(
-                InvalidGroupInfo() << errinfo_comment(
-                    "Invalid group information, must contain chainID, groupID and nodes fields"));
-        }
-        // required: parse chainID
-        setChainID(value["chainID"].asString());
-        // required: parse groupID
-        setGroupID(value["groupID"].asString());
-        // required: parse nodeInfos
-        auto const& nodeInfos = value["nodes"];
-        for (Json::ArrayIndex i = 0; i < nodeInfos.size(); i++)
-        {
-            auto const& nodeInfoItem = nodeInfos[i];
-            appendNodeInfo(m_chainNodeInfoFactory->createNodeInfo(nodeInfoItem.asString()));
-        }
-        // optional: parse status
-        if (value.isMember("status"))
-        {
-            setStatus((int32_t)(value["status"].asInt()));
-        }
-    }
 
 private:
     ChainNodeInfoFactory::Ptr m_chainNodeInfoFactory;
@@ -171,8 +117,6 @@ private:
     // node name to node deployment information mapping
     std::map<std::string, ChainNodeInfo::Ptr> m_nodeInfos;
     mutable SharedMutex x_nodeInfos;
-    // the group status
-    GroupStatus m_status;
 };
 
 inline std::string printGroupInfo(GroupInfo::Ptr _groupInfo)
@@ -183,7 +127,7 @@ inline std::string printGroupInfo(GroupInfo::Ptr _groupInfo)
     }
     std::stringstream oss;
     oss << LOG_KV("group", _groupInfo->groupID()) << LOG_KV("chain", _groupInfo->chainID())
-        << LOG_KV("status", _groupInfo->status()) << LOG_KV("nodeSize", _groupInfo->nodesNum());
+        << LOG_KV("nodeSize", _groupInfo->nodesNum());
     return oss.str();
 }
 }  // namespace group
