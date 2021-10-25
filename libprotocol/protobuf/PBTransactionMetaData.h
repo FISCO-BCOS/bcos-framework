@@ -65,7 +65,7 @@ public:
     }
     void setTo(std::string _to) override { m_pbTxMetaData->mutable_to()->swap(_to); }
 
-    TxSubmitCallback submitCallback() override { return {}; }  // FIXME: no impl!
+    TxSubmitCallback submitCallback() const override { return {}; }  // FIXME: no impl!
     void setSubmitCallback(TxSubmitCallback) override {}       // FIXME: no impl!
 
 private:
