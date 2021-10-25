@@ -27,7 +27,7 @@ TableInfo::ConstPtr StorageInterface::getSysTableInfo(const std::string_view& ta
 }
 
 void StorageInterface::asyncCreateTable(std::string _tableName, std::string _valueFields,
-    std::function<void(Error::UniquePtr, std::optional<Table>)> callback) noexcept
+    std::function<void(Error::UniquePtr, std::optional<Table>)> callback)
 {
     asyncOpenTable(SYS_TABLES, [this, tableName = std::move(_tableName),
                                    callback = std::move(callback),
@@ -85,7 +85,7 @@ void StorageInterface::asyncCreateTable(std::string _tableName, std::string _val
 }
 
 void StorageInterface::asyncOpenTable(std::string_view tableName,
-    std::function<void(Error::UniquePtr, std::optional<Table>)> callback) noexcept
+    std::function<void(Error::UniquePtr, std::optional<Table>)> callback)
 {
     auto sysTableInfo = getSysTableInfo(tableName);
     if (sysTableInfo)
@@ -142,7 +142,7 @@ void StorageInterface::asyncOpenTable(std::string_view tableName,
     }
 }
 
-TableInfo::ConstPtr StorageInterface::getTableInfo(const std::string_view& tableName) noexcept
+TableInfo::ConstPtr StorageInterface::getTableInfo(const std::string_view& tableName)
 {
     std::promise<TableInfo::ConstPtr> prom;
     asyncOpenTable(
