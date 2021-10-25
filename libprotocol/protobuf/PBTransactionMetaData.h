@@ -71,5 +71,17 @@ private:
     std::shared_ptr<PBRawTransactionMetaData> m_pbTxMetaData;
     mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
 };
+
+class PBTransactionMetaDataFactory : public TransactionMetaDataFactory
+{
+public:
+    ~PBTransactionMetaDataFactory() override {}
+
+    TransactionMetaData::Ptr createTransactionMetaData() override
+    {
+        return std::make_shared<PBTransactionMetaData>();
+    }
+};
+
 }  // namespace protocol
 }  // namespace bcos
