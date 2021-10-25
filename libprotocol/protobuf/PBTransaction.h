@@ -55,6 +55,7 @@ public:
 
     void decode(bytesConstRef _txData) override;
     bytesConstRef encode(bool _onlyHashFields = false) const override;
+    bytes takeEncoded() override { return bytes(); };  // FIXME: no impl!
 
     bcos::crypto::HashType const& hash() const override;
 

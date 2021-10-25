@@ -47,6 +47,7 @@ public:
 
     virtual void decode(bytesConstRef _txData) = 0;
     virtual bytesConstRef encode(bool _onlyHashFields = false) const = 0;
+    virtual bytes takeEncoded() = 0;
     virtual bcos::crypto::HashType const& hash() const = 0;
 
     virtual void verify() const
@@ -99,6 +100,7 @@ public:
 
     virtual bytesConstRef signatureData() const = 0;
 
+    virtual TxSubmitCallback takeSubmitCallback() { return std::move(m_submitCallback); }
     virtual TxSubmitCallback submitCallback() const { return m_submitCallback; }
     virtual void setSubmitCallback(TxSubmitCallback _submitCallback)
     {

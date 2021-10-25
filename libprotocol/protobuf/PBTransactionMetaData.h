@@ -65,6 +65,8 @@ public:
     }
     void setTo(std::string const& _to) override { m_pbTxMetaData->set_to(_to); }
 
+    void setSubmitCallback(TxSubmitCallback) override{};  // FIXME: no impl!
+
 private:
     std::shared_ptr<PBRawTransactionMetaData> m_pbTxMetaData;
     mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
