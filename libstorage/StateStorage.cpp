@@ -13,7 +13,7 @@ using namespace bcos::storage;
 
 void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
     const std::optional<Condition const>& _condition,
-    std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback) noexcept
+    std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback)
 {
     std::map<std::string_view, storage::Entry::Status> localKeys;
 
@@ -93,7 +93,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
 }
 
 void StateStorage::asyncGetRow(const std::string_view& table, const std::string_view& _key,
-    std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback) noexcept
+    std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback)
 {
     auto tableIt = m_data.find(table);
     if (tableIt != m_data.end())
@@ -151,7 +151,7 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
 void StateStorage::asyncGetRows(const std::string_view& table,
     const std::variant<const gsl::span<std::string_view const>, const gsl::span<std::string const>>&
         _keys,
-    std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)> _callback) noexcept
+    std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)> _callback)
 {
     std::visit(
         [this, table, callback = std::move(_callback)](auto&& _keys) {
@@ -173,7 +173,7 @@ void StateStorage::asyncGetRows(const std::string_view& table,
                         Entry& entry = entryIt->second;
                         if (entry.status() != Entry::DELETED)
                         {
-                            results[i] = std::make_optional(entry);
+                            results[i].emplace(entry);
                         }
                         else
                         {
@@ -220,9 +220,8 @@ void StateStorage::asyncGetRows(const std::string_view& table,
 
                             if (entry)
                             {
-                                results[std::get<1>(missingIndexes[i])] = std::make_optional(
-                                    importExistingEntry(std::move(std::get<0>(missingIndexes[i])),
-                                        std::move(*entry)));
+                                results[std::get<1>(missingIndexes[i])].emplace(importExistingEntry(
+                                    std::move(std::get<0>(missingIndexes[i])), std::move(*entry)));
                             }
                         }
 
@@ -238,7 +237,7 @@ void StateStorage::asyncGetRows(const std::string_view& table,
 }
 
 void StateStorage::asyncSetRow(const std::string_view& table, const std::string_view& key,
-    Entry entry, std::function<void(Error::UniquePtr)> callback) noexcept
+    Entry entry, std::function<void(Error::UniquePtr)> callback)
 {
     auto setEntryToTable = [this, entry = std::move(entry)](const std::string_view& key,
                                TableData& table,
@@ -257,7 +256,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
             auto& existsEntry = entryIt->second;
             if (!existsEntry.rollbacked())
             {
-                entryOld = std::make_optional(std::move(existsEntry));
+                entryOld.emplace(std::move(existsEntry));
             }
             entryIt->second = std::move(entry);
 
