@@ -65,9 +65,8 @@ public:
     }
     void setTo(std::string _to) override { m_pbTxMetaData->mutable_to()->swap(_to); }
 
-    void setSubmitCallback(TxSubmitCallback) override{};  // FIXME: no impl!
-
-    void setSubmitCallback(TxSubmitCallback) override{};  // FIXME: no impl!
+    TxSubmitCallback submitCallback() override { return {}; }  // FIXME: no impl!
+    void setSubmitCallback(TxSubmitCallback) override {}       // FIXME: no impl!
 
 private:
     std::shared_ptr<PBRawTransactionMetaData> m_pbTxMetaData;
