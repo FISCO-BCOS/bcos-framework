@@ -45,16 +45,6 @@ public:
     virtual void setSubmitCallback(TxSubmitCallback _submitCallback) = 0;
 };
 
-class TransactionMetaDataFactory
-{
-public:
-    using Ptr = std::shared_ptr<TransactionMetaDataFactory>;
-
-    virtual ~TransactionMetaDataFactory() = default;
-
-    virtual TransactionMetaData::Ptr createTransactionMetaData() = 0;
-};
-
 using TransactionMetaDataList = std::vector<TransactionMetaData::Ptr>;
 using TransactionMetaDataListPtr = std::shared_ptr<TransactionMetaDataList>;
 }  // namespace protocol

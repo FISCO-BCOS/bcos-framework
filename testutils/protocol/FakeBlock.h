@@ -19,7 +19,6 @@
  * @date: 2021-03-23
  */
 #pragma once
-#include "../../libprotocol/NativeTransactionMetaData.h"
 #include "libprotocol/protobuf/PBBlock.h"
 #include "libprotocol/protobuf/PBBlockFactory.h"
 #include "testutils/crypto/HashImpl.h"
