@@ -33,7 +33,7 @@ public:
     using Ptr = std::shared_ptr<TransactionSubmitResultImpl>;
     TransactionSubmitResultImpl(TransactionReceipt::Ptr _receipt, bcos::crypto::HashType _txHash,
         int64_t _transactionIndex, bcos::crypto::HashType _blockHash)
-      : m_receipt(_receipt),
+      : m_receipt(std::move(_receipt)),
         m_txHash(_txHash),
         m_transactionIndex(_transactionIndex),
         m_blockHash(_blockHash)

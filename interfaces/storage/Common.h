@@ -52,6 +52,7 @@ enum StorageError
     UnknownEntryType,
     ReadError,
     WriteError,
+    EmptyStorage,
 };
 
 struct Condition

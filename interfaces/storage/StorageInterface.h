@@ -48,40 +48,38 @@ public:
     static TableInfo::ConstPtr getSysTableInfo(const std::string_view& tableName);
 
     using Ptr = std::shared_ptr<StorageInterface>;
-    using ConstPtr = std::shared_ptr<const StorageInterface>;
 
     virtual ~StorageInterface() = default;
 
     virtual void asyncGetPrimaryKeys(const std::string_view& table,
         const std::optional<Condition const>& _condition,
-        std::function<void(Error::UniquePtr&&, std::vector<std::string>&&)> _callback) noexcept = 0;
+        std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback) = 0;
 
     virtual void asyncGetRow(const std::string_view& table, const std::string_view& _key,
-        std::function<void(Error::UniquePtr&&, std::optional<Entry>&&)> _callback) noexcept = 0;
+        std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback) = 0;
 
     virtual void asyncGetRows(const std::string_view& table,
         const std::variant<const gsl::span<std::string_view const>,
             const gsl::span<std::string const>>& _keys,
-        std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)>
-            _callback) noexcept = 0;
+        std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)> _callback) = 0;
 
     virtual void asyncSetRow(const std::string_view& table, const std::string_view& key,
-        Entry entry, std::function<void(Error::UniquePtr&&)> callback) noexcept = 0;
+        Entry entry, std::function<void(Error::UniquePtr)> callback) = 0;
 
     virtual void asyncCreateTable(std::string _tableName, std::string _valueFields,
-        std::function<void(Error::UniquePtr&&, std::optional<Table>&&)> callback) noexcept;
+        std::function<void(Error::UniquePtr, std::optional<Table>)> callback);
 
     virtual void asyncOpenTable(std::string_view tableName,
-        std::function<void(Error::UniquePtr&&, std::optional<Table>&&)> callback) noexcept;
+        std::function<void(Error::UniquePtr, std::optional<Table>)> callback);
 
-    virtual TableInfo::ConstPtr getTableInfo(const std::string_view& tableName) noexcept;
+    virtual TableInfo::ConstPtr getTableInfo(const std::string_view& tableName);
 };
 
 class TraverseStorageInterface : public StorageInterface
 {
 public:
     using Ptr = std::shared_ptr<TraverseStorageInterface>;
-    using ConstPtr = std::shared_ptr<const TraverseStorageInterface>;
+    using ConstPtr = std::shared_ptr<TraverseStorageInterface const>;
 
     virtual ~TraverseStorageInterface() = default;
 
@@ -89,6 +87,16 @@ public:
         std::function<bool(
             const std::string_view& table, const std::string_view& key, Entry const& entry)>
             callback) const = 0;
+};
+
+class MergeableStorageInterface : public StorageInterface
+{
+public:
+    using Ptr = std::shared_ptr<MergeableStorageInterface>;
+
+    virtual ~MergeableStorageInterface() = default;
+
+    virtual void merge(bool onlyDirty, const TraverseStorageInterface& source) = 0;
 };
 
 class TransactionalStorageInterface : public StorageInterface
@@ -109,13 +117,13 @@ public:
 
     virtual void asyncPrepare(const TwoPCParams& params,
         const TraverseStorageInterface::ConstPtr& storage,
-        std::function<void(Error::Ptr&&, uint64_t)> callback) noexcept = 0;
+        std::function<void(Error::Ptr, uint64_t)> callback) = 0;
 
     virtual void asyncCommit(
-        const TwoPCParams& params, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
+        const TwoPCParams& params, std::function<void(Error::Ptr)> callback) = 0;
 
     virtual void asyncRollback(
-        const TwoPCParams& params, std::function<void(Error::Ptr&&)> callback) noexcept = 0;
+        const TwoPCParams& params, std::function<void(Error::Ptr)> callback) = 0;
 };
 
 }  // namespace storage

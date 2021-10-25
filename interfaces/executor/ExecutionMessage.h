@@ -37,6 +37,8 @@ public:
     using UniquePtr = std::unique_ptr<ExecutionMessage>;
     using UniqueConstPtr = std::unique_ptr<const ExecutionMessage>;
 
+    virtual ~ExecutionMessage() = default;
+
     enum Type : int8_t
     {
         TXHASH = 0,  // Received an new transaction from scheduler
@@ -84,7 +86,7 @@ public:
     virtual void setGasAvailable(int64_t gasAvailable) = 0;
 
     virtual bcos::bytesConstRef data() const = 0;
-    virtual bytes&& takeData() = 0;
+    virtual bytes takeData() = 0;
     virtual void setData(bcos::bytes data) = 0;
 
     virtual bool staticCall() const = 0;
@@ -104,7 +106,7 @@ public:
     virtual void setMessage(std::string message) = 0;
 
     virtual gsl::span<LogEntry const> const logEntries() const = 0;
-    virtual std::vector<LogEntry>&& takeLogEntries() = 0;
+    virtual std::vector<LogEntry> takeLogEntries() = 0;
     virtual void setLogEntries(std::vector<LogEntry> logEntries) = 0;
 
     // for evm
@@ -115,6 +117,7 @@ public:
     // Key locks
     // -----------------------------------------------
     virtual gsl::span<std::string const> keyLocks() const = 0;
+    virtual std::vector<std::string> takeKeyLocks() = 0;
     virtual void setKeyLocks(std::vector<std::string> keyLocks) = 0;
 
     virtual std::string_view keyLockAcquired() const = 0;
@@ -127,7 +130,7 @@ public:
     using Ptr = std::shared_ptr<ExecutionMessageFactory>;
     using ConstPtr = std::shared_ptr<const ExecutionMessageFactory>;
 
-    virtual ~ExecutionMessageFactory(){};
+    virtual ~ExecutionMessageFactory() = default;
 
     virtual ExecutionMessage::UniquePtr createExecutionMessage() = 0;
 };
