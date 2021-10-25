@@ -70,15 +70,25 @@ std::string NodeConfig::getServiceName(boost::property_tree::ptree const& _pt,
     return getPrxDesc(serviceName, _objName);
 }
 
-void NodeConfig::loadServiceConfig(boost::property_tree::ptree const& _pt)
+void NodeConfig::loadRpcServiceConfig(boost::property_tree::ptree const& _pt)
 {
     // rpc service name
     m_rpcServiceName = getServiceName(_pt, "service.rpc", RPC_SERVANT_NAME);
+    NodeConfig_LOG(INFO) << LOG_DESC("loadServiceConfig")
+                         << LOG_KV("rpcServiceName", m_rpcServiceName);
+}
+
+void NodeConfig::loadGatewayServiceConfig(boost::property_tree::ptree const& _pt)
+{
     // gateway service name
     m_gatewayServiceName = getServiceName(_pt, "service.gateway", GATEWAY_SERVANT_NAME);
     NodeConfig_LOG(INFO) << LOG_DESC("loadServiceConfig")
-                         << LOG_KV("rpcServiceName", m_rpcServiceName)
                          << LOG_KV("gatewayServiceName", m_gatewayServiceName);
+}
+void NodeConfig::loadServiceConfig(boost::property_tree::ptree const& _pt)
+{
+    loadGatewayServiceConfig(_pt);
+    loadRpcServiceConfig(_pt);
 }
 
 void NodeConfig::loadNodeServiceConfig(

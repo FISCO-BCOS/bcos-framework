@@ -47,6 +47,8 @@ public:
         loadConfig(iniConfig);
     }
     virtual void loadServiceConfig(boost::property_tree::ptree const& _pt);
+    virtual void loadRpcServiceConfig(boost::property_tree::ptree const& _pt);
+    virtual void loadGatewayServiceConfig(boost::property_tree::ptree const& _pt);
 
     virtual void loadNodeServiceConfig(
         std::string const& _nodeID, boost::property_tree::ptree const& _pt);
