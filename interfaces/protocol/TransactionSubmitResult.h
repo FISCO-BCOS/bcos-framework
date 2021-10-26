@@ -42,9 +42,6 @@ public:
     virtual int64_t transactionIndex() const = 0;
     virtual void setTransactionIndex(int64_t index) = 0;
 
-    virtual NonceType nonce() const = 0;
-    virtual void setNonce(NonceType _nonce) = 0;
-
     virtual TransactionReceipt::Ptr transactionReceipt() const = 0;
     virtual void setTransactionReceipt(TransactionReceipt::Ptr transactionReceipt) = 0;
 };
