@@ -48,6 +48,9 @@ public:
         m_transactionIndex = transactionIndex;
     }
 
+    NonceType nonce() const override { return m_nonce; }
+    void setNonce(NonceType nonce) override { m_nonce = nonce; }
+
     TransactionReceipt::Ptr transactionReceipt() const override { return m_receipt; }
     void setTransactionReceipt(TransactionReceipt::Ptr transactionReceipt) override
     {
@@ -59,6 +62,7 @@ private:
     bcos::crypto::HashType m_txHash;
     bcos::crypto::HashType m_blockHash;
     int64_t m_transactionIndex;
+    NonceType m_nonce;
     TransactionReceipt::Ptr m_receipt;
 };
 }  // namespace protocol
