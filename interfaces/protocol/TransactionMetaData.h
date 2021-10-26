@@ -38,17 +38,11 @@ public:
 
     virtual bcos::crypto::HashType hash() const = 0;
     virtual std::string_view to() const = 0;
-    virtual TxSubmitCallback submitCallback() const { return m_submitCallback; }
 
     virtual void setHash(bcos::crypto::HashType _hash) = 0;
     virtual void setTo(std::string _to) = 0;
-    virtual void setSubmitCallback(TxSubmitCallback _submitCallback)
-    {
-        m_submitCallback = std::move(_submitCallback);
-    }
 
 private:
-    TxSubmitCallback m_submitCallback;
 };
 
 using TransactionMetaDataList = std::vector<TransactionMetaData::Ptr>;
