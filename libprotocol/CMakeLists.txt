@@ -1,6 +1,9 @@
 file(GLOB SRC_LIST "*.cpp")
 file(GLOB HEADERS "*.h")
 
+aux_source_directory(. SRC_LIST)
+aux_source_directory(./amop SRC_LIST)
+
 add_library(${PROTOCOL_TARGET} ${SRC_LIST} ${HEADERS})
 target_compile_options(${PROTOCOL_TARGET} PRIVATE -Wno-error -Wno-unused-variable)
 
