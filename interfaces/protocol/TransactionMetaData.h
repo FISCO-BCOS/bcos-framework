@@ -38,11 +38,11 @@ public:
 
     virtual bcos::crypto::HashType hash() const = 0;
     virtual std::string_view to() const = 0;
+    virtual std::string_view source() const = 0;
 
     virtual void setHash(bcos::crypto::HashType _hash) = 0;
     virtual void setTo(std::string _to) = 0;
-
-private:
+    virtual void setSource(std::string source) = 0;
 };
 
 using TransactionMetaDataList = std::vector<TransactionMetaData::Ptr>;
