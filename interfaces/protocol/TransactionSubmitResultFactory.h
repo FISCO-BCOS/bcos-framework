@@ -31,13 +31,10 @@ class TransactionSubmitResultFactory
 {
 public:
     using Ptr = std::shared_ptr<TransactionSubmitResultFactory>;
-    TransactionSubmitResultFactory() = default;
-    virtual ~TransactionSubmitResultFactory() {}
 
-    virtual TransactionSubmitResult::Ptr createTxSubmitResult(
-        BlockHeader::Ptr _blockHeader, bcos::crypto::HashType const& _txHash) = 0;
-    virtual TransactionSubmitResult::Ptr createTxSubmitResult(
-        bcos::crypto::HashType const& _txHash, int32_t _status) = 0;
+    virtual ~TransactionSubmitResultFactory() = default;
+
+    virtual TransactionSubmitResult::Ptr createTxSubmitResult() = 0;
 };
 }  // namespace protocol
 }  // namespace bcos

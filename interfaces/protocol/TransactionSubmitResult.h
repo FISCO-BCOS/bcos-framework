@@ -28,16 +28,25 @@ class TransactionSubmitResult
 {
 public:
     using Ptr = std::shared_ptr<TransactionSubmitResult>;
-    TransactionSubmitResult() = default;
-    virtual ~TransactionSubmitResult() {}
+    virtual ~TransactionSubmitResult() = default;
 
     virtual uint32_t status() const = 0;
-    virtual bcos::crypto::HashType const& txHash() const = 0;
-    virtual bcos::crypto::HashType const& blockHash() const = 0;
-    virtual int64_t transactionIndex() const = 0;
+    virtual void setStatus(uint32_t status) = 0;
 
-    virtual void setNonce(NonceType const& _nonce) = 0;
-    virtual NonceType const& nonce() const = 0;
+    virtual bcos::crypto::HashType txHash() const = 0;
+    virtual void setTxHash(bcos::crypto::HashType txHash) = 0;
+
+    virtual bcos::crypto::HashType blockHash() const = 0;
+    virtual void setBlockHash(bcos::crypto::HashType blockHash) = 0;
+
+    virtual int64_t transactionIndex() const = 0;
+    virtual void setTransactionIndex(int64_t index) = 0;
+
+    virtual NonceType nonce() const = 0;
+    virtual void setNonce(NonceType _nonce) = 0;
+
+    virtual TransactionReceipt::Ptr transactionReceipt() const = 0;
+    virtual void setTransactionReceipt(TransactionReceipt::Ptr transactionReceipt) = 0;
 };
 
 using TransactionSubmitResults = std::vector<TransactionSubmitResult::Ptr>;
