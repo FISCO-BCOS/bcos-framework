@@ -29,6 +29,11 @@ namespace bcos
 {
 namespace rpc
 {
+enum AMOPNotifyMessageType : int16_t
+{
+    Unicast,
+    Broadcast,
+};
 class RPCInterface
 {
 public:
@@ -61,6 +66,17 @@ public:
      */
     virtual void asyncNotifyGroupInfo(
         bcos::group::GroupInfo::Ptr _groupInfo, std::function<void(Error::Ptr&&)>) = 0;
+
+    /// AMOP related interfaces
+    /**
+     * @brief receive the amop message from the gateway
+     *
+     * @param _requestData the AMOP data
+     * @param _callback the callback
+     */
+    virtual void asyncNotifyAMOPMessage(int16_t _type, std::string const& _topic,
+        bytesConstRef _requestData,
+        std::function<void(Error::Ptr&& _error, bytesPointer _responseData)> _callback) = 0;
 };
 }  // namespace rpc
 }  // namespace bcos

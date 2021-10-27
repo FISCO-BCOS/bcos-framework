@@ -32,6 +32,7 @@ using ErrorRespFunc = std::function<void(Error::Ptr)>;
 using PeerRespFunc = std::function<void(Error::Ptr, const std::string&)>;
 using GetNodeIDsFunc =
     std::function<void(Error::Ptr _error, std::shared_ptr<const crypto::NodeIDs> _nodeIDs)>;
+using ResponseCallback = std::function<void(Error::Ptr&& _error, std::shared_ptr<bytes> _data)>;
 
 /**
  * @brief: A list of interfaces provided by the gateway which are called by the front service.
@@ -40,8 +41,9 @@ class GatewayInterface
 {
 public:
     using Ptr = std::shared_ptr<GatewayInterface>;
+    GatewayInterface() = default;
+    virtual ~GatewayInterface() {}
 
-public:
     /**
      * @brief: start/stop service
      */
@@ -106,6 +108,21 @@ public:
      */
     virtual void asyncNotifyGroupInfo(
         bcos::group::GroupInfo::Ptr _groupInfo, std::function<void(Error::Ptr&&)>) = 0;
+
+    /// for AMOP
+    virtual void asyncSendMessageByTopic(const std::string& _topic, bcos::bytesConstRef _data,
+        std::function<void(bcos::Error::Ptr&&, bytesPointer)> _respFunc) = 0;
+    virtual void asyncSendBroadbastMessageByTopic(
+        const std::string& _topic, bcos::bytesConstRef _data) = 0;
+
+    virtual void asyncRegisterClient(std::string const& _clientID,
+        std::string const& _clientEndPoint, std::function<void(Error::Ptr&&)> _callback) = 0;
+
+    virtual void asyncSubscribeTopic(std::string const& _clientID, std::string const& _topicInfo,
+        std::function<void(Error::Ptr&&)> _callback) = 0;
+    virtual void asyncRemoveTopic(std::string const& _clientID,
+        std::vector<std::string> const& _topicList,
+        std::function<void(Error::Ptr&&)> _callback) = 0;
 };
 
 }  // namespace gateway
