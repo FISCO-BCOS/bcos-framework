@@ -33,18 +33,18 @@ class TransactionMetaData
 public:
     using Ptr = std::shared_ptr<TransactionMetaData>;
     using ConstPtr = std::shared_ptr<const TransactionMetaData>;
-    TransactionMetaData() = default;
 
-    virtual ~TransactionMetaData() {}
+    virtual ~TransactionMetaData() = default;
 
-    virtual bcos::crypto::HashType const& hash() const = 0;
+    virtual bcos::crypto::HashType hash() const = 0;
     virtual std::string_view to() const = 0;
+    virtual std::string_view source() const = 0;
 
-    virtual void setHash(bcos::crypto::HashType const& _hash) = 0;
-    virtual void setTo(std::string const& _to) = 0;
-
-    virtual void setSubmitCallback(TxSubmitCallback _submitCallback) = 0;
+    virtual void setHash(bcos::crypto::HashType _hash) = 0;
+    virtual void setTo(std::string _to) = 0;
+    virtual void setSource(std::string source) = 0;
 };
+
 using TransactionMetaDataList = std::vector<TransactionMetaData::Ptr>;
 using TransactionMetaDataListPtr = std::shared_ptr<TransactionMetaDataList>;
 }  // namespace protocol

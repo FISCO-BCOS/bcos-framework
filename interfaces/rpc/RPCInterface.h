@@ -22,6 +22,8 @@
 #include "../../interfaces/multigroup/GroupInfo.h"
 #include "../../interfaces/protocol/ProtocolTypeDef.h"
 #include "../../libutilities/Error.h"
+#include "interfaces/crypto/CommonType.h"
+#include "libprotocol/TransactionSubmitResultImpl.h"
 
 namespace bcos
 {
@@ -47,6 +49,9 @@ public:
      */
     virtual void asyncNotifyBlockNumber(std::string const& _groupID, std::string const& _nodeName,
         bcos::protocol::BlockNumber _blockNumber, std::function<void(Error::Ptr)> _callback) = 0;
+
+    virtual void asyncNotifyTransactionResult(const std::string_view& groupID,
+        bcos::crypto::HashType txHash, bcos::protocol::TransactionSubmitResult::Ptr result) = 0;
 
     /// multi-group manager related interfaces
     /**
