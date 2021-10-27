@@ -106,13 +106,13 @@ public:
         NodeType type = (NodeType)(value["type"].asUInt());
         setNodeType(type);
 
-        // required: parse inicConfig
-        if (!value.isMember("initConfig"))
+        // required: parse iniConfig
+        if (!value.isMember("iniConfig"))
         {
             BOOST_THROW_EXCEPTION(InvalidChainNodeInfo() << errinfo_comment(
                                       "The chain node information must set the init config info"));
         }
-        setIniConfig(value["initConfig"].asString());
+        setIniConfig(value["iniConfig"].asString());
 
         // required: parse deployInfo
         if (!value.isMember("serviceInfo"))
