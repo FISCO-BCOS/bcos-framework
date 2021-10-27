@@ -62,7 +62,7 @@ private:
     bcos::crypto::HashType m_txHash;
     bcos::crypto::HashType m_blockHash;
     int64_t m_transactionIndex;
-    NonceType m_nonce;
+    NonceType m_nonce = -1;
     TransactionReceipt::Ptr m_receipt;
 };
 }  // namespace protocol
