@@ -23,6 +23,7 @@
 #include "../../interfaces/multigroup/GroupInfo.h"
 #include "../../libutilities/Common.h"
 #include "../../libutilities/Error.h"
+#include "GatewayTypeDef.h"
 
 namespace bcos
 {
@@ -110,7 +111,7 @@ public:
 
     /// for AMOP
     virtual void asyncSendMessageByTopic(const std::string& _topic, bcos::bytesConstRef _data,
-        std::function<void(bcos::Error::Ptr&&, bytesPointer)> _respFunc) = 0;
+        std::function<void(bcos::Error::Ptr&&, int16_t, bytesPointer)> _respFunc) = 0;
     virtual void asyncSendBroadbastMessageByTopic(
         const std::string& _topic, bcos::bytesConstRef _data) = 0;
 
