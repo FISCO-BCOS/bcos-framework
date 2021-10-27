@@ -32,16 +32,9 @@ public:
     TransactionSubmitResultFactoryImpl() = default;
     ~TransactionSubmitResultFactoryImpl() override {}
 
-    TransactionSubmitResult::Ptr createTxSubmitResult(
-        bcos::crypto::HashType const& _txHash, int32_t _status) override
+    TransactionSubmitResult::Ptr createTxSubmitResult() override
     {
-        return std::make_shared<TransactionSubmitResultImpl>(_txHash, (TransactionStatus)_status);
-    }
-
-    TransactionSubmitResult::Ptr createTxSubmitResult(
-        BlockHeader::Ptr _blockHeader, bcos::crypto::HashType const& _txHash) override
-    {
-        return std::make_shared<TransactionSubmitResultImpl>(_blockHeader, _txHash);
+        return std::make_shared<TransactionSubmitResultImpl>();
     }
 };
 }  // namespace protocol

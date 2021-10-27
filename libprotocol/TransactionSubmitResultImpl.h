@@ -31,52 +31,39 @@ class TransactionSubmitResultImpl : public TransactionSubmitResult
 {
 public:
     using Ptr = std::shared_ptr<TransactionSubmitResultImpl>;
-    TransactionSubmitResultImpl(TransactionReceipt::Ptr _receipt, bcos::crypto::HashType _txHash,
-        int64_t _transactionIndex, bcos::crypto::HashType _blockHash)
-      : m_receipt(std::move(_receipt)),
-        m_txHash(_txHash),
-        m_transactionIndex(_transactionIndex),
-        m_blockHash(_blockHash)
-    {}
+    virtual ~TransactionSubmitResultImpl() override {}
 
-    TransactionSubmitResultImpl(
-        BlockHeader::Ptr _blockHeader, bcos::crypto::HashType const& _txHash)
-      : m_txHash(_txHash), m_blockHash(_blockHeader->hash())
-    {}
-
-    TransactionSubmitResultImpl(TransactionReceipt::Ptr _receipt, Transaction::Ptr _tx,
-        int64_t _transactionIndex, BlockHeader::Ptr _blockHeader)
-      : TransactionSubmitResultImpl(_receipt, _tx->hash(), _transactionIndex, _blockHeader->hash())
-    {}
-
-    explicit TransactionSubmitResultImpl(
-        bcos::crypto::HashType const& _txHash, TransactionStatus _status)
-      : m_status((uint32_t)_status), m_txHash(_txHash)
-    {}
-
-    virtual ~TransactionSubmitResultImpl() {}
-
-    // get transaction status
     uint32_t status() const override { return m_status; }
-    // get transactionHash
-    bcos::crypto::HashType const& txHash() const override { return m_txHash; }
-    // get blockHash
-    bcos::crypto::HashType const& blockHash() const override { return m_blockHash; }
-    // txIndex
-    int64_t transactionIndex() const override { return m_transactionIndex; }
+    void setStatus(uint32_t status) override { m_status = status; }
 
-    void setNonce(NonceType const& _nonce) override { m_nonce = _nonce; }
-    NonceType const& nonce() const override { return m_nonce; }
+    bcos::crypto::HashType txHash() const override { return m_txHash; }
+    void setTxHash(bcos::crypto::HashType txHash) override { m_txHash = txHash; }
+
+    bcos::crypto::HashType blockHash() const override { return m_blockHash; }
+    void setBlockHash(bcos::crypto::HashType blockHash) override { m_blockHash = blockHash; }
+
+    int64_t transactionIndex() const override { return m_transactionIndex; }
+    void setTransactionIndex(int64_t transactionIndex) override
+    {
+        m_transactionIndex = transactionIndex;
+    }
+
+    NonceType nonce() const override { return m_nonce; }
+    void setNonce(NonceType nonce) override { m_nonce = nonce; }
+
+    TransactionReceipt::Ptr transactionReceipt() const override { return m_receipt; }
+    void setTransactionReceipt(TransactionReceipt::Ptr transactionReceipt) override
+    {
+        m_receipt = std::move(transactionReceipt);
+    }
 
 private:
     uint32_t m_status = (uint32_t)TransactionStatus::None;
-    TransactionReceipt::Ptr m_receipt;
     bcos::crypto::HashType m_txHash;
-    int64_t m_transactionIndex;
     bcos::crypto::HashType m_blockHash;
-    bytesConstRef m_sender;
-    bytesConstRef m_to;
+    int64_t m_transactionIndex;
     NonceType m_nonce = -1;
+    TransactionReceipt::Ptr m_receipt;
 };
 }  // namespace protocol
 }  // namespace bcos

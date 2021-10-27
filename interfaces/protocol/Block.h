@@ -126,7 +126,7 @@ public:
     // get transaction metaData
     virtual TransactionMetaData::ConstPtr transactionMetaData(size_t _index) const = 0;
     // get transaction hash
-    virtual bcos::crypto::HashType const& transactionHash(size_t _index) const
+    virtual bcos::crypto::HashType transactionHash(size_t _index) const
     {
         auto txMetaData = transactionMetaData(_index);
         if (txMetaData)

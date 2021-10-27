@@ -95,8 +95,14 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     // test TransactionSubmitResult
     auto tx = (*txs1)[0];
     auto receipt = (*receipts)[0];
-    TransactionSubmitResult::Ptr onChainResult =
-        std::make_shared<TransactionSubmitResultImpl>(receipt, tx, 0, decodedBlock->blockHeader());
+    // TransactionSubmitResult::Ptr onChainResult =
+    //     std::make_shared<TransactionSubmitResultImpl>(receipt, tx, 0,
+    //     decodedBlock->blockHeader());
+    TransactionSubmitResult::Ptr onChainResult = std::make_shared<TransactionSubmitResultImpl>();
+    onChainResult->setTransactionReceipt(receipt);
+    onChainResult->setTxHash(tx->hash());
+    onChainResult->setTransactionIndex(0);
+    onChainResult->setBlockHash(decodedBlock->blockHeader()->hash());
     auto populatedBlockHeader =
         blockFactory->blockHeaderFactory()->populateBlockHeader(decodedBlock->blockHeader());
     BOOST_CHECK(populatedBlockHeader->hash() == decodedBlock->blockHeader()->hash());

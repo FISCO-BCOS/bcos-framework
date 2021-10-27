@@ -42,7 +42,7 @@ public:
     ~PBTransactionMetaData() override {}
 
     std::shared_ptr<PBRawTransactionMetaData> pbTxMetaData() { return m_pbTxMetaData; }
-    bcos::crypto::HashType const& hash() const override
+    bcos::crypto::HashType hash() const override
     {
         if (m_hash != bcos::crypto::HashType())
         {
@@ -58,18 +58,20 @@ public:
     }
     std::string_view to() const override { return m_pbTxMetaData->to(); }
 
-    void setHash(bcos::crypto::HashType const& _hash) override
+    void setHash(bcos::crypto::HashType _hash) override
     {
         m_hash = _hash;
         m_pbTxMetaData->set_hash(_hash.data(), bcos::crypto::HashType::size);
     }
-    void setTo(std::string const& _to) override { m_pbTxMetaData->set_to(_to); }
+    void setTo(std::string _to) override { m_pbTxMetaData->mutable_to()->swap(_to); }
 
-    void setSubmitCallback(TxSubmitCallback) override{};  // FIXME: no impl!
+    std::string_view source() const override { return {}; }  // FIXME: no impl!
+    void setSource(std::string) override {}                  // FIXME: no impl!
 
 private:
     std::shared_ptr<PBRawTransactionMetaData> m_pbTxMetaData;
     mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
 };
+
 }  // namespace protocol
 }  // namespace bcos
