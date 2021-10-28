@@ -115,9 +115,6 @@ public:
     virtual void asyncSendBroadbastMessageByTopic(
         const std::string& _topic, bcos::bytesConstRef _data) = 0;
 
-    virtual void asyncRegisterClient(std::string const& _clientID,
-        std::string const& _clientEndPoint, std::function<void(Error::Ptr&&)> _callback) = 0;
-
     virtual void asyncSubscribeTopic(std::string const& _clientID, std::string const& _topicInfo,
         std::function<void(Error::Ptr&&)> _callback) = 0;
     virtual void asyncRemoveTopic(std::string const& _clientID,
