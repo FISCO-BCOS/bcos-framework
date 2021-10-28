@@ -29,15 +29,23 @@ namespace protocol
 {
 enum TransactionType
 {
-    NullTransaction,
+    NullTransaction = 0,
     ContractCreation,
     MessageCall,
 };
+
 using TxSubmitCallback =
     std::function<void(Error::Ptr, bcos::protocol::TransactionSubmitResult::Ptr)>;
 class Transaction
 {
 public:
+    enum Attribute : uint32_t
+    {
+        EVM_ABI_CODEC = 0x1,
+        LIQUID_SCALE_CODEC = 0x2,
+        DAG = 0x4,
+    };
+
     using Ptr = std::shared_ptr<Transaction>;
     using ConstPtr = std::shared_ptr<const Transaction>;
     explicit Transaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite) : m_cryptoSuite(_cryptoSuite)
@@ -97,8 +105,10 @@ public:
         return TransactionType::ContractCreation;
     }
     virtual void forceSender(bytes const& _sender) const { m_sender = _sender; }
-
     virtual bytesConstRef signatureData() const = 0;
+
+    virtual uint32_t attribute() const = 0;
+    virtual void setAttribute(uint32_t attribute) = 0;
 
     // virtual TxSubmitCallback takeSubmitCallback() { return std::move(m_submitCallback); }
     // virtual TxSubmitCallback submitCallback() const { return m_submitCallback; }
