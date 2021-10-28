@@ -43,6 +43,7 @@ public:
     ChainNodeInfo(std::string const& _nodeName, int32_t _type)
       : m_nodeName(_nodeName), m_nodeType((NodeType)_type)
     {}
+    explicit ChainNodeInfo(std::string const& _jsonGroupInfoStr) { deserialize(_jsonGroupInfoStr); }
     virtual ~ChainNodeInfo() {}
 
     virtual std::string const& nodeName() const { return m_nodeName; }
@@ -78,6 +79,102 @@ public:
 
     void setMicroService(bool _microService) { m_microService = _microService; }
     bool microService() const { return m_microService; }
+
+    virtual void deserialize(const std::string& _json)
+    {
+        Json::Value value;
+        Json::Reader jsonReader;
+        if (!jsonReader.parse(_json, value))
+        {
+            BOOST_THROW_EXCEPTION(InvalidChainNodeInfo() << errinfo_comment(
+                                      "The chain node information must be valid json string."));
+        }
+        // required: parse nodeName
+        if (!value.isMember("name"))
+        {
+            BOOST_THROW_EXCEPTION(InvalidChainNodeInfo() << errinfo_comment(
+                                      "The chain node information must set the chain node name."));
+        }
+        setNodeName(value["name"].asString());
+
+        // required: parse nodeType
+        if (!value.isMember("type"))
+        {
+            BOOST_THROW_EXCEPTION(InvalidChainNodeInfo() << errinfo_comment(
+                                      "The chain node information must set the chain node type."));
+        }
+        NodeType type = (NodeType)(value["type"].asUInt());
+        setNodeType(type);
+
+        // required: parse iniConfig
+        if (!value.isMember("iniConfig"))
+        {
+            BOOST_THROW_EXCEPTION(InvalidChainNodeInfo() << errinfo_comment(
+                                      "The chain node information must set the init config info"));
+        }
+        setIniConfig(value["iniConfig"].asString());
+
+        // required: parse deployInfo
+        if (!value.isMember("serviceInfo"))
+        {
+            BOOST_THROW_EXCEPTION(InvalidChainNodeInfo() << errinfo_comment(
+                                      "The chain node information must set the service info"));
+        }
+
+        if (!value["serviceInfo"].isArray())
+        {
+            BOOST_THROW_EXCEPTION(
+                InvalidChainNodeInfo() << errinfo_comment("The service info must be array."));
+        }
+
+        auto const& serviceInfo = value["serviceInfo"];
+        for (Json::ArrayIndex i = 0; i < serviceInfo.size(); i++)
+        {
+            auto const& serviceInfoItem = serviceInfo[i];
+            if (!serviceInfoItem.isObject() || !serviceInfoItem.isMember("type") ||
+                !serviceInfoItem.isMember("serviceName"))
+            {
+                BOOST_THROW_EXCEPTION(
+                    InvalidChainNodeInfo() << errinfo_comment(
+                        "Invalid service info: must contain the service type and name"));
+            }
+            appendServiceInfo((bcos::protocol::ServiceType)serviceInfoItem["type"].asInt(),
+                serviceInfoItem["serviceName"].asString());
+        }
+
+        // optional: parse m_nodeID
+        if (value.isMember("nodeID"))
+        {
+            setNodeID(value["nodeID"].asString());
+        }
+
+        // optional: parse microService
+        if (value.isMember("microService"))
+        {
+            setMicroService(value["microService"].asBool());
+        }
+    }
+
+    virtual Json::Value serialize()
+    {
+        Json::Value jResp;
+        jResp["name"] = nodeName();
+        jResp["type"] = nodeType();
+        jResp["iniConfig"] = iniConfig();
+        // set deployInfo
+        jResp["serviceInfo"] = Json::Value(Json::arrayValue);
+
+        auto const& infos = serviceInfo();
+        for (auto const& innerIt : infos)
+        {
+            Json::Value item;
+            item["type"] = innerIt.first;
+            item["serviceName"] = innerIt.second;
+            jResp["serviceInfo"].append(item);
+        }
+
+        return jResp;
+    }
 
 private:
     bool m_microService = false;

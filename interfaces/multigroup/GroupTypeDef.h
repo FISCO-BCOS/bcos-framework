@@ -24,3 +24,12 @@
 #include <memory>
 
 #define GROUP_LOG(LEVEL) BCOS_LOG(LEVEL) << LOG_BADGE("GROUP")
+
+namespace bcos
+{
+namespace group
+{
+DERIVE_BCOS_EXCEPTION(InvalidGroupInfo);
+DERIVE_BCOS_EXCEPTION(InvalidChainNodeInfo);
+}  // namespace group
+}  // namespace bcos
