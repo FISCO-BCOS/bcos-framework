@@ -102,8 +102,90 @@ public:
         return m_nodeInfos.size();
     }
 
+    virtual void deserialize(const std::string& _json)
+    {
+        Json::Value root;
+        Json::Reader jsonReader;
+
+        if (!jsonReader.parse(_json, root))
+        {
+            BOOST_THROW_EXCEPTION(InvalidGroupInfo() << errinfo_comment(
+                                      "The group information must be valid json string."));
+        }
+
+        if (!root.isMember("chainID"))
+        {
+            BOOST_THROW_EXCEPTION(InvalidGroupInfo()
+                                  << errinfo_comment("The group information must contain chainID"));
+        }
+        setChainID(root["chainID"].asString());
+
+        if (!root.isMember("groupID"))
+        {
+            BOOST_THROW_EXCEPTION(InvalidGroupInfo()
+                                  << errinfo_comment("The group information must contain groupID"));
+        }
+        setGroupID(root["groupID"].asString());
+
+        if (!root.isMember("gensisConfig"))
+        {
+            BOOST_THROW_EXCEPTION(InvalidGroupInfo() << errinfo_comment(
+                                      "The group information must contain gensisConfig"));
+        }
+        setGenesisConfig(root["gensisConfig"].asString());
+
+        if (!root.isMember("iniConfig"))
+        {
+            BOOST_THROW_EXCEPTION(InvalidGroupInfo() << errinfo_comment(
+                                      "The group information must contain iniConfig"));
+        }
+        setIniConfig(root["iniConfig"].asString());
+
+        // nodeList
+        if (!root.isMember("nodeList") || !root["nodeList"].isArray())
+        {
+            BOOST_THROW_EXCEPTION(InvalidGroupInfo() << errinfo_comment(
+                                      "The group information must contain nodeList"));
+        }
+
+        for (Json::ArrayIndex i = 0; i < root["nodeList"].size(); ++i)
+        {
+            auto& nodeInfo = root["nodeList"][i];
+            Json::FastWriter writer;
+            std::string nodeStr = writer.write(nodeInfo);
+            appendNodeInfo(m_chainNodeInfoFactory->createNodeInfo(nodeStr));
+        }
+    }
+
+    virtual Json::Value serialize()
+    {
+        Json::Value jResp;
+        jResp["chainID"] = chainID();
+        jResp["groupID"] = groupID();
+        jResp["gensisConfig"] = genesisConfig();
+        jResp["iniConfig"] = iniConfig();
+        jResp["nodeList"] = Json::Value(Json::arrayValue);
+        const auto& nodes = nodeInfos();
+        for (auto const& it : nodes)
+        {
+            jResp["nodeList"].append(it.second->serialize());
+        }
+
+        return jResp;
+    }
+
     // return copied nodeInfos to ensure thread-safe
     std::map<std::string, ChainNodeInfo::Ptr> nodeInfos() { return m_nodeInfos; }
+
+    bcos::group::ChainNodeInfoFactory::Ptr chainNodeInfoFactory() const
+    {
+        return m_chainNodeInfoFactory;
+    }
+
+    void setChainNodeInfoFactory(bcos::group::ChainNodeInfoFactory::Ptr _chainNodeInfoFactory)
+    {
+        m_chainNodeInfoFactory = _chainNodeInfoFactory;
+    }
 
 private:
     ChainNodeInfoFactory::Ptr m_chainNodeInfoFactory;
