@@ -23,21 +23,30 @@
 #include "../../libutilities/Common.h"
 #include "../../libutilities/Error.h"
 #include "TransactionSubmitResult.h"
+#include <shared_mutex>
 namespace bcos
 {
 namespace protocol
 {
 enum TransactionType
 {
-    NullTransaction,
+    NullTransaction = 0,
     ContractCreation,
     MessageCall,
 };
+
 using TxSubmitCallback =
     std::function<void(Error::Ptr, bcos::protocol::TransactionSubmitResult::Ptr)>;
 class Transaction
 {
 public:
+    enum Attribute : uint32_t
+    {
+        EVM_ABI_CODEC = 0x1,
+        LIQUID_SCALE_CODEC = 0x2,
+        DAG = 0x4,
+    };
+
     using Ptr = std::shared_ptr<Transaction>;
     using ConstPtr = std::shared_ptr<const Transaction>;
     explicit Transaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite) : m_cryptoSuite(_cryptoSuite)
@@ -97,46 +106,45 @@ public:
         return TransactionType::ContractCreation;
     }
     virtual void forceSender(bytes const& _sender) const { m_sender = _sender; }
-
     virtual bytesConstRef signatureData() const = 0;
 
-    virtual TxSubmitCallback takeSubmitCallback() { return std::move(m_submitCallback); }
-    virtual TxSubmitCallback submitCallback() const { return m_submitCallback; }
-    virtual void setSubmitCallback(TxSubmitCallback _submitCallback)
+    virtual uint32_t attribute() const = 0;
+    virtual void setAttribute(uint32_t attribute) = 0;
+
+    TxSubmitCallback takeSubmitCallback() { return std::move(m_submitCallback); }
+    TxSubmitCallback submitCallback() const { return m_submitCallback; }
+    void setSubmitCallback(TxSubmitCallback _submitCallback) { m_submitCallback = _submitCallback; }
+    bool synced() const { return m_synced; }
+    void setSynced(bool _synced) const { m_synced = _synced; }
+
+    bool sealed() const { return m_sealed; }
+    void setSealed(bool _sealed) const { m_sealed = _sealed; }
+
+    bool invalid() const { return m_invalid; }
+    void setInvalid(bool _invalid) const { m_invalid = _invalid; }
+
+    bcos::crypto::CryptoSuite::Ptr cryptoSuite() { return m_cryptoSuite; }
+
+    void appendKnownNode(bcos::crypto::NodeIDPtr _node) const
     {
-        m_submitCallback = _submitCallback;
-    }
-    virtual bool synced() const { return m_synced; }
-    virtual void setSynced(bool _synced) const { m_synced = _synced; }
-
-    virtual bool sealed() const { return m_sealed; }
-    virtual void setSealed(bool _sealed) const { m_sealed = _sealed; }
-
-    virtual bool invalid() const { return m_invalid; }
-    virtual void setInvalid(bool _invalid) const { m_invalid = _invalid; }
-
-    virtual bcos::crypto::CryptoSuite::Ptr cryptoSuite() { return m_cryptoSuite; }
-
-    virtual void appendKnownNode(bcos::crypto::NodeIDPtr _node) const
-    {
-        WriteGuard l(x_knownNodeList);
+        std::unique_lock<std::shared_mutex> l(x_knownNodeList);
         m_knownNodeList.insert(_node);
     }
 
-    virtual bool isKnownBy(bcos::crypto::NodeIDPtr _node) const
+    bool isKnownBy(bcos::crypto::NodeIDPtr _node) const
     {
-        ReadGuard l(x_knownNodeList);
+        std::shared_lock<std::shared_mutex> l(x_knownNodeList);
         return m_knownNodeList.count(_node);
     }
 
-    virtual void setSystemTx(bool _systemTx) const { m_systemTx = _systemTx; }
-    virtual bool systemTx() const { return m_systemTx; }
+    void setSystemTx(bool _systemTx) const { m_systemTx = _systemTx; }
+    bool systemTx() const { return m_systemTx; }
 
-    virtual void setBatchId(bcos::protocol::BlockNumber _batchId) const { m_batchId = _batchId; }
-    virtual bcos::protocol::BlockNumber batchId() const { return m_batchId; }
+    void setBatchId(bcos::protocol::BlockNumber _batchId) const { m_batchId = _batchId; }
+    bcos::protocol::BlockNumber batchId() const { return m_batchId; }
 
-    virtual void setBatchHash(bcos::crypto::HashType const& _hash) const { m_batchHash = _hash; }
-    virtual bcos::crypto::HashType const& batchHash() const { return m_batchHash; }
+    void setBatchHash(bcos::crypto::HashType const& _hash) const { m_batchHash = _hash; }
+    bcos::crypto::HashType const& batchHash() const { return m_batchHash; }
 
 protected:
     mutable bcos::bytes m_sender;
@@ -144,24 +152,24 @@ protected:
 
     TxSubmitCallback m_submitCallback;
     // the tx has been synced or not
-    mutable std::atomic_bool m_synced = {false};
-    // the tx has been sealed by the leader of not
-    mutable std::atomic_bool m_sealed = {false};
-    // the number of proposal that the tx batched into
-    mutable bcos::protocol::BlockNumber m_batchId = {-1};
+
     // the hash of the proposal that the tx batched into
     mutable bcos::crypto::HashType m_batchHash;
 
-    // the tx is invalid for verify failed
-    mutable std::atomic_bool m_invalid = {false};
-
-    // the transaction is the system transaction or not
-    mutable std::atomic_bool m_systemTx = {false};
-
     // Record the list of nodes containing the transaction and provide related query interfaces.
-    mutable bcos::SharedMutex x_knownNodeList;
+    mutable std::shared_mutex x_knownNodeList;
     // Record the node where the transaction exists
     mutable bcos::crypto::NodeIDSet m_knownNodeList;
+    // the number of proposal that the tx batched into
+    mutable bcos::protocol::BlockNumber m_batchId = {-1};
+
+    mutable std::atomic_bool m_synced = {false};
+    // the tx has been sealed by the leader of not
+    mutable std::atomic_bool m_sealed = {false};
+    // the tx is invalid for verify failed
+    mutable std::atomic_bool m_invalid = {false};
+    // the transaction is the system transaction or not
+    mutable std::atomic_bool m_systemTx = {false};
 };
 
 using Transactions = std::vector<Transaction::Ptr>;

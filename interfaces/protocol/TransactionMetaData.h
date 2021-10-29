@@ -37,11 +37,15 @@ public:
     virtual ~TransactionMetaData() = default;
 
     virtual bcos::crypto::HashType hash() const = 0;
-    virtual std::string_view to() const = 0;
-    virtual std::string_view source() const = 0;
-
     virtual void setHash(bcos::crypto::HashType _hash) = 0;
+
+    virtual std::string_view to() const = 0;
     virtual void setTo(std::string _to) = 0;
+
+    virtual uint32_t attribute() const = 0;
+    virtual void setAttribute(uint32_t attribute) = 0;
+
+    virtual std::string_view source() const = 0;
     virtual void setSource(std::string source) = 0;
 };
 
