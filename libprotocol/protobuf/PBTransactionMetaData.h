@@ -65,6 +65,9 @@ public:
     }
     void setTo(std::string _to) override { m_pbTxMetaData->mutable_to()->swap(_to); }
 
+    uint32_t attribute() const override { return 0; }  // FIXME: no impl!
+    void setAttribute(uint32_t) override {}            // FIXME: no impl!
+
     std::string_view source() const override { return {}; }  // FIXME: no impl!
     void setSource(std::string) override {}                  // FIXME: no impl!
 
