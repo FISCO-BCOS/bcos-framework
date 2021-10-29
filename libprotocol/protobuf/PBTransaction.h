@@ -81,6 +81,9 @@ public:
     // only for ut
     void updateSignature(bytesConstRef _signatureData, bytes const& _sender);
 
+    uint32_t attribute() const override { return 0; }  // FIXME: no impl!
+    void setAttribute(uint32_t) override {}            // FIXME: no impl!
+
 protected:
     explicit PBTransaction(bcos::crypto::CryptoSuite::Ptr _cryptoSuite)
       : Transaction(_cryptoSuite),
