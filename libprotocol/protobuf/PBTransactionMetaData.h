@@ -65,11 +65,11 @@ public:
     }
     void setTo(std::string _to) override { m_pbTxMetaData->mutable_to()->swap(_to); }
 
-    uint32_t attribute() const override { return 0; }  // FIXME: no impl!
-    void setAttribute(uint32_t) override {}            // FIXME: no impl!
+    uint32_t attribute() const override { return m_pbTxMetaData->attribute(); }
+    void setAttribute(uint32_t _attribute) override { m_pbTxMetaData->set_attribute(_attribute); }
 
-    std::string_view source() const override { return {}; }  // FIXME: no impl!
-    void setSource(std::string) override {}                  // FIXME: no impl!
+    std::string_view source() const override { return m_pbTxMetaData->source(); }
+    void setSource(std::string _source) override { m_pbTxMetaData->set_source(_source); }
 
 private:
     std::shared_ptr<PBRawTransactionMetaData> m_pbTxMetaData;

@@ -89,6 +89,9 @@ public:
     virtual int64_t blockLimit() const = 0;
     virtual u256 const& nonce() const = 0;
     virtual std::string_view to() const = 0;
+    virtual std::string_view source() const = 0;
+    virtual void setSource(std::string const& _source) = 0;
+
     virtual std::string_view sender() const
     {
         return std::string_view((char*)m_sender.data(), m_sender.size());
