@@ -121,16 +121,63 @@ public:
 private:
     Entry& importExistingEntry(const std::string_view& key, Entry entry);
 
-    struct TableData
-    {
-        TableData(TableInfo::ConstPtr tableInfo) : tableInfo(std::move(tableInfo)) {}
+    // struct TableData
+    // {
+    //     TableData(TableInfo::ConstPtr tableInfo) : tableInfo(std::move(tableInfo)) {}
 
-        TableInfo::ConstPtr tableInfo;
-        std::map<std::string, Entry, std::less<>> entries;
-        bool dirty = false;
+    //     TableInfo::ConstPtr tableInfo;
+    //     std::map<std::string, Entry, std::less<>> entries;
+    //     bool dirty = false;
+    // };
+
+    class DataKey
+    {
+    public:
+        DataKey(std::string_view table, std::string_view key) : m_table(table), m_key(key){};
+        DataKey(std::string_view table, std::string key) : m_table(table), m_key(std::move(key)){};
+        DataKey(const DataKey&) = delete;
+        DataKey& operator=(const DataKey&) = delete;
+        DataKey(DataKey&&) noexcept = default;
+        DataKey& operator=(DataKey&&) noexcept = default;
+
+        std::string_view table() const { return m_table; }
+
+        std::string_view key() const
+        {
+            std::string_view view;
+            std::visit([&view](auto&& key) { view = key; }, m_key);
+
+            return view;
+        }
+
+        bool operator==(const DataKey& rhs) const
+        {
+            return m_table == rhs.m_table && key() == rhs.key();
+        }
+
+    private:
+        std::string_view m_table;
+        std::variant<std::string_view, std::string> m_key;
     };
 
-    tbb::concurrent_unordered_map<std::string_view, TableData, std::hash<std::string_view>> m_data;
+    struct DataKeyHasher
+    {
+        size_t operator()(const DataKey& dataKey) const
+        {
+            size_t seed = hashString(dataKey.table());
+            boost::hash_combine(seed, hashString(dataKey.key()));
+
+            return seed;
+        }
+
+        std::hash<std::string_view> hashString;
+    };
+
+    tbb::concurrent_unordered_map<DataKey, Entry, DataKeyHasher> m_data;
+    tbb::concurrent_unordered_map<std::string_view, TableInfo::ConstPtr,
+        std::hash<std::string_view>>
+        m_tableInfos;
+
     tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
     std::shared_ptr<StorageInterface> m_prev;
     size_t m_capacity = 0;
