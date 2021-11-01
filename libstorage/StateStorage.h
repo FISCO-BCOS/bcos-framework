@@ -31,6 +31,7 @@
 #include "tbb/enumerable_thread_specific.h"
 #include "tbb/parallel_for.h"
 #include "tbb/parallel_sort.h"
+#include <tbb/concurrent_hash_map.h>
 #include <boost/throw_exception.hpp>
 #include <future>
 #include <memory>
@@ -42,7 +43,8 @@ class StateStorage : public storage::TraverseStorageInterface,
                      public std::enable_shared_from_this<StateStorage>
 {
 public:
-    typedef std::shared_ptr<StateStorage> Ptr;
+    using Ptr = std::shared_ptr<StateStorage>;
+
     explicit StateStorage(std::shared_ptr<StorageInterface> prev) : m_prev(std::move(prev)) {}
 
     StateStorage(const StateStorage&) = delete;
@@ -121,24 +123,16 @@ public:
 private:
     Entry& importExistingEntry(const std::string_view& key, Entry entry);
 
-    // struct TableData
-    // {
-    //     TableData(TableInfo::ConstPtr tableInfo) : tableInfo(std::move(tableInfo)) {}
-
-    //     TableInfo::ConstPtr tableInfo;
-    //     std::map<std::string, Entry, std::less<>> entries;
-    //     bool dirty = false;
-    // };
-
-    class DataKey
+    class EntryKey
     {
     public:
-        DataKey(std::string_view table, std::string_view key) : m_table(table), m_key(key){};
-        DataKey(std::string_view table, std::string key) : m_table(table), m_key(std::move(key)){};
-        DataKey(const DataKey&) = delete;
-        DataKey& operator=(const DataKey&) = delete;
-        DataKey(DataKey&&) noexcept = default;
-        DataKey& operator=(DataKey&&) noexcept = default;
+        EntryKey(std::string_view table, std::string_view key) : m_table(table), m_key(key){};
+        EntryKey(std::string_view table, std::string key) : m_table(table), m_key(std::move(key)){};
+
+        EntryKey(const EntryKey&) = default;
+        EntryKey& operator=(const EntryKey&) = default;
+        EntryKey(EntryKey&&) noexcept = default;
+        EntryKey& operator=(EntryKey&&) noexcept = default;
 
         std::string_view table() const { return m_table; }
 
@@ -150,7 +144,7 @@ private:
             return view;
         }
 
-        bool operator==(const DataKey& rhs) const
+        bool operator==(const EntryKey& rhs) const
         {
             return m_table == rhs.m_table && key() == rhs.key();
         }
@@ -160,9 +154,9 @@ private:
         std::variant<std::string_view, std::string> m_key;
     };
 
-    struct DataKeyHasher
+    struct EntryKeyHasher
     {
-        size_t operator()(const DataKey& dataKey) const
+        size_t hash(const EntryKey& dataKey) const
         {
             size_t seed = hashString(dataKey.table());
             boost::hash_combine(seed, hashString(dataKey.key()));
@@ -170,13 +164,26 @@ private:
             return seed;
         }
 
+        bool equal(const EntryKey& lhs, const EntryKey& rhs) const
+        {
+            return lhs.table() == rhs.table() && lhs.key() == rhs.key();
+        }
+
         std::hash<std::string_view> hashString;
     };
 
-    tbb::concurrent_unordered_map<DataKey, Entry, DataKeyHasher> m_data;
-    tbb::concurrent_unordered_map<std::string_view, TableInfo::ConstPtr,
-        std::hash<std::string_view>>
-        m_tableInfos;
+    using TableKey = std::string_view;
+
+    struct TableKeyHasher
+    {
+        size_t hash(const TableKey& dataKey) const { return hashString(dataKey); }
+        bool equal(const TableKey& lhs, const TableKey& rhs) const { return lhs == rhs; }
+
+        std::hash<std::string_view> hashString;
+    };
+
+    tbb::concurrent_hash_map<EntryKey, Entry, EntryKeyHasher> m_data;
+    tbb::concurrent_hash_map<TableKey, TableInfo::ConstPtr, TableKeyHasher> m_tableInfos;
 
     tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
     std::shared_ptr<StorageInterface> m_prev;
