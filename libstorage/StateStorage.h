@@ -39,8 +39,7 @@
 
 namespace bcos::storage
 {
-class StateStorage : public storage::TraverseStorageInterface,
-                     public std::enable_shared_from_this<StateStorage>
+class StateStorage : public storage::TraverseStorageInterface
 {
 public:
     using Ptr = std::shared_ptr<StateStorage>;
