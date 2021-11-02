@@ -147,6 +147,19 @@ public:
     }
 
     /**
+     * @brief scale-encodes collection of map
+     * @tparam T type of item
+     * @tparam F type of item
+     * @param c collection to encode
+     * @return reference to stream
+     */
+    template <class T, class F>
+    ScaleEncoderStream& operator<<(const std::map<T, F>& c)
+    {
+        return encodeCollection(c.size(), c.begin(), c.end());
+    }
+
+    /**
      * @brief scale-encodes optional value
      * @tparam T value type
      * @param v value to encode
