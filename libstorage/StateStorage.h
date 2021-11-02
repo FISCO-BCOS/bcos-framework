@@ -93,19 +93,17 @@ public:
 
         struct Change
         {
-            Change(std::string_view _table, std::string_view _key, std::optional<Entry> _entry,
-                bool _tableDirty)
-              : table(_table), key(_key), entry(std::move(_entry)), tableDirty(_tableDirty)
+            Change(std::string_view _table, std::string _key, std::optional<Entry> _entry)
+              : table(_table), key(std::move(_key)), entry(std::move(_entry))
             {}
             Change(const Change&) = delete;
             Change& operator=(const Change&) = delete;
-            Change(Change&&) = default;
-            Change& operator=(Change&&) = default;
+            Change(Change&&) noexcept = default;
+            Change& operator=(Change&&) noexcept = default;
 
             std::string_view table;
-            std::string_view key;
+            std::string key;
             std::optional<Entry> entry;
-            bool tableDirty;
         };
 
         void log(Change&& change) { m_changes.emplace_front(std::move(change)); }
@@ -120,9 +118,9 @@ public:
     void setRecoder(Recoder::Ptr recoder) { m_recoder.local().swap(recoder); }
     void rollback(const Recoder::ConstPtr& recoder);
 
-private:
-    Entry& importExistingEntry(const std::string_view& key, Entry entry);
+    void setEnableTraverse(bool enableTraverse) { m_enableTraverse = enableTraverse; }
 
+protected:
     class EntryKey
     {
     public:
@@ -182,11 +180,15 @@ private:
         std::hash<std::string_view> hashString;
     };
 
+private:
+    Entry& importExistingEntry(const std::string_view& key, Entry entry);
+
     tbb::concurrent_hash_map<EntryKey, Entry, EntryKeyHasher> m_data;
     tbb::concurrent_hash_map<TableKey, TableInfo::ConstPtr, TableKeyHasher> m_tableInfos;
 
     tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
     std::shared_ptr<StorageInterface> m_prev;
     size_t m_capacity = 0;
+    bool m_enableTraverse = false;
 };
 }  // namespace bcos::storage

@@ -99,7 +99,7 @@ struct TableFactoryFixture
     std::string keyField = "key";
     std::string valueField = "value";
 };
-BOOST_FIXTURE_TEST_SUITE(TableFactoryTest, TableFactoryFixture)
+BOOST_FIXTURE_TEST_SUITE(StateStorageTest, TableFactoryFixture)
 
 BOOST_AUTO_TEST_CASE(constructor)
 {
@@ -133,35 +133,28 @@ BOOST_AUTO_TEST_CASE(rollback)
     BOOST_CHECK_NO_THROW(table->setRow("name", deleteEntry));
 
     auto entry = std::make_optional(table->newEntry());
-    // entry->setField("key", "name");
     BOOST_CHECK_NO_THROW(entry->setField("value", "Lili"));
     BOOST_CHECK_NO_THROW(table->setRow("name", *entry));
     entry = table->getRow("name");
     BOOST_TEST(entry);
-    // BOOST_TEST(table->dirty() == true);
     BOOST_TEST(entry->dirty() == true);
     BOOST_TEST(entry->getField("value") == "Lili");
 
-    // auto savePoint = tableFactory->savepoint();
     auto savePoint = tableFactory->newRecoder();
     tableFactory->setRecoder(savePoint);
 
     entry = table->newEntry();
-    // entry->setField("key", "id");
     entry->setField("value", "12345");
     table->setRow("id", *entry);
     entry = table->getRow("id");
     BOOST_TEST(entry);
     entry = table->getRow("name");
     BOOST_TEST(entry);
-    // BOOST_TEST(table->dirty() == true);
 
-    // auto savePoint1 = tableFactory->savepoint();
     auto savePoint1 = tableFactory->newRecoder();
     tableFactory->setRecoder(savePoint1);
 
     entry = table->newEntry();
-    // entry->setField("key", "balance");
     entry->setField("value", "500");
     table->setRow("balance", *entry);
 
@@ -170,33 +163,27 @@ BOOST_AUTO_TEST_CASE(rollback)
 
     entry = table->getRow("name");
     BOOST_TEST(entry);
-    // BOOST_TEST(table->dirty() == true);
 
-    // auto savePoint2 = tableFactory->savepoint();
     auto savePoint2 = tableFactory->newRecoder();
     tableFactory->setRecoder(savePoint2);
 
     auto deleteEntry2 = std::make_optional(table->newDeletedEntry());
     table->setRow("name", *deleteEntry2);
 
-    // table->remove("name");
     entry = table->getRow("name");
     BOOST_CHECK(!entry);
-    // BOOST_CHECK_EQUAL(entry->status(), Entry::DELETED);
 
+    std::cout << "Try remove balance" << std::endl;
     tableFactory->rollback(savePoint2);
     entry = table->getRow("name");
     BOOST_CHECK_NE(entry->status(), Entry::DELETED);
-    // BOOST_TEST(table->dirty() == true);
 
     tableFactory->rollback(savePoint1);
     entry = table->getRow("name");
     BOOST_TEST(entry);
     entry = table->getRow("balance");
     BOOST_TEST(!entry);
-    // BOOST_TEST(table->dirty() == true);
 
-    // auto dbHash0 = tableFactory->hash();
     tableFactory->rollback(savePoint);
     entry = table->getRow("name");
     BOOST_TEST(entry);
@@ -209,10 +196,6 @@ BOOST_AUTO_TEST_CASE(rollback)
     entry = table->newEntry();
     entry->setField("value", "new record");
     BOOST_CHECK_NO_THROW(table->setRow("id", *entry));
-    // BOOST_TEST(table->dirty() == true);
-
-    // tableFactory->commit();
-    // TODO: add some ut, setRow remove rollback getRow setRow, setRow setRow remove rollback getRow
 }
 
 BOOST_AUTO_TEST_CASE(rollback2)
@@ -284,6 +267,9 @@ BOOST_AUTO_TEST_CASE(hash)
 {
     auto ret = createDefaultTable();
     BOOST_TEST(ret);
+
+    tableFactory->setEnableTraverse(true);
+
     auto table = tableFactory->openTable(testTableName);
     auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
@@ -759,6 +745,7 @@ BOOST_AUTO_TEST_CASE(checkVersion)
 BOOST_AUTO_TEST_CASE(deleteAndGetRows)
 {
     StateStorage::Ptr storage1 = std::make_shared<StateStorage>(nullptr);
+    storage1->setEnableTraverse(true);
 
     storage1->asyncCreateTable(
         "table", "value", [](Error::UniquePtr error, std::optional<Table> table) {
@@ -770,12 +757,14 @@ BOOST_AUTO_TEST_CASE(deleteAndGetRows)
     entry1.importFields({"value1"});
     storage1->asyncSetRow(
         "table", "key1", std::move(entry1), [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+
     Entry entry2;
     entry2.importFields({"value2"});
     storage1->asyncSetRow(
         "table", "key2", std::move(entry2), [](Error::UniquePtr error) { BOOST_CHECK(!error); });
 
     StateStorage::Ptr storage2 = std::make_shared<StateStorage>(storage1);
+    storage2->setEnableTraverse(true);
     Entry deleteEntry;
     deleteEntry.setStatus(Entry::DELETED);
     storage2->asyncSetRow("table", "key2", std::move(deleteEntry),

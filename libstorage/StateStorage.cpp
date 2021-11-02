@@ -15,15 +15,43 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
     const std::optional<Condition const>& _condition,
     std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback)
 {
-    // Only query the committed data
+    std::map<std::string_view, storage::Entry::Status> localKeys;
+
+    if (m_enableTraverse)
+    {
+        if (m_tableInfos.count(table) > 0)
+        {
+            for (auto& it : m_data)
+            {
+                if (it.first.table() == table)
+                {
+                    if (!_condition || _condition->isValid(it.first.key()))
+                    {
+                        localKeys.emplace(it.first.key(), it.second.status());
+                    }
+                }
+            }
+        }
+    }
+
     if (!m_prev)
     {
-        _callback(nullptr, std::vector<std::string>());
+        std::vector<std::string> resultKeys;
+        for (auto& localIt : localKeys)
+        {
+            if (localIt.second != Entry::DELETED)
+            {
+                resultKeys.push_back(std::string(localIt.first));
+            }
+        }
+
+        _callback(nullptr, std::move(resultKeys));
         return;
     }
 
     m_prev->asyncGetPrimaryKeys(table, _condition,
-        [this, table, callback = std::move(_callback)](auto&& error, auto&& remoteKeys) mutable {
+        [localKeys = std::move(localKeys), callback = std::move(_callback)](
+            auto&& error, auto&& remoteKeys) mutable {
             if (error)
             {
                 callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
@@ -36,19 +64,29 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
             {
                 bool deleted = false;
 
-                decltype(m_data)::const_accessor entryIt;
-                if (m_data.find(entryIt, EntryKey(table, std::string_view(*it))))
+                auto localIt = localKeys.find(*it);
+                if (localIt != localKeys.end())
                 {
-                    if (entryIt->second.status() == Entry::DELETED)
+                    if (localIt->second == Entry::DELETED)
                     {
                         it = remoteKeys.erase(it);
                         deleted = true;
                     }
+
+                    localKeys.erase(localIt);
                 }
 
                 if (!deleted)
                 {
                     ++it;
+                }
+            }
+
+            for (auto& localIt : localKeys)
+            {
+                if (localIt.second != Entry::DELETED)
+                {
+                    remoteKeys.push_back(std::string(localIt.first));
                 }
             }
 
@@ -59,8 +97,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
 void StateStorage::asyncGetRow(const std::string_view& table, const std::string_view& _key,
     std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback)
 {
-    decltype(m_tableInfos)::const_accessor tableIt;
-    if (m_tableInfos.find(tableIt, table))
+    if (m_tableInfos.count(table) > 0)
     {
         decltype(m_data)::const_accessor entryIt;
         if (m_data.find(entryIt, EntryKey(table, _key)))
@@ -122,8 +159,7 @@ void StateStorage::asyncGetRows(const std::string_view& table,
 
             long existsCount = 0;
 
-            decltype(m_tableInfos)::const_accessor tableIt;
-            if (m_tableInfos.find(tableIt, table))
+            if (m_tableInfos.count(table) > 0)
             {
                 size_t i = 0;
                 for (auto& key : _keys)
@@ -203,7 +239,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
     auto setEntryToTable = [this, entry = std::move(entry)](
                                std::variant<std::string_view, std::string> key,
                                TableInfo::ConstPtr tableInfo,
-                               std::function<void(Error::UniquePtr &&)> callback) mutable {
+                               std::function<void(Error::UniquePtr)> callback) mutable {
         if (!entry.tableInfo())
         {
             entry.setTableInfo(tableInfo);
@@ -218,14 +254,11 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
         if (m_data.find(entryIt, EntryKey(tableInfo->name(), keyView)))
         {
             auto& existsEntry = entryIt->second;
-            if (!existsEntry.rollbacked())
-            {
-                entryOld.emplace(std::move(existsEntry));
-            }
+            entryOld.emplace(std::move(existsEntry));
             entryIt->second = std::move(entry);
             keyView = entryIt->first.key();
 
-            updatedCapacity = updatedCapacity - entryOld->capacityOfHashField();
+            updatedCapacity -= entryOld->capacityOfHashField();
         }
         else
         {
@@ -240,13 +273,9 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
 
         if (m_recoder.local())
         {
-            // m_recoder.local()->log(Recoder::Change(tableInfo->name(), keyView,
-            // std::move(entryOld), table.dirty));
-            // FIXME: no table dirty here
             m_recoder.local()->log(
-                Recoder::Change(tableInfo->name(), keyView, std::move(entryOld), false));
+                Recoder::Change(tableInfo->name(), keyView, std::move(entryOld)));
         }
-        // table.dirty = true;
 
         m_capacity += updatedCapacity;
         callback(nullptr);
@@ -262,7 +291,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
         asyncOpenTable(table, [this, callback = std::move(callback),
                                   setEntryToTable = std::move(setEntryToTable),
                                   key = std::string(key)](
-                                  Error::UniquePtr&& error, std::optional<Table>&& table) mutable {
+                                  Error::UniquePtr error, std::optional<Table> table) mutable {
             if (error)
             {
                 callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
@@ -273,10 +302,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
             if (table)
             {
                 decltype(m_tableInfos)::const_accessor tableIt;
-                auto inserted =
-                    m_tableInfos.emplace(tableIt, table->tableInfo()->name(), table->tableInfo());
-
-                if (!inserted)
+                if (!m_tableInfos.emplace(tableIt, table->tableInfo()->name(), table->tableInfo()))
                 {
                     callback(BCOS_ERROR_UNIQUE_PTR(
                         StorageError::WriteError, "Insert table: " + std::string(tableIt->first) +
@@ -397,9 +423,6 @@ void StateStorage::rollback(const Recoder::ConstPtr& recoder)
 {
     for (auto& change : *recoder)
     {
-        // Public Table API cannot be used here because it will add another change log entry.
-
-        // change->table->rollback(change);
         decltype(m_tableInfos)::const_accessor tableIt;
         if (m_tableInfos.find(tableIt, change.table))
         {
