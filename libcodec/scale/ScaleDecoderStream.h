@@ -274,6 +274,38 @@ public:
     }
 
     /**
+     * @brief decodes map of pairs
+     * @tparam T item type
+     * @tparam F item type
+     * @param m reference to map
+     * @return reference to stream
+     */
+    template <class T, class F>
+    ScaleDecoderStream& operator>>(std::map<T, F>& m)
+    {
+        using mutableT = std::remove_const_t<T>;
+        static_assert(std::is_default_constructible_v<mutableT>);
+        using mutableF = std::remove_const_t<F>;
+        static_assert(std::is_default_constructible_v<mutableF>);
+
+        using size_type = typename std::map<T, F>::size_type;
+
+        CompactInteger size{0u};
+        *this >> size;
+
+        auto item_count = size.convert_to<size_type>();
+        std::map<mutableT, mutableF> map;
+        for (size_type i = 0u; i < item_count; ++i)
+        {
+            std::pair<mutableT, mutableF> p;
+            *this >> p;
+            map.emplace(std::move(p));
+        }
+        m = std::move(map);
+        return *this;
+    }
+
+    /**
      * @brief decodes collection of items
      * @tparam T item type
      * @param v reference to collection

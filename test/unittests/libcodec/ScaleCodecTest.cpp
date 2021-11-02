@@ -108,6 +108,91 @@ BOOST_AUTO_TEST_CASE(pairTest)
     BOOST_CHECK(pair.first == 1);
     BOOST_CHECK(pair.second == 2);
 }
+
+template <class T, class F>
+void testMap(std::vector<T>& t_v, std::vector<F>& f_v, size_t _size = 1)
+{
+    std::map<T, F> m;
+    for (size_t i = 0; i < _size; i++)
+    {
+        m.insert(std::make_pair(t_v[i], f_v[i]));
+    }
+    ScaleEncoderStream s;
+    s << m;
+    bytes encodeBytes = s.data();
+
+    ScaleDecoderStream s2((encodeBytes));
+    std::map<T, F> newMap;
+    s2 >> newMap;
+
+    BOOST_CHECK(_size == newMap.size());
+    bool allEqual = std::equal(m.begin(), m.end(), newMap.begin(), [&](auto& pair1, auto& pair2) {
+        return pair1.first == pair2.first && pair1.second == pair2.second;
+    });
+    BOOST_CHECK(allEqual);
+}
+
+BOOST_AUTO_TEST_CASE(mapTest)
+{
+    // string 2 string
+    {
+        std::vector<std::string> v1{"test1", "test2"};
+        std::vector<std::string> v2{"test3", "test4"};
+        testMap<std::string, std::string>(v1, v2, v1.size());
+    }
+    // string 2 bytes
+    {
+        std::vector<std::string> v1{"test1", "test2"};
+        std::vector<bytes> v2{asBytes("test3"), asBytes("test4")};
+        testMap<std::string, bytes>(v1, v2, v1.size());
+    }
+    // s256 2 u256
+    {
+        std::vector<s256> v1{0, -1, -256123};
+        std::vector<u256> v2{0, 1, 256123};
+        testMap<s256, u256>(v1, v2, v1.size());
+    }
+
+    // bool 2 vector
+    {
+        std::vector<bool> v1{true, false};
+        std::vector<bytes> v2_1 = {asBytes("test1"), asBytes("test2")};
+        std::vector<bytes> v2_2 = {asBytes("test3"), asBytes("test4")};
+        std::vector<std::vector<bytes>> v2{v2_1, v2_2};
+        testMap<bool, std::vector<bytes>>(v1, v2, v1.size());
+    }
+
+    // bytes 2 map
+    {
+        std::vector<bytes> v1{asBytes("test1"), asBytes("test2")};
+
+        std::map<Address, bool> v2_1;
+        v2_1.insert(std::make_pair(Address("0x420f853b49838bd3e9466c85a4cc3428c960dde2"), true));
+        v2_1.insert(std::make_pair(Address("0x120f853b49838bd3e9466c85a4cc3428c960dde2"), true));
+        std::map<Address, bool> v2_2;
+        v2_2.insert(std::make_pair(Address("0x420f853b49838bd3e9466c85a4cc3428c960d123"), false));
+        v2_2.insert(std::make_pair(Address("0x420f853b49838bd3e9466c85a4cc3428c960d456"), true));
+        std::vector<std::map<Address, bool>> v2{v2_1, v2_2};
+        testMap<bytes, std::map<Address, bool>>(v1, v2, v1.size());
+    }
+
+    // map 2 map
+    {
+        std::map<u256, bytes> v1_1;
+        v1_1.insert(std::make_pair(123, asBytes("test1")));
+        std::map<u256, bytes> v1_2;
+        v1_2.insert(std::make_pair(456, asBytes("test2")));
+        std::vector<std::map<u256, bytes>> v1{v1_1, v1_2};
+
+        std::map<s256, bytes> v2_1;
+        v2_1.insert(std::make_pair(-789, asBytes("test3")));
+        std::map<s256, bytes> v2_2;
+        v2_2.insert(std::make_pair(-987, asBytes("test4")));
+        std::vector<std::map<s256, bytes>> v2{v2_1, v2_2};
+        testMap<std::map<u256, bytes>, std::map<s256, bytes>>(v1, v2, v1.size());
+    }
+}
+
 BOOST_AUTO_TEST_CASE(testString)
 {
     std::string v = "asdadad";
@@ -206,10 +291,12 @@ BOOST_AUTO_TEST_CASE(EncodeOptionalTest)
         BOOST_CHECK(s.data() == (bytes{1, 1}));
     }
 
-    // encode negative int8_t
-    ScaleEncoderStream s;
-    s << boost::optional<int8_t>{-1};
-    BOOST_CHECK(s.data() == (bytes{1, 255}));
+    {
+        // encode negative int8_t
+        ScaleEncoderStream s;
+        s << boost::optional<int8_t>{-1};
+        BOOST_CHECK(s.data() == (bytes{1, 255}));
+    }
 
     // encode non-existing uint16_t
     {
