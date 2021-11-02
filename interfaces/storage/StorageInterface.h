@@ -75,7 +75,7 @@ public:
     virtual TableInfo::ConstPtr getTableInfo(const std::string_view& tableName);
 };
 
-class TraverseStorageInterface : public StorageInterface
+class TraverseStorageInterface : public virtual StorageInterface
 {
 public:
     using Ptr = std::shared_ptr<TraverseStorageInterface>;
@@ -89,7 +89,7 @@ public:
             callback) const = 0;
 };
 
-class MergeableStorageInterface : public StorageInterface
+class MergeableStorageInterface : public virtual StorageInterface
 {
 public:
     using Ptr = std::shared_ptr<MergeableStorageInterface>;
@@ -99,7 +99,7 @@ public:
     virtual void merge(bool onlyDirty, const TraverseStorageInterface& source) = 0;
 };
 
-class TransactionalStorageInterface : public StorageInterface
+class TransactionalStorageInterface : public virtual StorageInterface
 {
 public:
     using Ptr = std::shared_ptr<TransactionalStorageInterface>;

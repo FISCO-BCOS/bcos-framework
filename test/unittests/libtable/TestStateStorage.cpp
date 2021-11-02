@@ -91,6 +91,7 @@ struct TableFactoryFixture
             });
         return createPromise.get_future().get();
     }
+    
     std::shared_ptr<crypto::Hash> hashImpl = nullptr;
     std::shared_ptr<StorageInterface> memoryStorage = nullptr;
     protocol::BlockNumber m_blockNumber = 0;

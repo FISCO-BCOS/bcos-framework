@@ -39,7 +39,7 @@
 
 namespace bcos::storage
 {
-class StateStorage : public storage::TraverseStorageInterface
+class StateStorage : public virtual storage::TraverseStorageInterface
 {
 public:
     using Ptr = std::shared_ptr<StateStorage>;
@@ -123,8 +123,9 @@ protected:
     class EntryKey
     {
     public:
-        EntryKey(std::string_view table, std::string_view key) : m_table(table), m_key(key){};
-        EntryKey(std::string_view table, std::string key) : m_table(table), m_key(std::move(key)){};
+        EntryKey() {}
+        EntryKey(std::string_view table, std::string_view key) : m_table(table), m_key(key) {}
+        EntryKey(std::string_view table, std::string key) : m_table(table), m_key(std::move(key)) {}
 
         EntryKey(const EntryKey&) = default;
         EntryKey& operator=(const EntryKey&) = default;

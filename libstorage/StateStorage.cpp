@@ -329,14 +329,7 @@ void StateStorage::parallelTraverse(bool onlyDirty,
 {
     tbb::parallel_do(m_data.begin(), m_data.end(), [&](const std::pair<const EntryKey, Entry>& it) {
         auto& entry = it.second;
-        if (onlyDirty)
-        {
-            if (entry.dirty())
-            {
-                callback(it.first.table(), it.first.key(), entry);
-            }
-        }
-        else
+        if (!onlyDirty || entry.dirty())
         {
             callback(it.first.table(), it.first.key(), entry);
         }
