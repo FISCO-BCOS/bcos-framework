@@ -981,7 +981,7 @@ BOOST_AUTO_TEST_CASE(randomRWHash)
     std::vector<std::tuple<bool, std::string, std::string, std::string>> rwSet;
 
     std::random_device rd;
-    for (size_t i = 0; i < 10000; ++i)
+    for (size_t i = 0; i < 100; ++i)
     {
         auto keyNum = rd();
         bool write = keyNum % 2;
@@ -1007,11 +1007,11 @@ BOOST_AUTO_TEST_CASE(randomRWHash)
     }
 
     std::vector<bcos::crypto::HashType> prevHashes;
-    for (size_t times = 0; times < 100; ++times)
+    for (size_t times = 0; times < 10; ++times)
     {
         std::vector<bcos::crypto::HashType> hashes;
         StateStorage::Ptr prev;
-        for (size_t i = 0; i < 100; ++i)
+        for (size_t i = 0; i < 10; ++i)
         {
             StateStorage::Ptr storage = std::make_shared<StateStorage>(prev);
 
