@@ -124,10 +124,6 @@ BOOST_AUTO_TEST_CASE(functions)
     entry->setStatus(Entry::Status::DELETED);
     BOOST_TEST(entry->status() == Entry::Status::DELETED);
     BOOST_TEST(entry->dirty() == true);
-    BOOST_TEST(entry->rollbacked() == false);
-    entry->setRollbacked(true);
-    BOOST_TEST(entry->rollbacked() == true);
-    BOOST_TEST(entry->dirty() == true);
 }
 
 BOOST_AUTO_TEST_CASE(nullTableInfo)
@@ -196,6 +192,19 @@ BOOST_AUTO_TEST_CASE(BytesField)
     {
         BOOST_CHECK_EQUAL(it, value);
     }
+}
+
+BOOST_AUTO_TEST_CASE(capacity)
+{
+    Entry entry;
+
+    entry.importFields({std::string("abc")});
+
+    entry.setField(
+        0, std::string("abdflsakdjflkasjdfoiqwueroi!!!!sdlkfjsldfbclsadflaksjdfpqweioruaaa"));
+
+    BOOST_CHECK_LT(entry.capacityOfHashField(), 100);
+    BOOST_CHECK_GT(entry.capacityOfHashField(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
