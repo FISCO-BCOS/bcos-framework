@@ -81,13 +81,12 @@ BOOST_AUTO_TEST_CASE(fakeTxPoolConstructor)
     std::cout << bcos::precompiled::TABLE_FACTORY_NAME << std::endl;
     std::cout << bcos::precompiled::CONSENSUS_NAME << std::endl;
     std::cout << bcos::precompiled::CNS_NAME << std::endl;
-    std::cout << bcos::precompiled::PERMISSION_NAME << std::endl;
     std::cout << bcos::precompiled::PARALLEL_CONFIG_NAME << std::endl;
     std::cout << bcos::precompiled::CONTRACT_LIFECYCLE_NAME << std::endl;
     std::cout << bcos::precompiled::KV_TABLE_FACTORY_NAME << std::endl;
     std::cout << bcos::precompiled::CRYPTO_NAME << std::endl;
     std::cout << bcos::precompiled::DAG_TRANSFER_NAME << std::endl;
-    std::cout << bcos::precompiled::PERMISSION_NAME << std::endl;
+    std::cout << bcos::precompiled::CONTRACT_AUTH_NAME << std::endl;
     std::cout << bcos::precompiled::DEPLOY_WASM_NAME << std::endl;
     std::cout << bcos::precompiled::BFS_NAME << std::endl;
 
@@ -96,7 +95,7 @@ BOOST_AUTO_TEST_CASE(fakeTxPoolConstructor)
     std::cout << bcos::precompiled::CONSENSUS_ADDRESS << std::endl;
     std::cout << bcos::precompiled::CRUD_ADDRESS << std::endl;
     std::cout << bcos::precompiled::CNS_ADDRESS << std::endl;
-    std::cout << bcos::precompiled::PERMISSION_ADDRESS << std::endl;
+    std::cout << bcos::precompiled::CONTRACT_AUTH_ADDRESS << std::endl;
     std::cout << bcos::precompiled::PARALLEL_CONFIG_ADDRESS << std::endl;
     std::cout << bcos::precompiled::CONTRACT_LIFECYCLE_ADDRESS << std::endl;
     std::cout << bcos::precompiled::CHAIN_GOVERNANCE_ADDRESS << std::endl;
