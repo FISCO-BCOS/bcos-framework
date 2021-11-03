@@ -31,6 +31,7 @@
 #include <future>
 #include <iostream>
 #include <optional>
+#include <random>
 #include <string>
 
 using namespace std;
@@ -973,6 +974,89 @@ BOOST_AUTO_TEST_CASE(purge)
     BOOST_CHECK_EQUAL(all.size(), 1);
     auto& entry = std::get<2>(all[0]);
     BOOST_CHECK_EQUAL(entry.status(), Entry::DELETED);
+}
+
+BOOST_AUTO_TEST_CASE(randomRWHash)
+{
+    std::vector<std::tuple<bool, std::string, std::string, std::string>> rwSet;
+
+    std::random_device rd;
+    for (size_t i = 0; i < 10000; ++i)
+    {
+        auto keyNum = rd();
+        bool write = keyNum % 2;
+
+        std::string table;
+        std::string key;
+        std::string value;
+        if (write || i == 0)
+        {
+            write = true;
+            table = boost::lexical_cast<std::string>(keyNum % 10);
+            key = boost::lexical_cast<std::string>(keyNum);
+            value = boost::lexical_cast<std::string>(rd());
+        }
+        else
+        {
+            auto index = keyNum % i;
+            table = std::get<1>(rwSet[index]);
+            key = std::get<2>(rwSet[index]);
+        }
+
+        rwSet.emplace_back(std::make_tuple(write, table, key, value));
+    }
+
+    std::vector<bcos::crypto::HashType> prevHashes;
+    for (size_t times = 0; times < 100; ++times)
+    {
+        std::vector<bcos::crypto::HashType> hashes;
+        StateStorage::Ptr prev;
+        for (size_t i = 0; i < 100; ++i)
+        {
+            StateStorage::Ptr storage = std::make_shared<StateStorage>(prev);
+
+            for (auto& it : rwSet)
+            {
+                auto& [write, table, key, value] = it;
+
+                storage->asyncOpenTable(table, [storage, tableName = table](Error::UniquePtr error,
+                                                   std::optional<Table> tableItem) {
+                    BOOST_CHECK(!error);
+                    if (!tableItem)
+                    {
+                        storage->asyncCreateTable(tableName, "value",
+                            [](Error::UniquePtr error, std::optional<Table> tableItem) {
+                                BOOST_CHECK(!error);
+                                BOOST_CHECK(tableItem);
+                            });
+                    }
+                });
+
+                if (write)
+                {
+                    Entry entry;
+                    entry.importFields({value});
+                    storage->asyncSetRow(table, key, std::move(entry),
+                        [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+                }
+                else
+                {
+                    storage->asyncGetRow(table, key,
+                        [](Error::UniquePtr error, std::optional<Entry>) { BOOST_CHECK(!error); });
+                }
+            }
+
+            hashes.push_back(storage->hash(hashImpl));
+        }
+
+        if (!hashes.empty())
+        {
+            BOOST_CHECK_EQUAL_COLLECTIONS(
+                prevHashes.begin(), prevHashes.end(), prevHashes.begin(), prevHashes.end());
+        }
+        prevHashes = hashes;
+        hashes.clear();
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
