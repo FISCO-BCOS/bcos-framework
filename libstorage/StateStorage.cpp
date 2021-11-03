@@ -379,6 +379,8 @@ std::optional<Table> StateStorage::createTable(std::string _tableName, std::stri
 
 crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
 {
+    // Only calc dirty entry's hash
+
     bcos::h256 totalHash;
 
     tbb::spin_mutex mutex;
@@ -387,7 +389,10 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
         for (auto& it : range)
         {
             auto& entry = it.second;
-            bufferLength += (entry.capacityOfHashField() + 1);
+            if (entry.dirty())
+            {
+                bufferLength += (entry.capacityOfHashField() + 1);
+            }
         }
 
         bcos::bytes buffer;
@@ -396,11 +401,14 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
         {
             auto& entry = it.second;
 
-            for (auto value : entry)
+            if (entry.dirty())
             {
-                buffer.insert(buffer.end(), value.begin(), value.end());
+                for (auto value : entry)
+                {
+                    buffer.insert(buffer.end(), value.begin(), value.end());
+                }
+                buffer.insert(buffer.end(), (char)entry.status());
             }
-            buffer.insert(buffer.end(), (char)entry.status());
         }
 
         auto hash = hashImpl->hash(buffer);
