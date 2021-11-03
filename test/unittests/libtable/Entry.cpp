@@ -124,10 +124,6 @@ BOOST_AUTO_TEST_CASE(functions)
     entry->setStatus(Entry::Status::DELETED);
     BOOST_TEST(entry->status() == Entry::Status::DELETED);
     BOOST_TEST(entry->dirty() == true);
-    BOOST_TEST(entry->rollbacked() == false);
-    entry->setRollbacked(true);
-    BOOST_TEST(entry->rollbacked() == true);
-    BOOST_TEST(entry->dirty() == true);
 }
 
 BOOST_AUTO_TEST_CASE(nullTableInfo)

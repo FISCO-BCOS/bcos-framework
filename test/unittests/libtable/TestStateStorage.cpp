@@ -91,7 +91,7 @@ struct TableFactoryFixture
             });
         return createPromise.get_future().get();
     }
-    
+
     std::shared_ptr<crypto::Hash> hashImpl = nullptr;
     std::shared_ptr<StorageInterface> memoryStorage = nullptr;
     protocol::BlockNumber m_blockNumber = 0;
@@ -921,6 +921,58 @@ BOOST_AUTO_TEST_CASE(rollbackAndGetRows)
             BOOST_CHECK_EQUAL(entry.size(), 1);
             BOOST_CHECK_EQUAL(entry[0].value().getField(0), "value1");
         });
+}
+
+BOOST_AUTO_TEST_CASE(purge)
+{
+    StateStorage::Ptr storage = std::make_shared<StateStorage>(nullptr);
+
+    storage->asyncCreateTable(
+        "table", "value", [](Error::UniquePtr error, std::optional<Table> table) {
+            BOOST_CHECK(!error);
+            BOOST_CHECK(table);
+        });
+
+    Entry entry1;
+    entry1.importFields({"value1"});
+    storage->asyncSetRow(
+        "table", "key1", std::move(entry1), [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+
+    Entry entry2;
+    entry2.importFields({"value2"});
+    storage->asyncSetRow(
+        "table", "key2", std::move(entry2), [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+
+    BOOST_CHECK_EQUAL(storage->capacity(), 17);  // 12 value + 7 table name
+
+    Entry entry3;
+    entry3.setStatus(Entry::PURGED);
+    storage->asyncSetRow(
+        "table", "key2", std::move(entry3), [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+
+    BOOST_CHECK_EQUAL(storage->capacity(), 11);
+
+    Entry entry4;
+    entry4.setStatus(Entry::DELETED);
+    storage->asyncSetRow(
+        "table", "key1", std::move(entry4), [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+
+    BOOST_CHECK_EQUAL(storage->capacity(), 5);
+
+    std::vector<std::tuple<std::string_view, std::string_view, Entry>> all;
+    storage->parallelTraverse(false,
+        [&all](const std::string_view& table, const std::string_view& key, const Entry& entry) {
+            if (key == "table")
+            {
+                return true;
+            }
+            all.emplace_back(std::make_tuple(table, key, entry));
+            return true;
+        });
+
+    BOOST_CHECK_EQUAL(all.size(), 1);
+    auto& entry = std::get<2>(all[0]);
+    BOOST_CHECK_EQUAL(entry.status(), Entry::DELETED);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -21,7 +21,8 @@ public:
     enum Status : int8_t
     {
         NORMAL = 0,
-        DELETED = 1
+        DELETED,
+        PURGED
     };
     using ValueType = std::variant<std::string, std::vector<unsigned char>, std::vector<char>>;
 
@@ -114,8 +115,6 @@ public:
             m_data.get()->values.cend(), std::bind(&Entry::valueView, this, std::placeholders::_1));
     }
 
-    bool rollbacked() const noexcept { return m_rollbacked; }
-    void setRollbacked(bool _rollbacked) noexcept { m_rollbacked = _rollbacked; }
     Status status() const noexcept { return m_status; }
 
     void setStatus(Status status) noexcept
@@ -178,7 +177,10 @@ public:
     TableInfo::ConstPtr tableInfo() const { return m_tableInfo; }
     void setTableInfo(TableInfo::ConstPtr tableInfo) { m_tableInfo = std::move(tableInfo); }
 
-    bool valid() const noexcept { return ((m_status != Status::DELETED) && (!m_rollbacked)); }
+    bool valid() const noexcept
+    {
+        return ((m_status != Status::DELETED) && (m_status != Status::PURGED));
+    }
 
 private:
     std::string_view valueView(const ValueType& value) const
@@ -202,6 +204,5 @@ private:
     int32_t m_capacityOfHashField = 0;      // no need to serialization
     Status m_status = Status::NORMAL;       // should serialization
     bool m_dirty = false;                   // no need to serialization
-    bool m_rollbacked = false;              // no need to serialization
 };
 }  // namespace bcos::storage

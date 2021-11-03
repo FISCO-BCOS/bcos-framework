@@ -39,7 +39,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
         std::vector<std::string> resultKeys;
         for (auto& localIt : localKeys)
         {
-            if (localIt.second != Entry::DELETED)
+            if (localIt.second == Entry::NORMAL)
             {
                 resultKeys.push_back(std::string(localIt.first));
             }
@@ -67,7 +67,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
                 auto localIt = localKeys.find(*it);
                 if (localIt != localKeys.end())
                 {
-                    if (localIt->second == Entry::DELETED)
+                    if (localIt->second != Entry::NORMAL)
                     {
                         it = remoteKeys.erase(it);
                         deleted = true;
@@ -84,7 +84,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
 
             for (auto& localIt : localKeys)
             {
-                if (localIt.second != Entry::DELETED)
+                if (localIt.second == Entry::NORMAL)
                 {
                     remoteKeys.push_back(std::string(localIt.first));
                 }
@@ -104,7 +104,7 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
         {
             auto& entry = entryIt->second;
 
-            if (entry.status() == Entry::DELETED)
+            if (entry.status() != Entry::NORMAL)
             {
                 entryIt.release();
                 _callback(nullptr, std::nullopt);
@@ -171,7 +171,7 @@ void StateStorage::asyncGetRows(const std::string_view& table,
                     if (m_data.find(entryIt, EntryKey(table, key)))
                     {
                         auto& entry = entryIt->second;
-                        if (entry.status() != Entry::DELETED)
+                        if (entry.status() == Entry::NORMAL)
                         {
                             results[i].emplace(entry);
                         }
@@ -247,7 +247,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                 entry.setTableInfo(tableInfo);
             }
 
-            ssize_t updatedCapacity = entry.capacityOfHashField();
+            auto updatedCapacity = entry.capacityOfHashField();
             std::optional<Entry> entryOld;
             std::string keyView;
             std::visit([&keyView](auto&& key) { keyView = std::string_view(key); }, key);
@@ -261,6 +261,11 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                 keyView = entryIt->first.key();
 
                 updatedCapacity -= entryOld->capacityOfHashField();
+
+                if (entryIt->second.status() == Entry::PURGED)
+                {
+                    m_data.erase(entryIt);
+                }
 
                 entryIt.release();
             }
@@ -382,10 +387,6 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
         for (auto& it : range)
         {
             auto& entry = it.second;
-            if (entry.rollbacked())
-            {
-                continue;
-            }
             bufferLength += (entry.capacityOfHashField() + 1);
         }
 
@@ -394,10 +395,6 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
         for (auto& it : range)
         {
             auto& entry = it.second;
-            if (entry.rollbacked())
-            {
-                continue;
-            }
 
             for (auto value : entry)
             {
@@ -445,6 +442,13 @@ void StateStorage::rollback(const Recoder::ConstPtr& recoder)
                 if (m_data.find(entryIt, EntryKey(tableKey, change.key)))
                 {
                     m_data.erase(entryIt);
+                }
+                else
+                {
+                    auto message = "Not found rollback table: " + std::string(tableKey) +
+                                   ", key: " + change.key;
+
+                    BOOST_THROW_EXCEPTION(BCOS_ERROR(StorageError::UnknownError, message));
                 }
             }
         }
