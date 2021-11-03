@@ -405,7 +405,7 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
             {
                 for (auto value : entry)
                 {
-                    STORAGE_LOG(DEBUG) << "Value: value";
+                    STORAGE_LOG(DEBUG) << "Value:" << value;
                     buffer.insert(buffer.end(), value.begin(), value.end());
                 }
                 buffer.insert(buffer.end(), (char)entry.status());
