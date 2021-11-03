@@ -403,7 +403,7 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
 
             if (entry.dirty())
             {
-                for (auto value : entry)
+                for (auto& value : entry)
                 {
                     buffer.insert(buffer.end(), value.begin(), value.end());
                 }
