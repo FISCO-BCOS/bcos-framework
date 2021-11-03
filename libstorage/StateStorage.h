@@ -147,6 +147,16 @@ protected:
             return m_table == rhs.m_table && key() == rhs.key();
         }
 
+        bool operator<(const EntryKey& rhs) const
+        {
+            if (m_table != rhs.m_table)
+            {
+                return m_table < rhs.m_table;
+            }
+
+            return m_key < rhs.m_key;
+        }
+
     private:
         std::string_view m_table;
         std::variant<std::string_view, std::string> m_key;

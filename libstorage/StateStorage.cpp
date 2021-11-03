@@ -379,48 +379,36 @@ std::optional<Table> StateStorage::createTable(std::string _tableName, std::stri
 
 crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
 {
-    // Only calc dirty entry's hash
-    bcos::h256 totalHash;
-
-    STORAGE_LOG(DEBUG) << "Calc start";
-    tbb::spin_mutex mutex;
-    tbb::parallel_for(m_data.range(), [&totalHash, &mutex, &hashImpl](auto&& range) {
-        size_t bufferLength = 0;
-        for (auto& it : range)
+    size_t bufferLength = 0;
+    std::map<EntryKey, std::reference_wrapper<Entry>> resultMap;
+    for (auto& it : m_data)
+    {
+        if (it.second.dirty())
         {
-            auto& entry = it.second;
-            if (entry.dirty())
-            {
-                bufferLength += (entry.capacityOfHashField() + 1);
-            }
+            resultMap.emplace(it.first, it.second);
+            bufferLength += it.second.capacityOfHashField();
         }
+    }
 
-        bcos::bytes buffer;
-        buffer.reserve(bufferLength);
-        for (auto& it : range)
+    bcos::bytes buffer;
+    buffer.reserve(bufferLength);
+    for (auto& it : resultMap)
+    {
+        auto& entry = it.second;
+
+        if (entry.get().dirty())
         {
-            auto& entry = it.second;
-
-            if (entry.dirty())
+            for (auto value : entry.get())
             {
-                for (auto value : entry)
-                {
-                    STORAGE_LOG(DEBUG) << "Value:" << value;
-                    buffer.insert(buffer.end(), value.begin(), value.end());
-                }
-                buffer.insert(buffer.end(), (char)entry.status());
+                buffer.insert(buffer.end(), value.begin(), value.end());
             }
+            buffer.insert(buffer.end(), (char)entry.get().status());
         }
+    }
 
+    auto hash = hashImpl->hash(buffer);
 
-        auto hash = hashImpl->hash(buffer);
-
-        tbb::spin_mutex::scoped_lock lock(mutex);
-        totalHash ^= hash;
-    });
-    STORAGE_LOG(DEBUG) << "Calc end";
-
-    return totalHash;
+    return hash;
 }
 
 void StateStorage::rollback(const Recoder::ConstPtr& recoder)
