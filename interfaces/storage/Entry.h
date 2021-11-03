@@ -77,7 +77,8 @@ public:
         auto mutableData = m_data.mutableGet();
         auto& fieldValue = (mutableData->values)[index];
 
-        int32_t updatedCapacity = valueView(value).size() - valueView(fieldValue).size();
+        int32_t updatedCapacity = static_cast<int32_t>(valueView(value).size()) -
+                                  static_cast<int32_t>(valueView(fieldValue).size());
 
         fieldValue = std::move(value);
         m_capacityOfHashField += updatedCapacity;
@@ -126,7 +127,7 @@ public:
     bool dirty() const noexcept { return m_dirty; }
     void setDirty(bool dirty) noexcept { m_dirty = dirty; }
 
-    ssize_t capacityOfHashField() const noexcept
+    int32_t capacityOfHashField() const noexcept
     {  // the capacity is used to calculate gas, must return the same value in different DB
         return m_capacityOfHashField;
     }
@@ -143,7 +144,7 @@ public:
 
         for (auto& value : values)
         {
-            m_capacityOfHashField += valueView(value).size();
+            m_capacityOfHashField += static_cast<int32_t>(valueView(value).size());
             data.values.emplace_back(std::move(value));
         }
 
@@ -159,7 +160,7 @@ public:
 
         for (auto& value : values)
         {
-            m_capacityOfHashField += value.size();
+            m_capacityOfHashField += static_cast<int32_t>(value.size());
             data.values.emplace_back(std::move(value));
         }
 

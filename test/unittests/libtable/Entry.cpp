@@ -198,6 +198,19 @@ BOOST_AUTO_TEST_CASE(BytesField)
     }
 }
 
+BOOST_AUTO_TEST_CASE(capacity)
+{
+    Entry entry;
+
+    entry.importFields({std::string("abc")});
+
+    entry.setField(
+        0, std::string("abdflsakdjflkasjdfoiqwueroi!!!!sdlkfjsldfbclsadflaksjdfpqweioruaaa"));
+
+    BOOST_CHECK_LT(entry.capacityOfHashField(), 100);
+    BOOST_CHECK_GT(entry.capacityOfHashField(), 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
 }  // namespace bcos
