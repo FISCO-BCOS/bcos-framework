@@ -114,7 +114,7 @@ public:
     std::string const& txpoolServiceName() const { return m_txpoolServiceName; }
     std::string const& consensusServiceName() const { return m_consensusServiceName; }
     std::string const& frontServiceName() const { return m_frontServiceName; }
-    std::string const& exeutorServiceName() const { return m_exeutorServiceName; }
+    std::string const& executorServiceName() const { return m_executorServiceName; }
     std::string const& nodeName() const { return m_nodeName; }
 
     std::string getDefaultServiceName(std::string const& _nodeName, std::string const& _serviceName)
@@ -122,9 +122,33 @@ public:
         return m_chainId + "." + _nodeName + _serviceName;
     }
 
+    // rpc
+    const std::string& rpcListenIP() const { return m_rpcListenIP; }
+    uint16_t rpcListenPort() const { return m_rpcListenPort; }
+    uint32_t rpcThreadPoolSize() const { return m_rpcThreadPoolSize; }
+    bool rpcDisableSsl() const { return m_rpcDisableSsl; }
+
+    // gateway
+    const std::string& p2pListenIP() const { return m_p2pListenIP; }
+    uint16_t p2pListenPort() const { return m_p2pListenPort; }
+    const std::string& p2pNodeDir() const { return m_p2pNodeDir; }
+    const std::string& p2pNodeFileName() const { return m_p2pNodeFileName; }
+
+    // cert
+    // config for cert
+    const std::string& certPath() { return m_certPath; }
+    const std::string& caCert() { return m_caCert; }
+    const std::string& nodeCert() { return m_nodeCert; }
+    const std::string& nodeKey() { return m_nodeKey; }
+    const std::string& enNodeCert() { return m_enNodeCert; }
+    const std::string& enNodeKey() { return m_enNodeKey; }
+
 protected:
-    virtual void loadTxPoolConfig(boost::property_tree::ptree const& _pt);
     virtual void loadChainConfig(boost::property_tree::ptree const& _pt);
+    virtual void loadRpcConfig(boost::property_tree::ptree const& _pt);
+    virtual void loadGatewayConfig(boost::property_tree::ptree const& _pt);
+    virtual void loadCertConfig(boost::property_tree::ptree const& _pt);
+    virtual void loadTxPoolConfig(boost::property_tree::ptree const& _pt);
     virtual void loadSecurityConfig(boost::property_tree::ptree const& _pt);
     virtual void loadSealerConfig(boost::property_tree::ptree const& _pt);
 
@@ -191,8 +215,28 @@ private:
     std::string m_txpoolServiceName;
     std::string m_consensusServiceName;
     std::string m_frontServiceName;
-    std::string m_exeutorServiceName;
+    std::string m_executorServiceName;
     std::string m_nodeName;
+
+    // config for rpc
+    std::string m_rpcListenIP;
+    uint16_t m_rpcListenPort;
+    uint32_t m_rpcThreadPoolSize;
+    bool m_rpcDisableSsl = false;
+
+    // config for gateway
+    std::string m_p2pListenIP;
+    uint16_t m_p2pListenPort;
+    std::string m_p2pNodeDir;
+    std::string m_p2pNodeFileName;
+
+    // config for cert
+    std::string m_certPath;
+    std::string m_caCert;
+    std::string m_nodeCert;
+    std::string m_nodeKey;
+    std::string m_enNodeCert;
+    std::string m_enNodeKey;
 };
 }  // namespace tool
 }  // namespace bcos
