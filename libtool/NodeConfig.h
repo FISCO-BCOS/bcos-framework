@@ -114,7 +114,7 @@ public:
     std::string const& txpoolServiceName() const { return m_txpoolServiceName; }
     std::string const& consensusServiceName() const { return m_consensusServiceName; }
     std::string const& frontServiceName() const { return m_frontServiceName; }
-    std::string const& exeutorServiceName() const { return m_exeutorServiceName; }
+    std::string const& executorServiceName() const { return m_executorServiceName; }
     std::string const& nodeName() const { return m_nodeName; }
 
     std::string getDefaultServiceName(std::string const& _nodeName, std::string const& _serviceName)
@@ -215,7 +215,7 @@ private:
     std::string m_txpoolServiceName;
     std::string m_consensusServiceName;
     std::string m_frontServiceName;
-    std::string m_exeutorServiceName;
+    std::string m_executorServiceName;
     std::string m_nodeName;
 
     // config for rpc

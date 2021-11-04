@@ -115,7 +115,7 @@ void NodeConfig::loadNodeServiceConfig(
         getDefaultServiceName(nodeName, CONSENSUS_SERVICE_NAME), false);
     m_frontServiceName = getServiceName(_pt, "service.front", FRONT_SERVANT_NAME,
         getDefaultServiceName(nodeName, FRONT_SERVICE_NAME), false);
-    m_exeutorServiceName = getServiceName(_pt, "service.executor", EXECUTOR_SERVANT_NAME,
+    m_executorServiceName = getServiceName(_pt, "service.executor", EXECUTOR_SERVANT_NAME,
         getDefaultServiceName(nodeName, EXECUTOR_SERVICE_NAME), false);
 
     NodeConfig_LOG(INFO) << LOG_DESC("load node service") << LOG_KV("nodeName", m_nodeName)
@@ -123,7 +123,7 @@ void NodeConfig::loadNodeServiceConfig(
                          << LOG_KV("txpoolServiceName", m_txpoolServiceName)
                          << LOG_KV("consensusServiceName", m_consensusServiceName)
                          << LOG_KV("frontServiceName", m_frontServiceName)
-                         << LOG_KV("exeutorServiceName", m_exeutorServiceName);
+                         << LOG_KV("executorServiceName", m_executorServiceName);
 }
 void NodeConfig::checkService(std::string const& _serviceType, std::string const& _serviceName)
 {
