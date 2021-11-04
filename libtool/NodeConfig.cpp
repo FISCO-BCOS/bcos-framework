@@ -44,7 +44,9 @@ NodeConfig::NodeConfig(KeyFactory::Ptr _keyFactory)
 void NodeConfig::loadConfig(boost::property_tree::ptree const& _pt)
 {
     loadChainConfig(_pt);
+    loadCertConfig(_pt);
     loadRpcConfig(_pt);
+    loadGatewayConfig(_pt);
     loadTxPoolConfig(_pt);
 
     loadSecurityConfig(_pt);
