@@ -37,28 +37,28 @@ bool ContractABICodec::abiOutByFuncSelector(
         if ("int" == type || "int256" == type)
         {
             s256 s;
-            deserialise(s, offset);
+            deserialize(s, offset);
             _out.push_back(toString(s));
         }
         else if ("uint" == type || "uint256" == type)
         {
             u256 u;
-            deserialise(u, offset);
+            deserialize(u, offset);
             _out.push_back(toString(u));
         }
         else if ("address" == type)
         {
             Address addr;
-            deserialise(addr, offset);
+            deserialize(addr, offset);
             _out.push_back(addr.hex());
         }
         else if ("string" == type)
         {
             u256 stringOffset;
-            deserialise(stringOffset, offset);
+            deserialize(stringOffset, offset);
 
             std::string str;
-            deserialise(str, static_cast<std::size_t>(stringOffset));
+            deserialize(str, static_cast<std::size_t>(stringOffset));
             _out.push_back(str);
         }
         else
@@ -132,7 +132,7 @@ bytes ContractABICodec::serialise(const std::string& _in)
     return ret;
 }
 
-void ContractABICodec::deserialise(s256& out, std::size_t _offset)
+void ContractABICodec::deserialize(s256& out, std::size_t _offset)
 {
     validOffset(_offset + MAX_BYTE_LENGTH - 1);
 
@@ -150,14 +150,14 @@ void ContractABICodec::deserialise(s256& out, std::size_t _offset)
     }
 }
 
-void ContractABICodec::deserialise(u256& _out, std::size_t _offset)
+void ContractABICodec::deserialize(u256& _out, std::size_t _offset)
 {
     validOffset(_offset + MAX_BYTE_LENGTH - 1);
 
     _out = fromBigEndian<u256>(data.getCroppedData(_offset, MAX_BYTE_LENGTH));
 }
 
-void ContractABICodec::deserialise(bool& _out, std::size_t _offset)
+void ContractABICodec::deserialize(bool& _out, std::size_t _offset)
 {
     validOffset(_offset + MAX_BYTE_LENGTH - 1);
 
@@ -165,14 +165,14 @@ void ContractABICodec::deserialise(bool& _out, std::size_t _offset)
     _out = ret > 0 ? true : false;
 }
 
-void ContractABICodec::deserialise(Address& _out, std::size_t _offset)
+void ContractABICodec::deserialize(Address& _out, std::size_t _offset)
 {
     validOffset(_offset + MAX_BYTE_LENGTH - 1);
 
     data.getCroppedData(_offset + MAX_BYTE_LENGTH - 20, 20).populate(_out.ref());
 }
 
-void ContractABICodec::deserialise(string32& _out, std::size_t _offset)
+void ContractABICodec::deserialize(string32& _out, std::size_t _offset)
 {
     validOffset(_offset + MAX_BYTE_LENGTH - 1);
 
@@ -180,7 +180,7 @@ void ContractABICodec::deserialise(string32& _out, std::size_t _offset)
         .populate(bytesRef((byte*)_out.data(), MAX_BYTE_LENGTH));
 }
 
-void ContractABICodec::deserialise(std::string& _out, std::size_t _offset)
+void ContractABICodec::deserialize(std::string& _out, std::size_t _offset)
 {
     validOffset(_offset + MAX_BYTE_LENGTH - 1);
 
@@ -190,7 +190,7 @@ void ContractABICodec::deserialise(std::string& _out, std::size_t _offset)
     _out.assign((const char*)result.data(), result.size());
 }
 
-void ContractABICodec::deserialise(bytes& _out, std::size_t _offset)
+void ContractABICodec::deserialize(bytes& _out, std::size_t _offset)
 {
     validOffset(_offset + MAX_BYTE_LENGTH - 1);
 
