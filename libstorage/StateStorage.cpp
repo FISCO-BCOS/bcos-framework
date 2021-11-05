@@ -3,9 +3,12 @@
 #include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
 #include <tbb/spin_mutex.h>
+#include <boost/algorithm/hex.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/throw_exception.hpp>
+#include <ios>
+#include <iterator>
 #include <optional>
 
 using namespace bcos;
@@ -340,6 +343,8 @@ void StateStorage::parallelTraverse(bool onlyDirty,
         auto& entry = it.second;
         if (!onlyDirty || entry.dirty())
         {
+            STORAGE_LOG(TRACE) << "Traverse table:" << it.first.table()
+                               << " key:" << it.first.key();
             callback(it.first.table(), it.first.key(), entry);
         }
     });
@@ -407,6 +412,9 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
     }
 
     auto hash = hashImpl->hash(buffer);
+    std::string hashHex;
+    boost::algorithm::hex_lower(buffer.begin(), buffer.end(), std::back_inserter(hashHex));
+    STORAGE_LOG(TRACE) << "Calc buffer: " << hashHex;
 
     return hash;
 }
@@ -453,14 +461,20 @@ void StateStorage::rollback(const Recoder::ConstPtr& recoder)
     }
 }
 
-Entry& StateStorage::importExistingEntry(const std::string_view& key, Entry entry)
+Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry)
 {
     entry.setDirty(false);
+
+    if (!m_cachePrev)
+    {
+        return entry;
+    }
 
     decltype(m_tableInfos)::const_accessor tableIt;
     if (!m_tableInfos.find(tableIt, entry.tableInfo()->name()))
     {
         m_tableInfos.emplace(tableIt, entry.tableInfo()->name(), entry.tableInfo());
+        tableIt.release();
     }
 
     decltype(m_data)::accessor entryIt;

@@ -118,6 +118,7 @@ public:
     void rollback(const Recoder::ConstPtr& recoder);
 
     void setEnableTraverse(bool enableTraverse) { m_enableTraverse = enableTraverse; }
+    void setCachePrev(bool cachePrev) { m_cachePrev = cachePrev; }
 
 protected:
     class EntryKey
@@ -191,7 +192,7 @@ protected:
     };
 
 private:
-    Entry& importExistingEntry(const std::string_view& key, Entry entry);
+    Entry importExistingEntry(const std::string_view& key, Entry entry);
 
     tbb::concurrent_hash_map<EntryKey, Entry, EntryKeyHasher> m_data;
     tbb::concurrent_hash_map<TableKey, TableInfo::ConstPtr, TableKeyHasher> m_tableInfos;
@@ -200,5 +201,6 @@ private:
     std::shared_ptr<StorageInterface> m_prev;
     size_t m_capacity = 0;
     bool m_enableTraverse = false;
+    bool m_cachePrev = true;
 };
 }  // namespace bcos::storage
