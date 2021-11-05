@@ -161,13 +161,13 @@ void NodeConfig::loadRpcConfig(boost::property_tree::ptree const& _pt)
         listen_port=30300
         thread_count=16
         sm_ssl=false
-        disableSsl=false
+        disable_ssl=false
     */
     std::string listenIP = _pt.get<std::string>("rpc.listen_ip", "0.0.0.0");
     int listenPort = _pt.get<int>("rpc.listen_port", 20200);
     int threadCount = _pt.get<int>("rpc.thread_count", 8);
     bool smSsl = _pt.get<bool>("rpc.sm_ssl", false);
-    bool disableSsl = _pt.get<bool>("rpc.disableSsl", false);
+    bool disableSsl = _pt.get<bool>("rpc.disable_ssl", false);
 
     m_rpcListenIP = listenIP;
     m_rpcListenPort = listenPort;
