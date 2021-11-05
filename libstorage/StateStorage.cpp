@@ -5,6 +5,7 @@
 #include <tbb/spin_mutex.h>
 #include <boost/algorithm/hex.hpp>
 #include <boost/core/ignore_unused.hpp>
+#include <boost/crc.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/throw_exception.hpp>
 #include <ios>
@@ -105,6 +106,7 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
         decltype(m_data)::const_accessor entryIt;
         if (m_data.find(entryIt, EntryKey(table, _key)))
         {
+            STORAGE_LOG(TRACE) << "Hit entry! " << table << " " << _key;
             auto& entry = entryIt->second;
 
             if (entry.status() != Entry::NORMAL)
@@ -120,6 +122,14 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
             }
             return;
         }
+        else
+        {
+            STORAGE_LOG(TRACE) << "Entry not found! " << _key;
+        }
+    }
+    else
+    {
+        STORAGE_LOG(TRACE) << "Table not found! " << table;
     }
 
     if (m_prev)
@@ -148,7 +158,7 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
     }
     else
     {
-        _callback({}, {});
+        _callback(nullptr, {});
     }
 }
 
@@ -320,9 +330,10 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                     // Another operator may had inserted
                     decltype(m_tableInfos)::const_accessor tableIt;
                     m_tableInfos.emplace(tableIt, table->tableInfo()->name(), table->tableInfo());
+                    auto tableInfo = tableIt->second;
                     tableIt.release();
 
-                    setEntryToTable(std::move(key), table->tableInfo(), std::move(callback));
+                    setEntryToTable(std::move(key), tableInfo, std::move(callback));
                     return;
                 }
                 else
@@ -382,38 +393,34 @@ std::optional<Table> StateStorage::createTable(std::string _tableName, std::stri
 
 crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
 {
-    size_t bufferLength = 0;
-    std::map<EntryKey, std::reference_wrapper<Entry>> resultMap;
-    for (auto& it : m_data)
-    {
-        if (it.second.dirty())
-        {
-            resultMap.emplace(it.first, it.second);
-            bufferLength += it.second.capacityOfHashField();
-        }
-    }
+    bcos::crypto::HashType totalHash;
 
-    bcos::bytes buffer;
-    buffer.reserve(bufferLength);
-    for (auto& it : resultMap)
-    {
-        auto& entry = it.second;
-
-        if (entry.get().dirty())
-        {
-            for (auto value : entry.get())
+    tbb::spin_mutex mutex;
+    tbb::parallel_for(m_data.range(),
+        [&hashImpl, &mutex, &totalHash](const decltype(m_data)::const_range_type& range) {
+            for (auto& it : range)
             {
-                buffer.insert(buffer.end(), value.begin(), value.end());
+                auto& entry = it.second;
+                if (entry.dirty())
+                {
+                    bytes data;
+                    data.reserve(entry.capacityOfHashField() + entry.fieldCount());
+
+                    for (auto field : entry)
+                    {
+                        data.insert(data.end(), field.begin(), field.end());
+                        data.insert(data.end(), (bcos::byte)entry.status());
+                    }
+
+                    auto result = hashImpl->hash(data);
+
+                    tbb::spin_mutex::scoped_lock lock(mutex);
+                    totalHash ^= result;
+                }
             }
-            buffer.insert(buffer.end(), (char)entry.get().status());
-        }
-    }
+        });
 
-    auto hash = hashImpl->hash(buffer);
-    std::string hashHex;
-    boost::algorithm::hex_lower(buffer.begin(), buffer.end(), std::back_inserter(hashHex));
-
-    return hash;
+    return totalHash;
 }
 
 void StateStorage::rollback(const Recoder::ConstPtr& recoder)
@@ -477,12 +484,18 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
     decltype(m_data)::accessor entryIt;
     if (m_data.find(entryIt, EntryKey(entry.tableInfo()->name(), key)))
     {
-        entryIt->second = std::move(entry);
-        return entryIt->second;
+        // Data exists
+        STORAGE_LOG(WARNING) << "Reject import exists entry"
+                             << LOG_KV("table", entry.tableInfo()->name()) << LOG_KV("key", key);
     }
+    else
+    {
+        STORAGE_LOG(TRACE) << "Importing exists table" << LOG_KV("table", entry.tableInfo()->name())
+                           << LOG_KV("entry", key);
 
-    m_data.emplace(
-        entryIt, EntryKey(entry.tableInfo()->name(), std::string(key)), std::move(entry));
+        m_data.emplace(
+            entryIt, EntryKey(entry.tableInfo()->name(), std::string(key)), std::move(entry));
+    }
 
     return entryIt->second;
 }

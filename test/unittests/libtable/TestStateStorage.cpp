@@ -981,7 +981,7 @@ BOOST_AUTO_TEST_CASE(randomRWHash)
     std::vector<std::tuple<bool, std::string, std::string, std::string>> rwSet;
 
     std::random_device rd;
-    for (size_t i = 0; i < 100; ++i)
+    for (size_t i = 0; i < 3; ++i)
     {
         auto keyNum = rd();
         bool write = keyNum % 2;
@@ -1047,17 +1047,95 @@ BOOST_AUTO_TEST_CASE(randomRWHash)
             }
 
             hashes.push_back(storage->hash(hashImpl));
+            storage->setCachePrev(false);
+            prev = storage;
         }
 
-        if (!hashes.empty())
+        if (!prevHashes.empty())
         {
             BOOST_CHECK_EQUAL_COLLECTIONS(
-                prevHashes.begin(), prevHashes.end(), prevHashes.begin(), prevHashes.end());
+                prevHashes.begin(), prevHashes.end(), hashes.begin(), hashes.end());
         }
-        prevHashes = hashes;
+        prevHashes.swap(hashes);
         hashes.clear();
     }
 }
+
+BOOST_AUTO_TEST_CASE(hash_map)
+{
+    class EntryKey
+    {
+    public:
+        EntryKey() {}
+        EntryKey(std::string_view table, std::string_view key) : m_table(table), m_key(key) {}
+        EntryKey(std::string_view table, std::string key) : m_table(table), m_key(std::move(key)) {}
+
+        EntryKey(const EntryKey&) = default;
+        EntryKey& operator=(const EntryKey&) = default;
+        EntryKey(EntryKey&&) noexcept = default;
+        EntryKey& operator=(EntryKey&&) noexcept = default;
+
+        std::string_view table() const { return m_table; }
+
+        std::string_view key() const
+        {
+            std::string_view view;
+            std::visit([&view](auto&& key) { view = key; }, m_key);
+
+            return view;
+        }
+
+        bool operator==(const EntryKey& rhs) const
+        {
+            return m_table == rhs.m_table && key() == rhs.key();
+        }
+
+        bool operator<(const EntryKey& rhs) const
+        {
+            if (m_table != rhs.m_table)
+            {
+                return m_table < rhs.m_table;
+            }
+
+            return m_key < rhs.m_key;
+        }
+
+    private:
+        std::string_view m_table;
+        std::variant<std::string_view, std::string> m_key;
+    };
+
+    struct EntryKeyHasher
+    {
+        size_t hash(const EntryKey& dataKey) const
+        {
+            size_t seed = hashString(dataKey.table());
+            boost::hash_combine(seed, hashString(dataKey.key()));
+
+            return seed;
+        }
+
+        bool equal(const EntryKey& lhs, const EntryKey& rhs) const
+        {
+            return lhs.table() == rhs.table() && lhs.key() == rhs.key();
+        }
+
+        std::hash<std::string_view> hashString;
+    };
+
+    tbb::concurrent_hash_map<EntryKey, int, EntryKeyHasher> data;
+
+    std::string tableName = "table";
+    std::string key = "key";
+
+    decltype(data)::const_accessor it;
+    BOOST_CHECK(data.emplace(it, EntryKey("table", std::string_view("key")), 100));
+
+    decltype(data)::const_accessor findIt;
+    BOOST_CHECK(data.find(findIt, EntryKey("table", std::string_view("key"))));
+}
+
+BOOST_AUTO_TEST_CASE(importPrev) {}
 
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
