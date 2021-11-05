@@ -126,11 +126,13 @@ public:
     const std::string& rpcListenIP() const { return m_rpcListenIP; }
     uint16_t rpcListenPort() const { return m_rpcListenPort; }
     uint32_t rpcThreadPoolSize() const { return m_rpcThreadPoolSize; }
+    bool rpcSmSsl() const { return m_rpcSmSsl; }
     bool rpcDisableSsl() const { return m_rpcDisableSsl; }
 
     // gateway
     const std::string& p2pListenIP() const { return m_p2pListenIP; }
     uint16_t p2pListenPort() const { return m_p2pListenPort; }
+    bool p2pSmSsl() const { return m_p2pSmSsl; }
     const std::string& p2pNodeDir() const { return m_p2pNodeDir; }
     const std::string& p2pNodeFileName() const { return m_p2pNodeFileName; }
 
@@ -222,11 +224,13 @@ private:
     std::string m_rpcListenIP;
     uint16_t m_rpcListenPort;
     uint32_t m_rpcThreadPoolSize;
+    bool m_rpcSmSsl;
     bool m_rpcDisableSsl = false;
 
     // config for gateway
     std::string m_p2pListenIP;
     uint16_t m_p2pListenPort;
+    bool m_p2pSmSsl;
     std::string m_p2pNodeDir;
     std::string m_p2pNodeFileName;
 

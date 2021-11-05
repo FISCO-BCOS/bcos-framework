@@ -160,21 +160,24 @@ void NodeConfig::loadRpcConfig(boost::property_tree::ptree const& _pt)
         listen_ip=0.0.0.0
         listen_port=30300
         thread_count=16
+        sm_ssl=false
         disableSsl=false
     */
     std::string listenIP = _pt.get<std::string>("rpc.listen_ip", "0.0.0.0");
     int listenPort = _pt.get<int>("rpc.listen_port", 20200);
     int threadCount = _pt.get<int>("rpc.thread_count", 8);
+    bool smSsl = _pt.get<bool>("rpc.sm_ssl", false);
     bool disableSsl = _pt.get<bool>("rpc.disableSsl", false);
 
     m_rpcListenIP = listenIP;
     m_rpcListenPort = listenPort;
     m_rpcThreadPoolSize = threadCount;
     m_rpcDisableSsl = disableSsl;
+    m_rpcSmSsl = smSsl;
 
     NodeConfig_LOG(INFO) << LOG_DESC("loadRpcConfig") << LOG_KV("listenIP", listenIP)
-                         << LOG_KV("listenPort", listenPort) << LOG_KV("threadCount", threadCount)
-                         << LOG_KV("disableSsl", disableSsl);
+                         << LOG_KV("listenPort", listenPort) << LOG_KV("listenPort", listenPort)
+                         << LOG_KV("smSsl", smSsl) << LOG_KV("disableSsl", disableSsl);
 }
 
 void NodeConfig::loadGatewayConfig(boost::property_tree::ptree const& _pt)
@@ -183,6 +186,7 @@ void NodeConfig::loadGatewayConfig(boost::property_tree::ptree const& _pt)
     [p2p]
     listen_ip=0.0.0.0
     listen_port=30300
+    sm_ssl=false
     nodes_path=./
     nodes_file=nodes.json
     */
@@ -190,15 +194,17 @@ void NodeConfig::loadGatewayConfig(boost::property_tree::ptree const& _pt)
     int listenPort = _pt.get<int>("p2p.listen_port", 30300);
     std::string nodesDir = _pt.get<std::string>("p2p.nodes_path", "./");
     std::string nodesFile = _pt.get<std::string>("p2p.nodes_file", "nodes.json");
+    bool smSsl = _pt.get<bool>("p2p.sm_ssl", false);
 
     m_p2pListenIP = listenIP;
     m_p2pListenPort = listenPort;
     m_p2pNodeDir = nodesDir;
+    m_p2pSmSsl = smSsl;
     m_p2pNodeFileName = nodesFile;
 
     NodeConfig_LOG(INFO) << LOG_DESC("loadGatewayConfig") << LOG_KV("listenIP", listenIP)
-                         << LOG_KV("listenPort", listenPort) << LOG_KV("nodes_path", nodesDir)
-                         << LOG_KV("nodesFile", nodesFile);
+                         << LOG_KV("listenPort", listenPort) << LOG_KV("listenPort", listenPort)
+                         << LOG_KV("smSsl", smSsl) << LOG_KV("nodesFile", nodesFile);
 }
 
 void NodeConfig::loadCertConfig(boost::property_tree::ptree const& _pt)
