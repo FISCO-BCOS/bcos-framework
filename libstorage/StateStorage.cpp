@@ -343,8 +343,6 @@ void StateStorage::parallelTraverse(bool onlyDirty,
         auto& entry = it.second;
         if (!onlyDirty || entry.dirty())
         {
-            STORAGE_LOG(TRACE) << "Traverse table:" << it.first.table()
-                               << " key:" << it.first.key();
             callback(it.first.table(), it.first.key(), entry);
         }
     });
@@ -414,7 +412,6 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
     auto hash = hashImpl->hash(buffer);
     std::string hashHex;
     boost::algorithm::hex_lower(buffer.begin(), buffer.end(), std::back_inserter(hashHex));
-    STORAGE_LOG(TRACE) << "Calc buffer: " << hashHex;
 
     return hash;
 }
