@@ -160,21 +160,24 @@ void NodeConfig::loadRpcConfig(boost::property_tree::ptree const& _pt)
         listen_ip=0.0.0.0
         listen_port=30300
         thread_count=16
-        disableSsl=false
+        sm_ssl=false
+        disable_ssl=false
     */
     std::string listenIP = _pt.get<std::string>("rpc.listen_ip", "0.0.0.0");
     int listenPort = _pt.get<int>("rpc.listen_port", 20200);
     int threadCount = _pt.get<int>("rpc.thread_count", 8);
-    bool disableSsl = _pt.get<bool>("rpc.disableSsl", false);
+    bool smSsl = _pt.get<bool>("rpc.sm_ssl", false);
+    bool disableSsl = _pt.get<bool>("rpc.disable_ssl", false);
 
     m_rpcListenIP = listenIP;
     m_rpcListenPort = listenPort;
     m_rpcThreadPoolSize = threadCount;
     m_rpcDisableSsl = disableSsl;
+    m_rpcSmSsl = smSsl;
 
     NodeConfig_LOG(INFO) << LOG_DESC("loadRpcConfig") << LOG_KV("listenIP", listenIP)
-                         << LOG_KV("listenPort", listenPort) << LOG_KV("threadCount", threadCount)
-                         << LOG_KV("disableSsl", disableSsl);
+                         << LOG_KV("listenPort", listenPort) << LOG_KV("listenPort", listenPort)
+                         << LOG_KV("smSsl", smSsl) << LOG_KV("disableSsl", disableSsl);
 }
 
 void NodeConfig::loadGatewayConfig(boost::property_tree::ptree const& _pt)
@@ -183,6 +186,7 @@ void NodeConfig::loadGatewayConfig(boost::property_tree::ptree const& _pt)
     [p2p]
     listen_ip=0.0.0.0
     listen_port=30300
+    sm_ssl=false
     nodes_path=./
     nodes_file=nodes.json
     */
@@ -190,15 +194,17 @@ void NodeConfig::loadGatewayConfig(boost::property_tree::ptree const& _pt)
     int listenPort = _pt.get<int>("p2p.listen_port", 30300);
     std::string nodesDir = _pt.get<std::string>("p2p.nodes_path", "./");
     std::string nodesFile = _pt.get<std::string>("p2p.nodes_file", "nodes.json");
+    bool smSsl = _pt.get<bool>("p2p.sm_ssl", false);
 
     m_p2pListenIP = listenIP;
     m_p2pListenPort = listenPort;
     m_p2pNodeDir = nodesDir;
+    m_p2pSmSsl = smSsl;
     m_p2pNodeFileName = nodesFile;
 
     NodeConfig_LOG(INFO) << LOG_DESC("loadGatewayConfig") << LOG_KV("listenIP", listenIP)
-                         << LOG_KV("listenPort", listenPort) << LOG_KV("nodes_path", nodesDir)
-                         << LOG_KV("nodesFile", nodesFile);
+                         << LOG_KV("listenPort", listenPort) << LOG_KV("listenPort", listenPort)
+                         << LOG_KV("smSsl", smSsl) << LOG_KV("nodesFile", nodesFile);
 }
 
 void NodeConfig::loadCertConfig(boost::property_tree::ptree const& _pt)
@@ -231,49 +237,45 @@ void NodeConfig::loadCertConfig(boost::property_tree::ptree const& _pt)
     sm_ennode_cert=sm_enssl.crt
     */
 
+    // load sm cert
     m_certPath = _pt.get<std::string>("cert.ca_path", "./");
-    if (m_smCryptoType)
-    {
-        std::string smCaCertFile =
-            m_certPath + "/" + _pt.get<std::string>("cert.sm_ca_cert", "sm_ca.crt");
-        std::string smNodeCertFile =
-            m_certPath + "/" + _pt.get<std::string>("cert.sm_node_cert", "sm_ssl.crt");
-        std::string smNodeKeyFile =
-            m_certPath + "/" + _pt.get<std::string>("cert.sm_node_key", "sm_ssl.key");
-        std::string smEnNodeCertFile =
-            m_certPath + "/" + _pt.get<std::string>("cert.sm_ennode_cert", "sm_enssl.crt");
-        std::string smEnNodeKeyFile =
-            m_certPath + "/" + _pt.get<std::string>("cert.sm_ennode_key", "sm_enssl.key");
 
-        m_caCert = smCaCertFile;
-        m_nodeCert = smNodeCertFile;
-        m_nodeKey = smNodeKeyFile;
-        m_enNodeCert = smEnNodeCertFile;
-        m_enNodeKey = smEnNodeKeyFile;
+    std::string smCaCertFile =
+        m_certPath + "/" + _pt.get<std::string>("cert.sm_ca_cert", "sm_ca.crt");
+    std::string smNodeCertFile =
+        m_certPath + "/" + _pt.get<std::string>("cert.sm_node_cert", "sm_ssl.crt");
+    std::string smNodeKeyFile =
+        m_certPath + "/" + _pt.get<std::string>("cert.sm_node_key", "sm_ssl.key");
+    std::string smEnNodeCertFile =
+        m_certPath + "/" + _pt.get<std::string>("cert.sm_ennode_cert", "sm_enssl.crt");
+    std::string smEnNodeKeyFile =
+        m_certPath + "/" + _pt.get<std::string>("cert.sm_ennode_key", "sm_enssl.key");
 
-        NodeConfig_LOG(INFO) << LOG_DESC("loadCertConfig") << LOG_DESC("sm model")
-                             << LOG_KV("ca_path", m_certPath) << LOG_KV("sm_ca_cert", smCaCertFile)
-                             << LOG_KV("sm_node_cert", smNodeCertFile)
-                             << LOG_KV("sm_ennode_cert", smEnNodeCertFile)
-                             << LOG_KV("sm_ennode_key", smEnNodeKeyFile);
-    }
-    else
-    {
-        std::string caCertFile = m_certPath + "/" + _pt.get<std::string>("cert.ca_cert", "ca.crt");
-        std::string nodeCertFile =
-            m_certPath + "/" + _pt.get<std::string>("cert.node_cert", "ssl.crt");
-        std::string nodeKeyFile =
-            m_certPath + "/" + _pt.get<std::string>("cert.node_key", "ssl.key");
+    m_smCaCert = smCaCertFile;
+    m_smNodeCert = smNodeCertFile;
+    m_smNodeKey = smNodeKeyFile;
+    m_enSmNodeCert = smEnNodeCertFile;
+    m_enSmNodeKey = smEnNodeKeyFile;
 
-        m_caCert = caCertFile;
-        m_nodeCert = nodeCertFile;
-        m_nodeKey = nodeKeyFile;
+    NodeConfig_LOG(INFO) << LOG_DESC("loadCertConfig") << LOG_KV("ca_path", m_certPath)
+                         << LOG_KV("sm_ca_cert", smCaCertFile)
+                         << LOG_KV("sm_node_cert", smNodeCertFile)
+                         << LOG_KV("sm_node_key", smNodeKeyFile)
+                         << LOG_KV("sm_ennode_cert", smEnNodeCertFile)
+                         << LOG_KV("sm_ennode_key", smEnNodeKeyFile);
 
-        NodeConfig_LOG(INFO) << LOG_DESC("loadCertConfig") << LOG_DESC("non sm model")
-                             << LOG_KV("ca_path", m_certPath) << LOG_KV("ca_cert", caCertFile)
-                             << LOG_KV("node_cert", nodeCertFile)
-                             << LOG_KV("node_key", nodeKeyFile);
-    }
+    // load cert
+    std::string caCertFile = m_certPath + "/" + _pt.get<std::string>("cert.ca_cert", "ca.crt");
+    std::string nodeCertFile = m_certPath + "/" + _pt.get<std::string>("cert.node_cert", "ssl.crt");
+    std::string nodeKeyFile = m_certPath + "/" + _pt.get<std::string>("cert.node_key", "ssl.key");
+
+    m_caCert = caCertFile;
+    m_nodeCert = nodeCertFile;
+    m_nodeKey = nodeKeyFile;
+
+    NodeConfig_LOG(INFO) << LOG_DESC("loadCertConfig") << LOG_KV("ca_path", m_certPath)
+                         << LOG_KV("ca_cert", caCertFile) << LOG_KV("node_cert", nodeCertFile)
+                         << LOG_KV("node_key", nodeKeyFile);
 }
 
 // load the txpool related params

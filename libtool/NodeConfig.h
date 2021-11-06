@@ -126,22 +126,43 @@ public:
     const std::string& rpcListenIP() const { return m_rpcListenIP; }
     uint16_t rpcListenPort() const { return m_rpcListenPort; }
     uint32_t rpcThreadPoolSize() const { return m_rpcThreadPoolSize; }
+    bool rpcSmSsl() const { return m_rpcSmSsl; }
     bool rpcDisableSsl() const { return m_rpcDisableSsl; }
 
     // gateway
     const std::string& p2pListenIP() const { return m_p2pListenIP; }
     uint16_t p2pListenPort() const { return m_p2pListenPort; }
+    bool p2pSmSsl() const { return m_p2pSmSsl; }
     const std::string& p2pNodeDir() const { return m_p2pNodeDir; }
     const std::string& p2pNodeFileName() const { return m_p2pNodeFileName; }
 
-    // cert
     // config for cert
     const std::string& certPath() { return m_certPath; }
+    void setCertPath(const std::string& _certPath) { m_certPath = _certPath; }
+
     const std::string& caCert() { return m_caCert; }
+    void setCaCert(const std::string& _caCert) { m_caCert = _caCert; }
+
     const std::string& nodeCert() { return m_nodeCert; }
+    void setNodeCert(const std::string& _nodeCert) { m_nodeCert = _nodeCert; }
+
     const std::string& nodeKey() { return m_nodeKey; }
-    const std::string& enNodeCert() { return m_enNodeCert; }
-    const std::string& enNodeKey() { return m_enNodeKey; }
+    void setNodeKey(const std::string& _nodeKey) { m_nodeKey = _nodeKey; }
+
+    const std::string& smCaCert() const { return m_smCaCert; }
+    void setSmCaCert(const std::string& _smCaCert) { m_smCaCert = _smCaCert; }
+
+    const std::string& smNodeCert() const { return m_smNodeCert; }
+    void setSmNodeCert(const std::string& _smNodeCert) { m_smNodeCert = _smNodeCert; }
+
+    const std::string& smNodeKey() const { return m_smNodeKey; }
+    void setSmNodeKey(const std::string& _smNodeKey) { m_smNodeKey = _smNodeKey; }
+
+    const std::string& enSmNodeCert() const { return m_enSmNodeCert; }
+    void setEnSmNodeCert(const std::string& _enSmNodeCert) { m_enSmNodeCert = _enSmNodeCert; }
+
+    const std::string& enSmNodeKey() const { return m_enSmNodeKey; }
+    void setEnSmNodeKey(const std::string& _enSmNodeKey) { m_enSmNodeKey = _enSmNodeKey; }
 
 protected:
     virtual void loadChainConfig(boost::property_tree::ptree const& _pt);
@@ -222,21 +243,28 @@ private:
     std::string m_rpcListenIP;
     uint16_t m_rpcListenPort;
     uint32_t m_rpcThreadPoolSize;
+    bool m_rpcSmSsl;
     bool m_rpcDisableSsl = false;
 
     // config for gateway
     std::string m_p2pListenIP;
     uint16_t m_p2pListenPort;
+    bool m_p2pSmSsl;
     std::string m_p2pNodeDir;
     std::string m_p2pNodeFileName;
 
     // config for cert
     std::string m_certPath;
+
     std::string m_caCert;
     std::string m_nodeCert;
     std::string m_nodeKey;
-    std::string m_enNodeCert;
-    std::string m_enNodeKey;
+
+    std::string m_smCaCert;
+    std::string m_smNodeCert;
+    std::string m_smNodeKey;
+    std::string m_enSmNodeCert;
+    std::string m_enSmNodeKey;
 };
 }  // namespace tool
 }  // namespace bcos
