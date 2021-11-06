@@ -19,8 +19,12 @@
 #pragma once
 
 #include "Common.h"
+#include "Error.h"
+#include <boost/algorithm/hex.hpp>
+#include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <cstring>
+#include <iterator>
 #include <string>
 #include <type_traits>
 #include <unordered_set>
@@ -28,6 +32,46 @@
 
 namespace bcos
 {
+template <class Binary, class Out = std::string>
+Out toHex(const Binary& binary, const std::string_view& prefix = std::string_view())
+{
+    if (binary.empty())
+    {
+        BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Empty input binary data"));
+    }
+
+    Out out;
+    out.reserve(binary.size() * 2 + prefix.size());
+
+    if (prefix.size() > 0)
+    {
+        out.insert(out.end(), prefix.begin(), prefix.end());
+    }
+
+    boost::algorithm::hex_lower(binary.begin(), binary.end(), std::back_inserter(out));
+    return out;
+}
+
+template <class Hex, class Out = bytes>
+Out fromHex(const Hex& hex, const std::string_view& prefix = std::string_view())
+{
+    if (hex.empty())
+    {
+        BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Empty input hex string"));
+    }
+
+    if ((hex.size() < prefix.size() + 2) || (hex.size() % 2 != 0))
+    {
+        BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Invalid input hex string size"));
+    }
+
+    Out out;
+    out.reserve(hex.size() / 2);
+
+    boost::algorithm::unhex(hex.begin() + prefix.size(), hex.end(), std::back_inserter(out));
+    return out;
+}
+
 /**
  * @brief convert the specified bytes data into hex string
  *

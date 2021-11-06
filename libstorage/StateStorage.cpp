@@ -8,6 +8,8 @@
 #include <boost/crc.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/throw_exception.hpp>
+#include <cctype>
+#include <iomanip>
 #include <ios>
 #include <iterator>
 #include <optional>
@@ -112,24 +114,46 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
             if (entry.status() != Entry::NORMAL)
             {
                 entryIt.release();
+
+                if (m_cachePrev)
+                {
+                    STORAGE_LOG(TRACE) << "Get|" << table << "|" << toHex(_key) << "|"
+                                       << "[]|1";
+                }
                 _callback(nullptr, std::nullopt);
             }
             else
             {
                 auto optionalEntry = std::make_optional(entry);
                 entryIt.release();
+
+                if (m_cachePrev)
+                {
+                    STORAGE_LOG(TRACE) << "Get|" << table << "|" << toHex(_key) << "|"
+                                       << "[" << toHex(*(optionalEntry->begin())) << "]"
+                                       << optionalEntry->status();
+                    ;
+                }
                 _callback(nullptr, std::move(optionalEntry));
             }
             return;
         }
         else
         {
-            STORAGE_LOG(TRACE) << "Entry not found! " << _key;
+            if (m_cachePrev)
+            {
+                STORAGE_LOG(TRACE) << "Get|" << table << "|" << toHex(_key) << "|"
+                                   << "Entry not found|";
+            }
         }
     }
     else
     {
-        STORAGE_LOG(TRACE) << "Table not found! " << table;
+        if (m_cachePrev)
+        {
+            STORAGE_LOG(TRACE) << "Get|" << table << "|" << toHex(_key) << "|"
+                               << "Table not found|";
+        }
     }
 
     if (m_prev)
@@ -481,7 +505,7 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
         tableIt.release();
     }
 
-    decltype(m_data)::accessor entryIt;
+    decltype(m_data)::const_accessor entryIt;
     if (m_data.find(entryIt, EntryKey(entry.tableInfo()->name(), key)))
     {
         // Data exists
@@ -493,8 +517,14 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
         STORAGE_LOG(TRACE) << "Importing exists table" << LOG_KV("table", entry.tableInfo()->name())
                            << LOG_KV("entry", key);
 
-        m_data.emplace(
-            entryIt, EntryKey(entry.tableInfo()->name(), std::string(key)), std::move(entry));
+        if (!m_data.emplace(
+                entryIt, EntryKey(entry.tableInfo()->name(), std::string(key)), std::move(entry)))
+        {
+            std::string message = "Import existsing entry failed!";
+            STORAGE_LOG(ERROR) << message << LOG_KV("table", entry.tableInfo()->name())
+                               << LOG_KV("key", key);
+            BOOST_THROW_EXCEPTION(BCOS_ERROR(StorageError::UnknownError, message));
+        }
     }
 
     return entryIt->second;
