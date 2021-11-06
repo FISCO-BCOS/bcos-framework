@@ -19,8 +19,8 @@
  */
 #include "libcodec/abi/ContractABICodec.h"
 #include "libcodec/abi/ContractABIType.h"
-#include "testutils/crypto/HashImpl.h"
 #include "testutils/TestPromptFixture.h"
+#include "testutils/crypto/HashImpl.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
@@ -718,6 +718,157 @@ BOOST_AUTO_TEST_CASE(testABIOutBytes)
     abi.abiOut(ref(paramData), decodedParam);
     BOOST_CHECK(*toHexString(decodedParam) == *toHexString(plainText));
 }
+
+BOOST_AUTO_TEST_CASE(testABITuple)
+{
+    auto hashImpl = std::make_shared<Keccak256Hash>();
+    ContractABICodec abi(hashImpl);
+    // tuple(vector(tuple(u256,string,string,u256)))
+    {
+        auto tuple1 = std::make_tuple(u256(1), std::string("id1"), std::string("test1"), u256(2));
+        auto tuple2 = std::make_tuple(u256(1), std::string("id2"), std::string("test2"), u256(2));
+        auto testEncode = std::make_tuple(std::vector<decltype(tuple1)>{tuple1, tuple2});
+        auto encodedBytes = abi.abiIn("", std::string("t_test"), testEncode);
+        // solc 0.6.12
+        // solidity struct A{ enum,string,string,enum } struct B {A[]}
+        // B(A[]({1,"id1","test1",2},{1,"id2","test2",2}))
+        std::string bytesString =
+            "00000000000000000000000000000000000000000000000000000000000000400000000000000000000000"
+            "0000"
+            "00000000000000000000000000000000000080000000000000000000000000000000000000000000000000"
+            "0000"
+            "000000000006745f7465737400000000000000000000000000000000000000000000000000000000000000"
+            "0000"
+            "00000000000000000000000000000000000000000000000020000000000000000000000000000000000000"
+            "0000"
+            "00000000000000000000000200000000000000000000000000000000000000000000000000000000000000"
+            "4000"
+            "00000000000000000000000000000000000000000000000000000000000140000000000000000000000000"
+            "0000"
+            "00000000000000000000000000000000000100000000000000000000000000000000000000000000000000"
+            "0000"
+            "000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000"
+            "0000"
+            "00000000000000000000000000000000000000000000000200000000000000000000000000000000000000"
+            "0000"
+            "00000000000000000000036964310000000000000000000000000000000000000000000000000000000000"
+            "0000"
+            "00000000000000000000000000000000000000000000000000000000000574657374310000000000000000"
+            "0000"
+            "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            "0000"
+            "00000001000000000000000000000000000000000000000000000000000000000000008000000000000000"
+            "0000"
+            "00000000000000000000000000000000000000000000c00000000000000000000000000000000000000000"
+            "0000"
+            "00000000000000000002000000000000000000000000000000000000000000000000000000000000000369"
+            "6432"
+            "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            "0000"
+            "00000000000000000000000000000005746573743200000000000000000000000000000000000000000000"
+            "0000"
+            "000000";
+        std::string hexString = *toHexString(encodedBytes);
+        BOOST_CHECK(hexString == bytesString);
+
+        decltype(testEncode) testDecode;
+        std::string testString;
+        abi.abiOut(ref(encodedBytes), testString, testDecode);
+
+        BOOST_CHECK(std::get<0>(testDecode).size() == 2);
+        auto tupleDecode1 = std::get<0>(testDecode).at(0);
+        auto tupleDecode2 = std::get<0>(testDecode).at(1);
+        BOOST_CHECK(std::get<0>(tupleDecode1) == std::get<0>(tuple1));
+        BOOST_CHECK(std::get<1>(tupleDecode1) == std::get<1>(tuple1));
+        BOOST_CHECK(std::get<2>(tupleDecode1) == std::get<2>(tuple1));
+        BOOST_CHECK(std::get<3>(tupleDecode1) == std::get<3>(tuple1));
+
+        BOOST_CHECK(std::get<0>(tupleDecode2) == std::get<0>(tuple2));
+        BOOST_CHECK(std::get<1>(tupleDecode2) == std::get<1>(tuple2));
+        BOOST_CHECK(std::get<2>(tupleDecode2) == std::get<2>(tuple2));
+        BOOST_CHECK(std::get<3>(tupleDecode2) == std::get<3>(tuple2));
+    }
+
+    // simple tuple
+    {
+        auto test1 = std::make_tuple(std::string("123"), s256(-1),
+            Address("0x420f853b49838bd3e9466c85a4cc3428c960dde2"),
+            *fromHexString("420f853b49838bd3e9466c85a4cc3428c960dde2"),
+            std::vector<std::string>({"123", "456"}));
+        auto test1Encode = abi.abiIn("", test1);
+        decltype(test1) test1Decode;
+        abi.abiOut(ref(test1Encode), test1Decode);
+
+        BOOST_CHECK(std::get<0>(test1) == std::get<0>(test1Decode));
+        BOOST_CHECK(std::get<1>(test1) == std::get<1>(test1Decode));
+        BOOST_CHECK(std::get<2>(test1) == std::get<2>(test1Decode));
+        BOOST_CHECK(std::get<3>(test1) == std::get<3>(test1Decode));
+        BOOST_CHECK(std::get<4>(test1)[0] == std::get<4>(test1Decode)[0]);
+        BOOST_CHECK(std::get<4>(test1)[1] == std::get<4>(test1Decode)[1]);
+    }
+    // tuple(u256,bool,vector(tuple(string,s256,Address,bytes,vector)),vector(tuple(string,s256,Address,bytes,vector)))
+    {
+        auto tuple1 = std::make_tuple(std::string("123"), s256(-1),
+            Address("0x420f853b49838bd3e9466c85a4cc3428c960dde2"),
+            *fromHexString("420f853b49838bd3e9466c85a4cc3428c960dde2"),
+            std::vector<std::string>({"123", "456"}));
+
+        auto tuple2 = std::make_tuple(std::string("456"), s256(-123),
+            Address("0x420f853b49838bd3e9466c85a4cc3428c360dde2"),
+            *fromHexString("420f853b49838bd3e9466c85a4cc3528c960dde2"),
+            std::vector<std::string>({"321", "33333"}));
+
+        std::vector<decltype(tuple1)> tupleV1{tuple1, tuple2};
+        std::vector<decltype(tuple1)> tupleV2{tuple2, tuple1};
+
+        auto tupleTest1 = std::make_tuple(u256(321321441), true, tupleV1, tupleV2);
+        auto test1Encode = abi.abiIn("", tuple1, tupleTest1);
+        decltype(tuple1) tuple1Decode;
+        decltype(tupleTest1) test1Decode;
+        abi.abiOut(ref(test1Encode), tuple1Decode, test1Decode);
+
+        BOOST_CHECK(std::get<0>(tuple1Decode) == std::get<0>(tuple1));
+        BOOST_CHECK(std::get<1>(tuple1Decode) == std::get<1>(tuple1));
+        BOOST_CHECK(std::get<2>(tuple1Decode) == std::get<2>(tuple1));
+        BOOST_CHECK(std::get<3>(tuple1Decode) == std::get<3>(tuple1));
+        BOOST_CHECK(std::get<4>(tuple1Decode)[0] == std::get<4>(tuple1)[0]);
+        BOOST_CHECK(std::get<4>(tuple1Decode)[1] == std::get<4>(tuple1)[1]);
+
+        BOOST_CHECK(std::get<0>(test1Decode) == std::get<0>(tupleTest1));
+        BOOST_CHECK(std::get<1>(test1Decode) == std::get<1>(tupleTest1));
+        auto test1DecodeTupleV1 = std::get<2>(test1Decode);
+        auto test1DecodeTupleV2 = std::get<3>(test1Decode);
+
+        BOOST_CHECK(std::get<0>(test1DecodeTupleV1[0]) == std::get<0>(tuple1));
+        BOOST_CHECK(std::get<1>(test1DecodeTupleV1[0]) == std::get<1>(tuple1));
+        BOOST_CHECK(std::get<2>(test1DecodeTupleV1[0]) == std::get<2>(tuple1));
+        BOOST_CHECK(std::get<3>(test1DecodeTupleV1[0]) == std::get<3>(tuple1));
+        BOOST_CHECK(std::get<4>(test1DecodeTupleV1[0])[0] == std::get<4>(tuple1)[0]);
+        BOOST_CHECK(std::get<4>(test1DecodeTupleV1[0])[1] == std::get<4>(tuple1)[1]);
+
+        BOOST_CHECK(std::get<0>(test1DecodeTupleV1[1]) == std::get<0>(tuple2));
+        BOOST_CHECK(std::get<1>(test1DecodeTupleV1[1]) == std::get<1>(tuple2));
+        BOOST_CHECK(std::get<2>(test1DecodeTupleV1[1]) == std::get<2>(tuple2));
+        BOOST_CHECK(std::get<3>(test1DecodeTupleV1[1]) == std::get<3>(tuple2));
+        BOOST_CHECK(std::get<4>(test1DecodeTupleV1[1])[0] == std::get<4>(tuple2)[0]);
+        BOOST_CHECK(std::get<4>(test1DecodeTupleV1[1])[1] == std::get<4>(tuple2)[1]);
+
+        BOOST_CHECK(std::get<0>(test1DecodeTupleV2[0]) == std::get<0>(tuple2));
+        BOOST_CHECK(std::get<1>(test1DecodeTupleV2[0]) == std::get<1>(tuple2));
+        BOOST_CHECK(std::get<2>(test1DecodeTupleV2[0]) == std::get<2>(tuple2));
+        BOOST_CHECK(std::get<3>(test1DecodeTupleV2[0]) == std::get<3>(tuple2));
+        BOOST_CHECK(std::get<4>(test1DecodeTupleV2[0])[0] == std::get<4>(tuple2)[0]);
+        BOOST_CHECK(std::get<4>(test1DecodeTupleV2[0])[1] == std::get<4>(tuple2)[1]);
+
+        BOOST_CHECK(std::get<0>(test1DecodeTupleV2[1]) == std::get<0>(tuple1));
+        BOOST_CHECK(std::get<1>(test1DecodeTupleV2[1]) == std::get<1>(tuple1));
+        BOOST_CHECK(std::get<2>(test1DecodeTupleV2[1]) == std::get<2>(tuple1));
+        BOOST_CHECK(std::get<3>(test1DecodeTupleV2[1]) == std::get<3>(tuple1));
+        BOOST_CHECK(std::get<4>(test1DecodeTupleV2[1])[0] == std::get<4>(tuple1)[0]);
+        BOOST_CHECK(std::get<4>(test1DecodeTupleV2[1])[1] == std::get<4>(tuple1)[1]);
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
 }  // namespace bcos

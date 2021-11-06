@@ -41,4 +41,7 @@ cmake/scripts/**
 cmake/deps/**
 build*/**
 .vscode/**
+.idea**
 .DS_Store
+bcos-proto**
+cmake/scripts**
