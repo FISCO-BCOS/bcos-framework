@@ -108,18 +108,13 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
         decltype(m_data)::const_accessor entryIt;
         if (m_data.find(entryIt, EntryKey(table, _key)))
         {
-            STORAGE_LOG(TRACE) << "Hit entry! " << table << " " << _key;
             auto& entry = entryIt->second;
 
             if (entry.status() != Entry::NORMAL)
             {
                 entryIt.release();
 
-                if (m_cachePrev)
-                {
-                    STORAGE_LOG(TRACE) << "Get|" << table << "|" << toHex(_key) << "|"
-                                       << "[]|1";
-                }
+                STORAGE_REPORT_GET(table, _key, std::nullopt, "DELETED");
                 _callback(nullptr, std::nullopt);
             }
             else
@@ -127,39 +122,25 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
                 auto optionalEntry = std::make_optional(entry);
                 entryIt.release();
 
-                if (m_cachePrev)
-                {
-                    STORAGE_LOG(TRACE) << "Get|" << table << "|" << toHex(_key) << "|"
-                                       << "[" << toHex(*(optionalEntry->begin())) << "]"
-                                       << optionalEntry->status();
-                    ;
-                }
+                STORAGE_REPORT_GET(table, _key, optionalEntry, "FOUND");
                 _callback(nullptr, std::move(optionalEntry));
             }
             return;
         }
         else
         {
-            if (m_cachePrev)
-            {
-                STORAGE_LOG(TRACE) << "Get|" << table << "|" << toHex(_key) << "|"
-                                   << "Entry not found|";
-            }
+            STORAGE_REPORT_GET(table, _key, std::nullopt, "NO ENTRY");
         }
     }
     else
     {
-        if (m_cachePrev)
-        {
-            STORAGE_LOG(TRACE) << "Get|" << table << "|" << toHex(_key) << "|"
-                               << "Table not found|";
-        }
+        STORAGE_REPORT_GET(table, _key, std::nullopt, "NO TABLE");
     }
 
     if (m_prev)
     {
         m_prev->asyncGetRow(table, _key,
-            [this, key = std::string(_key), _callback](
+            [this, table = std::string(table), key = std::string(_key), _callback](
                 Error::UniquePtr error, std::optional<Entry> entry) {
                 if (error)
                 {
@@ -169,6 +150,7 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
                     return;
                 }
 
+                STORAGE_REPORT_GET(table, key, entry, "FROM PREV");
                 if (entry)
                 {
                     _callback(
@@ -176,13 +158,13 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
                 }
                 else
                 {
-                    _callback(nullptr, {});
+                    _callback(nullptr, std::nullopt);
                 }
             });
     }
     else
     {
-        _callback(nullptr, {});
+        _callback(nullptr, std::nullopt);
     }
 }
 
@@ -286,7 +268,8 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
 
             auto updatedCapacity = entry.capacityOfHashField();
             std::optional<Entry> entryOld;
-            std::string keyView;
+            std::string_view tableView;
+            std::string_view keyView;
             std::visit([&keyView](auto&& key) { keyView = std::string_view(key); }, key);
 
             decltype(m_data)::accessor entryIt;
@@ -296,12 +279,18 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                 entryOld.emplace(std::move(existsEntry));
                 entryIt->second = std::move(entry);
                 keyView = entryIt->first.key();
+                tableView = entryIt->second.tableInfo()->name();
 
                 updatedCapacity -= entryOld->capacityOfHashField();
 
                 if (entryIt->second.status() == Entry::PURGED)
                 {
                     m_data.erase(entryIt);
+                    STORAGE_REPORT_SET(tableInfo->name(), keyView, std::nullopt, "PURGED");
+                }
+                else
+                {
+                    STORAGE_REPORT_SET(tableInfo->name(), keyView, entryIt->second, "UPDATE");
                 }
 
                 entryIt.release();
@@ -312,8 +301,21 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                 std::visit([&keyString](auto&& key) { keyString.assign(std::move(key)); }, key);
 
                 decltype(m_data)::const_accessor constEntryIt;
-                m_data.emplace(constEntryIt, EntryKey(tableInfo->name(), std::move(keyString)),
-                    std::move(entry));
+                if (!m_data.emplace(constEntryIt, EntryKey(tableInfo->name(), std::move(keyString)),
+                        std::move(entry)))
+                {
+                    STORAGE_LOG(WARNING) << "Set row failed because row exists";
+
+                    STORAGE_REPORT_SET(constEntryIt->first.table(), constEntryIt->first.key(),
+                        constEntryIt->second, "EXISTS");
+                }
+                else
+                {
+                    STORAGE_REPORT_SET(constEntryIt->first.table(), constEntryIt->first.key(),
+                        constEntryIt->second, "INSERT");
+                }
+
+                tableView = constEntryIt->first.table();
                 keyView = constEntryIt->first.key();
             }
 
@@ -321,10 +323,12 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
             if (m_recoder.local())
             {
                 m_recoder.local()->log(
-                    Recoder::Change(tableInfo->name(), keyView, std::move(entryOld)));
+                    Recoder::Change(tableView, std::string(keyView), std::move(entryOld)));
             }
 
             m_capacity += updatedCapacity;
+
+
             callback(nullptr);
         };
 

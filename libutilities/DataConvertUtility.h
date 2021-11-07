@@ -35,17 +35,18 @@ namespace bcos
 template <class Binary, class Out = std::string>
 Out toHex(const Binary& binary, const std::string_view& prefix = std::string_view())
 {
-    if (binary.empty())
-    {
-        BOOST_THROW_EXCEPTION(BCOS_ERROR(-1, "Empty input binary data"));
-    }
-
     Out out;
+
     out.reserve(binary.size() * 2 + prefix.size());
 
-    if (prefix.size() > 0)
+    if (!prefix.empty())
     {
         out.insert(out.end(), prefix.begin(), prefix.end());
+    }
+
+    if (binary.empty())
+    {
+        return out;
     }
 
     boost::algorithm::hex_lower(binary.begin(), binary.end(), std::back_inserter(out));

@@ -119,6 +119,7 @@ public:
 
     void setEnableTraverse(bool enableTraverse) { m_enableTraverse = enableTraverse; }
     void setCachePrev(bool cachePrev) { m_cachePrev = cachePrev; }
+    void setTrace(bool trace) { m_trace = trace; }
 
 protected:
     class EntryKey
@@ -202,5 +203,47 @@ private:
     size_t m_capacity = 0;
     bool m_enableTraverse = false;
     bool m_cachePrev = true;
+
+    bool m_trace = false;
+
+#define STORAGE_REPORT_GET(table, key, entry, desc) \
+    if (m_trace)                                    \
+    log("GET", (table), (key), (entry), (desc))
+
+#define STORAGE_REPORT_SET(table, key, entry, desc) \
+    if (m_trace)                                    \
+    log("SET", (table), (key), (entry), (desc))
+
+    // for debug
+    void log(const std::string_view& op, const std::string_view& table, const std::string_view& key,
+        const std::optional<Entry>& entry, const std::string_view& desc = "")
+    {
+        if (m_cachePrev)
+        {
+            if (entry)
+            {
+                if (entry->fieldCount() > 0)
+                {
+                    STORAGE_LOG(TRACE) << op << "|" << table << "|" << toHex(key) << "|["
+                                       << toHex(*(entry->begin())) << "]|"
+                                       << (int8_t)entry->status() << "|" << desc;
+                }
+                else
+                {
+                    STORAGE_LOG(TRACE) << op << "|" << table << "|" << toHex(key) << "|["
+                                       << ""
+                                       << "]|" << (int8_t)entry->status() << "|" << desc;
+                }
+            }
+            else
+            {
+                STORAGE_LOG(TRACE) << op << "|" << table << "|" << toHex(key) << "|"
+                                   << "[]"
+                                   << "|"
+                                   << "NO ENTRY"
+                                   << "|" << desc;
+            }
+        }
+    }
 };
 }  // namespace bcos::storage
