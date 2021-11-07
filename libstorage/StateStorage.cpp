@@ -502,6 +502,8 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
         return entry;
     }
 
+    STORAGE_REPORT_SET(entry.tableInfo()->name(), key, std::make_optional(entry), "IMPORT");
+
     decltype(m_tableInfos)::const_accessor tableIt;
     if (!m_tableInfos.find(tableIt, entry.tableInfo()->name()))
     {
@@ -518,16 +520,19 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
     }
     else
     {
-        STORAGE_LOG(TRACE) << "Importing exists table" << LOG_KV("table", entry.tableInfo()->name())
+        STORAGE_LOG(TRACE) << "Importing exists entry" << LOG_KV("table", entry.tableInfo()->name())
                            << LOG_KV("entry", key);
 
-        if (!m_data.emplace(
-                entryIt, EntryKey(entry.tableInfo()->name(), std::string(key)), std::move(entry)))
+        auto tableNameView = entry.tableInfo()->name();
+        if (!m_data.emplace(entryIt, EntryKey(tableNameView, std::string(key)), std::move(entry)))
         {
-            std::string message = "Import existsing entry failed!";
-            STORAGE_LOG(ERROR) << message << LOG_KV("table", entry.tableInfo()->name())
-                               << LOG_KV("key", key);
-            BOOST_THROW_EXCEPTION(BCOS_ERROR(StorageError::UnknownError, message));
+            if (tableNameView != StorageInterface::SYS_TABLES)
+            {
+                std::string message = "Import existsing entry failed!";
+                STORAGE_LOG(ERROR)
+                    << message << LOG_KV("table", entryIt->first.table()) << LOG_KV("key", key);
+                BOOST_THROW_EXCEPTION(BCOS_ERROR(StorageError::UnknownError, message));
+            }
         }
     }
 

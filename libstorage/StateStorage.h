@@ -119,7 +119,6 @@ public:
 
     void setEnableTraverse(bool enableTraverse) { m_enableTraverse = enableTraverse; }
     void setCachePrev(bool cachePrev) { m_cachePrev = cachePrev; }
-    void setTrace(bool trace) { m_trace = trace; }
 
 protected:
     class EntryKey
@@ -204,14 +203,12 @@ private:
     bool m_enableTraverse = false;
     bool m_cachePrev = true;
 
-    bool m_trace = false;
-
 #define STORAGE_REPORT_GET(table, key, entry, desc) \
-    if (m_trace)                                    \
+    if (c_fileLogLevel >= bcos::LogLevel::TRACE)    \
     log("GET", (table), (key), (entry), (desc))
 
 #define STORAGE_REPORT_SET(table, key, entry, desc) \
-    if (m_trace)                                    \
+    if (c_fileLogLevel >= bcos::LogLevel::TRACE)    \
     log("SET", (table), (key), (entry), (desc))
 
     // for debug
@@ -226,13 +223,13 @@ private:
                 {
                     STORAGE_LOG(TRACE) << op << "|" << table << "|" << toHex(key) << "|["
                                        << toHex(*(entry->begin())) << "]|"
-                                       << (int8_t)entry->status() << "|" << desc;
+                                       << (int32_t)entry->status() << "|" << desc;
                 }
                 else
                 {
                     STORAGE_LOG(TRACE) << op << "|" << table << "|" << toHex(key) << "|["
                                        << ""
-                                       << "]|" << (int8_t)entry->status() << "|" << desc;
+                                       << "]|" << (int32_t)entry->status() << "|" << desc;
                 }
             }
             else
