@@ -103,38 +103,31 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
 void StateStorage::asyncGetRow(const std::string_view& table, const std::string_view& _key,
     std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback)
 {
-    if (m_tableInfos.count(table) > 0)
+    decltype(m_data)::const_accessor entryIt;
+    if (m_data.find(entryIt, EntryKey(table, _key)))
     {
-        decltype(m_data)::const_accessor entryIt;
-        if (m_data.find(entryIt, EntryKey(table, _key)))
+        auto& entry = entryIt->second;
+
+        if (entry.status() != Entry::NORMAL)
         {
-            auto& entry = entryIt->second;
+            entryIt.release();
 
-            if (entry.status() != Entry::NORMAL)
-            {
-                entryIt.release();
-
-                STORAGE_REPORT_GET(table, _key, std::nullopt, "DELETED");
-                _callback(nullptr, std::nullopt);
-            }
-            else
-            {
-                auto optionalEntry = std::make_optional(entry);
-                entryIt.release();
-
-                STORAGE_REPORT_GET(table, _key, optionalEntry, "FOUND");
-                _callback(nullptr, std::move(optionalEntry));
-            }
-            return;
+            STORAGE_REPORT_GET(table, _key, std::nullopt, "DELETED");
+            _callback(nullptr, std::nullopt);
         }
         else
         {
-            STORAGE_REPORT_GET(table, _key, std::nullopt, "NO ENTRY");
+            auto optionalEntry = std::make_optional(entry);
+            entryIt.release();
+
+            STORAGE_REPORT_GET(table, _key, optionalEntry, "FOUND");
+            _callback(nullptr, std::move(optionalEntry));
         }
+        return;
     }
     else
     {
-        STORAGE_REPORT_GET(table, _key, std::nullopt, "NO TABLE");
+        STORAGE_REPORT_GET(table, _key, std::nullopt, "NO ENTRY");
     }
 
     if (m_prev)
@@ -150,14 +143,15 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
                     return;
                 }
 
-                STORAGE_REPORT_GET(table, key, entry, "FROM PREV");
                 if (entry)
                 {
+                    STORAGE_REPORT_GET(table, key, entry, "PREV FOUND");
                     _callback(
                         nullptr, std::make_optional(importExistingEntry(key, std::move(*entry))));
                 }
                 else
                 {
+                    STORAGE_REPORT_GET(table, key, std::nullopt, "PREV NOT FOUND");
                     _callback(nullptr, std::nullopt);
                 }
             });
@@ -502,8 +496,6 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
         return entry;
     }
 
-    STORAGE_REPORT_SET(entry.tableInfo()->name(), key, std::make_optional(entry), "IMPORT");
-
     decltype(m_tableInfos)::const_accessor tableIt;
     if (!m_tableInfos.find(tableIt, entry.tableInfo()->name()))
     {
@@ -517,6 +509,9 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
         // Data exists
         STORAGE_LOG(WARNING) << "Reject import exists entry"
                              << LOG_KV("table", entry.tableInfo()->name()) << LOG_KV("key", key);
+
+        STORAGE_REPORT_SET(
+            entryIt->first.table(), key, std::make_optional(entry), "IMPORT REJECTED");
     }
     else
     {
@@ -528,12 +523,17 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
         {
             if (tableNameView != StorageInterface::SYS_TABLES)
             {
+                STORAGE_REPORT_SET(
+                    entryIt->first.table(), key, entryIt->second, "IMPORT EXISTS FAILED");
                 std::string message = "Import existsing entry failed!";
                 STORAGE_LOG(ERROR)
                     << message << LOG_KV("table", entryIt->first.table()) << LOG_KV("key", key);
                 BOOST_THROW_EXCEPTION(BCOS_ERROR(StorageError::UnknownError, message));
             }
+            STORAGE_REPORT_SET(entryIt->first.table(), key, entryIt->second, "IMPORT SYS_TABLES");
         }
+        STORAGE_REPORT_SET(
+            entryIt->first.table(), key, std::make_optional(entryIt->second), "IMPORT");
     }
 
     return entryIt->second;
