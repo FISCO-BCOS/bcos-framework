@@ -6,6 +6,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/crc.hpp>
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/throw_exception.hpp>
 #include <cctype>
@@ -40,7 +41,8 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
         }
     }
 
-    if (!m_prev)
+    std::shared_ptr<StorageInterface> prev = getPrev();
+    if (!prev)
     {
         std::vector<std::string> resultKeys;
         for (auto& localIt : localKeys)
@@ -55,7 +57,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
         return;
     }
 
-    m_prev->asyncGetPrimaryKeys(table, _condition,
+    prev->asyncGetPrimaryKeys(table, _condition,
         [localKeys = std::move(localKeys), callback = std::move(_callback)](
             auto&& error, auto&& remoteKeys) mutable {
             if (error)
@@ -130,9 +132,10 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
         STORAGE_REPORT_GET(table, _key, std::nullopt, "NO ENTRY");
     }
 
-    if (m_prev)
+    auto prev = getPrev();
+    if (prev)
     {
-        m_prev->asyncGetRow(table, _key,
+        prev->asyncGetRow(table, _key,
             [this, table = std::string(table), key = std::string(_key), _callback](
                 Error::UniquePtr error, std::optional<Entry> entry) {
                 if (error)
@@ -212,9 +215,10 @@ void StateStorage::asyncGetRows(const std::string_view& table,
                 }
             }
 
-            if (existsCount < _keys.size() && m_prev)
+            auto prev = getPrev();
+            if (existsCount < _keys.size() && prev)
             {
-                m_prev->asyncGetRows(table, std::get<0>(missinges),
+                prev->asyncGetRows(table, std::get<0>(missinges),
                     [this, callback = std::move(_callback),
                         missingIndexes = std::move(std::get<1>(missinges)),
                         results = std::move(results)](
@@ -273,7 +277,7 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                 entryOld.emplace(std::move(existsEntry));
                 entryIt->second = std::move(entry);
                 keyView = entryIt->first.key();
-                tableView = entryIt->second.tableInfo()->name();
+                tableView = entryIt->first.table();
 
                 updatedCapacity -= entryOld->capacityOfHashField();
 
@@ -285,9 +289,8 @@ void StateStorage::asyncSetRow(const std::string_view& table, const std::string_
                 else
                 {
                     STORAGE_REPORT_SET(tableInfo->name(), keyView, entryIt->second, "UPDATE");
+                    entryIt.release();
                 }
-
-                entryIt.release();
             }
             else
             {
@@ -506,18 +509,11 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
     decltype(m_data)::const_accessor entryIt;
     if (m_data.find(entryIt, EntryKey(entry.tableInfo()->name(), key)))
     {
-        // Data exists
-        STORAGE_LOG(WARNING) << "Reject import exists entry"
-                             << LOG_KV("table", entry.tableInfo()->name()) << LOG_KV("key", key);
-
         STORAGE_REPORT_SET(
             entryIt->first.table(), key, std::make_optional(entry), "IMPORT REJECTED");
     }
     else
     {
-        STORAGE_LOG(TRACE) << "Importing exists entry" << LOG_KV("table", entry.tableInfo()->name())
-                           << LOG_KV("entry", key);
-
         auto tableNameView = entry.tableInfo()->name();
         if (!m_data.emplace(entryIt, EntryKey(tableNameView, std::string(key)), std::move(entry)))
         {
@@ -525,10 +521,11 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
             {
                 STORAGE_REPORT_SET(
                     entryIt->first.table(), key, entryIt->second, "IMPORT EXISTS FAILED");
-                std::string message = "Import existsing entry failed!";
-                STORAGE_LOG(ERROR)
-                    << message << LOG_KV("table", entryIt->first.table()) << LOG_KV("key", key);
-                BOOST_THROW_EXCEPTION(BCOS_ERROR(StorageError::UnknownError, message));
+
+                auto fmt = boost::format("Import existsing entry failed! Table: %s, key: %s") %
+                           entryIt->first.table() % key;
+                STORAGE_LOG(ERROR) << fmt;
+                BOOST_THROW_EXCEPTION(BCOS_ERROR(StorageError::UnknownError, fmt.str()));
             }
             STORAGE_REPORT_SET(entryIt->first.table(), key, entryIt->second, "IMPORT SYS_TABLES");
         }
