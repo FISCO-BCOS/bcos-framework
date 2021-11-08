@@ -136,7 +136,7 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
     if (prev)
     {
         prev->asyncGetRow(table, _key,
-            [this, table = std::string(table), key = std::string(_key), _callback](
+            [this, prev, table = std::string(table), key = std::string(_key), _callback](
                 Error::UniquePtr error, std::optional<Entry> entry) {
                 if (error)
                 {
