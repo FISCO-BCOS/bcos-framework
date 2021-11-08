@@ -42,7 +42,6 @@ public:
     virtual void fetchBlockNumberAndHash(size_t _fetchedTime = 0);
     virtual void fetchConsensusNodeList();
     virtual void fetchObserverNodeList();
-    virtual void fetchConsensusTimeout();
     virtual void fetchBlockTxCountLimit();
     virtual void fetchGenesisHash();
     virtual void fetchNonceList(
@@ -62,9 +61,9 @@ protected:
     virtual bool fetchFinished()
     {
         return m_fetchBlockInfoFinished && m_fetchConsensusInfoFinished &&
-               m_fetchObserverInfoFinshed && m_fetchConsensusTimeoutFinished &&
-               m_fetchBlockTxCountLimitFinished && m_fetchNonceListFinished &&
-               m_fetchGenesisHashFinished && m_fetchConsensusLeaderPeriod;
+               m_fetchObserverInfoFinshed && m_fetchBlockTxCountLimitFinished &&
+               m_fetchNonceListFinished && m_fetchGenesisHashFinished &&
+               m_fetchConsensusLeaderPeriod;
     }
 
     virtual void fetchBlockHash(bcos::protocol::BlockNumber _blockNumber,
@@ -91,7 +90,6 @@ private:
     std::atomic_bool m_fetchBlockInfoFinished = {true};
     std::atomic_bool m_fetchConsensusInfoFinished = {true};
     std::atomic_bool m_fetchObserverInfoFinshed = {true};
-    std::atomic_bool m_fetchConsensusTimeoutFinished = {true};
     std::atomic_bool m_fetchBlockTxCountLimitFinished = {true};
     std::atomic_bool m_fetchNonceListFinished = {true};
     std::atomic_bool m_fetchGenesisHashFinished = {true};

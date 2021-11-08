@@ -36,14 +36,9 @@ static const int32_t RECEIPTS = 0x0002;
 // get system config key
 static const std::string SYSTEM_KEY_TX_GAS_LIMIT = "tx_gas_limit";
 static const std::string SYSTEM_KEY_TX_COUNT_LIMIT = "tx_count_limit";
-static const std::string SYSTEM_KEY_CONSENSUS_TIMEOUT = "consensus_timeout";
 static const std::string SYSTEM_KEY_CONSENSUS_LEADER_PERIOD = "consensus_leader_period";
 
 const unsigned TX_GAS_LIMIT_MIN = 100000;
-
-const unsigned SYSTEM_CONSENSUS_TIMEOUT_MIN = 3000;
-const unsigned SYSTEM_CONSENSUS_TIMEOUT_MAX = INT_MAX;
-
 // get consensus node list type
 static const std::string CONSENSUS_SEALER = "consensus_sealer";
 static const std::string CONSENSUS_OBSERVER = "consensus_observer";

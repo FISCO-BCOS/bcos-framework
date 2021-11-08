@@ -48,7 +48,6 @@ public:
     {
         m_blockNumber = _blockNumber;
     }
-    virtual void setConsensusTimeout(uint64_t _timeout) { m_consensusTimeout = _timeout; }
     virtual void setBlockTxCountLimit(uint64_t _blockTxCountLimit)
     {
         m_blockTxCountLimit = _blockTxCountLimit;
@@ -71,7 +70,6 @@ public:
     bcos::crypto::HashType const& hash() const { return m_hash; }
     bcos::protocol::BlockNumber blockNumber() const { return m_blockNumber; }
 
-    uint64_t consensusTimeout() const { return m_consensusTimeout; }
     uint64_t blockTxCountLimit() const { return m_blockTxCountLimit; }
 
     bcos::consensus::ConsensusNodeListPtr mutableConsensusList() { return m_consensusNodeList; }
@@ -96,7 +94,6 @@ protected:
     bcos::consensus::ConsensusNodeListPtr m_observerNodeList;
     bcos::crypto::HashType m_hash;
     bcos::protocol::BlockNumber m_blockNumber;
-    uint64_t m_consensusTimeout;
     uint64_t m_blockTxCountLimit;
     uint64_t m_leaderSwitchPeriod = 1;
     // no need to store, in memory data

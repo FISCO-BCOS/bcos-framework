@@ -337,10 +337,10 @@ void NodeConfig::loadSecurityConfig(boost::property_tree::ptree const& _pt)
 void NodeConfig::loadSealerConfig(boost::property_tree::ptree const& _pt)
 {
     m_minSealTime = checkAndGetValue(_pt, "consensus.min_seal_time", "500");
-    if (m_minSealTime <= 0)
+    if (m_minSealTime <= 0 || m_minSealTime > 3000)
     {
-        BOOST_THROW_EXCEPTION(
-            InvalidConfig() << errinfo_comment("Please set consensus.min_seal_time to positive!"));
+        BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(
+                                  "Please set consensus.min_seal_time between 1 and 3000!"));
     }
     NodeConfig_LOG(INFO) << LOG_DESC("loadSealerConfig") << LOG_KV("minSealTime", m_minSealTime);
 }
@@ -354,11 +354,11 @@ void NodeConfig::loadStorageConfig(boost::property_tree::ptree const& _pt)
 void NodeConfig::loadConsensusConfig(boost::property_tree::ptree const& _pt)
 {
     m_checkPointTimeoutInterval = checkAndGetValue(_pt, "consensus.checkpoint_timeout", "3000");
-    if (m_checkPointTimeoutInterval < SYSTEM_CONSENSUS_TIMEOUT_MIN)
+    if (m_checkPointTimeoutInterval < 3000)
     {
         BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(
                                   "Please set consensus.checkpoint_timeout to no less than " +
-                                  std::to_string(SYSTEM_CONSENSUS_TIMEOUT_MIN) + "ms!"));
+                                  std::to_string(3000) + "ms!"));
     }
     NodeConfig_LOG(INFO) << LOG_DESC("loadConsensusConfig")
                          << LOG_KV("checkPointTimeoutInterval", m_checkPointTimeoutInterval);
@@ -377,20 +377,6 @@ void NodeConfig::loadLedgerConfig(boost::property_tree::ptree const& _genesisCon
                                   "Please set consensus.block_tx_count_limit to positive!"));
     }
     m_ledgerConfig->setBlockTxCountLimit(blockTxCountLimit);
-
-    // consensusTimeout
-    auto consensusTimeout = checkAndGetValue(_genesisConfig, "consensus.consensus_timeout", "3000");
-    if (consensusTimeout < SYSTEM_CONSENSUS_TIMEOUT_MIN ||
-        consensusTimeout >= SYSTEM_CONSENSUS_TIMEOUT_MAX)
-    {
-        BOOST_THROW_EXCEPTION(InvalidConfig() << errinfo_comment(
-                                  "Please set consensus.consensus_timeout must between " +
-                                  std::to_string(SYSTEM_CONSENSUS_TIMEOUT_MIN) + " and " +
-                                  std::to_string(SYSTEM_CONSENSUS_TIMEOUT_MAX) + " !"));
-    }
-    m_minSealTime = std::min((int64_t)m_minSealTime, consensusTimeout);
-    m_ledgerConfig->setConsensusTimeout(consensusTimeout);
-
     // txGasLimit
     auto txGasLimit = checkAndGetValue(_genesisConfig, "tx.gas_limit", "300000000");
     if (txGasLimit <= TX_GAS_LIMIT_MIN)
@@ -420,7 +406,6 @@ void NodeConfig::loadLedgerConfig(boost::property_tree::ptree const& _genesisCon
     NodeConfig_LOG(INFO) << LOG_DESC("loadLedgerConfig")
                          << LOG_KV("consensus_type", m_consensusType)
                          << LOG_KV("block_tx_count_limit", m_ledgerConfig->blockTxCountLimit())
-                         << LOG_KV("consensus_timeout", m_ledgerConfig->consensusTimeout())
                          << LOG_KV("gas_limit", m_txGasLimit)
                          << LOG_KV("leader_period", m_ledgerConfig->leaderSwitchPeriod())
                          << LOG_KV("minSealTime", m_minSealTime);
@@ -481,8 +466,8 @@ ConsensusNodeListPtr NodeConfig::parseConsensusNodeList(boost::property_tree::pt
 void NodeConfig::generateGenesisData()
 {
     std::stringstream s;
-    s << m_ledgerConfig->blockTxCountLimit() << "-" << m_ledgerConfig->consensusTimeout() << "-"
-      << m_ledgerConfig->leaderSwitchPeriod() << "-" << m_txGasLimit << "-";
+    s << m_ledgerConfig->blockTxCountLimit() << "-" << m_ledgerConfig->leaderSwitchPeriod() << "-"
+      << m_txGasLimit << "-";
     for (auto node : m_ledgerConfig->consensusNodeList())
     {
         s << *toHexString(node->nodeID()->data()) << "," << node->weight() << ";";
