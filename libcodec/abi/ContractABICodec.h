@@ -23,8 +23,8 @@
 #include "../../libutilities/Common.h"
 #include "../../libutilities/DataConvertUtility.h"
 #include <boost/algorithm/string.hpp>
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace bcos
 {
@@ -44,12 +44,12 @@ struct ABIElementType<std::string> : std::true_type
 {
 };
 
-template<>
+template <>
 struct ABIElementType<std::uint8_t> : std::true_type
 {
 };
 
-template<>
+template <>
 struct ABIElementType<std::uint32_t> : std::true_type
 {
 };
@@ -86,6 +86,19 @@ struct ABIElementType<std::pair<T1, T2>>
 
 template <typename T>
 struct ABIElementType<std::vector<T>>
+{
+    static bool constexpr value = ABIElementType<T>::value;
+};
+
+template <typename T, typename... U>
+struct ABIElementType<std::tuple<T, U...>>
+{
+    static bool constexpr value =
+        ABIElementType<T>::value && ABIElementType<std::tuple<U...>>::value;
+};
+
+template <typename T>
+struct ABIElementType<std::tuple<T>>
 {
     static bool constexpr value = ABIElementType<T>::value;
 };
@@ -131,6 +144,21 @@ struct ABIDynamicArray<std::vector<T>> : std::true_type
 {
 };
 
+template <class T>
+struct ABIDynamicTuple : std::false_type
+{
+};
+
+template <class... T>
+struct ABIDynamicTuple<std::tuple<T...>> : std::true_type
+{
+};
+
+template <class T>
+struct ABIDynamicTuple<std::tuple<T>> : std::true_type
+{
+};
+
 // Definition: The following types are called “dynamic”:
 // bytes
 // string
@@ -157,7 +185,8 @@ struct remove_dimension<std::array<T, N>>
 template <class T>
 struct ABIDynamicType<T,
     typename std::enable_if<ABIStringType<typename remove_dimension<T>::type>::value ||
-                            ABIDynamicArray<typename remove_dimension<T>::type>::value>::type>
+                            ABIDynamicArray<typename remove_dimension<T>::type>::value ||
+                            ABIDynamicTuple<typename remove_dimension<T>::type>::value>::type>
   : std::true_type
 {
 };
@@ -218,7 +247,7 @@ struct Offset<T>
  * @brief Class for Solidity ABI
  * @by octopuswang
  *
- * Class for serialise and deserialise c++ object in Solidity ABI format.
+ * Class for serialise and deserialize c++ object in Solidity ABI format.
  * @ref https://solidity.readthedocs.io/en/develop/abi-spec.html
  */
 class ContractABICodec
@@ -266,33 +295,40 @@ public:
     template <class T>
     bytes serialise(const std::vector<T>& _in);
 
+    // dynamic tuple
+    template <class... T>
+    bytes serialise(const std::tuple<T...>& _in);
+
     template <class T>
-    void deserialise(const T& _t, std::size_t _offset)
+    void deserialize(const T& _t, std::size_t _offset)
     {  // unsupport type
         (void)_t;
         (void)_offset;
         static_assert(ABIElementType<T>::value, "ABI not support type.");
     }
 
-    void deserialise(s256& out, std::size_t _offset);
+    void deserialize(s256& out, std::size_t _offset);
 
-    void deserialise(u256& _out, std::size_t _offset);
+    void deserialize(u256& _out, std::size_t _offset);
 
-    void deserialise(bool& _out, std::size_t _offset);
+    void deserialize(bool& _out, std::size_t _offset);
 
-    void deserialise(Address& _out, std::size_t _offset);
+    void deserialize(Address& _out, std::size_t _offset);
 
-    void deserialise(string32& _out, std::size_t _offset);
+    void deserialize(string32& _out, std::size_t _offset);
 
-    void deserialise(std::string& _out, std::size_t _offset);
-    void deserialise(bytes& _out, std::size_t _offset);
+    void deserialize(std::string& _out, std::size_t _offset);
+    void deserialize(bytes& _out, std::size_t _offset);
 
     // static array
     template <class T, std::size_t N>
-    void deserialise(std::array<T, N>& _out, std::size_t _offset);
+    void deserialize(std::array<T, N>& _out, std::size_t _offset);
     // dynamic array
     template <class T>
-    void deserialise(std::vector<T>& _out, std::size_t _offset);
+    void deserialize(std::vector<T>& _out, std::size_t _offset);
+
+    template <class... T>
+    void deserialize(std::tuple<T...>& out, std::size_t _offset);
 
 private:
     bcos::crypto::Hash::Ptr m_hashImpl;
@@ -314,7 +350,7 @@ private:
         if (_offset >= data.size())
         {
             std::stringstream ss;
-            ss << " deserialise failed, invalid offset , offset is " << _offset << " , length is "
+            ss << " deserialize failed, invalid offset , offset is " << _offset << " , length is "
                << data.size() << " , data is " << *toHexString(data);
 
             throw std::length_error(ss.str().c_str());
@@ -360,15 +396,27 @@ private:
         if (ABIDynamicType<T>::value)
         {
             u256 dynamicOffset;
-            deserialise(dynamicOffset, offset);
+            deserialize(dynamicOffset, offset);
             _offset = static_cast<std::size_t>(dynamicOffset);
         }
 
-        deserialise(_t, _offset);
+        deserialize(_t, _offset);
         // update offset
         offset = offset + Offset<T>::value * MAX_BYTE_LENGTH;
         // decode next element
         abiOutAux(_u...);
+    }
+
+    template <class F, class... Ts, std::size_t... Is>
+    void traverseTuple(std::tuple<Ts...>& tuple, F func, std::index_sequence<Is...>)
+    {
+        return (void(func(std::get<Is>(tuple))), ...);
+    }
+
+    template <class F, class... Ts>
+    void traverseTuple(std::tuple<Ts...>& tuple, F func)
+    {
+        traverseTuple(tuple, func, std::make_index_sequence<sizeof...(Ts)>());
     }
 
 public:
@@ -391,8 +439,8 @@ public:
     template <class... T>
     bool abiOutHex(const std::string& _data, T&... _t)
     {
-        auto data = *fromHexString(_data);
-        return abiOut(bytesConstRef(&data), _t...);
+        auto dataFromHex = *fromHexString(_data);
+        return abiOut(bytesConstRef(&dataFromHex), _t...);
     }
 
     bool abiOutByFuncSelector(bytesConstRef _data, const std::vector<std::string>& _allTypes,
@@ -466,8 +514,36 @@ bytes ContractABICodec::serialise(const std::vector<T>& _in)
     return offset_bytes + content;
 }
 
+template <class... T>
+bytes ContractABICodec::serialise(const std::tuple<T...>& _in)
+{
+    bytes offsetBytes;
+    bytes dynamicContent;
+    auto tupleSize = std::tuple_size<typename std::remove_reference<decltype(_in)>::type>::value;
+    auto length = tupleSize * MAX_BYTE_LENGTH;
+
+    traverseTuple(const_cast<std::tuple<T...>&>(_in), [&](auto& _tupleItem) {
+        bytes out = serialise(_tupleItem);
+
+        if (ABIDynamicType<typename std::remove_const<
+                typename std::remove_reference<decltype(_tupleItem)>::type>::type>::value)
+        {
+            // dynamic
+            dynamicContent += out;
+            offsetBytes += serialise(static_cast<u256>(length));
+            length += out.size();
+        }
+        else
+        {
+            // static
+            offsetBytes += out;
+        }
+    });
+    return offsetBytes + dynamicContent;
+}
+
 template <class T, std::size_t N>
-void ContractABICodec::deserialise(std::array<T, N>& _out, std::size_t _offset)
+void ContractABICodec::deserialize(std::array<T, N>& _out, std::size_t _offset)
 {
     for (std::size_t u = 0; u < N; ++u)
     {
@@ -477,23 +553,23 @@ void ContractABICodec::deserialise(std::array<T, N>& _out, std::size_t _offset)
         {  // dynamic type
             // N element offset
             u256 length;
-            deserialise(length, _offset + u * Offset<T>::value * MAX_BYTE_LENGTH);
+            deserialize(length, _offset + u * Offset<T>::value * MAX_BYTE_LENGTH);
             thisOffset = thisOffset + static_cast<std::size_t>(length);
         }
         else
         {
             thisOffset = _offset + u * Offset<T>::value * MAX_BYTE_LENGTH;
         }
-        deserialise(_out[u], thisOffset);
+        deserialize(_out[u], thisOffset);
     }
 }
 
 template <class T>
-void ContractABICodec::deserialise(std::vector<T>& _out, std::size_t _offset)
+void ContractABICodec::deserialize(std::vector<T>& _out, std::size_t _offset)
 {
     u256 length;
     // vector length
-    deserialise(length, _offset);
+    deserialize(length, _offset);
     _offset += MAX_BYTE_LENGTH;
     _out.resize(static_cast<std::size_t>(length));
 
@@ -505,15 +581,42 @@ void ContractABICodec::deserialise(std::vector<T>& _out, std::size_t _offset)
         {  // dynamic type
             // N element offset
             u256 thisEleOffset;
-            deserialise(thisEleOffset, _offset + u * Offset<T>::value * MAX_BYTE_LENGTH);
+            deserialize(thisEleOffset, _offset + u * Offset<T>::value * MAX_BYTE_LENGTH);
             thisOffset += static_cast<std::size_t>(thisEleOffset);
         }
         else
         {
             thisOffset = _offset + u * Offset<T>::value * MAX_BYTE_LENGTH;
         }
-        deserialise(_out[u], thisOffset);
+        deserialize(_out[u], thisOffset);
     }
+}
+
+template <class... T>
+void ContractABICodec::deserialize(std::tuple<T...>& _out, std::size_t _offset)
+{
+    std::size_t localOffset = _offset;
+    std::size_t tupleOffset = 0;
+    traverseTuple(_out, [&](auto& _tupleItem) {
+        if (ABIDynamicType<typename std::remove_const<
+                typename std::remove_reference<decltype(_tupleItem)>::type>::type>::value)
+        {
+            // dynamic
+            u256 dynamicOffset;
+            deserialize(dynamicOffset, _offset + tupleOffset);
+            localOffset = _offset + static_cast<std::size_t>(dynamicOffset);
+            deserialize(_tupleItem, localOffset);
+        }
+        else
+        {
+            // static
+            deserialize(_tupleItem, _offset + tupleOffset);
+        }
+        tupleOffset +=
+            Offset<typename std::remove_const<
+                typename std::remove_reference<decltype(_tupleItem)>::type>::type>::value *
+            MAX_BYTE_LENGTH;
+    });
 }
 }  // namespace abi
 
