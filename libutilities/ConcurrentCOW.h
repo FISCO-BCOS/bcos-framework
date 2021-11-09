@@ -20,7 +20,7 @@ public:
 
     void reset(T&& obj)
     {
-        if (m_obj.use_count() > 1)
+        if (!m_obj.unique())
         {
             m_obj = std::make_shared<T>(std::forward<T>(obj));
         }
@@ -43,7 +43,7 @@ public:
 
     T* mutableGet()
     {
-        if (m_obj.use_count() > 1)
+        if (!m_obj.unique())
         {
             m_obj = std::make_shared<T>(*m_obj);
         }
