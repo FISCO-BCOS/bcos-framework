@@ -1,6 +1,5 @@
 #include "StateStorage.h"
 #include "../libutilities/Error.h"
-#include <google/protobuf/map.h>
 #include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
 #include <tbb/spin_mutex.h>
