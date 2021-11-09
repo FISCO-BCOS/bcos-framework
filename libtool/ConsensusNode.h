@@ -7,6 +7,7 @@
 #include <boost/core/ignore_unused.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <boost/serialization/vector.hpp>
 #include <string>
 #include <vector>
 
