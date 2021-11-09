@@ -411,7 +411,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
     auto valueFields = "value1,value2,value3";
 
     StateStorage::Ptr prev = nullptr;
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < 10; ++i)
     {
         auto tableStorage = std::make_shared<StateStorage>(prev);
         for (int j = 0; j < 10; ++j)
@@ -423,7 +423,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
             auto table = tableStorage->openTable(tableName);
             BOOST_TEST(table);
 
-            for (int k = 0; k < 100; ++k)
+            for (int k = 0; k < 10; ++k)
             {
                 auto entry = std::make_optional(table->newEntry());
                 auto key =
@@ -439,29 +439,29 @@ BOOST_AUTO_TEST_CASE(chainLink)
         storages.push_back(tableStorage);
     }
 
-    for (int index = 0; index < 20; ++index)
+    for (int index = 0; index < 10; ++index)
     {
         auto storage = storages[index];
-        // Data count must be 10 * 100 + 10
+        // Data count must be 10 * 10 + 10
         tbb::atomic<size_t> totalCount = 0;
         storage->parallelTraverse(false, [&](auto&&, auto&&, auto&&) {
             ++totalCount;
             return true;
         });
 
-        BOOST_CHECK_EQUAL(totalCount, 10 * 100 + 10);  // extra 100 for s_tables
+        BOOST_CHECK_EQUAL(totalCount, 10 * 10 + 10);  // extra 100 for s_tables
 
-        // Dirty data count must be 10 * 100 + 10
+        // Dirty data count must be 10 * 10 + 10
         tbb::atomic<size_t> dirtyCount = 0;
         storage->parallelTraverse(true, [&](auto&&, auto&&, auto&&) {
             ++dirtyCount;
             return true;
         });
 
-        BOOST_CHECK_EQUAL(dirtyCount, 10 * 100 + 10);  // extra 100 for s_tables
+        BOOST_CHECK_EQUAL(dirtyCount, 10 * 10 + 10);  // extra 100 for s_tables
 
         // Low level can't touch high level's data
-        for (int i = 0; i < 20; ++i)
+        for (int i = 0; i < 10; ++i)
         {
             for (int j = 0; j < 10; ++j)
             {
@@ -477,7 +477,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
                 {
                     BOOST_TEST(table);
 
-                    for (int k = 0; k < 100; ++k)
+                    for (int k = 0; k < 10; ++k)
                     {
                         auto key = boost::lexical_cast<std::string>(i) +
                                    boost::lexical_cast<std::string>(k);
@@ -527,7 +527,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
 
                     BOOST_CHECK_LE(i, index);
                     BOOST_CHECK_LE(j, 10);
-                    BOOST_CHECK_LE(k, 100);
+                    BOOST_CHECK_LE(k, 10);
                 }
             });
 
@@ -540,7 +540,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
             it();
         }
 
-        BOOST_CHECK_EQUAL(totalCount, (10 * 100 + 10) * (index + 1));
+        BOOST_CHECK_EQUAL(totalCount, (10 * 10 + 10) * (index + 1));
 
         checks.clear();
         dirtyCount = 0;
@@ -563,7 +563,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
                     }
 
                     BOOST_CHECK_LE(j, 10);
-                    BOOST_CHECK_LE(k, 100);
+                    BOOST_CHECK_LE(k, 10);
                 }
             });
 
@@ -576,7 +576,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
             it();
         }
 
-        BOOST_CHECK_EQUAL(dirtyCount, 10 * 100 + 10);
+        BOOST_CHECK_EQUAL(dirtyCount, 10 * 10 + 10);
     }
 }
 
@@ -981,7 +981,7 @@ BOOST_AUTO_TEST_CASE(randomRWHash)
     std::vector<std::tuple<bool, std::string, std::string, std::string>> rwSet;
 
     std::random_device rd;
-    for (size_t i = 0; i < 100; ++i)
+    for (size_t i = 0; i < 3; ++i)
     {
         auto keyNum = rd();
         bool write = keyNum % 2;
@@ -1047,17 +1047,95 @@ BOOST_AUTO_TEST_CASE(randomRWHash)
             }
 
             hashes.push_back(storage->hash(hashImpl));
+            storage->setCachePrev(false);
+            prev = storage;
         }
 
-        if (!hashes.empty())
+        if (!prevHashes.empty())
         {
             BOOST_CHECK_EQUAL_COLLECTIONS(
-                prevHashes.begin(), prevHashes.end(), prevHashes.begin(), prevHashes.end());
+                prevHashes.begin(), prevHashes.end(), hashes.begin(), hashes.end());
         }
-        prevHashes = hashes;
+        prevHashes.swap(hashes);
         hashes.clear();
     }
 }
+
+BOOST_AUTO_TEST_CASE(hash_map)
+{
+    class EntryKey
+    {
+    public:
+        EntryKey() {}
+        EntryKey(std::string_view table, std::string_view key) : m_table(table), m_key(key) {}
+        EntryKey(std::string_view table, std::string key) : m_table(table), m_key(std::move(key)) {}
+
+        EntryKey(const EntryKey&) = default;
+        EntryKey& operator=(const EntryKey&) = default;
+        EntryKey(EntryKey&&) noexcept = default;
+        EntryKey& operator=(EntryKey&&) noexcept = default;
+
+        std::string_view table() const { return m_table; }
+
+        std::string_view key() const
+        {
+            std::string_view view;
+            std::visit([&view](auto&& key) { view = key; }, m_key);
+
+            return view;
+        }
+
+        bool operator==(const EntryKey& rhs) const
+        {
+            return m_table == rhs.m_table && key() == rhs.key();
+        }
+
+        bool operator<(const EntryKey& rhs) const
+        {
+            if (m_table != rhs.m_table)
+            {
+                return m_table < rhs.m_table;
+            }
+
+            return m_key < rhs.m_key;
+        }
+
+    private:
+        std::string_view m_table;
+        std::variant<std::string_view, std::string> m_key;
+    };
+
+    struct EntryKeyHasher
+    {
+        size_t hash(const EntryKey& dataKey) const
+        {
+            size_t seed = hashString(dataKey.table());
+            boost::hash_combine(seed, hashString(dataKey.key()));
+
+            return seed;
+        }
+
+        bool equal(const EntryKey& lhs, const EntryKey& rhs) const
+        {
+            return lhs.table() == rhs.table() && lhs.key() == rhs.key();
+        }
+
+        std::hash<std::string_view> hashString;
+    };
+
+    tbb::concurrent_hash_map<EntryKey, int, EntryKeyHasher> data;
+
+    std::string tableName = "table";
+    std::string key = "key";
+
+    decltype(data)::const_accessor it;
+    BOOST_CHECK(data.emplace(it, EntryKey("table", std::string_view("key")), 100));
+
+    decltype(data)::const_accessor findIt;
+    BOOST_CHECK(data.find(findIt, EntryKey("table", std::string_view("key"))));
+}
+
+BOOST_AUTO_TEST_CASE(importPrev) {}
 
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test

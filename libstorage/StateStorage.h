@@ -36,6 +36,7 @@
 #include <future>
 #include <memory>
 #include <optional>
+#include <shared_mutex>
 
 namespace bcos::storage
 {
@@ -49,8 +50,8 @@ public:
     StateStorage(const StateStorage&) = delete;
     StateStorage& operator=(const StateStorage&) = delete;
 
-    StateStorage(StateStorage&&) = default;
-    StateStorage& operator=(StateStorage&&) = default;
+    StateStorage(StateStorage&&) = delete;
+    StateStorage& operator=(StateStorage&&) = delete;
 
     virtual ~StateStorage() { m_recoder.clear(); }
 
@@ -82,7 +83,11 @@ public:
 
     size_t capacity() const { return m_capacity; }
 
-    void setPrev(std::shared_ptr<StorageInterface> prev) { m_prev = std::move(prev); }
+    void setPrev(std::shared_ptr<StorageInterface> prev)
+    {
+        std::unique_lock<std::shared_mutex> lock(m_prevMutex);
+        m_prev = std::move(prev);
+    }
 
     class Recoder
     {
@@ -118,6 +123,8 @@ public:
     void rollback(const Recoder::ConstPtr& recoder);
 
     void setEnableTraverse(bool enableTraverse) { m_enableTraverse = enableTraverse; }
+
+    void setCachePrev(bool cachePrev) { m_cachePrev = cachePrev; }
 
 protected:
     class EntryKey
@@ -191,14 +198,65 @@ protected:
     };
 
 private:
-    Entry& importExistingEntry(const std::string_view& key, Entry entry);
+    Entry importExistingEntry(const std::string_view& key, Entry entry);
+
+    std::shared_ptr<StorageInterface> getPrev()
+    {
+        std::shared_lock<std::shared_mutex> lock(m_prevMutex);
+        auto prev = m_prev;
+        return prev;
+    }
 
     tbb::concurrent_hash_map<EntryKey, Entry, EntryKeyHasher> m_data;
     tbb::concurrent_hash_map<TableKey, TableInfo::ConstPtr, TableKeyHasher> m_tableInfos;
 
     tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
+
     std::shared_ptr<StorageInterface> m_prev;
+    std::shared_mutex m_prevMutex;
+
     size_t m_capacity = 0;
     bool m_enableTraverse = false;
+    bool m_cachePrev = true;
+
+#define STORAGE_REPORT_GET(table, key, entry, desc) \
+    if (c_fileLogLevel >= bcos::LogLevel::TRACE)    \
+    log("GET", (table), (key), (entry), (desc))
+
+#define STORAGE_REPORT_SET(table, key, entry, desc) \
+    if (c_fileLogLevel >= bcos::LogLevel::TRACE)    \
+    log("SET", (table), (key), (entry), (desc))
+
+    // for debug
+    void log(const std::string_view& op, const std::string_view& table, const std::string_view& key,
+        const std::optional<Entry>& entry, const std::string_view& desc = "")
+    {
+        if (m_cachePrev)
+        {
+            if (entry)
+            {
+                if (entry->fieldCount() > 0)
+                {
+                    STORAGE_LOG(TRACE) << op << "|" << table << "|" << toHex(key) << "|["
+                                       << toHex(*(entry->begin())) << "]|"
+                                       << (int32_t)entry->status() << "|" << desc;
+                }
+                else
+                {
+                    STORAGE_LOG(TRACE) << op << "|" << table << "|" << toHex(key) << "|["
+                                       << ""
+                                       << "]|" << (int32_t)entry->status() << "|" << desc;
+                }
+            }
+            else
+            {
+                STORAGE_LOG(TRACE) << op << "|" << table << "|" << toHex(key) << "|"
+                                   << "[]"
+                                   << "|"
+                                   << "NO ENTRY"
+                                   << "|" << desc;
+            }
+        }
+    }
 };
 }  // namespace bcos::storage
