@@ -283,34 +283,6 @@ void LedgerConfigFetcher::fetchObserverNodeList()
         }
     });
 }
-
-void LedgerConfigFetcher::fetchConsensusTimeout()
-{
-    m_fetchConsensusTimeoutFinished = false;
-    auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
-    fetchSystemConfig(
-        SYSTEM_KEY_CONSENSUS_TIMEOUT, [self](std::string const& _consensusTimeoutStr) {
-            try
-            {
-                auto fetcher = self.lock();
-                if (!fetcher)
-                {
-                    return;
-                }
-                fetcher->m_ledgerConfig->setConsensusTimeout(
-                    boost::lexical_cast<uint64_t>(_consensusTimeoutStr));
-                fetcher->m_fetchConsensusTimeoutFinished = true;
-                fetcher->m_signalled.notify_all();
-            }
-            catch (std::exception const& e)
-            {
-                TOOL_LOG(WARNING) << LOG_DESC("fetchConsensusTimeout exception")
-                                  << LOG_KV("error", boost::diagnostic_information(e))
-                                  << LOG_KV("consensusTimeoutStr", _consensusTimeoutStr);
-            }
-        });
-}
-
 void LedgerConfigFetcher::fetchConsensusLeaderPeriod()
 {
     m_fetchConsensusLeaderPeriod = false;
