@@ -1,5 +1,6 @@
 #include "StateStorage.h"
 #include "../libutilities/Error.h"
+#include <google/protobuf/map.h>
 #include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
 #include <tbb/spin_mutex.h>
@@ -500,21 +501,26 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
     }
 
     decltype(m_tableInfos)::const_accessor tableIt;
+    std::string_view tableNameView;
     if (!m_tableInfos.find(tableIt, entry.tableInfo()->name()))
     {
         m_tableInfos.emplace(tableIt, entry.tableInfo()->name(), entry.tableInfo());
+        tableNameView = tableIt->second->name();
         tableIt.release();
+    }
+    else
+    {
+        tableNameView = tableIt->second->name();
     }
 
     decltype(m_data)::const_accessor entryIt;
-    if (m_data.find(entryIt, EntryKey(entry.tableInfo()->name(), key)))
+    if (m_data.find(entryIt, EntryKey(tableNameView, key)))
     {
         STORAGE_REPORT_SET(
             entryIt->first.table(), key, std::make_optional(entry), "IMPORT REJECTED");
     }
     else
     {
-        auto tableNameView = entry.tableInfo()->name();
         if (!m_data.emplace(entryIt, EntryKey(tableNameView, std::string(key)), std::move(entry)))
         {
             if (tableNameView != StorageInterface::SYS_TABLES)
