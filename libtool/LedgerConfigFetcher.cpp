@@ -120,7 +120,7 @@ void LedgerConfigFetcher::fetchBlockHash(BlockNumber _blockNumber,
 {
     auto self = std::weak_ptr<LedgerConfigFetcher>(shared_from_this());
     m_ledger->asyncGetBlockHashByNumber(_blockNumber,
-        [self, _blockNumber, _callback, _fetchedTime](Error::Ptr _error, HashType const& _hash) {
+        [self, _blockNumber, _callback, _fetchedTime](Error::Ptr _error, HashType _hash) {
             try
             {
                 auto fetcher = self.lock();
