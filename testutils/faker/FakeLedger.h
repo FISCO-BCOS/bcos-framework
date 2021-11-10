@@ -164,7 +164,7 @@ public:
     {}
 
     void asyncGetBlockHashByNumber(BlockNumber _blockNumber,
-        std::function<void(Error::Ptr, crypto::HashType const&)> _onGetBlock) override
+        std::function<void(Error::Ptr, crypto::HashType)> _onGetBlock) override
     {
         ReadGuard l(x_ledger);
         auto const& hash = m_ledger[_blockNumber]->blockHeader()->hash();
