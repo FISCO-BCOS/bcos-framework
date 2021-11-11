@@ -60,10 +60,11 @@ public:
     virtual void asyncGetNodeIDs(const std::string& _groupID, GetNodeIDsFunc _getNodeIDsFunc) = 0;
     /**
      * @brief: get connected peers
-     * @param _peerRespFunc:
+     * @param _callback:
      * @return void
      */
-    virtual void asyncGetPeers(PeerRespFunc _peerRespFunc) = 0;
+    virtual void asyncGetPeers(
+        std::function<void(Error::Ptr, GatewayInfo::Ptr, GatewayInfosPtr)> _callback) = 0;
     /**
      * @brief: send message to a single node
      * @param _groupID: groupID

@@ -69,99 +69,94 @@ inline std::string toString(protocol::TransactionStatus const& _i)
     stream << "0x" << std::hex << static_cast<int>(_i);
     return stream.str();
 }
-}  // namespace protocol
-}  // namespace bcos
 
-namespace std
-{
 inline std::ostream& operator<<(std::ostream& _out, bcos::protocol::TransactionStatus const& _er)
 {
+    switch (_er)
     {
-        switch (_er)
-        {
-        case bcos::protocol::TransactionStatus::None:
-            _out << "None";
-            break;
-        case bcos::protocol::TransactionStatus::OutOfGasLimit:
-            _out << "OutOfGasLimit";
-            break;
-        case bcos::protocol::TransactionStatus::NotEnoughCash:
-            _out << "NotEnoughCash";
-            break;
-        case bcos::protocol::TransactionStatus::BadInstruction:
-            _out << "BadInstruction";
-            break;
-        case bcos::protocol::TransactionStatus::BadJumpDestination:
-            _out << "BadJumpDestination";
-            break;
-        case bcos::protocol::TransactionStatus::OutOfGas:
-            _out << "OutOfGas";
-            break;
-        case bcos::protocol::TransactionStatus::OutOfStack:
-            _out << "OutOfStack";
-            break;
-        case bcos::protocol::TransactionStatus::StackUnderflow:
-            _out << "StackUnderflow";
-            break;
-        case bcos::protocol::TransactionStatus::NonceCheckFail:
-            _out << "NonceCheckFail";
-            break;
-        case bcos::protocol::TransactionStatus::BlockLimitCheckFail:
-            _out << "BlockLimitCheckFail";
-            break;
-        case bcos::protocol::TransactionStatus::PrecompiledError:
-            _out << "PrecompiledError";
-            break;
-        case bcos::protocol::TransactionStatus::RevertInstruction:
-            _out << "RevertInstruction";
-            break;
-        case bcos::protocol::TransactionStatus::ContractAddressAlreadyUsed:
-            _out << "ContractAddressAlreadyUsed";
-            break;
-        case bcos::protocol::TransactionStatus::PermissionDenied:
-            _out << "PermissionDenied";
-            break;
-        case bcos::protocol::TransactionStatus::CallAddressError:
-            _out << "CallAddressError";
-            break;
-        case bcos::protocol::TransactionStatus::GasOverflow:
-            _out << "GasOverflow";
-            break;
-        case bcos::protocol::TransactionStatus::ContractFrozen:
-            _out << "ContractFrozen";
-            break;
-        case bcos::protocol::TransactionStatus::AccountFrozen:
-            _out << "AccountFrozen";
-            break;
-        case bcos::protocol::TransactionStatus::TxPoolIsFull:
-            _out << "TxPoolIsFull";
-            break;
-        case bcos::protocol::TransactionStatus::Malform:
-            _out << "MalformTx";
-            break;
-        case bcos::protocol::TransactionStatus::AlreadyInTxPool:
-            _out << "AlreadyInTxPool";
-            break;
-        case bcos::protocol::TransactionStatus::TxAlreadyInChain:
-            _out << "TxAlreadyInChain";
-            break;
-        case bcos::protocol::TransactionStatus::InvalidChainId:
-            _out << "InvalidChainId";
-            break;
-        case bcos::protocol::TransactionStatus::InvalidGroupId:
-            _out << "InvalidGroupId";
-            break;
-        case bcos::protocol::TransactionStatus::InvalidSignature:
-            _out << "InvalidSignature";
-            break;
-        case bcos::protocol::TransactionStatus::RequestNotBelongToTheGroup:
-            _out << "RequestNotBelongToTheGroup";
-            break;
-        default:
-            _out << "Unknown";
-            break;
-        }
-        return _out;
+    case bcos::protocol::TransactionStatus::None:
+        _out << "None";
+        break;
+    case bcos::protocol::TransactionStatus::OutOfGasLimit:
+        _out << "OutOfGasLimit";
+        break;
+    case bcos::protocol::TransactionStatus::NotEnoughCash:
+        _out << "NotEnoughCash";
+        break;
+    case bcos::protocol::TransactionStatus::BadInstruction:
+        _out << "BadInstruction";
+        break;
+    case bcos::protocol::TransactionStatus::BadJumpDestination:
+        _out << "BadJumpDestination";
+        break;
+    case bcos::protocol::TransactionStatus::OutOfGas:
+        _out << "OutOfGas";
+        break;
+    case bcos::protocol::TransactionStatus::OutOfStack:
+        _out << "OutOfStack";
+        break;
+    case bcos::protocol::TransactionStatus::StackUnderflow:
+        _out << "StackUnderflow";
+        break;
+    case bcos::protocol::TransactionStatus::NonceCheckFail:
+        _out << "NonceCheckFail";
+        break;
+    case bcos::protocol::TransactionStatus::BlockLimitCheckFail:
+        _out << "BlockLimitCheckFail";
+        break;
+    case bcos::protocol::TransactionStatus::PrecompiledError:
+        _out << "PrecompiledError";
+        break;
+    case bcos::protocol::TransactionStatus::RevertInstruction:
+        _out << "RevertInstruction";
+        break;
+    case bcos::protocol::TransactionStatus::ContractAddressAlreadyUsed:
+        _out << "ContractAddressAlreadyUsed";
+        break;
+    case bcos::protocol::TransactionStatus::PermissionDenied:
+        _out << "PermissionDenied";
+        break;
+    case bcos::protocol::TransactionStatus::CallAddressError:
+        _out << "CallAddressError";
+        break;
+    case bcos::protocol::TransactionStatus::GasOverflow:
+        _out << "GasOverflow";
+        break;
+    case bcos::protocol::TransactionStatus::ContractFrozen:
+        _out << "ContractFrozen";
+        break;
+    case bcos::protocol::TransactionStatus::AccountFrozen:
+        _out << "AccountFrozen";
+        break;
+    case bcos::protocol::TransactionStatus::TxPoolIsFull:
+        _out << "TxPoolIsFull";
+        break;
+    case bcos::protocol::TransactionStatus::Malform:
+        _out << "MalformTx";
+        break;
+    case bcos::protocol::TransactionStatus::AlreadyInTxPool:
+        _out << "AlreadyInTxPool";
+        break;
+    case bcos::protocol::TransactionStatus::TxAlreadyInChain:
+        _out << "TxAlreadyInChain";
+        break;
+    case bcos::protocol::TransactionStatus::InvalidChainId:
+        _out << "InvalidChainId";
+        break;
+    case bcos::protocol::TransactionStatus::InvalidGroupId:
+        _out << "InvalidGroupId";
+        break;
+    case bcos::protocol::TransactionStatus::InvalidSignature:
+        _out << "InvalidSignature";
+        break;
+    case bcos::protocol::TransactionStatus::RequestNotBelongToTheGroup:
+        _out << "RequestNotBelongToTheGroup";
+        break;
+    default:
+        _out << "Unknown";
+        break;
     }
+    return _out;
 }
-}  // namespace std
+}  // namespace protocol
+}  // namespace bcos
