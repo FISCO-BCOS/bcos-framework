@@ -18,7 +18,7 @@
 using namespace bcos;
 using namespace bcos::storage;
 
-void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
+void StateStorage::asyncGetPrimaryKeys(std::string_view table,
     const std::optional<Condition const>& _condition,
     std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback)
 {
@@ -26,7 +26,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
 
     if (m_enableTraverse)
     {
-        if (m_tableInfos.count(table) > 0)
+        if (m_tableInfos->count(table) > 0)
         {
             for (auto& it : m_data)
             {
@@ -102,7 +102,7 @@ void StateStorage::asyncGetPrimaryKeys(const std::string_view& table,
         });
 }
 
-void StateStorage::asyncGetRow(const std::string_view& table, const std::string_view& _key,
+void StateStorage::asyncGetRow(std::string_view table, std::string_view _key,
     std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback)
 {
     decltype(m_data)::const_accessor entryIt;
@@ -149,8 +149,8 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
                 if (entry)
                 {
                     STORAGE_REPORT_GET(table, key, entry, "PREV FOUND");
-                    _callback(
-                        nullptr, std::make_optional(importExistingEntry(key, std::move(*entry))));
+                    _callback(nullptr,
+                        std::make_optional(importExistingEntry(table, key, std::move(*entry))));
                 }
                 else
                 {
@@ -165,7 +165,7 @@ void StateStorage::asyncGetRow(const std::string_view& table, const std::string_
     }
 }
 
-void StateStorage::asyncGetRows(const std::string_view& table,
+void StateStorage::asyncGetRows(std::string_view table,
     const std::variant<const gsl::span<std::string_view const>, const gsl::span<std::string const>>&
         _keys,
     std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)> _callback)
@@ -178,7 +178,7 @@ void StateStorage::asyncGetRows(const std::string_view& table,
 
             long existsCount = 0;
 
-            if (m_tableInfos.count(table) > 0)
+            if (m_tableInfos->count(table) > 0)
             {
                 size_t i = 0;
                 for (auto& key : _keys)
@@ -219,7 +219,7 @@ void StateStorage::asyncGetRows(const std::string_view& table,
             if (existsCount < _keys.size() && prev)
             {
                 prev->asyncGetRows(table, std::get<0>(missinges),
-                    [this, callback = std::move(_callback),
+                    [this, table = std::string(table), callback = std::move(_callback),
                         missingIndexes = std::move(std::get<1>(missinges)),
                         results = std::move(results)](
                         auto&& error, std::vector<std::optional<Entry>>&& entries) mutable {
@@ -238,7 +238,8 @@ void StateStorage::asyncGetRows(const std::string_view& table,
                             if (entry)
                             {
                                 results[std::get<1>(missingIndexes[i])].emplace(importExistingEntry(
-                                    std::move(std::get<0>(missingIndexes[i])), std::move(*entry)));
+                                    table, std::move(std::get<0>(missingIndexes[i])),
+                                    std::move(*entry)));
                             }
                         }
 
@@ -253,121 +254,76 @@ void StateStorage::asyncGetRows(const std::string_view& table,
         _keys);
 }
 
-void StateStorage::asyncSetRow(const std::string_view& table, const std::string_view& key,
-    Entry entry, std::function<void(Error::UniquePtr)> callback)
+void StateStorage::asyncSetRow(std::string_view table, std::string_view key, Entry entry,
+    std::function<void(Error::UniquePtr)> callback)
 {
-    auto setEntryToTable =
-        [this, entry = std::move(entry)](std::variant<std::string_view, std::string> key,
-            TableInfo::ConstPtr tableInfo, std::function<void(Error::UniquePtr)> callback) mutable {
-            if (!entry.tableInfo())
+    asyncGetTableInfo(table, [this, table = std::string(table), key = std::string(key),
+                                 entry = std::move(entry), callback = std::move(callback)](
+                                 Error::UniquePtr error, TableInfo::ConstPtr tableInfo) mutable {
+        if (error)
+        {
+            callback(std::move(error));
+            return;
+        }
+
+        entry.setTableInfo(tableInfo);
+
+        auto updatedCapacity = entry.capacityOfHashField();
+        std::optional<Entry> entryOld;
+        std::string_view keyView;
+
+        decltype(m_data)::accessor entryIt;
+        if (m_data.find(entryIt, EntryKey(std::string_view(table), std::string_view(key))))
+        {
+            auto& existsEntry = entryIt->second;
+            entryOld.emplace(std::move(existsEntry));
+            entryIt->second = std::move(entry);
+            keyView = entryIt->first.key();
+
+            updatedCapacity -= entryOld->capacityOfHashField();
+
+            if (entryIt->second.status() == Entry::PURGED)
             {
-                entry.setTableInfo(tableInfo);
-            }
-
-            auto updatedCapacity = entry.capacityOfHashField();
-            std::optional<Entry> entryOld;
-            std::string_view tableView;
-            std::string_view keyView;
-            std::visit([&keyView](auto&& key) { keyView = std::string_view(key); }, key);
-
-            decltype(m_data)::accessor entryIt;
-            if (m_data.find(entryIt, EntryKey(tableInfo->name(), keyView)))
-            {
-                auto& existsEntry = entryIt->second;
-                entryOld.emplace(std::move(existsEntry));
-                entryIt->second = std::move(entry);
-                keyView = entryIt->first.key();
-                tableView = entryIt->first.table();
-
-                updatedCapacity -= entryOld->capacityOfHashField();
-
-                if (entryIt->second.status() == Entry::PURGED)
-                {
-                    m_data.erase(entryIt);
-                    STORAGE_REPORT_SET(tableInfo->name(), keyView, std::nullopt, "PURGED");
-                }
-                else
-                {
-                    STORAGE_REPORT_SET(tableInfo->name(), keyView, entryIt->second, "UPDATE");
-                    entryIt.release();
-                }
+                m_data.erase(entryIt);
+                STORAGE_REPORT_SET(table, key, std::nullopt, "PURGED");
             }
             else
             {
-                std::string keyString;
-                std::visit([&keyString](auto&& key) { keyString.assign(std::move(key)); }, key);
-
-                decltype(m_data)::const_accessor constEntryIt;
-                if (!m_data.emplace(constEntryIt, EntryKey(tableInfo->name(), std::move(keyString)),
-                        std::move(entry)))
-                {
-                    STORAGE_LOG(WARNING) << "Set row failed because row exists";
-
-                    STORAGE_REPORT_SET(constEntryIt->first.table(), constEntryIt->first.key(),
-                        constEntryIt->second, "EXISTS");
-                }
-                else
-                {
-                    STORAGE_REPORT_SET(constEntryIt->first.table(), constEntryIt->first.key(),
-                        constEntryIt->second, "INSERT");
-                }
-
-                tableView = constEntryIt->first.table();
-                keyView = constEntryIt->first.key();
+                STORAGE_REPORT_SET(table, key, entryIt->second, "UPDATE");
             }
-
-
-            if (m_recoder.local())
+            entryIt.release();
+        }
+        else
+        {
+            decltype(m_data)::const_accessor constEntryIt;
+            if (!m_data.emplace(
+                    constEntryIt, EntryKey(std::move(table), std::move(key)), std::move(entry)))
             {
-                m_recoder.local()->log(
-                    Recoder::Change(tableView, std::string(keyView), std::move(entryOld)));
+                STORAGE_LOG(WARNING) << "Set row failed because row exists";
+
+                STORAGE_REPORT_SET(constEntryIt->first.table(), constEntryIt->first.key(),
+                    constEntryIt->second, "EXISTS");
+            }
+            else
+            {
+                STORAGE_REPORT_SET(constEntryIt->first.table(), constEntryIt->first.key(),
+                    constEntryIt->second, "INSERT");
             }
 
-            m_capacity += updatedCapacity;
+            keyView = constEntryIt->first.key();
+        }
 
 
-            callback(nullptr);
-        };
+        if (m_recoder.local())
+        {
+            m_recoder.local()->log(
+                Recoder::Change(tableInfo->name(), std::string(keyView), std::move(entryOld)));
+        }
 
-    decltype(m_tableInfos)::const_accessor tableIt;
-    if (m_tableInfos.find(tableIt, table))
-    {
-        auto tableInfo = tableIt->second;
-        tableIt.release();
+        m_capacity += updatedCapacity;
 
-        setEntryToTable(key, std::move(tableInfo), std::move(callback));
-    }
-    else
-    {
-        asyncOpenTable(
-            table, [this, callback = std::move(callback),
-                       setEntryToTable = std::move(setEntryToTable), key = std::string(key)](
-                       Error::UniquePtr error, std::optional<Table> table) mutable {
-                if (error)
-                {
-                    callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
-                        StorageError::ReadError, "Open table failed", *error));
-                    return;
-                }
-
-                if (table)
-                {
-                    // Another operator may had inserted
-                    decltype(m_tableInfos)::const_accessor tableIt;
-                    m_tableInfos.emplace(tableIt, table->tableInfo()->name(), table->tableInfo());
-                    auto tableInfo = tableIt->second;
-                    tableIt.release();
-
-                    setEntryToTable(std::move(key), tableInfo, std::move(callback));
-                    return;
-                }
-                else
-                {
-                    callback(BCOS_ERROR_UNIQUE_PTR(StorageError::TableNotExists,
-                        "Async set row failed, table does not exists"));
-                }
-            });
-    }
+        callback(nullptr);
+    });
 }
 
 void StateStorage::parallelTraverse(bool onlyDirty,
@@ -382,6 +338,41 @@ void StateStorage::parallelTraverse(bool onlyDirty,
             callback(it.first.table(), it.first.key(), entry);
         }
     });
+}
+
+void StateStorage::asyncGetTableInfo(
+    std::string_view tableName, std::function<void(Error::UniquePtr, TableInfo::ConstPtr)> callback)
+{
+    tbb::concurrent_hash_map<TableKey, TableInfo::ConstPtr, TableKeyHasher>::const_accessor it;
+    if (m_tableInfos->find(it, tableName))
+    {
+        auto tableInfo = it->second;
+        it.release();
+        callback(nullptr, std::move(tableInfo));
+        return;
+    }
+    else
+    {
+        StorageInterface::asyncGetTableInfo(
+            tableName, [this, callback = std::move(callback)](
+                           Error::UniquePtr error, TableInfo::ConstPtr tableInfo) {
+                if (error)
+                {
+                    callback(std::move(error), nullptr);
+                    return;
+                }
+
+                if (tableInfo)
+                {
+                    tbb::concurrent_hash_map<TableKey, TableInfo::ConstPtr,
+                        TableKeyHasher>::const_accessor it;
+                    m_tableInfos->emplace(it, tableInfo->name(), tableInfo);
+                    it.release();
+                }
+
+                callback(std::move(error), std::move(tableInfo));
+            });
+    }
 }
 
 std::optional<Table> StateStorage::openTable(const std::string_view& tableName)
@@ -448,49 +439,44 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
     return totalHash;
 }
 
-void StateStorage::rollback(const Recoder::ConstPtr& recoder)
+void StateStorage::rollback(const Recoder& recoder)
 {
-    for (auto& change : *recoder)
+    for (auto& change : recoder)
     {
-        decltype(m_tableInfos)::const_accessor tableIt;
-        if (m_tableInfos.find(tableIt, change.table))
+        if (change.entry)
         {
-            auto tableKey = tableIt->first;
-            tableIt.release();
-
-            if (change.entry)
+            decltype(m_data)::accessor entryIt;
+            if (m_data.find(entryIt, EntryKey(change.table, std::string_view(change.key))))
             {
-                decltype(m_data)::accessor entryIt;
-                if (m_data.find(entryIt, EntryKey(tableKey, change.key)))
-                {
-                    entryIt->second = std::move(*(change.entry));
-                }
-                else
-                {
-                    m_data.emplace(entryIt, EntryKey(tableKey, std::string(change.key)),
-                        std::move(*(change.entry)));
-                }
+                entryIt->second = std::move(*(change.entry));
             }
             else
-            {  // nullopt means the key is not exist in m_cache
-                decltype(m_data)::const_accessor entryIt;
-                if (m_data.find(entryIt, EntryKey(tableKey, change.key)))
-                {
-                    m_data.erase(entryIt);
-                }
-                else
-                {
-                    auto message = "Not found rollback table: " + std::string(tableKey) +
-                                   ", key: " + change.key;
+            {
+                m_data.emplace(entryIt,
+                    EntryKey(std::string(change.table), std::string(change.key)),
+                    std::move(*(change.entry)));
+            }
+        }
+        else
+        {  // nullopt means the key is not exist in m_cache
+            decltype(m_data)::const_accessor entryIt;
+            if (m_data.find(entryIt, EntryKey(change.table, std::string_view(change.key))))
+            {
+                m_data.erase(entryIt);
+            }
+            else
+            {
+                auto message =
+                    (boost::format("Not found rollback entry: %s:%s") % change.table % change.key)
+                        .str();
 
-                    BOOST_THROW_EXCEPTION(BCOS_ERROR(StorageError::UnknownError, message));
-                }
+                BOOST_THROW_EXCEPTION(BCOS_ERROR(StorageError::UnknownError, message));
             }
         }
     }
 }
 
-Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry)
+Entry StateStorage::importExistingEntry(std::string_view table, std::string_view key, Entry entry)
 {
     entry.setDirty(false);
 
@@ -499,30 +485,18 @@ Entry StateStorage::importExistingEntry(const std::string_view& key, Entry entry
         return entry;
     }
 
-    decltype(m_tableInfos)::const_accessor tableIt;
-    std::string_view tableNameView;
-    if (!m_tableInfos.find(tableIt, entry.tableInfo()->name()))
-    {
-        m_tableInfos.emplace(tableIt, entry.tableInfo()->name(), entry.tableInfo());
-        tableNameView = tableIt->second->name();
-        tableIt.release();
-    }
-    else
-    {
-        tableNameView = tableIt->second->name();
-    }
-
     decltype(m_data)::const_accessor entryIt;
-    if (m_data.find(entryIt, EntryKey(tableNameView, key)))
+    if (m_data.find(entryIt, EntryKey(table, key)))
     {
         STORAGE_REPORT_SET(
             entryIt->first.table(), key, std::make_optional(entry), "IMPORT REJECTED");
     }
     else
     {
-        if (!m_data.emplace(entryIt, EntryKey(tableNameView, std::string(key)), std::move(entry)))
+        if (!m_data.emplace(
+                entryIt, EntryKey(std::string(table), std::string(key)), std::move(entry)))
         {
-            if (tableNameView != StorageInterface::SYS_TABLES)
+            if (table != StorageInterface::SYS_TABLES)
             {
                 STORAGE_REPORT_SET(
                     entryIt->first.table(), key, entryIt->second, "IMPORT EXISTS FAILED");

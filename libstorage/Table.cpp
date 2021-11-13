@@ -33,11 +33,11 @@ namespace bcos
 {
 namespace storage
 {
-std::optional<Entry> Table::getRow(const std::string_view& _key)
+std::optional<Entry> Table::getRow(std::string_view _key)
 {
     std::promise<std::tuple<Error::UniquePtr, std::optional<Entry>>> promise;
 
-    asyncGetRow(_key, [&promise](auto&& error, auto&& entry) {
+    asyncGetRow(_key, [&promise](auto error, auto entry) {
         promise.set_value({std::move(error), std::move(entry)});
     });
 
@@ -56,7 +56,7 @@ std::vector<std::optional<Entry>> Table::getRows(
         _keys)
 {
     std::promise<std::tuple<Error::UniquePtr, std::vector<std::optional<Entry>>>> promise;
-    asyncGetRows(_keys, [&promise](auto&& error, auto&& entries) {
+    asyncGetRows(_keys, [&promise](auto error, auto entries) {
         promise.set_value(std::tuple{std::move(error), std::move(entries)});
     });
 
@@ -86,7 +86,7 @@ std::vector<std::string> Table::getPrimaryKeys(std::optional<const Condition> co
     return std::get<1>(result);
 }
 
-void Table::setRow(const std::string_view& _key, Entry _entry)
+void Table::setRow(std::string_view _key, Entry _entry)
 {
     std::promise<Error::UniquePtr> promise;
     m_storage->asyncSetRow(m_tableInfo->name(), _key, std::move(_entry),
@@ -100,13 +100,13 @@ void Table::setRow(const std::string_view& _key, Entry _entry)
 }
 
 void Table::asyncGetPrimaryKeys(std::optional<const Condition> const& _condition,
-    std::function<void(Error::UniquePtr&&, std::vector<std::string>&&)> _callback) noexcept
+    std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback) noexcept
 {
     m_storage->asyncGetPrimaryKeys(m_tableInfo->name(), _condition, _callback);
 }
 
-void Table::asyncGetRow(const std::string_view& _key,
-    std::function<void(Error::UniquePtr&&, std::optional<Entry>&&)> _callback) noexcept
+void Table::asyncGetRow(std::string_view _key,
+    std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback) noexcept
 {
     m_storage->asyncGetRow(m_tableInfo->name(), _key, _callback);
 }
@@ -114,13 +114,13 @@ void Table::asyncGetRow(const std::string_view& _key,
 void Table::asyncGetRows(
     const std::variant<const gsl::span<std::string_view const>, const gsl::span<std::string const>>&
         _keys,
-    std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)> _callback) noexcept
+    std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)> _callback) noexcept
 {
     m_storage->asyncGetRows(m_tableInfo->name(), _keys, _callback);
 }
 
-void Table::asyncSetRow(const std::string_view& key, Entry entry,
-    std::function<void(Error::UniquePtr&&)> callback) noexcept
+void Table::asyncSetRow(
+    std::string_view key, Entry entry, std::function<void(Error::UniquePtr)> callback) noexcept
 {
     m_storage->asyncSetRow(m_tableInfo->name(), key, std::move(entry), callback);
 }
