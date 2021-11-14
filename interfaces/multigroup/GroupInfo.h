@@ -127,12 +127,11 @@ public:
         }
         setGroupID(root["groupID"].asString());
 
-        if (!root.isMember("gensisConfig"))
+        if (root.isMember("genesisConfig"))
         {
-            BOOST_THROW_EXCEPTION(InvalidGroupInfo() << errinfo_comment(
-                                      "The group information must contain gensisConfig"));
+            setGenesisConfig(root["genesisConfig"].asString());
         }
-        setGenesisConfig(root["gensisConfig"].asString());
+
 
         if (!root.isMember("iniConfig"))
         {
@@ -162,7 +161,7 @@ public:
         Json::Value jResp;
         jResp["chainID"] = chainID();
         jResp["groupID"] = groupID();
-        jResp["gensisConfig"] = genesisConfig();
+        jResp["genesisConfig"] = genesisConfig();
         jResp["iniConfig"] = iniConfig();
         jResp["nodeList"] = Json::Value(Json::arrayValue);
         const auto& nodes = nodeInfos();
