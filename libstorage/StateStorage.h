@@ -46,27 +46,8 @@ public:
     using Ptr = std::shared_ptr<StateStorage>;
 
     explicit StateStorage(std::shared_ptr<StorageInterface> prev)
-      : storage::TraverseStorageInterface()
-    {
-        if (prev)
-        {
-            auto stateStoragePrev = std::dynamic_pointer_cast<StateStorage>(prev);
-            if (stateStoragePrev)
-            {
-                m_tableInfos = stateStoragePrev->m_tableInfos;
-                m_prev = std::move(stateStoragePrev);
-            }
-            else
-            {
-                m_tableInfos = std::make_shared<decltype(m_tableInfos)::element_type>();
-                m_prev = std::move(prev);
-            }
-        }
-        else
-        {
-            m_tableInfos = std::make_shared<decltype(m_tableInfos)::element_type>();
-        }
-    }
+      : storage::TraverseStorageInterface(), m_prev(std::move(prev))
+    {}
 
     StateStorage(const StateStorage&) = delete;
     StateStorage& operator=(const StateStorage&) = delete;
@@ -96,9 +77,6 @@ public:
                                               const std::string_view& key, const Entry& entry)>
                                               callback) const override;
 
-    void asyncGetTableInfo(std::string_view tableName,
-        std::function<void(Error::UniquePtr, TableInfo::ConstPtr)> callback) override;
-
     std::optional<Table> openTable(const std::string_view& table);
 
     std::optional<Table> createTable(std::string _tableName, std::string _valueFields);
@@ -121,15 +99,15 @@ public:
 
         struct Change
         {
-            Change(std::string_view _table, std::string _key, std::optional<Entry> _entry)
-              : table(_table), key(std::move(_key)), entry(std::move(_entry))
+            Change(std::string _table, std::string _key, std::optional<Entry> _entry)
+              : table(std::move(_table)), key(std::move(_key)), entry(std::move(_entry))
             {}
             Change(const Change&) = delete;
             Change& operator=(const Change&) = delete;
             Change(Change&&) noexcept = default;
             Change& operator=(Change&&) noexcept = default;
 
-            std::string_view table;
+            std::string table;
             std::string key;
             std::optional<Entry> entry;
         };
@@ -246,9 +224,6 @@ private:
     }
 
     tbb::concurrent_hash_map<EntryKey, Entry, EntryKeyHasher> m_data;
-    std::shared_ptr<tbb::concurrent_hash_map<TableKey, TableInfo::ConstPtr, TableKeyHasher>>
-        m_tableInfos;
-
     tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
 
     std::shared_ptr<StorageInterface> m_prev;
