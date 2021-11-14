@@ -47,7 +47,11 @@ std::optional<Entry> Table::getRow(std::string_view _key)
     {
         BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
     }
-    std::get<1>(result)->setTableInfo(m_tableInfo);
+
+    if (std::get<1>(result))
+    {
+        std::get<1>(result)->setTableInfo(m_tableInfo);
+    }
 
     return std::get<1>(result);
 }
