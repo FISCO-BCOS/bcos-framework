@@ -47,6 +47,7 @@ std::optional<Entry> Table::getRow(std::string_view _key)
     {
         BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
     }
+    std::get<1>(result)->setTableInfo(m_tableInfo);
 
     return std::get<1>(result);
 }
@@ -65,6 +66,14 @@ std::vector<std::optional<Entry>> Table::getRows(
     if (std::get<0>(result))
     {
         BOOST_THROW_EXCEPTION(*(std::get<0>(result)));
+    }
+
+    for (auto& it : std::get<1>(result))
+    {
+        if (it)
+        {
+            it->setTableInfo(m_tableInfo);
+        }
     }
 
     return std::get<1>(result);
@@ -108,7 +117,16 @@ void Table::asyncGetPrimaryKeys(std::optional<const Condition> const& _condition
 void Table::asyncGetRow(std::string_view _key,
     std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback) noexcept
 {
-    m_storage->asyncGetRow(m_tableInfo->name(), _key, _callback);
+    m_storage->asyncGetRow(m_tableInfo->name(), _key,
+        [this, callback = std::move(_callback)](
+            Error::UniquePtr error, std::optional<Entry> entry) {
+            if (entry)
+            {
+                entry->setTableInfo(m_tableInfo);
+            }
+
+            callback(std::move(error), std::move(entry));
+        });
 }
 
 void Table::asyncGetRows(
@@ -116,7 +134,19 @@ void Table::asyncGetRows(
         _keys,
     std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)> _callback) noexcept
 {
-    m_storage->asyncGetRows(m_tableInfo->name(), _keys, _callback);
+    m_storage->asyncGetRows(m_tableInfo->name(), _keys,
+        [this, callback = std::move(_callback)](
+            Error::UniquePtr error, std::vector<std::optional<Entry>> entries) {
+            for (auto& it : entries)
+            {
+                if (it)
+                {
+                    it->setTableInfo(m_tableInfo);
+                }
+            }
+
+            callback(std::move(error), std::move(entries));
+        });
 }
 
 void Table::asyncSetRow(
