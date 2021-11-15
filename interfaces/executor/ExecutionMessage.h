@@ -44,7 +44,7 @@ public:
         TXHASH = 0,  // Received an new transaction from scheduler
         MESSAGE,     // Send/Receive an external call to/from another contract
         FINISHED,    // Send a finish to another contract
-        WAIT_KEY,    // Send a wait key to scheduler
+        KEY_LOCK,    // Send a wait key lock to scheduler, or release key lock
         SEND_BACK,   // Send a dag refuse to scheduler
         REVERT,      // Send/Receive a revert to/from previous external call
     };
