@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(set)
 
     auto entry = table->getRow("key_from_kv");
     BOOST_CHECK(entry);
-    BOOST_CHECK_EQUAL(entry->getField("value1"), "hello world!");
+    BOOST_CHECK_EQUAL(entry->getField(0), "hello world!");
 }
 
 BOOST_AUTO_TEST_CASE(getBatch)

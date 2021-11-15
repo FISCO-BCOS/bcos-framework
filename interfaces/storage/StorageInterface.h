@@ -22,6 +22,7 @@
  * @author: ancelmo
  * @date: 2021-09-07
  */
+
 #pragma once
 #include "../../interfaces/protocol/Block.h"
 #include "../../interfaces/protocol/ProtocolTypeDef.h"
@@ -45,26 +46,26 @@ public:
     static constexpr const char SYS_TABLES[] = "s_tables";
     static constexpr const char SYS_TABLE_VALUE_FIELDS[] = "value_fields,key_field";
 
-    static TableInfo::ConstPtr getSysTableInfo(const std::string_view& tableName);
+    static TableInfo::ConstPtr getSysTableInfo(std::string_view tableName);
 
     using Ptr = std::shared_ptr<StorageInterface>;
 
     virtual ~StorageInterface() = default;
 
-    virtual void asyncGetPrimaryKeys(const std::string_view& table,
+    virtual void asyncGetPrimaryKeys(std::string_view table,
         const std::optional<Condition const>& _condition,
         std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback) = 0;
 
-    virtual void asyncGetRow(const std::string_view& table, const std::string_view& _key,
+    virtual void asyncGetRow(std::string_view table, std::string_view _key,
         std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback) = 0;
 
-    virtual void asyncGetRows(const std::string_view& table,
+    virtual void asyncGetRows(std::string_view table,
         const std::variant<const gsl::span<std::string_view const>,
             const gsl::span<std::string const>>& _keys,
         std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)> _callback) = 0;
 
-    virtual void asyncSetRow(const std::string_view& table, const std::string_view& key,
-        Entry entry, std::function<void(Error::UniquePtr)> callback) = 0;
+    virtual void asyncSetRow(std::string_view table, std::string_view key, Entry entry,
+        std::function<void(Error::UniquePtr)> callback) = 0;
 
     virtual void asyncCreateTable(std::string _tableName, std::string _valueFields,
         std::function<void(Error::UniquePtr, std::optional<Table>)> callback);
@@ -72,7 +73,8 @@ public:
     virtual void asyncOpenTable(std::string_view tableName,
         std::function<void(Error::UniquePtr, std::optional<Table>)> callback);
 
-    virtual TableInfo::ConstPtr getTableInfo(const std::string_view& tableName);
+    virtual void asyncGetTableInfo(std::string_view tableName,
+        std::function<void(Error::UniquePtr, TableInfo::ConstPtr)> callback);
 };
 
 class TraverseStorageInterface : public virtual StorageInterface
@@ -115,8 +117,7 @@ public:
         uint64_t startTS = 0;
     };
 
-    virtual void asyncPrepare(const TwoPCParams& params,
-        const TraverseStorageInterface::ConstPtr& storage,
+    virtual void asyncPrepare(const TwoPCParams& params, const TraverseStorageInterface& storage,
         std::function<void(Error::Ptr, uint64_t)> callback) = 0;
 
     virtual void asyncCommit(

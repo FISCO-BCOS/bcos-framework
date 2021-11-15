@@ -1,11 +1,10 @@
 #include "../interfaces/storage/StorageInterface.h"
 #include "../interfaces/storage/Table.h"
-#include <boost/range/detail/implementation_help.hpp>
 #include <optional>
 
 using namespace bcos::storage;
 
-TableInfo::ConstPtr StorageInterface::getSysTableInfo(const std::string_view& tableName)
+TableInfo::ConstPtr StorageInterface::getSysTableInfo(std::string_view tableName)
 {
     struct SystemTables
     {
@@ -87,18 +86,39 @@ void StorageInterface::asyncCreateTable(std::string _tableName, std::string _val
 void StorageInterface::asyncOpenTable(std::string_view tableName,
     std::function<void(Error::UniquePtr, std::optional<Table>)> callback)
 {
+    asyncGetTableInfo(tableName, [this, callback = std::move(callback)](
+                                     Error::UniquePtr error, TableInfo::ConstPtr tableInfo) {
+        if (error)
+        {
+            callback(std::move(error), std::nullopt);
+            return;
+        }
+
+        if (tableInfo)
+        {
+            callback(nullptr, Table(this, tableInfo));
+        }
+        else
+        {
+            callback(nullptr, std::nullopt);
+        }
+    });
+}
+
+void StorageInterface::asyncGetTableInfo(
+    std::string_view tableName, std::function<void(Error::UniquePtr, TableInfo::ConstPtr)> callback)
+{
     auto sysTableInfo = getSysTableInfo(tableName);
     if (sysTableInfo)
     {
-        auto table = Table(this, sysTableInfo);
-        callback(nullptr, std::move(table));
+        callback(nullptr, std::move(sysTableInfo));
 
         return;
     }
     else
     {
         asyncOpenTable(
-            SYS_TABLES, [this, callback = std::move(callback), tableName = std::string(tableName)](
+            SYS_TABLES, [callback = std::move(callback), tableName = std::string(tableName)](
                             Error::UniquePtr&& error, std::optional<Table>&& sysTable) {
                 if (error)
                 {
@@ -115,7 +135,7 @@ void StorageInterface::asyncOpenTable(std::string_view tableName,
                 }
 
                 sysTable->asyncGetRow(tableName,
-                    [this, tableName, callback = std::move(callback)](auto&& error, auto&& entry) {
+                    [tableName, callback = std::move(callback)](auto&& error, auto&& entry) {
                         if (error)
                         {
                             callback(std::move(error), {});
@@ -134,35 +154,9 @@ void StorageInterface::asyncOpenTable(std::string_view tableName,
 
                         auto tableInfo = std::make_shared<storage::TableInfo>(
                             std::move(tableName), std::move(fields));
-                        auto table = Table(this, tableInfo);
 
-                        callback(nullptr, std::make_optional(std::move(table)));
+                        callback(nullptr, std::move(tableInfo));
                     });
             });
     }
-}
-
-TableInfo::ConstPtr StorageInterface::getTableInfo(const std::string_view& tableName)
-{
-    std::promise<TableInfo::ConstPtr> prom;
-    asyncOpenTable(
-        tableName, [&prom, &tableName](Error::UniquePtr&& error, std::optional<Table>&& table) {
-            if (error)
-            {
-                STORAGE_LOG(WARNING) << "getTableInfo failed" << LOG_KV("tableName", tableName)
-                                     << LOG_KV("message", error->errorMessage());
-                prom.set_value(nullptr);
-            }
-            else if (!table)
-            {
-                STORAGE_LOG(WARNING)
-                    << "getTableInfo failed, table doesn't exist" << LOG_KV("tableName", tableName);
-                prom.set_value(nullptr);
-            }
-            else
-            {
-                prom.set_value(table->tableInfo());
-            }
-        });
-    return prom.get_future().get();
 }

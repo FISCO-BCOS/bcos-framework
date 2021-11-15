@@ -45,7 +45,9 @@ class StateStorage : public virtual storage::TraverseStorageInterface
 public:
     using Ptr = std::shared_ptr<StateStorage>;
 
-    explicit StateStorage(std::shared_ptr<StorageInterface> prev) : m_prev(std::move(prev)) {}
+    explicit StateStorage(std::shared_ptr<StorageInterface> prev)
+      : storage::TraverseStorageInterface(), m_prev(std::move(prev))
+    {}
 
     StateStorage(const StateStorage&) = delete;
     StateStorage& operator=(const StateStorage&) = delete;
@@ -55,20 +57,20 @@ public:
 
     virtual ~StateStorage() { m_recoder.clear(); }
 
-    void asyncGetPrimaryKeys(const std::string_view& table,
+    void asyncGetPrimaryKeys(std::string_view table,
         const std::optional<storage::Condition const>& _condition,
         std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback) override;
 
-    void asyncGetRow(const std::string_view& table, const std::string_view& _key,
+    void asyncGetRow(std::string_view table, std::string_view _key,
         std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback) override;
 
-    void asyncGetRows(const std::string_view& table,
+    void asyncGetRows(std::string_view table,
         const std::variant<const gsl::span<std::string_view const>,
             const gsl::span<std::string const>>& _keys,
         std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)> _callback)
         override;
 
-    void asyncSetRow(const std::string_view& table, const std::string_view& key, Entry entry,
+    void asyncSetRow(std::string_view table, std::string_view key, Entry entry,
         std::function<void(Error::UniquePtr)> callback) override;
 
     void parallelTraverse(bool onlyDirty, std::function<bool(const std::string_view& table,
@@ -97,22 +99,22 @@ public:
 
         struct Change
         {
-            Change(std::string_view _table, std::string _key, std::optional<Entry> _entry)
-              : table(_table), key(std::move(_key)), entry(std::move(_entry))
+            Change(std::string _table, std::string _key, std::optional<Entry> _entry)
+              : table(std::move(_table)), key(std::move(_key)), entry(std::move(_entry))
             {}
             Change(const Change&) = delete;
             Change& operator=(const Change&) = delete;
             Change(Change&&) noexcept = default;
             Change& operator=(Change&&) noexcept = default;
 
-            std::string_view table;
+            std::string table;
             std::string key;
             std::optional<Entry> entry;
         };
 
         void log(Change&& change) { m_changes.emplace_front(std::move(change)); }
-        auto begin() { return m_changes.begin(); }
-        auto end() { return m_changes.end(); }
+        auto begin() const { return m_changes.cbegin(); }
+        auto end() const { return m_changes.cend(); }
 
     private:
         std::list<Change> m_changes;
@@ -120,10 +122,9 @@ public:
 
     Recoder::Ptr newRecoder() { return std::make_shared<Recoder>(); }
     void setRecoder(Recoder::Ptr recoder) { m_recoder.local().swap(recoder); }
-    void rollback(const Recoder::ConstPtr& recoder);
+    void rollback(const Recoder& recoder);
 
     void setEnableTraverse(bool enableTraverse) { m_enableTraverse = enableTraverse; }
-
     void setCachePrev(bool cachePrev) { m_cachePrev = cachePrev; }
 
 protected:
@@ -131,42 +132,57 @@ protected:
     {
     public:
         EntryKey() {}
-        EntryKey(std::string_view table, std::string_view key) : m_table(table), m_key(key) {}
-        EntryKey(std::string_view table, std::string key) : m_table(table), m_key(std::move(key)) {}
+        EntryKey(std::string_view table, std::string_view key)
+          : m_keyData(std::make_tuple(std::move(table), std::move(key)))
+        {}
+        EntryKey(std::string table, std::string key)
+          : m_keyData(std::make_tuple(std::move(table), std::move(key)))
+        {}
 
         EntryKey(const EntryKey&) = default;
         EntryKey& operator=(const EntryKey&) = default;
         EntryKey(EntryKey&&) noexcept = default;
         EntryKey& operator=(EntryKey&&) noexcept = default;
 
-        std::string_view table() const { return m_table; }
+        std::string_view table() const
+        {
+            std::string_view table;
+            std::visit([&table](auto&& keyData) { table = std::string_view(std::get<0>(keyData)); },
+                m_keyData);
+
+            return table;
+        }
 
         std::string_view key() const
         {
-            std::string_view view;
-            std::visit([&view](auto&& key) { view = key; }, m_key);
+            std::string_view key;
+            std::visit([&key](auto&& keyData) { key = std::string_view(std::get<1>(keyData)); },
+                m_keyData);
 
-            return view;
+            return key;
         }
 
         bool operator==(const EntryKey& rhs) const
         {
-            return m_table == rhs.m_table && key() == rhs.key();
+            return table() == rhs.table() && key() == rhs.key();
         }
 
         bool operator<(const EntryKey& rhs) const
         {
-            if (m_table != rhs.m_table)
+            auto lhsTable = table();
+            auto rhsTable = rhs.table();
+            if (lhsTable != rhsTable)
             {
-                return m_table < rhs.m_table;
+                return lhsTable < rhsTable;
             }
 
-            return m_key < rhs.m_key;
+            return key() < rhs.key();
         }
 
     private:
-        std::string_view m_table;
-        std::variant<std::string_view, std::string> m_key;
+        std::variant<std::tuple<std::string, std::string>,
+            std::tuple<std::string_view, std::string_view>>
+            m_keyData;
     };
 
     struct EntryKeyHasher
@@ -198,7 +214,7 @@ protected:
     };
 
 private:
-    Entry importExistingEntry(const std::string_view& key, Entry entry);
+    Entry importExistingEntry(std::string_view table, std::string_view key, Entry entry);
 
     std::shared_ptr<StorageInterface> getPrev()
     {
@@ -208,8 +224,6 @@ private:
     }
 
     tbb::concurrent_hash_map<EntryKey, Entry, EntryKeyHasher> m_data;
-    tbb::concurrent_hash_map<TableKey, TableInfo::ConstPtr, TableKeyHasher> m_tableInfos;
-
     tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
 
     std::shared_ptr<StorageInterface> m_prev;

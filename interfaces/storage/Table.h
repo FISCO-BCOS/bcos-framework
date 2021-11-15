@@ -42,27 +42,27 @@ public:
     Table& operator=(Table&&) = default;
     ~Table() {}
 
-    std::optional<Entry> getRow(const std::string_view& _key);
+    std::optional<Entry> getRow(std::string_view _key);
     std::vector<std::optional<Entry>> getRows(
         const std::variant<const gsl::span<std::string_view const>,
             const gsl::span<std::string const>>& _keys);
     std::vector<std::string> getPrimaryKeys(const std::optional<const Condition>& _condition);
 
-    void setRow(const std::string_view& _key, Entry _entry);
+    void setRow(std::string_view _key, Entry _entry);
 
     void asyncGetPrimaryKeys(std::optional<const Condition> const& _condition,
-        std::function<void(Error::UniquePtr&&, std::vector<std::string>&&)> _callback) noexcept;
+        std::function<void(Error::UniquePtr, std::vector<std::string>)> _callback) noexcept;
 
-    void asyncGetRow(const std::string_view& _key,
-        std::function<void(Error::UniquePtr&&, std::optional<Entry>&&)> _callback) noexcept;
+    void asyncGetRow(std::string_view _key,
+        std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback) noexcept;
 
     void asyncGetRows(const std::variant<const gsl::span<std::string_view const>,
                           const gsl::span<std::string const>>& _keys,
-        std::function<void(Error::UniquePtr&&, std::vector<std::optional<Entry>>&&)>
+        std::function<void(Error::UniquePtr, std::vector<std::optional<Entry>>)>
             _callback) noexcept;
 
-    void asyncSetRow(const std::string_view& key, Entry entry,
-        std::function<void(Error::UniquePtr&&)> callback) noexcept;
+    void asyncSetRow(std::string_view key, Entry entry,
+        std::function<void(Error::UniquePtr)> callback) noexcept;
 
     TableInfo::ConstPtr tableInfo() const { return m_tableInfo; }
     Entry newEntry() { return Entry(m_tableInfo); }

@@ -176,17 +176,17 @@ BOOST_AUTO_TEST_CASE(rollback)
     BOOST_CHECK(!entry);
 
     std::cout << "Try remove balance" << std::endl;
-    tableFactory->rollback(savePoint2);
+    tableFactory->rollback(*savePoint2);
     entry = table->getRow("name");
     BOOST_CHECK_NE(entry->status(), Entry::DELETED);
 
-    tableFactory->rollback(savePoint1);
+    tableFactory->rollback(*savePoint1);
     entry = table->getRow("name");
     BOOST_TEST(entry);
     entry = table->getRow("balance");
     BOOST_TEST(!entry);
 
-    tableFactory->rollback(savePoint);
+    tableFactory->rollback(*savePoint);
     entry = table->getRow("name");
     BOOST_TEST(entry);
     entry = table->getRow("balance");
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(rollback2)
     BOOST_TEST(entry);
     // BOOST_TEST(table->dirty() == true);
 
-    tableFactory->rollback(savePoint);
+    tableFactory->rollback(*savePoint);
 
     entry = table->getRow("name");
     BOOST_TEST(entry);
@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_CASE(rollback2)
     entry = table->getRow("id");
     BOOST_TEST(!entry);
     // BOOST_TEST(table->dirty() == true);
-    tableFactory->rollback(savePoint0);
+    tableFactory->rollback(*savePoint0);
 
     entry = table->getRow("name");
     BOOST_CHECK(!entry);
@@ -307,7 +307,7 @@ BOOST_AUTO_TEST_CASE(hash)
     entry = table->getRow("id");
     BOOST_CHECK(!entry);
 
-    tableFactory->rollback(savePoint);
+    tableFactory->rollback(*savePoint);
     entry = table->getRow("name");
     BOOST_TEST(entry);
     entry = table->getRow("balance");
@@ -713,7 +713,7 @@ BOOST_AUTO_TEST_CASE(getRows)
         BOOST_CHECK_EQUAL(it->dirty(), true);
     }
 
-    tableStorage->rollback(recoder);
+    tableStorage->rollback(*recoder);
 
     auto values4 = queryTable->getRows(keys);
     size_t count = 70;
@@ -873,7 +873,7 @@ BOOST_AUTO_TEST_CASE(rollbackAndGetRow)
         BOOST_CHECK_EQUAL(entry->getField(0), "value2");
     });
 
-    storage2->rollback(recoder);
+    storage2->rollback(*recoder);
 
     storage2->asyncGetRow("table", "key1", [](Error::UniquePtr error, std::optional<Entry> entry) {
         BOOST_CHECK(!error);
@@ -914,7 +914,7 @@ BOOST_AUTO_TEST_CASE(rollbackAndGetRows)
             BOOST_CHECK_EQUAL(entry[0].value().getField(0), "value2");
         });
 
-    storage2->rollback(recoder);
+    storage2->rollback(*recoder);
 
     storage2->asyncGetRows(
         "table", keys, [](Error::UniquePtr error, std::vector<std::optional<Entry>> entry) {
