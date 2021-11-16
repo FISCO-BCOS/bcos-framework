@@ -480,7 +480,9 @@ void NodeConfig::generateGenesisData()
 void NodeConfig::loadExecutorConfig(boost::property_tree::ptree const& _pt)
 {
     m_isWasm = _pt.get<bool>("executor.is_wasm", false);
+    m_isAuthCheck = _pt.get<bool>("executor.is_auth_check", false);
     NodeConfig_LOG(INFO) << LOG_DESC("loadExecutorConfig") << LOG_KV("isWasm", m_isWasm);
+    NodeConfig_LOG(INFO) << LOG_DESC("loadExecutorConfig") << LOG_KV("isAuthCheck", m_isAuthCheck);
 }
 
 // Note: make sure the consensus param checker is consistent with the precompiled param checker
