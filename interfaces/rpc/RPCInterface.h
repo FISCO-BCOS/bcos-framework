@@ -55,10 +55,6 @@ public:
     virtual void asyncNotifyBlockNumber(std::string const& _groupID, std::string const& _nodeName,
         bcos::protocol::BlockNumber _blockNumber, std::function<void(Error::Ptr)> _callback) = 0;
 
-    virtual void asyncNotifyTransactionResult(std::string const& _rpcID,
-        const std::string_view& groupID, bcos::crypto::HashType txHash,
-        bcos::protocol::TransactionSubmitResult::Ptr result) = 0;
-
     /// multi-group manager related interfaces
     /**
      * @brief receive the latest group information notification from the GroupManagerInterface
