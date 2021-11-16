@@ -106,6 +106,7 @@ public:
     std::string const& genesisData() const { return m_genesisData; }
 
     bool isWasm() const { return m_isWasm; }
+    bool isAuthCheck() const { return m_isAuthCheck; }
 
     std::string const& rpcServiceName() const { return m_rpcServiceName; }
     std::string const& gatewayServiceName() const { return m_gatewayServiceName; }
@@ -227,6 +228,7 @@ private:
 
     // executor config
     bool m_isWasm = false;
+    bool m_isAuthCheck = false;
 
     std::string m_rpcServiceName;
     std::string m_gatewayServiceName;
