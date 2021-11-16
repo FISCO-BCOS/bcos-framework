@@ -64,8 +64,8 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 # init hunter
 include(HunterGate)
 HunterGate(
-    URL "https://${URL_BASE}/FISCO-BCOS/hunter/archive/854dccf88d5adf34ace2439fb168947a11a17b49.tar.gz"
-    SHA1 "afb72a59b5b38e596824d5f0c48bd8c9630747f1"
+    URL "https://${URL_BASE}/FISCO-BCOS/hunter/archive/1030fc0469cc8d974b3a3d020ab2fd59df006edb.tar.gz"
+    SHA1 "1bf2dc0631119c6304a9bac7445f1e77914c0fb7"
     FILEPATH "${BCOS_FRAMEWORK_CMAKE_DIR}/config.cmake"
 )
 # set CMP0074 to NEW to suppress warnning, https://cmake.org/cmake/help/latest/policy/CMP0074.html

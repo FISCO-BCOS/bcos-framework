@@ -443,7 +443,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
     {
         auto storage = storages[index];
         // Data count must be 10 * 10 + 10
-        tbb::atomic<size_t> totalCount = 0;
+        std::atomic<size_t> totalCount = 0;
         storage->parallelTraverse(false, [&](auto&&, auto&&, auto&&) {
             ++totalCount;
             return true;
@@ -452,7 +452,7 @@ BOOST_AUTO_TEST_CASE(chainLink)
         BOOST_CHECK_EQUAL(totalCount, 10 * 10 + 10);  // extra 100 for s_tables
 
         // Dirty data count must be 10 * 10 + 10
-        tbb::atomic<size_t> dirtyCount = 0;
+        std::atomic<size_t> dirtyCount = 0;
         storage->parallelTraverse(true, [&](auto&&, auto&&, auto&&) {
             ++dirtyCount;
             return true;
