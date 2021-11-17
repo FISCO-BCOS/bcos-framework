@@ -63,9 +63,6 @@ public:
     virtual void unregisterExecutor(
         const std::string& name, std::function<void(Error::Ptr&&)> callback) = 0;
 
-    virtual void getCode(
-        std::string_view contract, std::function<void(Error::Ptr, bcos::bytes)> callback) = 0;
-
     // clear all status
     virtual void reset(std::function<void(Error::Ptr&&)> callback) = 0;
 
