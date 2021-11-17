@@ -63,6 +63,9 @@ public:
     virtual void unregisterExecutor(
         const std::string& name, std::function<void(Error::Ptr&&)> callback) = 0;
 
+    virtual void getCode(
+        crypto::HashType codeHash, std::function<void(Error::Ptr, bcos::bytes)> callback) = 0;
+
     // clear all status
     virtual void reset(std::function<void(Error::Ptr&&)> callback) = 0;
 
