@@ -71,6 +71,7 @@ public:
     // get the consensusNodeList
     // Note: if seperate sealer with the PBFT module, should implement with notify
     virtual ConsensusNodeList consensusNodeList() const { return ConsensusNodeList(); }
+    virtual uint64_t nodeIndex() const { return 0; }
 
     virtual void asyncGetConsensusStatus(
         std::function<void(Error::Ptr, std::string)> _onGetConsensusStatus) = 0;

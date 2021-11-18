@@ -129,6 +129,7 @@ void Sealer::submitProposal(bool _containSysTxs, bcos::protocol::Block::Ptr _blo
     }
     _block->blockHeader()->setSealerList(std::move(sealerList));
     _block->blockHeader()->setConsensusWeights(std::move(weightList));
+    _block->blockHeader()->setSealer(m_sealerConfig->consensus()->nodeIndex());
     auto encodedData = std::make_shared<bytes>();
     _block->encode(*encodedData);
     SEAL_LOG(INFO) << LOG_DESC("++++++++++++++++ Generate proposal")
