@@ -38,7 +38,7 @@ void StateStorage::asyncGetPrimaryKeys(std::string_view table,
         }
     }
 
-    std::shared_ptr<StorageInterface> prev = getPrev();
+    auto prev = getPrev();
     if (!prev)
     {
         std::vector<std::string> resultKeys;
@@ -416,7 +416,7 @@ Entry StateStorage::importExistingEntry(std::string_view table, std::string_view
 {
     entry.setDirty(false);
 
-    if (!m_cachePrev)
+    if (!m_readOnly)
     {
         return entry;
     }

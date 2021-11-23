@@ -125,7 +125,7 @@ public:
     void rollback(const Recoder& recoder);
 
     void setEnableTraverse(bool enableTraverse) { m_enableTraverse = enableTraverse; }
-    void setCachePrev(bool cachePrev) { m_cachePrev = cachePrev; }
+    void setReadOnly(bool cachePrev) { m_readOnly = cachePrev; }
 
 protected:
     class EntryKey
@@ -231,21 +231,25 @@ private:
 
     size_t m_capacity = 0;
     bool m_enableTraverse = false;
-    bool m_cachePrev = true;
+    bool m_readOnly = false;
 
 #define STORAGE_REPORT_GET(table, key, entry, desc) \
-    if (c_fileLogLevel >= bcos::LogLevel::TRACE){}  \
+    if (c_fileLogLevel >= bcos::LogLevel::TRACE)    \
+    {                                               \
+    }                                               \
     // log("GET", (table), (key), (entry), (desc))
 
 #define STORAGE_REPORT_SET(table, key, entry, desc) \
-    if (c_fileLogLevel >= bcos::LogLevel::TRACE){}  \
-    //log("SET", (table), (key), (entry), (desc))
+    if (c_fileLogLevel >= bcos::LogLevel::TRACE)    \
+    {                                               \
+    }                                               \
+    // log("SET", (table), (key), (entry), (desc))
 
     // for debug
     void log(const std::string_view& op, const std::string_view& table, const std::string_view& key,
         const std::optional<Entry>& entry, const std::string_view& desc = "")
     {
-        if (m_cachePrev)
+        if (m_readOnly)
         {
             if (entry)
             {
