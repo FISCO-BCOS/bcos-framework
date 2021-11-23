@@ -83,6 +83,8 @@ public:
         std::function<void(protocol::BlockNumber blockNumber)>) override
     {}
 
+    void getCode(std::string_view, std::function<void(Error::Ptr, bcos::bytes)>) override {}
+
 private:
     FakeLedger::Ptr m_ledger;
     BlockFactory::Ptr m_blockFactory;

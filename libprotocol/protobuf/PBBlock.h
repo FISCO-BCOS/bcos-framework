@@ -197,14 +197,14 @@ private:
     void clearTransactionsCache()
     {
         m_pbRawBlock->clear_transactions();
-        WriteGuard l(x_txsRootCache);
-        m_txsRootCache = bcos::crypto::HashType();
+        // WriteGuard l(x_txsRootCache);
+        // m_txsRootCache = bcos::crypto::HashType();
     }
     void clearReceiptsCache()
     {
         m_pbRawBlock->clear_receipts();
-        WriteGuard l(x_receiptRootCache);
-        m_receiptRootCache = bcos::crypto::HashType();
+        // WriteGuard l(x_receiptRootCache);
+        // m_receiptRootCache = bcos::crypto::HashType();
     }
 
 private:

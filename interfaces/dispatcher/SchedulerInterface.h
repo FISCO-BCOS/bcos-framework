@@ -69,5 +69,8 @@ public:
     // register a block number receiver
     virtual void registerBlockNumberReceiver(
         std::function<void(protocol::BlockNumber blockNumber)> callback) = 0;
+
+    virtual void getCode(
+        std::string_view contract, std::function<void(Error::Ptr, bcos::bytes)> callback) = 0;
 };
 }  // namespace bcos::scheduler
