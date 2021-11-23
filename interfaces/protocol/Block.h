@@ -78,7 +78,7 @@ public:
         }
         else if (transactionsMetaDataSize() > 0)
         {
-            transactionsList = encodeToCalculateRoot(transactionsSize(),
+            transactionsList = encodeToCalculateRoot(transactionsHashSize(),
                 [this](size_t _index) { return transactionMetaData(_index)->hash(); });
         }
 
