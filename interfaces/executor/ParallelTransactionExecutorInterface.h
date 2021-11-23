@@ -90,6 +90,9 @@ public:
 
     // drop all status
     virtual void reset(std::function<void(bcos::Error::Ptr)> callback) = 0;
+
+    virtual void getCode(
+        std::string_view contract, std::function<void(bcos::Error::Ptr, bcos::bytes)> callback) = 0;
 };
 }  // namespace executor
 }  // namespace bcos
