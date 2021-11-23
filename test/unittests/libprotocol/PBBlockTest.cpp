@@ -47,6 +47,7 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
         txs1->push_back(fakeTransaction(cryptoSuite));
     }
     block2->setTransactions(txs1);
+
     BOOST_CHECK(block2->transactions()->size() == 5);
     // encode
     auto encodedData = std::make_shared<bytes>();
@@ -65,6 +66,9 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     block2->setTransactions(txs);
     block2->setReceipts(receipts);
     block2->setBlockHeader(testPBBlockHeader(cryptoSuite));
+    block2->blockHeader()->setTxsRoot(block2->calculateTransactionRoot());
+    block2->blockHeader()->setReceiptsRoot(block2->calculateReceiptRoot());
+
     BOOST_CHECK(block2->transactions()->size() == 0);
     BOOST_CHECK(block2->receipts()->size() == 2);
     block2->encode(*encodedData);
@@ -121,12 +125,13 @@ void testBlock(CryptoSuite::Ptr cryptoSuite, BlockFactory::Ptr blockFactory)
     // without metaData
     block2 = std::dynamic_pointer_cast<PBBlock>(
         fakeAndCheckBlock(cryptoSuite, blockFactory, false, 10, 0));
-    BOOST_CHECK(block2->transactionsMetaDataSize() == 0);
-    BOOST_CHECK(block2->transactionsHashSize() == 0);
+    BOOST_CHECK(block2->transactionsMetaDataSize() == block2->transactionsSize());
+    BOOST_CHECK(block2->transactionsHashSize() == block2->transactionsHashSize());
 }
 
 BOOST_AUTO_TEST_CASE(testNormalBlock)
 {
+    // FIXME: Move this test case to bcos-tars-protocol
     auto cryptoSuite = createNormalCryptoSuite();
     auto blockFactory = createBlockFactory(cryptoSuite);
     testBlock(cryptoSuite, blockFactory);
@@ -134,6 +139,7 @@ BOOST_AUTO_TEST_CASE(testNormalBlock)
 
 BOOST_AUTO_TEST_CASE(testSMBlock)
 {
+    // FIXME: Move this test case to bcos-tars-protocol
     auto cryptoSuite = createNormalCryptoSuite();
     auto blockFactory = createBlockFactory(cryptoSuite);
     testBlock(cryptoSuite, blockFactory);

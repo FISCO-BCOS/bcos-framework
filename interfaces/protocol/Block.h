@@ -45,6 +45,7 @@ enum BlockType : int32_t
     CompleteBlock = 1,
     WithTransactionsHash = 2,
 };
+
 class Block
 {
 public:
@@ -59,57 +60,45 @@ public:
 
     virtual void decode(bytesConstRef _data, bool _calculateHash, bool _checkSig) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
-    virtual bcos::crypto::HashType calculateTransactionRoot(bool _updateHeader)
+
+    virtual bcos::crypto::HashType calculateTransactionRoot() const
     {
         auto txsRoot = bcos::crypto::HashType();
         // with no transactions
-        if (transactionsSize() == 0)
+        if (transactionsSize() == 0 && transactionsMetaDataSize() == 0)
         {
-            updateTxsRootForHeader(_updateHeader, txsRoot);
             return txsRoot;
         }
-        // hit the cache
-        UpgradableGuard l(x_txsRootCache);
-        if (m_txsRootCache != bcos::crypto::HashType())
-        {
-            updateTxsRootForHeader(_updateHeader, m_txsRootCache);
-            return m_txsRootCache;
-        }
-        // miss the cache or the cache has been cleared
+
         std::vector<bytes> transactionsList;
-        encodeToCalculateRoot(transactionsList, transactionsSize(),
-            [this](size_t _index) { return transaction(_index)->hash(); });
+        if (transactionsSize() > 0)
+        {
+            transactionsList = encodeToCalculateRoot(
+                transactionsSize(), [this](size_t _index) { return transaction(_index)->hash(); });
+        }
+        else if (transactionsMetaDataSize() > 0)
+        {
+            transactionsList = encodeToCalculateRoot(transactionsSize(),
+                [this](size_t _index) { return transactionMetaData(_index)->hash(); });
+        }
+
         txsRoot = calculateMerkleProofRoot(m_transactionFactory->cryptoSuite(), transactionsList);
-        UpgradeGuard ul(l);
-        m_txsRootCache = txsRoot;
-        updateTxsRootForHeader(_updateHeader, txsRoot);
         return txsRoot;
     }
 
-    virtual bcos::crypto::HashType calculateReceiptRoot(bool _updateHeader)
+    virtual bcos::crypto::HashType calculateReceiptRoot() const
     {
         auto receiptsRoot = bcos::crypto::HashType();
         // with no receipts
         if (receiptsSize() == 0)
         {
-            updateReceiptRootForHeader(_updateHeader, receiptsRoot);
             return receiptsRoot;
         }
-        // hit the cache
-        UpgradableGuard l(x_receiptRootCache);
-        if (m_receiptRootCache != bcos::crypto::HashType())
-        {
-            updateReceiptRootForHeader(_updateHeader, m_receiptRootCache);
-            return m_receiptRootCache;
-        }
-        // miss the cache or the cache has been cleared
-        std::vector<bytes> receiptsList;
-        encodeToCalculateRoot(receiptsList, receiptsSize(),
-            [this](size_t _index) { return receipt(_index)->hash(); });
+
+        auto receiptsList = encodeToCalculateRoot(
+            receiptsSize(), [this](size_t _index) { return receipt(_index)->hash(); });
         receiptsRoot = calculateMerkleProofRoot(m_receiptFactory->cryptoSuite(), receiptsList);
-        UpgradeGuard ul(l);
-        m_receiptRootCache = receiptsRoot;
-        updateReceiptRootForHeader(_updateHeader, receiptsRoot);
+
         return receiptsRoot;
     }
 
@@ -133,7 +122,7 @@ public:
         {
             return txMetaData->hash();
         }
-        return m_emptyHash;
+        return bcos::crypto::HashType();
     }
 
     virtual void setBlockType(BlockType _blockType) = 0;
@@ -176,28 +165,10 @@ public:
     virtual NonceList const& nonceList() const = 0;
 
 private:
-    void updateTxsRootForHeader(bool _updateHeader, bcos::crypto::HashType const& _txsRoot)
+    std::vector<bytes> encodeToCalculateRoot(
+        size_t _listSize, std::function<bcos::crypto::HashType(size_t _index)> _hashFunc) const
     {
-        if (!_updateHeader || !blockHeader())
-        {
-            return;
-        }
-        blockHeader()->setTxsRoot(_txsRoot);
-    }
-
-    void updateReceiptRootForHeader(bool _updateHeader, bcos::crypto::HashType const& _receiptsRoot)
-    {
-        if (!_updateHeader || !blockHeader())
-        {
-            return;
-        }
-        blockHeader()->setReceiptsRoot(_receiptsRoot);
-    }
-
-    void encodeToCalculateRoot(std::vector<bytes>& _encodedList, size_t _listSize,
-        std::function<bcos::crypto::HashType(size_t _index)> _hashFunc)
-    {
-        _encodedList.resize(_listSize);
+        std::vector<bytes> encodedList(_listSize);
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, _listSize), [&](const tbb::blocked_range<size_t>& _r) {
                 for (auto i = _r.begin(); i < _r.end(); ++i)
@@ -207,22 +178,15 @@ private:
                     bytes encodedData = stream.data();
                     auto hash = _hashFunc(i);
                     encodedData.insert(encodedData.end(), hash.begin(), hash.end());
-                    _encodedList[i] = std::move(encodedData);
+                    encodedList[i] = std::move(encodedData);
                 }
             });
+        return encodedList;
     }
 
 protected:
     TransactionFactory::Ptr m_transactionFactory;
     TransactionReceiptFactory::Ptr m_receiptFactory;
-    // caches
-    mutable bcos::crypto::HashType m_txsRootCache;
-    mutable SharedMutex x_txsRootCache;
-
-    mutable bcos::crypto::HashType m_receiptRootCache;
-    mutable SharedMutex x_receiptRootCache;
-
-    bcos::crypto::HashType m_emptyHash = bcos::crypto::HashType();
 };
 using Blocks = std::vector<Block::Ptr>;
 using BlocksPtr = std::shared_ptr<Blocks>;

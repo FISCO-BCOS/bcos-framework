@@ -103,31 +103,31 @@ inline void checkBlock(CryptoSuite::Ptr _cryptoSuite, Block::Ptr block, Block::P
     {
         originHash = block->blockHeader()->hash();
     }
-    BOOST_CHECK(block->calculateReceiptRoot(true) == decodedBlock->calculateReceiptRoot(true));
+    BOOST_CHECK(block->calculateReceiptRoot() == decodedBlock->calculateReceiptRoot());
+
     if (block->blockHeader())
     {
-        BOOST_CHECK(block->blockHeader()->receiptsRoot() == block->calculateReceiptRoot(false));
-        BOOST_CHECK(decodedBlock->blockHeader()->receiptsRoot() ==
-                    decodedBlock->calculateReceiptRoot(false));
-        BOOST_CHECK(decodedBlock->blockHeader()->hash() != originHash);
+        BOOST_CHECK_EQUAL(block->blockHeader()->receiptsRoot(), block->calculateReceiptRoot());
+        BOOST_CHECK_EQUAL(
+            decodedBlock->blockHeader()->receiptsRoot(), decodedBlock->calculateReceiptRoot());
+        BOOST_CHECK_EQUAL(decodedBlock->blockHeader()->hash(), originHash);
         originHash = block->blockHeader()->hash();
     }
     // check transactionsRoot
-    BOOST_CHECK(
-        block->calculateTransactionRoot(true) == decodedBlock->calculateTransactionRoot(true));
+    BOOST_CHECK(block->calculateTransactionRoot() == decodedBlock->calculateTransactionRoot());
     if (block->blockHeader())
     {
-        BOOST_CHECK(block->blockHeader()->txsRoot() == block->calculateTransactionRoot(false));
-        BOOST_CHECK(
-            decodedBlock->blockHeader()->txsRoot() == block->calculateTransactionRoot(false));
-        BOOST_CHECK(decodedBlock->blockHeader()->hash() != originHash);
+        BOOST_CHECK_EQUAL(block->blockHeader()->txsRoot(), block->calculateTransactionRoot());
+        BOOST_CHECK_EQUAL(
+            decodedBlock->blockHeader()->txsRoot(), block->calculateTransactionRoot());
+        BOOST_CHECK_EQUAL(decodedBlock->blockHeader()->hash(), originHash);
         originHash = decodedBlock->blockHeader()->hash();
     }
     // Check idempotence
-    auto txsRoot = block->calculateTransactionRoot(true);
-    auto receiptsRoot = block->calculateReceiptRoot(true);
-    BOOST_CHECK(txsRoot == block->calculateTransactionRoot(false));
-    BOOST_CHECK(receiptsRoot == block->calculateReceiptRoot(false));
+    auto txsRoot = block->calculateTransactionRoot();
+    auto receiptsRoot = block->calculateReceiptRoot();
+    BOOST_CHECK(txsRoot == block->calculateTransactionRoot());
+    BOOST_CHECK(receiptsRoot == block->calculateReceiptRoot());
     if (decodedBlock->blockHeader())
     {
         BOOST_CHECK(decodedBlock->blockHeader()->hash() == originHash);
@@ -150,7 +150,15 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
     {
         auto tx = fakeTransaction(_cryptoSuite, utcTime() + i);
         block->appendTransaction(tx);
+
+        auto metaData = std::make_shared<PBTransactionMetaData>();
+        metaData->setHash(tx->hash());
+        metaData->setTo(std::string(tx->to()));
+
+        block->appendTransactionMetaData(metaData);
     }
+
+    _txsHashNum = _txsNum;
     // fake receipts
     for (size_t i = 0; i < _txsNum; i++)
     {
@@ -158,17 +166,23 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
         block->setReceipt(i, receipt);
     }
     // fake txsHash
-    for (size_t i = 0; i < _txsHashNum; i++)
-    {
-        auto content = "transaction: " + std::to_string(i);
-        auto hash = _cryptoSuite->hashImpl()->hash(content);
-        boost::ignore_unused(hash);
+    // for (size_t i = 0; i < _txsHashNum; i++)
+    // {
+    //     auto content = "transaction: " + std::to_string(i);
+    //     auto hash = _cryptoSuite->hashImpl()->hash(content);
+    //     boost::ignore_unused(hash);
 
-        auto metaData = std::make_shared<PBTransactionMetaData>();
-        metaData->setHash(hash);
-        metaData->setTo(*toHexString(hash));
-        // auto txMetaData = _blockFactory->createTransactionMetaData(hash, *toHexString(hash));
-        block->appendTransactionMetaData(metaData);
+    //     auto metaData = std::make_shared<PBTransactionMetaData>();
+    //     metaData->setHash(hash);
+    //     metaData->setTo(*toHexString(hash));
+    //     // auto txMetaData = _blockFactory->createTransactionMetaData(hash, *toHexString(hash));
+    //     block->appendTransactionMetaData(metaData);
+    // }
+
+    if (block->blockHeaderConst())
+    {
+        block->blockHeader()->setReceiptsRoot(block->calculateReceiptRoot());
+        block->blockHeader()->setTxsRoot(block->calculateTransactionRoot());
     }
 
     // encode block
@@ -182,11 +196,11 @@ inline Block::Ptr fakeAndCheckBlock(CryptoSuite::Ptr _cryptoSuite, BlockFactory:
     BOOST_CHECK(decodedBlock->transactionsMetaDataSize() == _txsHashNum);
     for (size_t i = 0; i < _txsHashNum; i++)
     {
-        auto content = "transaction: " + std::to_string(i);
-        auto hash = _cryptoSuite->hashImpl()->hash(content);
+        auto hash = decodedBlock->transaction(i)->hash();
+        auto to = decodedBlock->transactionMetaData(i)->to();
         BOOST_CHECK(decodedBlock->transactionHash(i) == hash);
         BOOST_CHECK(decodedBlock->transactionMetaData(i)->hash() == hash);
-        BOOST_CHECK(decodedBlock->transactionMetaData(i)->to() == *toHexString(hash));
+        BOOST_CHECK(decodedBlock->transactionMetaData(i)->to() == to);
     }
 
     // exception test
