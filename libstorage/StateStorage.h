@@ -32,6 +32,7 @@
 #include "tbb/parallel_for.h"
 #include "tbb/parallel_sort.h"
 #include <tbb/concurrent_hash_map.h>
+#include <tbb/queuing_rw_mutex.h>
 #include <boost/throw_exception.hpp>
 #include <future>
 #include <memory>
@@ -125,7 +126,7 @@ public:
     void rollback(const Recoder& recoder);
 
     void setEnableTraverse(bool enableTraverse) { m_enableTraverse = enableTraverse; }
-    void setCachePrev(bool cachePrev) { m_cachePrev = cachePrev; }
+    void setReadOnly(bool readOnly) { m_readOnly = readOnly; }
 
 protected:
     class EntryKey
@@ -224,6 +225,8 @@ private:
     }
 
     tbb::concurrent_hash_map<EntryKey, Entry, EntryKeyHasher> m_data;
+    mutable tbb::queuing_rw_mutex m_dataMutex;
+
     tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
 
     std::shared_ptr<StorageInterface> m_prev;
@@ -231,21 +234,25 @@ private:
 
     size_t m_capacity = 0;
     bool m_enableTraverse = false;
-    bool m_cachePrev = true;
+    bool m_readOnly = false;
 
 #define STORAGE_REPORT_GET(table, key, entry, desc) \
-    if (c_fileLogLevel >= bcos::LogLevel::TRACE){}  \
+    if (c_fileLogLevel >= bcos::LogLevel::TRACE)    \
+    {                                               \
+    }                                               \
     // log("GET", (table), (key), (entry), (desc))
 
 #define STORAGE_REPORT_SET(table, key, entry, desc) \
-    if (c_fileLogLevel >= bcos::LogLevel::TRACE){}  \
-    //log("SET", (table), (key), (entry), (desc))
+    if (c_fileLogLevel >= bcos::LogLevel::TRACE)    \
+    {                                               \
+    }                                               \
+    // log("SET", (table), (key), (entry), (desc))
 
     // for debug
     void log(const std::string_view& op, const std::string_view& table, const std::string_view& key,
         const std::optional<Entry>& entry, const std::string_view& desc = "")
     {
-        if (m_cachePrev)
+        if (m_readOnly)
         {
             if (entry)
             {

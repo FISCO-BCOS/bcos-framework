@@ -1047,7 +1047,7 @@ BOOST_AUTO_TEST_CASE(randomRWHash)
             }
 
             hashes.push_back(storage->hash(hashImpl));
-            storage->setCachePrev(false);
+            storage->setReadOnly(false);
             prev = storage;
         }
 
