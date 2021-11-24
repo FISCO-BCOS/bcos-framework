@@ -244,6 +244,13 @@ void StateStorage::asyncGetRows(std::string_view tableView,
 void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view keyView,
     Entry entry, std::function<void(Error::UniquePtr)> callback)
 {
+    if (m_readOnly)
+    {
+        callback(
+            BCOS_ERROR_UNIQUE_PTR(StorageError::ReadOnly, "Try to operate a read-only storage"));
+        return;
+    }
+
     auto updatedCapacity = entry.capacityOfHashField();
     std::optional<Entry> entryOld;
 
@@ -284,7 +291,6 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
                 constEntryIt->second, "EXISTS");
         }
     }
-
 
     if (m_recoder.local())
     {
@@ -377,6 +383,11 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
 
 void StateStorage::rollback(const Recoder& recoder)
 {
+    if (m_readOnly)
+    {
+        return;
+    }
+
     for (auto& change : recoder)
     {
         if (change.entry)
@@ -414,39 +425,27 @@ void StateStorage::rollback(const Recoder& recoder)
 
 Entry StateStorage::importExistingEntry(std::string_view table, std::string_view key, Entry entry)
 {
-    entry.setDirty(false);
-
-    if (!m_readOnly)
+    if (m_readOnly)
     {
         return entry;
     }
 
+    entry.setDirty(false);
+
     decltype(m_data)::const_accessor entryIt;
-    if (m_data.find(entryIt, EntryKey(table, key)))
+    if (!m_data.emplace(entryIt, EntryKey(std::string(table), std::string(key)), std::move(entry)))
     {
-        STORAGE_REPORT_SET(
-            entryIt->first.table(), key, std::make_optional(entry), "IMPORT REJECTED");
+        STORAGE_REPORT_SET(entryIt->first.table(), key, entryIt->second, "IMPORT EXISTS FAILED");
+
+        STORAGE_LOG(WARNING) << "Import existsing entry, " << table << " | " << toHex(key);
     }
     else
     {
-        if (!m_data.emplace(
-                entryIt, EntryKey(std::string(table), std::string(key)), std::move(entry)))
-        {
-            if (table != StorageInterface::SYS_TABLES)
-            {
-                STORAGE_REPORT_SET(
-                    entryIt->first.table(), key, entryIt->second, "IMPORT EXISTS FAILED");
-
-                auto fmt = boost::format("Import existsing entry failed! Table: %s, key: %s") %
-                           entryIt->first.table() % key;
-                STORAGE_LOG(ERROR) << fmt;
-                BOOST_THROW_EXCEPTION(BCOS_ERROR(StorageError::UnknownError, fmt.str()));
-            }
-            STORAGE_REPORT_SET(entryIt->first.table(), key, entryIt->second, "IMPORT SYS_TABLES");
-        }
         STORAGE_REPORT_SET(
             entryIt->first.table(), key, std::make_optional(entryIt->second), "IMPORT");
     }
+
+    assert(!entryIt.empty());
 
     return entryIt->second;
 }

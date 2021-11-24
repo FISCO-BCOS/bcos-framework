@@ -125,7 +125,7 @@ public:
     void rollback(const Recoder& recoder);
 
     void setEnableTraverse(bool enableTraverse) { m_enableTraverse = enableTraverse; }
-    void setReadOnly(bool cachePrev) { m_readOnly = cachePrev; }
+    void setReadOnly(bool readOnly) { m_readOnly = readOnly; }
 
 protected:
     class EntryKey
