@@ -2,6 +2,7 @@
 #include "../libutilities/Error.h"
 #include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
+#include <tbb/queuing_rw_mutex.h>
 #include <tbb/spin_mutex.h>
 #include <boost/algorithm/hex.hpp>
 #include <boost/core/ignore_unused.hpp>
@@ -102,6 +103,8 @@ void StateStorage::asyncGetPrimaryKeys(std::string_view table,
 void StateStorage::asyncGetRow(std::string_view tableView, std::string_view keyView,
     std::function<void(Error::UniquePtr, std::optional<Entry>)> _callback)
 {
+    auto lock = std::make_unique<tbb::queuing_rw_mutex::scoped_lock>(m_dataMutex, false);
+
     decltype(m_data)::const_accessor entryIt;
     if (m_data.find(entryIt, EntryKey(tableView, keyView)))
     {
@@ -133,10 +136,14 @@ void StateStorage::asyncGetRow(std::string_view tableView, std::string_view keyV
     if (prev)
     {
         prev->asyncGetRow(tableView, keyView,
-            [this, prev, table = std::string(tableView), key = std::string(keyView), _callback](
-                Error::UniquePtr error, std::optional<Entry> entry) {
+            [this, lockPtr = lock.release(), prev, table = std::string(tableView),
+                key = std::string(keyView),
+                _callback](Error::UniquePtr error, std::optional<Entry> entry) {
+                std::unique_ptr<tbb::queuing_rw_mutex::scoped_lock> lock(lockPtr);
+
                 if (error)
                 {
+                    lock->release();
                     _callback(BCOS_ERROR_WITH_PREV_UNIQUE_PTR(
                                   StorageError::ReadError, "Get row from storage failed!", *error),
                         {});
@@ -146,18 +153,23 @@ void StateStorage::asyncGetRow(std::string_view tableView, std::string_view keyV
                 if (entry)
                 {
                     STORAGE_REPORT_GET(table, key, entry, "PREV FOUND");
+
+                    lock->release();
                     _callback(nullptr,
                         std::make_optional(importExistingEntry(table, key, std::move(*entry))));
                 }
                 else
                 {
                     STORAGE_REPORT_GET(table, key, std::nullopt, "PREV NOT FOUND");
+
+                    lock->release();
                     _callback(nullptr, std::nullopt);
                 }
             });
     }
     else
     {
+        lock->release();
         _callback(nullptr, std::nullopt);
     }
 }
@@ -251,6 +263,8 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
         return;
     }
 
+    tbb::queuing_rw_mutex::scoped_lock lock(m_dataMutex, false);
+
     auto updatedCapacity = entry.capacityOfHashField();
     std::optional<Entry> entryOld;
 
@@ -276,19 +290,24 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
     }
     else
     {
-        decltype(m_data)::const_accessor constEntryIt;
-        if (m_data.emplace(constEntryIt, EntryKey(std::string(tableNameView), std::string(keyView)),
-                std::move(entry)))
+        if (m_data.emplace(
+                EntryKey(std::string(tableNameView), std::string(keyView)), std::move(entry)))
         {
             STORAGE_REPORT_SET(constEntryIt->first.table(), constEntryIt->first.key(),
                 constEntryIt->second, "INSERT");
         }
         else
         {
-            STORAGE_LOG(WARNING) << "Set row failed because row exists";
-
+            auto message = (boost::format("Set row failed because row exists: %s | %s") %
+                            tableNameView % keyView)
+                               .str();
+            STORAGE_LOG(WARNING) << message;
             STORAGE_REPORT_SET(constEntryIt->first.table(), constEntryIt->first.key(),
-                constEntryIt->second, "EXISTS");
+                constEntryIt->second, "FAIL EXISTS");
+
+            lock.release();
+            callback(BCOS_ERROR_UNIQUE_PTR(StorageError::WriteError, message));
+            return;
         }
     }
 
@@ -308,6 +327,12 @@ void StateStorage::parallelTraverse(bool onlyDirty,
         const std::string_view& table, const std::string_view& key, const Entry& entry)>
         callback) const
 {
+    if (!m_readOnly)
+    {
+        STORAGE_LOG(WARNING) << "Traverse a writable storage is unsafe";
+    }
+
+    tbb::queuing_rw_mutex::scoped_lock lock(m_dataMutex, true);
     tbb::parallel_do(m_data.begin(), m_data.end(), [&](const std::pair<const EntryKey, Entry>& it) {
         auto& entry = it.second;
         if (!onlyDirty || entry.dirty())
@@ -351,11 +376,13 @@ std::optional<Table> StateStorage::createTable(std::string _tableName, std::stri
 
 crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
 {
+    tbb::queuing_rw_mutex::scoped_lock lock(m_dataMutex, true);
+
     bcos::crypto::HashType totalHash;
 
-    tbb::spin_mutex mutex;
+    tbb::spin_mutex hashMutex;
     tbb::parallel_for(m_data.range(),
-        [&hashImpl, &mutex, &totalHash](const decltype(m_data)::const_range_type& range) {
+        [&hashImpl, &hashMutex, &totalHash](const decltype(m_data)::const_range_type& range) {
             for (auto& it : range)
             {
                 auto& entry = it.second;
@@ -372,7 +399,7 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
 
                     auto result = hashImpl->hash(data);
 
-                    tbb::spin_mutex::scoped_lock lock(mutex);
+                    tbb::spin_mutex::scoped_lock lock(hashMutex);
                     totalHash ^= result;
                 }
             }
@@ -437,7 +464,7 @@ Entry StateStorage::importExistingEntry(std::string_view table, std::string_view
     {
         STORAGE_REPORT_SET(entryIt->first.table(), key, entryIt->second, "IMPORT EXISTS FAILED");
 
-        STORAGE_LOG(WARNING) << "Import existsing entry, " << table << " | " << toHex(key);
+        STORAGE_LOG(WARNING) << "Fail import existsing entry, " << table << " | " << toHex(key);
     }
     else
     {

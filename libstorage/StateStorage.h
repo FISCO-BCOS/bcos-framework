@@ -32,6 +32,7 @@
 #include "tbb/parallel_for.h"
 #include "tbb/parallel_sort.h"
 #include <tbb/concurrent_hash_map.h>
+#include <tbb/queuing_rw_mutex.h>
 #include <boost/throw_exception.hpp>
 #include <future>
 #include <memory>
@@ -224,6 +225,8 @@ private:
     }
 
     tbb::concurrent_hash_map<EntryKey, Entry, EntryKeyHasher> m_data;
+    mutable tbb::queuing_rw_mutex m_dataMutex;
+
     tbb::enumerable_thread_specific<Recoder::Ptr> m_recoder;
 
     std::shared_ptr<StorageInterface> m_prev;
