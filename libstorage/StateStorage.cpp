@@ -15,6 +15,7 @@
 #include <ios>
 #include <iterator>
 #include <optional>
+#include <thread>
 
 using namespace bcos;
 using namespace bcos::storage;
@@ -115,6 +116,7 @@ void StateStorage::asyncGetRow(std::string_view tableView, std::string_view keyV
             entryIt.release();
 
             STORAGE_REPORT_GET(tableView, keyView, std::nullopt, "DELETED");
+            lock->release();
             _callback(nullptr, std::nullopt);
         }
         else
@@ -123,6 +125,7 @@ void StateStorage::asyncGetRow(std::string_view tableView, std::string_view keyV
             entryIt.release();
 
             STORAGE_REPORT_GET(tableView, keyView, optionalEntry, "FOUND");
+            lock->release();
             _callback(nullptr, std::move(optionalEntry));
         }
         return;
@@ -319,6 +322,7 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
 
     m_capacity += updatedCapacity;
 
+    lock.release();
     callback(nullptr);
 }
 
@@ -327,11 +331,6 @@ void StateStorage::parallelTraverse(bool onlyDirty,
         const std::string_view& table, const std::string_view& key, const Entry& entry)>
         callback) const
 {
-    if (!m_readOnly)
-    {
-        STORAGE_LOG(WARNING) << "Traverse a writable storage is unsafe";
-    }
-
     tbb::queuing_rw_mutex::scoped_lock lock(m_dataMutex, true);
     tbb::parallel_do(m_data.begin(), m_data.end(), [&](const std::pair<const EntryKey, Entry>& it) {
         auto& entry = it.second;
