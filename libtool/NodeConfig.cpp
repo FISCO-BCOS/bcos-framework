@@ -481,8 +481,10 @@ void NodeConfig::loadExecutorConfig(boost::property_tree::ptree const& _pt)
 {
     m_isWasm = _pt.get<bool>("executor.is_wasm", false);
     m_isAuthCheck = _pt.get<bool>("executor.is_auth_check", false);
+    m_authAdminAddress = _pt.get<std::string>("executor.auth_admin_account", "");
     NodeConfig_LOG(INFO) << LOG_DESC("loadExecutorConfig") << LOG_KV("isWasm", m_isWasm);
     NodeConfig_LOG(INFO) << LOG_DESC("loadExecutorConfig") << LOG_KV("isAuthCheck", m_isAuthCheck);
+    NodeConfig_LOG(INFO) << LOG_DESC("loadExecutorConfig") << LOG_KV("authAdminAccount", m_authAdminAddress);
 }
 
 // Note: make sure the consensus param checker is consistent with the precompiled param checker
