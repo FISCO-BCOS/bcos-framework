@@ -1135,6 +1135,28 @@ BOOST_AUTO_TEST_CASE(hash_map)
     BOOST_CHECK(data.find(findIt, EntryKey("table", std::string_view("key"))));
 }
 
+BOOST_AUTO_TEST_CASE(purgeNonExistsEntry)
+{
+    auto storage1 = std::make_shared<StateStorage>(nullptr);
+    auto storage2 = std::make_shared<StateStorage>(storage1);
+
+    Entry entry1;
+    entry1.importFields({"hello world!"});
+    storage1->asyncSetRow(
+        "table", "key1", std::move(entry1), [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+
+    Entry purgeEntry;
+    purgeEntry.setStatus(Entry::PURGED);
+    storage2->asyncSetRow("table", "key1", std::move(purgeEntry),
+        [](Error::UniquePtr error) { BOOST_CHECK(!error); });
+
+    storage2->asyncGetRow("table", "key1", [](Error::UniquePtr error, std::optional<Entry> entry) {
+        BOOST_CHECK(!error);
+        BOOST_CHECK(entry);
+        BOOST_CHECK_EQUAL(entry->getField(0), "hello world!");
+    });
+}
+
 BOOST_AUTO_TEST_CASE(importPrev) {}
 
 BOOST_AUTO_TEST_SUITE_END()

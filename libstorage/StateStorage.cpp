@@ -276,11 +276,10 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
     {
         auto& existsEntry = entryIt->second;
         entryOld.emplace(std::move(existsEntry));
-        entryIt->second = std::move(entry);
 
         updatedCapacity -= entryOld->capacityOfHashField();
 
-        if (entryIt->second.status() == Entry::PURGED)
+        if (entry.status() == Entry::PURGED)
         {
             m_data.erase(entryIt);
             STORAGE_REPORT_SET(tableNameView, keyView, std::nullopt, "PURGED");
@@ -288,11 +287,21 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
         else
         {
             STORAGE_REPORT_SET(tableNameView, keyView, entryIt->second, "UPDATE");
+            entryIt->second = std::move(entry);
+            entryIt.release();
         }
-        entryIt.release();
     }
     else
     {
+        if (entry.status() == Entry::PURGED)
+        {
+            STORAGE_REPORT_SET(tableNameView, keyView, std::nullopt, "PURGED NOT EXISTS");
+
+            lock.release();
+            callback(nullptr);
+            return;
+        }
+
         if (m_data.emplace(
                 EntryKey(std::string(tableNameView), std::string(keyView)), std::move(entry)))
         {

@@ -45,6 +45,7 @@ public:
         EVM_ABI_CODEC = 0x1,
         LIQUID_SCALE_CODEC = 0x2,
         DAG = 0x4,
+        LIQUID_CREATE = 0x8,
     };
 
     using Ptr = std::shared_ptr<Transaction>;
