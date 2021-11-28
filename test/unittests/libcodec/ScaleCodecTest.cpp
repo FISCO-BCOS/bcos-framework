@@ -546,21 +546,27 @@ std::pair<T, bytes> makeMatchPair(T value, const bytes& match)
 }
 
 template <typename T>
-void testFixedWidthInteger(std::pair<T, bytes> const& _matchPair)
+void testFixedWidthInteger(std::pair<T, bytes> const& _matchPair, bool _check = true)
 {
     auto [value, match] = _matchPair;
     ScaleEncoderStream s;
     s << value;
-    BOOST_CHECK(s.data() == match);
-    ScaleDecoderStream s2(match);
-    T v;
-    s2 >> v;
-    BOOST_CHECK(v == value);
+    if (_check)
+    {
+        BOOST_CHECK(s.data() == match);
+        ScaleDecoderStream s2(match);
+        T v;
+        s2 >> v;
+        BOOST_CHECK(v == value);
+    }
+    std::cout << "##### value:" << std::to_string(value) << ", data:" << *toHexString(s.data())
+              << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(testFixedWidthIntegerCase)
 {
     // Int8Test
+    std::cout << "##### int8_t test" << std::endl;
     auto fixedWidthIntegerInt8 = makeMatchPair<int8_t>(0, {0});
     testFixedWidthInteger(fixedWidthIntegerInt8);
     fixedWidthIntegerInt8 = makeMatchPair<int8_t>(-1, {255});
@@ -574,15 +580,36 @@ BOOST_AUTO_TEST_CASE(testFixedWidthIntegerCase)
     fixedWidthIntegerInt8 = makeMatchPair<int8_t>(-15, {241});
     testFixedWidthInteger(fixedWidthIntegerInt8);
     // UInt8Test
+    std::cout << "##### uint8_t test" << std::endl;
     auto fixedWidthIntegerUInt8 = makeMatchPair<uint8_t>(0, {0});
     testFixedWidthInteger(fixedWidthIntegerUInt8);
     fixedWidthIntegerUInt8 = makeMatchPair<uint8_t>(234, {234});
     testFixedWidthInteger(fixedWidthIntegerUInt8);
     fixedWidthIntegerUInt8 = makeMatchPair<uint8_t>(255, {255});
     testFixedWidthInteger(fixedWidthIntegerUInt8);
+    fixedWidthIntegerUInt8 = makeMatchPair<uint8_t>(129, {255});
+    testFixedWidthInteger(fixedWidthIntegerUInt8, false);
+    fixedWidthIntegerUInt8 = makeMatchPair<uint8_t>(132, {255});
+    testFixedWidthInteger(fixedWidthIntegerUInt8, false);
+    fixedWidthIntegerUInt8 = makeMatchPair<uint8_t>(128, {255});
+    testFixedWidthInteger(fixedWidthIntegerUInt8, false);
+    fixedWidthIntegerUInt8 = makeMatchPair<uint8_t>(244, {255});
+    testFixedWidthInteger(fixedWidthIntegerUInt8, false);
     // Int16Test
-    auto fixedWidthIntegerInt16 = makeMatchPair<int16_t>(-32767, {1, 128});
+    std::cout << "##### int16_t test" << std::endl;
+    auto fixedWidthIntegerInt16 = makeMatchPair<int16_t>(0, {});
+    testFixedWidthInteger(fixedWidthIntegerInt16, false);
+    fixedWidthIntegerInt16 = makeMatchPair<int16_t>(-32767, {1, 128});
     testFixedWidthInteger(fixedWidthIntegerInt16);
+    fixedWidthIntegerInt16 = makeMatchPair<int16_t>(-3, {});
+    testFixedWidthInteger(fixedWidthIntegerInt16, false);
+    fixedWidthIntegerInt16 = makeMatchPair<int16_t>(3, {});
+    testFixedWidthInteger(fixedWidthIntegerInt16, false);
+    fixedWidthIntegerInt16 = makeMatchPair<int16_t>(128, {});
+    testFixedWidthInteger(fixedWidthIntegerInt16, false);
+    fixedWidthIntegerInt16 = makeMatchPair<int16_t>(-128, {});
+    testFixedWidthInteger(fixedWidthIntegerInt16, false);
+
     fixedWidthIntegerInt16 = makeMatchPair<int16_t>(-1, {255, 255});
     testFixedWidthInteger(fixedWidthIntegerInt16);
     fixedWidthIntegerInt16 = makeMatchPair<int16_t>(32767, {255, 127});
@@ -591,33 +618,201 @@ BOOST_AUTO_TEST_CASE(testFixedWidthIntegerCase)
     testFixedWidthInteger(fixedWidthIntegerInt16);
     fixedWidthIntegerInt16 = makeMatchPair<int16_t>(-12345, {199, 207});
     testFixedWidthInteger(fixedWidthIntegerInt16);
+    fixedWidthIntegerInt16 = makeMatchPair<int16_t>(255, {});
+    testFixedWidthInteger(fixedWidthIntegerInt16, false);
+    fixedWidthIntegerInt16 = makeMatchPair<int16_t>(252, {});
+    testFixedWidthInteger(fixedWidthIntegerInt16, false);
+    fixedWidthIntegerInt16 = makeMatchPair<int16_t>(244, {});
+    testFixedWidthInteger(fixedWidthIntegerInt16, false);
     // UInt16Test
+    std::cout << "##### uint16_t test" << std::endl;
     auto fixedWidthIntegerUInt16 = makeMatchPair<uint16_t>(32767, {255, 127});
     testFixedWidthInteger(fixedWidthIntegerUInt16);
+    fixedWidthIntegerUInt16 = makeMatchPair<uint16_t>(65535, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt16, false);
+    fixedWidthIntegerUInt16 = makeMatchPair<uint16_t>(0, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt16, false);
+    fixedWidthIntegerUInt16 = makeMatchPair<uint16_t>(1, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt16, false);
+
+    fixedWidthIntegerUInt16 = makeMatchPair<uint16_t>(128, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt16, false);
+    fixedWidthIntegerUInt16 = makeMatchPair<uint16_t>(255, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt16, false);
+    fixedWidthIntegerUInt16 = makeMatchPair<uint16_t>(256, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt16, false);
     fixedWidthIntegerUInt16 = makeMatchPair<uint16_t>(12345, {57, 48});
     testFixedWidthInteger(fixedWidthIntegerUInt16);
     // Int32Test
+
+    std::cout << "##### int32_t test" << std::endl;
     auto fixedWidthIntegerInt32 = makeMatchPair<int32_t>(2147483647l, {255, 255, 255, 127});
     testFixedWidthInteger(fixedWidthIntegerInt32);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(0, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(-3, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(3, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(252, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(-252, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(255, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(-255, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(256, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(-256, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(257, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(-257, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(65535, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
+    fixedWidthIntegerInt32 = makeMatchPair<int32_t>(-65535, {});
+    testFixedWidthInteger(fixedWidthIntegerInt32, false);
     fixedWidthIntegerInt32 = makeMatchPair<int32_t>(-1, {255, 255, 255, 255});
     testFixedWidthInteger(fixedWidthIntegerInt32);
     fixedWidthIntegerInt32 = makeMatchPair<int32_t>(1, {1, 0, 0, 0});
     testFixedWidthInteger(fixedWidthIntegerInt32);
     // Uint32Test
+    std::cout << "##### uint32_t test" << std::endl;
     auto fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(16909060ul, {4, 3, 2, 1});
     testFixedWidthInteger(fixedWidthIntegerUInt32);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(0, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(1, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(2, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(127, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(128, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(129, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(255, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(256, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(257, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(65535, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(65536, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(65537, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+    fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(2147483647ul, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt32, false);
+
     fixedWidthIntegerUInt32 = makeMatchPair<uint32_t>(67305985, {1, 2, 3, 4});
     testFixedWidthInteger(fixedWidthIntegerUInt32);
     // Int64Test
+    std::cout << "##### int64_t test" << std::endl;
     auto fixedWidthIntegerInt64 =
         makeMatchPair<int64_t>(578437695752307201ll, {1, 2, 3, 4, 5, 6, 7, 8});
     testFixedWidthInteger(fixedWidthIntegerInt64);
     fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-1, {255, 255, 255, 255, 255, 255, 255, 255});
     testFixedWidthInteger(fixedWidthIntegerInt64);
+
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-1, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(1, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-127, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(127, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-128, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(128, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(129, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-129, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-255, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(255, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(256, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-256, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(257, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-257, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(65535, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-65535, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(65536, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-65536, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(65537, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-65537, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-2147483647, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(2147483647, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-2147483648, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(2147483648, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-2147483649, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(2147483649, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(67305985, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(-67305985, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+    fixedWidthIntegerInt64 = makeMatchPair<int64_t>(0, {});
+    testFixedWidthInteger(fixedWidthIntegerInt64, false);
+
+
     // UInt64Test
+    std::cout << "##### uint64_t test" << std::endl;
     auto fixedWidthIntegerUInt64 =
         makeMatchPair<uint64_t>(578437695752307201ull, {1, 2, 3, 4, 5, 6, 7, 8});
     testFixedWidthInteger(fixedWidthIntegerUInt64);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(0, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(1, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(127, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(128, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(129, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(255, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(256, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(257, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(65535, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(65536, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(65537, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(2147483647, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(2147483648, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
+    fixedWidthIntegerUInt64 = makeMatchPair<uint64_t>(2147483649, {});
+    testFixedWidthInteger(fixedWidthIntegerUInt64, false);
 }
 
 BOOST_AUTO_TEST_CASE(testCollections)
@@ -762,6 +957,18 @@ auto length = 1048576;  // 2^20
 }
 }
 
+template<typename T>
+void printData(T const& _data)
+{
+    ScaleEncoderStream encoder;
+    encoder << _data;
+    auto &&out = encoder.data();
+    T decodedNumber;
+    ScaleDecoderStream decoder(gsl::make_span(out));
+    decoder >> decodedNumber;
+    BOOST_CHECK(_data == decodedNumber);
+    std::cout << "#### value:" << _data << ", encoded:" << *toHexString(encoder.data()) << std::endl;
+}
 BOOST_AUTO_TEST_CASE(testU256)
 {
     u256 number = 3453456346534;
@@ -785,6 +992,24 @@ BOOST_AUTO_TEST_CASE(testU256)
     decoder2 >> decodedNumber2;
     std::cout << "#### number2:" << number2 << ", decodedNumber2:" << decodedNumber2 << std::endl;
     BOOST_CHECK(number2 == decodedNumber2);
+
+    std::cout << "##### u256 test" << std::endl;
+    printData((u256)0);
+    printData((u256)1);
+    printData((u256)127);
+    printData((u256)128);
+    printData((u256)129);
+    printData((u256)255);
+    printData((u256)256);
+    printData((u256)257);
+    printData((u256)65535);
+    printData((u256)65536);
+    printData((u256)65537);
+    printData((u256)2147483647);
+    printData((u256)2147483648);
+    printData((u256)2147483649);
+    printData((u256)123123122147483649);
+    std::cout << "##### u256 test end" << std::endl;
 }
 BOOST_AUTO_TEST_CASE(tests256)
 {
@@ -812,6 +1037,39 @@ BOOST_AUTO_TEST_CASE(tests256)
     decoder2 >> decodedNumber2;
     std::cout << "#### number2:" << number2 << ", decodedNumber2:" << decodedNumber2 << std::endl;
     BOOST_CHECK(number2 == decodedNumber2);
+
+    std::cout << "##### s256 test" << std::endl;
+    printData((s256)0);
+    printData((s256)1);
+    printData((s256)127);
+    printData((s256)128);
+    printData((s256)129);
+    printData((s256)255);
+    printData((s256)256);
+    printData((s256)257);
+    printData((s256)65535);
+    printData((s256)65536);
+    printData((s256)65537);
+    printData((s256)2147483647);
+    printData((s256)2147483648);
+    printData((s256)2147483649);
+    printData((s256)123123122147483649);
+
+    printData((s256)-1);
+    printData((s256)-127);
+    printData((s256)-128);
+    printData((s256)-129);
+    printData((s256)-255);
+    printData((s256)-256);
+    printData((s256)-257);
+    printData((s256)-65535);
+    printData((s256)-65536);
+    printData((s256)-65537);
+    printData((s256)-2147483647);
+    printData((s256)-2147483648);
+    printData((s256)-2147483649);
+    printData((s256)-123123122147483649);
+    std::cout << "##### s256 test end" << std::endl;
 }
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
