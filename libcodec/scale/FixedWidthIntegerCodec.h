@@ -36,6 +36,7 @@ namespace scale
  * @param value integer value
  * @return byte array representation of value
  */
+// Note: rust scale use u128 encoded as FixedWidthInteger(We don't support u128 now)
 template <class T, class S, typename I = std::decay_t<T>,
     typename = std::enable_if_t<std::is_integral<I>::value>>
 void encodeInteger(T value, S& out)

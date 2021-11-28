@@ -120,6 +120,21 @@ void encodeCompactInteger(const CompactInteger& value, ScaleEncoderStream& out)
     }
 }
 
+ScaleEncoderStream& ScaleEncoderStream::operator<<(const u256& _value)
+{
+    // convert u256 to big-edian bytes
+    bytes bigEndianData = toBigEndian(_value);
+    if (bigEndianData.size() >= 34)
+    {
+        BOOST_THROW_EXCEPTION(ScaleEncodeException()
+                              << errinfo_comment("encode u256 exception for overflowed value"));
+    }
+    byte size = (byte)(bigEndianData.size());
+    putByte(size);
+    m_stream.insert(m_stream.end(), bigEndianData.begin(), bigEndianData.end());
+    return *this;
+}
+
 bytes ScaleEncoderStream::data() const
 {
     bytes buffer(m_stream.size(), 0u);

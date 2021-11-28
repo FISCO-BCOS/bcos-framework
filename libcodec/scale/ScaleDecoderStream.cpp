@@ -148,3 +148,21 @@ bool ScaleDecoderStream::hasMore(uint64_t n) const
 {
     return static_cast<SizeType>(m_currentIndex + n) <= m_span.size();
 }
+
+ScaleDecoderStream& ScaleDecoderStream::operator>>(u256& v)
+{
+    bcos::byte size;
+    *this >> size;
+    if (size >= 34)
+    {
+        BOOST_THROW_EXCEPTION(ScaleDecodeException()
+                              << errinfo_comment("decode u256 exception for overflowed value"));
+    }
+    bytes decodedBigEndianData;
+    decodedBigEndianData.resize(size);
+    decodedBigEndianData.assign(m_currentIterator, m_currentIterator + size);
+    m_currentIterator += size;
+    m_currentIndex += size;
+    v = fromBigEndian<u256>(decodedBigEndianData);
+    return *this;
+}

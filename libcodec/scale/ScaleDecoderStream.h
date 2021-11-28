@@ -18,6 +18,7 @@
  */
 #pragma once
 #include "../../libutilities/Common.h"
+#include "../../libutilities/DataConvertUtility.h"
 #include "../../libutilities/FixedBytes.h"
 #include "Common.h"
 #include "FixedWidthIntegerCodec.h"
@@ -190,14 +191,7 @@ public:
         return *this >> const_cast<mutableT&>(*v);  // NOLINT
     }
 
-    ScaleDecoderStream& operator>>(u256& v)
-    {
-        CompactInteger value;
-        *this >> value;
-        v = (u256)(value);
-        return *this;
-    }
-
+    ScaleDecoderStream& operator>>(u256& v);
     /**
      * @brief scale-decodes compact integer value
      * @param v compact integer reference

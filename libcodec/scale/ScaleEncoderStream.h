@@ -268,11 +268,11 @@ public:
 
     ScaleEncoderStream& operator<<(s256 const& v)
     {
-        CompactInteger unsignedValue = s2u(v);
+        u256 unsignedValue = s2u(v);
         return *this << unsignedValue;
     }
 
-    ScaleEncoderStream& operator<<(const u256& v) { return *this << (CompactInteger)v; }
+    ScaleEncoderStream& operator<<(const u256& v);
 
 protected:
     template <size_t I, class... Ts>
