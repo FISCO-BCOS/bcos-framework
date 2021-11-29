@@ -67,7 +67,10 @@ public:
             m_working = false;
             stop();
             m_ioService->stop();
-            m_worker->join();
+            if (m_worker->joinable())
+            {
+                m_worker->join();
+            }
             m_worker.reset();
         }
     }
@@ -112,7 +115,6 @@ protected:
     virtual uint64_t adjustTimeout() { return m_timeout; }
     std::atomic<uint64_t> m_timeout = {0};
 
-private:
     std::atomic_bool m_running = {false};
     std::atomic_bool m_working = {false};
 
