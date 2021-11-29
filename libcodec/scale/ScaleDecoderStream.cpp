@@ -148,3 +148,15 @@ bool ScaleDecoderStream::hasMore(uint64_t n) const
 {
     return static_cast<SizeType>(m_currentIndex + n) <= m_span.size();
 }
+
+ScaleDecoderStream& ScaleDecoderStream::operator>>(u256& v)
+{
+    bytes decodedBigEndianData;
+    byte size = 32;
+    decodedBigEndianData.resize(size);
+    decodedBigEndianData.assign(m_currentIterator, m_currentIterator + size);
+    m_currentIterator += size;
+    m_currentIndex += size;
+    v = fromBigEndian<u256>(decodedBigEndianData);
+    return *this;
+}

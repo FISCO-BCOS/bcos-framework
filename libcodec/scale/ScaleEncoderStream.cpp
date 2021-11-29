@@ -120,6 +120,14 @@ void encodeCompactInteger(const CompactInteger& value, ScaleEncoderStream& out)
     }
 }
 
+ScaleEncoderStream& ScaleEncoderStream::operator<<(const u256& _value)
+{
+    // convert u256 to big-edian bytes(Note: must be 32bytes)
+    bytes bigEndianData = toBigEndian(_value);
+    m_stream.insert(m_stream.end(), bigEndianData.begin(), bigEndianData.end());
+    return *this;
+}
+
 bytes ScaleEncoderStream::data() const
 {
     bytes buffer(m_stream.size(), 0u);
