@@ -46,6 +46,7 @@ public:
         LIQUID_SCALE_CODEC = 0x2,
         DAG = 0x4,
         LIQUID_CREATE = 0x8,
+        AUTH_CREATE = 0x10,
     };
 
     using Ptr = std::shared_ptr<Transaction>;
