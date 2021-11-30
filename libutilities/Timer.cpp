@@ -95,3 +95,23 @@ void Timer::stop()
     // cancel the timer
     m_timer->cancel();
 }
+
+void Timer::destroy()
+{
+    if (!m_working || !m_worker)
+    {
+        return;
+    }
+    m_working = false;
+    stop();
+    m_ioService->stop();
+    if (m_worker->get_id() != std::this_thread::get_id())
+    {
+        m_worker->join();
+        m_worker.reset();
+    }
+    else
+    {
+        m_worker->detach();
+    }
+}
