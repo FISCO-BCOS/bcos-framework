@@ -55,25 +55,7 @@ public:
 
     virtual ~Timer() { destroy(); }
 
-    virtual void destroy()
-    {
-        if (!m_working)
-        {
-            return;
-        }
-        boost::unique_lock<boost::mutex> l(x_worker);
-        if (m_worker)
-        {
-            m_working = false;
-            stop();
-            m_ioService->stop();
-            if (m_worker->joinable())
-            {
-                m_worker->join();
-            }
-            m_worker.reset();
-        }
-    }
+    virtual void destroy();
     virtual void start();
     virtual void stop();
     virtual void restart()
@@ -121,7 +103,6 @@ protected:
     std::shared_ptr<boost::asio::io_service> m_ioService;
     std::shared_ptr<boost::asio::steady_timer> m_timer;
     std::unique_ptr<std::thread> m_worker;
-    mutable boost::mutex x_worker;
 
     std::function<void()> m_timeoutHandler;
     // m_work ensures that io_service's run() function will not exit while work is underway
