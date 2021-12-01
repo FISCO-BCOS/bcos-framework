@@ -1,8 +1,8 @@
 #include "StateStorage.h"
 #include "../libutilities/Error.h"
-#include <tbb/parallel_do.h>
 #include <tbb/parallel_sort.h>
 #include <tbb/queuing_rw_mutex.h>
+#include <oneapi/tbb/parallel_for_each.h>
 #include <tbb/spin_mutex.h>
 #include <boost/algorithm/hex.hpp>
 #include <boost/core/ignore_unused.hpp>
@@ -341,7 +341,7 @@ void StateStorage::parallelTraverse(bool onlyDirty,
         callback) const
 {
     tbb::queuing_rw_mutex::scoped_lock lock(m_dataMutex, true);
-    tbb::parallel_do(m_data.begin(), m_data.end(), [&](const std::pair<const EntryKey, Entry>& it) {
+    oneapi::tbb::parallel_for_each(m_data.begin(), m_data.end(), [&](const std::pair<const EntryKey, Entry>& it) {
         auto& entry = it.second;
         if (!onlyDirty || entry.dirty())
         {
@@ -390,7 +390,7 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
 
     tbb::spin_mutex hashMutex;
     tbb::parallel_for(m_data.range(),
-        [&hashImpl, &hashMutex, &totalHash](const decltype(m_data)::const_range_type& range) {
+        [&hashImpl, &hashMutex, &totalHash](decltype(m_data)::range_type& range) {
             for (auto& it : range)
             {
                 auto& entry = it.second;

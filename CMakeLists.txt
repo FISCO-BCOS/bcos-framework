@@ -29,7 +29,7 @@ include(FetchContent)
 set(BCOS_CMAKE_SCRIPTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts")
 FetchContent_Declare(bcos-cmake-scripts
     GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-cmake-scripts.git
-    GIT_TAG 397f904f335bdc2be909565edad4545e2e5fa876
+    GIT_TAG 2d25e8957323ffa86a55528c22348088ba99e9c6
     SOURCE_DIR ${BCOS_CMAKE_SCRIPTS_DIR}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -64,8 +64,8 @@ list(APPEND CMAKE_MODULE_PATH ${BCOS_FRAMEWORK_CMAKE_DIR})
 # init hunter
 include(HunterGate)
 HunterGate(
-    URL "https://${URL_BASE}/FISCO-BCOS/hunter/archive/854dccf88d5adf34ace2439fb168947a11a17b49.tar.gz"
-    SHA1 "afb72a59b5b38e596824d5f0c48bd8c9630747f1"
+    URL "https://${URL_BASE}/FISCO-BCOS/hunter/archive/858de38e7c4c654499f36171feb1057f59e88b71.tar.gz"
+    SHA1 "19eeb6de3c56397e7ed6b45bbc57f2b4000e5b97"
     FILEPATH "${BCOS_FRAMEWORK_CMAKE_DIR}/config.cmake"
 )
 # set CMP0074 to NEW to suppress warnning, https://cmake.org/cmake/help/latest/policy/CMP0074.html
