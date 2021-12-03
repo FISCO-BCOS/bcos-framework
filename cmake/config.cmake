@@ -18,4 +18,5 @@ SHA1 a94c9c1e41edf787a1c080b7cab8f2f4217dbc4b
 CMAKE_ARGS GSL_TEST=OFF
 )
 
-hunter_config(tbb VERSION ${HUNTER_tbb_VERSION} CMAKE_ARGS BUILD_SHARED_LIBRARIES=ON)
+# Note: v2021.4.0 will cause 'plugin needed to handle lto object' error for use lto option
+hunter_config(tbb VERSION 2021.3.0 CMAKE_ARGS BUILD_SHARED_LIBS=OFF)
