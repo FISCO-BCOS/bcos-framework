@@ -45,6 +45,14 @@ struct EntryFixture
 };
 BOOST_FIXTURE_TEST_SUITE(EntryTest, EntryFixture)
 
+BOOST_AUTO_TEST_CASE(viewEqual)
+{
+    std::string a = "value";
+
+    BOOST_CHECK_EQUAL(a, "value");
+    BOOST_CHECK_EQUAL(std::string_view(a), "value");
+}
+
 BOOST_AUTO_TEST_CASE(copyFrom)
 {
     auto entry1 = std::make_shared<Entry>(tableInfo);
@@ -68,15 +76,12 @@ BOOST_AUTO_TEST_CASE(copyFrom)
         auto entry6(std::move(entry5));
     }
 
-    BOOST_TEST(entry2->getField(0) == "value");
+    BOOST_CHECK_EQUAL(entry2->getField(0), "value"sv);
 
     entry2->setField(0, "value2");
 
-    BOOST_TEST(entry2->getField(0) == "value2");
-    BOOST_TEST(entry1->getField(0) == "value");
-    BOOST_TEST(entry1->getField(0) == "value");
-    BOOST_TEST(entry1->getField(0) == "");
-    BOOST_TEST(entry1->getField(0) == "");
+    BOOST_CHECK_EQUAL(entry2->getField(0), "value2");
+    BOOST_CHECK_EQUAL(entry1->getField(0), "value");
 
     entry2->setField(0, "value3");
     BOOST_TEST(entry2->size() == 6);
@@ -88,7 +93,7 @@ BOOST_AUTO_TEST_CASE(copyFrom)
     // test setField lValue and rValue
     entry2->setField(0, string("value2"));
     BOOST_TEST(entry2->dirty() == true);
-    BOOST_TEST(entry2->size() == 12);
+    BOOST_TEST(entry2->size() == 6);
     auto value2 = "value2";
     entry2->setField(0, value2);
 }
@@ -103,36 +108,22 @@ BOOST_AUTO_TEST_CASE(functions)
     BOOST_TEST(entry->dirty() == true);
 }
 
-BOOST_AUTO_TEST_CASE(EmptyEntry)
-{
-    Entry empty;
-    BOOST_CHECK_THROW(empty.getField(0), bcos::Error);
-    BOOST_CHECK_THROW(empty.setField(0, "hello world!"), bcos::Error);
-}
-
 BOOST_AUTO_TEST_CASE(BytesField)
 {
     Entry entry;
 
     std::string value = "abcdefghijklmn";
-    std::vector<char> data, data2;
+    std::vector<char> data;
     data.assign(value.begin(), value.end());
-    data2.assign(value.begin(), value.end());
 
-    entry.importFields({std::string(value), std::string(value)});
+    entry.importFields({std::string(value)});
 
-    for (auto it : entry)
-    {
-        BOOST_CHECK_EQUAL(it, value);
-    }
+    BOOST_CHECK_EQUAL(entry.getField(0), value);
 
     Entry entry2;
-    entry2.importFields({data, data2});
+    entry2.importFields({data});
 
-    for (auto it : entry)
-    {
-        BOOST_CHECK_EQUAL(it, value);
-    }
+    BOOST_CHECK_EQUAL(entry2.getField(0), value);
 }
 
 BOOST_AUTO_TEST_CASE(capacity)

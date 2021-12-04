@@ -28,9 +28,7 @@ struct TablePerfFixture
         for (size_t i = 0; i < count; ++i)
         {
             auto entry = table.newEntry();
-            entry.setField("field1", "value1");
-            entry.setField("field2", "value2");
-            entry.setField("field3", "value" + boost::lexical_cast<std::string>(i));
+            entry.setField(0, "value1");
 
             entries.emplace_back("key_" + boost::lexical_cast<std::string>(i), std::move(entry));
         }
@@ -46,7 +44,7 @@ BOOST_FIXTURE_TEST_SUITE(TablePerf, TablePerfFixture)
 
 BOOST_AUTO_TEST_CASE(syncGet)
 {
-    tableFactory->createTable("test_table", "field1,field2,field3");
+    tableFactory->createTable("test_table", "field1");
     auto table = tableFactory->openTable("test_table");
 
     auto entries = createTestData(*table);
@@ -62,9 +60,7 @@ BOOST_AUTO_TEST_CASE(syncGet)
         std::string key = "key_" + boost::lexical_cast<std::string>(i);
         auto entry = table->getRow(key);
 
-        BOOST_CHECK_EQUAL(entry->getField("field1"), "value1");
-        BOOST_CHECK_EQUAL(entry->getField("field2"), "value2");
-        BOOST_CHECK_EQUAL(entry->getField("field3"), "value" + boost::lexical_cast<std::string>(i));
+        BOOST_CHECK_EQUAL(entry->getField(0), "value1");
     }
 
     std::cout << "sync cost: " << bcos::utcSteadyTime() - now << std::endl;
@@ -90,11 +86,8 @@ BOOST_AUTO_TEST_CASE(asyncGet)
     for (size_t i = 0; i < count; ++i)
     {
         std::string key = "key_" + boost::lexical_cast<std::string>(i);
-        table->asyncGetRow(key, [i, &total, &finished, &done](auto&&, auto&& entry) {
-            BOOST_CHECK_EQUAL(entry->getField("field1"), "value1");
-            BOOST_CHECK_EQUAL(entry->getField("field2"), "value2");
-            BOOST_CHECK_EQUAL(
-                entry->getField("field3"), "value" + boost::lexical_cast<std::string>(i));
+        table->asyncGetRow(key, [&total, &finished, &done](auto&&, auto&& entry) {
+            BOOST_CHECK_EQUAL(entry->getField(0), "value1");
 
             auto current = done.fetch_add(1);
             if (current + 1 >= total)
@@ -125,11 +118,8 @@ BOOST_AUTO_TEST_CASE(asyncToSyncGet)
     {
         std::string key = "key_" + boost::lexical_cast<std::string>(i);
         std::promise<bool> finished;
-        table->asyncGetRow(key, [i, &finished](auto&&, auto&& entry) {
-            BOOST_CHECK_EQUAL(entry->getField("field1"), "value1");
-            BOOST_CHECK_EQUAL(entry->getField("field2"), "value2");
-            BOOST_CHECK_EQUAL(
-                entry->getField("field3"), "value" + boost::lexical_cast<std::string>(i));
+        table->asyncGetRow(key, [&finished](auto&&, auto&& entry) {
+            BOOST_CHECK_EQUAL(entry->getField(0), "value1");
             finished.set_value(true);
         });
         finished.get_future().get();

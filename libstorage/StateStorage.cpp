@@ -269,7 +269,7 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
 
     tbb::queuing_rw_mutex::scoped_lock lock(m_dataMutex, false);
 
-    auto updatedCapacity = entry.capacityOfHashField();
+    auto updatedCapacity = entry.size();
     std::optional<Entry> entryOld;
 
     decltype(m_data)::accessor entryIt;
@@ -278,7 +278,7 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
         auto& existsEntry = entryIt->second;
         entryOld.emplace(std::move(existsEntry));
 
-        updatedCapacity -= entryOld->capacityOfHashField();
+        updatedCapacity -= entryOld->size();
 
         if (entry.status() == Entry::PURGED)
         {

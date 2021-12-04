@@ -10,8 +10,8 @@ public:
     KVStorageHelper(StorageInterface::Ptr storage) : m_storage(std::move(storage)) {}
     ~KVStorageHelper() {}
 
-    void asyncGet(const std::string_view& _columnFamily, const std::string_view& _key,
-        std::function<void(Error::UniquePtr&&, std::string_view&& value)> _callback)
+    void asyncGet(std::string_view _columnFamily, std::string_view _key,
+        std::function<void(Error::UniquePtr, std::string_view value)> _callback)
     {
         m_storage->asyncGetRow(_columnFamily, _key,
             [callback = std::move(_callback)](
@@ -33,10 +33,9 @@ public:
             });
     };
 
-    void asyncGetBatch(const std::string_view& _columnFamily,
+    void asyncGetBatch(std::string_view _columnFamily,
         const std::shared_ptr<std::vector<std::string>>& _keys,
-        std::function<void(Error::UniquePtr&&, std::shared_ptr<std::vector<std::string>>&&)>
-            callback)
+        std::function<void(Error::UniquePtr, std::shared_ptr<std::vector<std::string>>)> callback)
     {
         m_storage->asyncGetRows(_columnFamily, *_keys,
             [callback = std::move(callback)](
@@ -64,8 +63,9 @@ public:
             });
     }
 
-    void asyncPut(const std::string_view& _columnFamily, const std::string_view& _key,
-        Entry::ValueType _value, std::function<void(Error::UniquePtr&&)> _callback)
+    template <typename T>
+    void asyncPut(std::string_view _columnFamily, std::string_view _key, T _value,
+        std::function<void(Error::UniquePtr&&)> _callback)
     {
         Entry value;
         value.importFields({std::move(_value)});
@@ -73,7 +73,7 @@ public:
         m_storage->asyncSetRow(_columnFamily, _key, std::move(value), std::move(_callback));
     }
 
-    void asyncRemove(const std::string_view& _columnFamily, const std::string_view& _key,
+    void asyncRemove(std::string_view _columnFamily, std::string_view _key,
         std::function<void(const Error::Ptr&)> _callback)
     {
         Entry value;

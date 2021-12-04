@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     // BOOST_TEST(table->dirty() == false);
     auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
-    entry->setField("value", "Lili");
+    entry->setField(0, "Lili");
     table->setRow("name", *entry);
     auto tableinfo = table->tableInfo();
     BOOST_CHECK_EQUAL(tableinfo->name(), tableName);
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(dump_hash)
     // BOOST_TEST(data->size() == 1);
     entry = table->newEntry();
     // entry->setField("key", "name2");
-    entry->setField("value", "WW");
+    entry->setField(0, "WW");
     BOOST_CHECK_NO_THROW(table->setRow("name2", *entry));
 
     // data = table->dump(m_blockNumber);
@@ -181,8 +181,7 @@ BOOST_AUTO_TEST_CASE(setRow)
     // BOOST_TEST(table->tableInfo()->key == keyField);
     auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
-    BOOST_CHECK_THROW(entry->setField("value", "Lili"), bcos::Error);
-    BOOST_CHECK_THROW(entry->setField("invalid", "name"), bcos::Error);
+    // BOOST_CHECK_THROW(entry->setField(0, "Lili"), bcos::Error);
     BOOST_CHECK_NO_THROW(table->setRow("name", *entry));
 
     // check fields order of SYS_TABLE
@@ -217,10 +216,8 @@ BOOST_AUTO_TEST_CASE(removeFromCache)
     // BOOST_TEST(table->tableInfo()->key == keyField);
     auto entry = std::make_optional(table->newEntry());
     // entry->setField("key", "name");
-    entry->setField("value1", "hello world!");
-    entry->setField("value2", "hello world2!");
-    BOOST_CHECK_THROW(entry->setField("value", "Lili"), bcos::Error);
-    BOOST_CHECK_THROW(entry->setField("invalid", "name"), bcos::Error);
+    entry->setField(0, "hello world!");
+    // BOOST_CHECK_THROW(entry->setField(0, "Lili"), bcos::Error);
     BOOST_CHECK_NO_THROW(table->setRow("name", *entry));
 
     auto deleteEntry = std::make_optional(table->newEntry());

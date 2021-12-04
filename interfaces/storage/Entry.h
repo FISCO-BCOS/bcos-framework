@@ -32,7 +32,7 @@ public:
     constexpr static int32_t MEDIUM_SIZE = 64;
     constexpr static int32_t LARGE_SIZE = INT32_MAX;
 
-    using SBOBuffer = std::array<bcos::byte, SMALL_SIZE>;
+    using SBOBuffer = std::array<char, SMALL_SIZE>;
 
     using ValueType = std::variant<SBOBuffer, std::string, std::vector<unsigned char>,
         std::vector<char>, std::shared_ptr<std::string>,
@@ -59,6 +59,26 @@ public:
         }
 
         return valueView(m_value);
+    }
+
+    void setField(size_t index, const char* p)
+    {
+        auto view = std::string_view(p, strlen(p));
+        m_size = view.size();
+        if (view.size() <= SMALL_SIZE)
+        {
+            if (m_value.index() != 0)
+            {
+                m_value = SBOBuffer();
+            }
+
+            std::copy_n(view.data(), view.size(), std::get<0>(m_value).data());
+            m_dirty = true;
+        }
+        else
+        {
+            setField(index, std::string(view));
+        }
     }
 
     template <typename T>
@@ -94,35 +114,29 @@ public:
         m_dirty = true;
     }
 
-    auto begin() const { return &m_value; }
-    auto end() const { return &m_value + 1; }
+    Status status() const { return m_status; }
 
-    Status status() const noexcept { return m_status; }
-
-    void setStatus(Status status) noexcept
+    void setStatus(Status status)
     {
         m_status = status;
         m_dirty = true;
     }
 
-    bool dirty() const noexcept { return m_dirty; }
-    void setDirty(bool dirty) noexcept { m_dirty = dirty; }
+    bool dirty() const { return m_dirty; }
+    void setDirty(bool dirty) { m_dirty = dirty; }
 
-    int32_t size() const noexcept { return m_size; }
+    int32_t size() const { return m_size; }
 
-    void importFields(std::initializer_list<ValueType> values)
+    template <typename T>
+    void importFields(std::initializer_list<T> values)
     {
-        if (values.size() > 1)
+        if (values.size() != 1)
         {
             BOOST_THROW_EXCEPTION(
-                BCOS_ERROR(StorageError::UnknownEntryType, "Import more than 1 value"));
+                BCOS_ERROR(StorageError::UnknownEntryType, "Import fields not equal to 1"));
         }
 
-        auto& value = *values.begin();
-        m_value = std::move(value);
-        m_size = 0;
-
-        m_dirty = true;
+        setField(0, std::move(*values.begin()));
     }
 
     auto&& exportFields()
@@ -131,16 +145,18 @@ public:
         return std::move(m_value);
     }
 
-    bool valid() const noexcept
-    {
-        return ((m_status != Status::DELETED) && (m_status != Status::PURGED));
-    }
+    bool valid() const { return m_status == Status::NORMAL; }
 
 private:
     std::string_view valueView(const ValueType& value) const
     {
         std::string_view view;
-        std::visit([this, &view](auto&& valueInside) { view = valueView(valueInside); }, value);
+        std::visit(
+            [this, &view](auto&& valueInside) {
+                auto viewRaw = valueView(valueInside);
+                view = std::string_view(viewRaw.data(), m_size);
+            },
+            value);
         return view;
     }
 
