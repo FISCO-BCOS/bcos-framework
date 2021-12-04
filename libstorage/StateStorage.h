@@ -31,6 +31,8 @@
 #include "tbb/enumerable_thread_specific.h"
 #include "tbb/parallel_for.h"
 #include "tbb/parallel_sort.h"
+
+#define __TBB_PREVIEW_CONCURRENT_HASH_MAP_EXTENSIONS true
 #include <tbb/concurrent_hash_map.h>
 #include <tbb/queuing_rw_mutex.h>
 #include <boost/throw_exception.hpp>
@@ -129,90 +131,33 @@ public:
     void setReadOnly(bool readOnly) { m_readOnly = readOnly; }
 
 protected:
-    class EntryKey
-    {
-    public:
-        EntryKey() {}
-        EntryKey(std::string_view table, std::string_view key)
-          : m_keyData(std::make_tuple(std::move(table), std::move(key)))
-        {}
-        EntryKey(std::string table, std::string key)
-          : m_keyData(std::make_tuple(std::move(table), std::move(key)))
-        {}
-
-        EntryKey(const EntryKey&) = default;
-        EntryKey& operator=(const EntryKey&) = default;
-        EntryKey(EntryKey&&) noexcept = default;
-        EntryKey& operator=(EntryKey&&) noexcept = default;
-
-        std::string_view table() const
-        {
-            std::string_view table;
-            std::visit([&table](auto&& keyData) { table = std::string_view(std::get<0>(keyData)); },
-                m_keyData);
-
-            return table;
-        }
-
-        std::string_view key() const
-        {
-            std::string_view key;
-            std::visit([&key](auto&& keyData) { key = std::string_view(std::get<1>(keyData)); },
-                m_keyData);
-
-            return key;
-        }
-
-        bool operator==(const EntryKey& rhs) const
-        {
-            return table() == rhs.table() && key() == rhs.key();
-        }
-
-        bool operator<(const EntryKey& rhs) const
-        {
-            auto lhsTable = table();
-            auto rhsTable = rhs.table();
-            if (lhsTable != rhsTable)
-            {
-                return lhsTable < rhsTable;
-            }
-
-            return key() < rhs.key();
-        }
-
-    private:
-        std::variant<std::tuple<std::string, std::string>,
-            std::tuple<std::string_view, std::string_view>>
-            m_keyData;
-    };
-
     struct EntryKeyHasher
     {
-        size_t hash(const EntryKey& dataKey) const
+        using is_transparent = void;
+
+        template <typename T>
+        size_t hash(const std::tuple<T, T>& dataKey) const
         {
-            size_t seed = hashString(dataKey.table());
-            boost::hash_combine(seed, hashString(dataKey.key()));
+            size_t seed = hashString(std::get<0>(dataKey));
+            boost::hash_combine(seed, hashString(std::get<1>(dataKey)));
 
             return seed;
         }
 
-        bool equal(const EntryKey& lhs, const EntryKey& rhs) const
+        template <typename T1, typename T2>
+        bool equal(const std::tuple<T1, T1>& lhs, const std::tuple<T2, T2>& rhs) const
         {
-            return lhs.table() == rhs.table() && lhs.key() == rhs.key();
+            auto lhsView = std::make_tuple(
+                std::string_view(std::get<0>(lhs)), std::string_view(std::get<1>(lhs)));
+            auto rhsView = std::make_tuple(
+                std::string_view(std::get<0>(rhs)), std::string_view(std::get<1>(rhs)));
+            return lhsView == rhsView;
         }
 
         std::hash<std::string_view> hashString;
     };
 
-    using TableKey = std::string_view;
-
-    struct TableKeyHasher
-    {
-        size_t hash(const TableKey& dataKey) const { return hashString(dataKey); }
-        bool equal(const TableKey& lhs, const TableKey& rhs) const { return lhs == rhs; }
-
-        std::hash<std::string_view> hashString;
-    };
+    using EntryKey = std::tuple<std::string, std::string>;
 
 private:
     Entry importExistingEntry(std::string_view table, std::string_view key, Entry entry);
@@ -256,18 +201,9 @@ private:
         {
             if (entry)
             {
-                if (entry->fieldCount() > 0)
-                {
-                    STORAGE_LOG(TRACE) << op << "|" << table << "|" << toHex(key) << "|["
-                                       << toHex(*(entry->begin())) << "]|"
-                                       << (int32_t)entry->status() << "|" << desc;
-                }
-                else
-                {
-                    STORAGE_LOG(TRACE) << op << "|" << table << "|" << toHex(key) << "|["
-                                       << ""
-                                       << "]|" << (int32_t)entry->status() << "|" << desc;
-                }
+                STORAGE_LOG(TRACE)
+                    << op << "|" << table << "|" << toHex(key) << "|[" << toHex(entry->getField(0))
+                    << "]|" << (int32_t)entry->status() << "|" << desc;
             }
             else
             {

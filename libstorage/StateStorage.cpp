@@ -1,8 +1,8 @@
 #include "StateStorage.h"
 #include "../libutilities/Error.h"
+#include <oneapi/tbb/parallel_for_each.h>
 #include <tbb/parallel_sort.h>
 #include <tbb/queuing_rw_mutex.h>
-#include <oneapi/tbb/parallel_for_each.h>
 #include <tbb/spin_mutex.h>
 #include <boost/algorithm/hex.hpp>
 #include <boost/core/ignore_unused.hpp>
@@ -30,11 +30,12 @@ void StateStorage::asyncGetPrimaryKeys(std::string_view table,
     {
         for (auto& it : m_data)
         {
-            if (it.first.table() == table)
+            auto& [entryTable, entryKey] = it.first;
+            if (entryTable == table)
             {
-                if (!_condition || _condition->isValid(it.first.key()))
+                if (!_condition || _condition->isValid(entryKey))
                 {
-                    localKeys.emplace(it.first.key(), it.second.status());
+                    localKeys.emplace(entryKey, it.second.status());
                 }
             }
         }
@@ -107,7 +108,7 @@ void StateStorage::asyncGetRow(std::string_view tableView, std::string_view keyV
     auto lock = std::make_unique<tbb::queuing_rw_mutex::scoped_lock>(m_dataMutex, false);
 
     decltype(m_data)::const_accessor entryIt;
-    if (m_data.find(entryIt, EntryKey(tableView, keyView)))
+    if (m_data.find(entryIt, std::make_tuple(tableView, keyView)))
     {
         auto& entry = entryIt->second;
 
@@ -341,13 +342,14 @@ void StateStorage::parallelTraverse(bool onlyDirty,
         callback) const
 {
     tbb::queuing_rw_mutex::scoped_lock lock(m_dataMutex, true);
-    oneapi::tbb::parallel_for_each(m_data.begin(), m_data.end(), [&](const std::pair<const EntryKey, Entry>& it) {
-        auto& entry = it.second;
-        if (!onlyDirty || entry.dirty())
-        {
-            callback(it.first.table(), it.first.key(), entry);
-        }
-    });
+    oneapi::tbb::parallel_for_each(
+        m_data.begin(), m_data.end(), [&](const std::pair<const EntryKey, Entry>& it) {
+            auto& entry = it.second;
+            if (!onlyDirty || entry.dirty())
+            {
+                callback(std::get<0>(it.first), std::get<1>(it.first), entry);
+            }
+        });
 }
 
 std::optional<Table> StateStorage::openTable(const std::string_view& tableName)
@@ -389,26 +391,26 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
     bcos::crypto::HashType totalHash;
 
     tbb::spin_mutex hashMutex;
-    tbb::parallel_for(m_data.range(),
-        [&hashImpl, &hashMutex, &totalHash](decltype(m_data)::range_type& range) {
+    tbb::parallel_for(
+        m_data.range(), [&hashImpl, &hashMutex, &totalHash](decltype(m_data)::range_type& range) {
             for (auto& it : range)
             {
                 auto& entry = it.second;
                 if (entry.dirty())
                 {
-                    bytes data;
-                    data.reserve(entry.capacityOfHashField() + entry.fieldCount());
-
-                    for (auto field : entry)
+                    if (entry.status() != Entry::DELETED)
                     {
-                        data.insert(data.end(), field.begin(), field.end());
-                        data.insert(data.end(), (bcos::byte)entry.status());
+                        auto value = entry.getField(0);
+                        bcos::bytesConstRef ref((const bcos::byte*)value.data(), value.size());
+                        auto hash = hashImpl->hash(ref);
+
+                        tbb::spin_mutex::scoped_lock lock(hashMutex);
+                        totalHash ^= hash;
                     }
-
-                    auto result = hashImpl->hash(data);
-
-                    tbb::spin_mutex::scoped_lock lock(hashMutex);
-                    totalHash ^= result;
+                    else
+                    {
+                        totalHash ^= bcos::crypto::HashType(0x1);
+                    }
                 }
             }
         });
@@ -428,21 +430,22 @@ void StateStorage::rollback(const Recoder& recoder)
         if (change.entry)
         {
             decltype(m_data)::accessor entryIt;
-            if (m_data.find(entryIt, EntryKey(change.table, std::string_view(change.key))))
+            if (m_data.find(entryIt,
+                    std::make_tuple(std::string_view(change.table), std::string_view(change.key))))
             {
                 entryIt->second = std::move(*(change.entry));
             }
             else
             {
-                m_data.emplace(entryIt,
-                    EntryKey(std::string(change.table), std::string(change.key)),
+                m_data.emplace(std::make_tuple(std::string(change.table), std::string(change.key)),
                     std::move(*(change.entry)));
             }
         }
         else
         {  // nullopt means the key is not exist in m_cache
             decltype(m_data)::const_accessor entryIt;
-            if (m_data.find(entryIt, EntryKey(change.table, std::string_view(change.key))))
+            if (m_data.find(entryIt,
+                    EntryKey(std::string_view(change.table), std::string_view(change.key))))
             {
                 m_data.erase(entryIt);
             }
