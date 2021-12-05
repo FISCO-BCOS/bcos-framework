@@ -306,8 +306,7 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
         if (m_data.emplace(
                 EntryKey(std::string(tableNameView), std::string(keyView)), std::move(entry)))
         {
-            STORAGE_REPORT_SET(constEntryIt->first.table(), constEntryIt->first.key(),
-                constEntryIt->second, "INSERT");
+            STORAGE_REPORT_SET(tableNameView, keyView, std::nullopt, "INSERT");
         }
         else
         {
@@ -315,8 +314,7 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
                             tableNameView % keyView)
                                .str();
             STORAGE_LOG(WARNING) << message;
-            STORAGE_REPORT_SET(constEntryIt->first.table(), constEntryIt->first.key(),
-                constEntryIt->second, "FAIL EXISTS");
+            STORAGE_REPORT_SET(tableNameView, keyView, std::nullopt, "FAIL EXISTS");
 
             lock.release();
             callback(BCOS_ERROR_UNIQUE_PTR(StorageError::WriteError, message));
@@ -390,30 +388,60 @@ crypto::HashType StateStorage::hash(const bcos::crypto::Hash::Ptr& hashImpl)
 
     bcos::crypto::HashType totalHash;
 
-    tbb::spin_mutex hashMutex;
-    tbb::parallel_for(
-        m_data.range(), [&hashImpl, &hashMutex, &totalHash](decltype(m_data)::range_type& range) {
-            for (auto& it : range)
+    if (c_fileLogLevel >= bcos::LogLevel::TRACE)
+    {
+        for (auto& it : m_data)
+        {
+            auto& entry = it.second;
+            if (entry.dirty())
             {
-                auto& entry = it.second;
-                if (entry.dirty())
+                if (entry.status() != Entry::DELETED)
                 {
-                    if (entry.status() != Entry::DELETED)
-                    {
-                        auto value = entry.getField(0);
-                        bcos::bytesConstRef ref((const bcos::byte*)value.data(), value.size());
-                        auto hash = hashImpl->hash(ref);
+                    auto value = entry.getField(0);
+                    STORAGE_LOG(TRACE)
+                        << "Calc hash, dirty entry: " << std::get<0>(it.first) << " | "
+                        << toHex(std::get<1>(it.first)) << " | " << toHex(value);
+                    bcos::bytesConstRef ref((const bcos::byte*)value.data(), value.size());
+                    auto hash = hashImpl->hash(ref);
 
-                        tbb::spin_mutex::scoped_lock lock(hashMutex);
-                        totalHash ^= hash;
-                    }
-                    else
-                    {
-                        totalHash ^= bcos::crypto::HashType(0x1);
-                    }
+                    totalHash ^= hash;
+                }
+                else
+                {
+                    STORAGE_LOG(TRACE) << "Calc hash, deleted entry: " << std::get<0>(it.first)
+                                       << " | " << toHex(std::get<1>(it.first));
+                    totalHash ^= bcos::crypto::HashType(0x1);
                 }
             }
-        });
+        }
+    }
+    else
+    {
+        tbb::spin_mutex hashMutex;
+        tbb::parallel_for(m_data.range(),
+            [&hashImpl, &hashMutex, &totalHash](decltype(m_data)::range_type& range) {
+                for (auto& it : range)
+                {
+                    auto& entry = it.second;
+                    if (entry.dirty())
+                    {
+                        if (entry.status() != Entry::DELETED)
+                        {
+                            auto value = entry.getField(0);
+                            bcos::bytesConstRef ref((const bcos::byte*)value.data(), value.size());
+                            auto hash = hashImpl->hash(ref);
+
+                            tbb::spin_mutex::scoped_lock lock(hashMutex);
+                            totalHash ^= hash;
+                        }
+                        else
+                        {
+                            totalHash ^= bcos::crypto::HashType(0x1);
+                        }
+                    }
+                }
+            });
+    }
 
     return totalHash;
 }
@@ -433,10 +461,14 @@ void StateStorage::rollback(const Recoder& recoder)
             if (m_data.find(entryIt,
                     std::make_tuple(std::string_view(change.table), std::string_view(change.key))))
             {
+                STORAGE_LOG(TRACE) << "Revert exists: " << change.table << " | "
+                                   << toHex(change.key) << " | " << toHex(change.entry->get());
                 entryIt->second = std::move(*(change.entry));
             }
             else
             {
+                STORAGE_LOG(TRACE) << "Revert deleted: " << change.table << " | "
+                                   << toHex(change.key) << " | " << toHex(change.entry->get());
                 m_data.emplace(std::make_tuple(std::string(change.table), std::string(change.key)),
                     std::move(*(change.entry)));
             }
@@ -447,6 +479,8 @@ void StateStorage::rollback(const Recoder& recoder)
             if (m_data.find(entryIt,
                     EntryKey(std::string_view(change.table), std::string_view(change.key))))
             {
+                STORAGE_LOG(TRACE)
+                    << "Revert insert: " << change.table << " | " << toHex(change.key);
                 m_data.erase(entryIt);
             }
             else
@@ -473,14 +507,15 @@ Entry StateStorage::importExistingEntry(std::string_view table, std::string_view
     decltype(m_data)::const_accessor entryIt;
     if (!m_data.emplace(entryIt, EntryKey(std::string(table), std::string(key)), std::move(entry)))
     {
-        STORAGE_REPORT_SET(entryIt->first.table(), key, entryIt->second, "IMPORT EXISTS FAILED");
+        STORAGE_REPORT_SET(
+            std::get<0>(entryIt->first), key, entryIt->second, "IMPORT EXISTS FAILED");
 
         STORAGE_LOG(WARNING) << "Fail import existsing entry, " << table << " | " << toHex(key);
     }
     else
     {
         STORAGE_REPORT_SET(
-            entryIt->first.table(), key, std::make_optional(entryIt->second), "IMPORT");
+            std::get<0>(entryIt->first), key, std::make_optional(entryIt->second), "IMPORT");
     }
 
     assert(!entryIt.empty());

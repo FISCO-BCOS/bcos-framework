@@ -17,5 +17,3 @@ URL "https://${URL_BASE}/hunter-packages/Microsoft.GSL/archive/v2.0.0-p0.tar.gz"
 SHA1 a94c9c1e41edf787a1c080b7cab8f2f4217dbc4b
 CMAKE_ARGS GSL_TEST=OFF
 )
-
-hunter_config(tbb VERSION ${HUNTER_tbb_VERSION} CMAKE_ARGS BUILD_SHARED_LIBRARIES=ON)
