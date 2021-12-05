@@ -88,7 +88,7 @@ public:
         setField(0, std::move(value));
     }
 
-    std::string_view get() const { return valueView(m_value); }
+    std::string_view get() const { return outputValueView(m_value); }
 
     std::string_view getField(size_t index) const
     {
@@ -138,7 +138,7 @@ public:
     template <typename Input>
     void set(Input value)
     {
-        auto view = valueView(value);
+        auto view = inputValueView(value);
         m_size = view.size();
         if (m_size <= SMALL_SIZE)
         {
@@ -195,12 +195,12 @@ public:
     bool valid() const { return m_status == Status::NORMAL; }
 
 private:
-    std::string_view valueView(const ValueType& value) const
+    std::string_view outputValueView(const ValueType& value) const
     {
         std::string_view view;
         std::visit(
             [this, &view](auto&& valueInside) {
-                auto viewRaw = valueView(valueInside);
+                auto viewRaw = inputValueView(valueInside);
                 view = std::string_view(viewRaw.data(), m_size);
             },
             value);
@@ -208,14 +208,14 @@ private:
     }
 
     template <typename T>
-    std::string_view valueView(const T& value) const
+    std::string_view inputValueView(const T& value) const
     {
         std::string_view view((const char*)value.data(), value.size());
         return view;
     }
 
     template <typename T>
-    std::string_view valueView(const std::shared_ptr<T>& value) const
+    std::string_view inputValueView(const std::shared_ptr<T>& value) const
     {
         std::string_view view((const char*)value->data(), value->size());
         return view;
