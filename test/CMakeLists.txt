@@ -27,6 +27,6 @@ target_include_directories(${TEST_BINARY_NAME} PRIVATE . ${CMAKE_SOURCE_DIR} ${B
 
 hunter_add_package(wedpr-crypto)
 find_package(wedpr-crypto CONFIG QUIET REQUIRED)
-find_package(Boost CONFIG QUIET REQUIRED unit_test_framework)
+find_package(Boost CONFIG QUIET REQUIRED serialization unit_test_framework)
 
-target_link_libraries(${TEST_BINARY_NAME} ${UTILITIES_TARGET} ${CODEC_TARGET} ${PROTOCOL_TARGET} ${PBPROTOCOL_TARGET} ${STORAGE_TARGET} ${SYNC_TARGET} jsoncpp_lib_static wedpr-crypto::crypto Boost::unit_test_framework)
+target_link_libraries(${TEST_BINARY_NAME} ${UTILITIES_TARGET} ${CODEC_TARGET} ${PROTOCOL_TARGET} ${PBPROTOCOL_TARGET} ${STORAGE_TARGET} ${SYNC_TARGET} jsoncpp_lib_static wedpr-crypto::crypto Boost::serialization Boost::unit_test_framework)

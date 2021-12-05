@@ -21,6 +21,8 @@
 #include "interfaces/storage/Table.h"
 #include "libstorage/StateStorage.h"
 #include "libutilities/Error.h"
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
@@ -28,6 +30,7 @@
 using namespace std;
 using namespace bcos;
 using namespace bcos::storage;
+
 namespace bcos
 {
 namespace test
@@ -137,6 +140,18 @@ BOOST_AUTO_TEST_CASE(capacity)
 
     BOOST_CHECK_LT(entry.size(), 100);
     BOOST_CHECK_GT(entry.size(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(object)
+{
+    std::tuple<int, std::string, std::string> value = std::make_tuple(100, "hello", "world");
+
+    Entry entry;
+    entry.setObject(value);
+
+    auto out = entry.getObject<std::tuple<int, std::string, std::string>>();
+
+    BOOST_CHECK(out == value);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -1,13 +1,12 @@
 #pragma once
 
 #include "../../libutilities/Common.h"
-#include "../../libutilities/ConcurrentCOW.h"
 #include "../../libutilities/Error.h"
-#include "../protocol/ProtocolTypeDef.h"
 #include "Common.h"
+#include <boost/archive/basic_archive.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/range/any_range.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/stream.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <cstdint>
@@ -32,6 +31,9 @@ public:
     constexpr static int32_t MEDIUM_SIZE = 64;
     constexpr static int32_t LARGE_SIZE = INT32_MAX;
 
+    constexpr static int32_t ARCHIVE_FLAG =
+        boost::archive::no_header | boost::archive::no_codecvt | boost::archive::no_tracking;
+
     using SBOBuffer = std::array<char, SMALL_SIZE>;
 
     using ValueType = std::variant<SBOBuffer, std::string, std::vector<unsigned char>,
@@ -49,6 +51,45 @@ public:
 
     ~Entry() noexcept {}
 
+    template <typename Out, typename InputArchive = boost::archive::binary_iarchive,
+        int flag = ARCHIVE_FLAG>
+    void getObject(Out& out) const
+    {
+        auto view = get();
+        boost::iostreams::stream<boost::iostreams::array_source> inputStream(
+            view.data(), view.size());
+        InputArchive archive(inputStream, flag);
+
+        archive >> out;
+    }
+
+    template <typename Out, typename InputArchive = boost::archive::binary_iarchive,
+        int flag = ARCHIVE_FLAG>
+    Out getObject() const
+    {
+        Out out;
+        getObject<Out, InputArchive, flag>(out);
+
+        return out;
+    }
+
+    template <typename In, typename OutputArchive = boost::archive::binary_oarchive,
+        int flag = ARCHIVE_FLAG>
+    void setObject(const In& in)
+    {
+        std::string value;
+        boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> outputStream(
+            value);
+        OutputArchive archive(outputStream, flag);
+
+        archive << in;
+        outputStream.flush();
+
+        setField(0, std::move(value));
+    }
+
+    std::string_view get() const { return valueView(m_value); }
+
     std::string_view getField(size_t index) const
     {
         if (index > 0)
@@ -58,10 +99,23 @@ public:
                                    " failed, index out of range"));
         }
 
-        return valueView(m_value);
+        return get();
     }
 
-    void setField(size_t index, const char* p)
+    template <typename T>
+    void setField(size_t index, T&& input)
+    {
+        if (index > 0)
+        {
+            BOOST_THROW_EXCEPTION(
+                BCOS_ERROR(-1, "Set field index: " + boost::lexical_cast<std::string>(index) +
+                                   " failed, index out of range"));
+        }
+
+        set(std::forward<T>(input));
+    }
+
+    void set(const char* p)
     {
         auto view = std::string_view(p, strlen(p));
         m_size = view.size();
@@ -77,20 +131,13 @@ public:
         }
         else
         {
-            setField(index, std::string(view));
+            set(std::string(view));
         }
     }
 
-    template <typename T>
-    void setField(size_t index, T value)
+    template <typename Input>
+    void set(Input value)
     {
-        if (index > 0)
-        {
-            BOOST_THROW_EXCEPTION(
-                BCOS_ERROR(-1, "Set field index: " + boost::lexical_cast<std::string>(index) +
-                                   " failed, index out of range"));
-        }
-
         auto view = valueView(value);
         m_size = view.size();
         if (m_size <= SMALL_SIZE)
@@ -108,7 +155,7 @@ public:
         }
         else
         {
-            m_value = std::make_shared<T>(std::move(value));
+            m_value = std::make_shared<Input>(std::move(value));
         }
 
         m_dirty = true;
@@ -127,8 +174,8 @@ public:
 
     int32_t size() const { return m_size; }
 
-    template <typename T>
-    void importFields(std::initializer_list<T> values)
+    template <typename Input>
+    void importFields(std::initializer_list<Input> values)
     {
         if (values.size() != 1)
         {
@@ -180,3 +227,12 @@ private:
     bool m_dirty = false;              // no need to serialization
 };
 }  // namespace bcos::storage
+
+namespace boost::serialization
+{
+template <typename Archive, typename... Types>
+void serialize(Archive& ar, std::tuple<Types...>& t, const unsigned int)
+{
+    std::apply([&](auto&... element) { ((ar & element), ...); }, t);
+}
+}  // namespace boost::serialization
