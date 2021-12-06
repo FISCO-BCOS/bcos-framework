@@ -316,9 +316,9 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
             STORAGE_LOG(WARNING) << message;
             STORAGE_REPORT_SET(tableNameView, keyView, std::nullopt, "FAIL EXISTS");
 
-            lock.release();
-            callback(BCOS_ERROR_UNIQUE_PTR(StorageError::WriteError, message));
-            return;
+            // lock.release();
+            // callback(BCOS_ERROR_UNIQUE_PTR(StorageError::WriteError, message));
+            // return;
         }
     }
 
