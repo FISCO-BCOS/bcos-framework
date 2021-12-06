@@ -186,13 +186,13 @@ private:
     if (c_fileLogLevel >= bcos::LogLevel::TRACE)    \
     {                                               \
     }                                               \
-    log("GET", (table), (key), (entry), (desc))
+    // log("GET", (table), (key), (entry), (desc))
 
 #define STORAGE_REPORT_SET(table, key, entry, desc) \
     if (c_fileLogLevel >= bcos::LogLevel::TRACE)    \
     {                                               \
     }                                               \
-    log("SET", (table), (key), (entry), (desc))
+    // log("SET", (table), (key), (entry), (desc))
 
     // for debug
     void log(const std::string_view& op, const std::string_view& table, const std::string_view& key,

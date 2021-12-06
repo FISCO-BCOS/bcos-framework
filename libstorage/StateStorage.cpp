@@ -287,7 +287,7 @@ void StateStorage::asyncSetRow(std::string_view tableNameView, std::string_view 
         }
         else
         {
-            STORAGE_REPORT_SET(tableNameView, keyView, entryIt->second, "UPDATE");
+            STORAGE_REPORT_SET(tableNameView, keyView, entry, "UPDATE");
             entryIt->second = std::move(entry);
             entryIt.release();
         }
