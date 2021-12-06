@@ -154,6 +154,14 @@ BOOST_AUTO_TEST_CASE(object)
     BOOST_CHECK(out == value);
 }
 
+BOOST_AUTO_TEST_CASE(largeObject)
+{
+    Entry entry;
+    entry.setField(0, std::string(1024, 'a'));
+
+    BOOST_CHECK_EQUAL(entry.getField(0), std::string(1024, 'a'));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace test
 }  // namespace bcos
