@@ -461,14 +461,20 @@ void StateStorage::rollback(const Recoder& recoder)
             if (m_data.find(entryIt,
                     std::make_tuple(std::string_view(change.table), std::string_view(change.key))))
             {
-                STORAGE_LOG(TRACE) << "Revert exists: " << change.table << " | "
-                                   << toHex(change.key) << " | " << toHex(change.entry->get());
+                if (c_fileLogLevel >= bcos::LogLevel::TRACE)
+                {
+                    STORAGE_LOG(TRACE) << "Revert exists: " << change.table << " | "
+                                       << toHex(change.key) << " | " << toHex(change.entry->get());
+                }
                 entryIt->second = std::move(*(change.entry));
             }
             else
             {
-                STORAGE_LOG(TRACE) << "Revert deleted: " << change.table << " | "
-                                   << toHex(change.key) << " | " << toHex(change.entry->get());
+                if (c_fileLogLevel >= bcos::LogLevel::TRACE)
+                {
+                    STORAGE_LOG(TRACE) << "Revert deleted: " << change.table << " | "
+                                       << toHex(change.key) << " | " << toHex(change.entry->get());
+                }
                 m_data.emplace(std::make_tuple(std::string(change.table), std::string(change.key)),
                     std::move(*(change.entry)));
             }
@@ -479,8 +485,11 @@ void StateStorage::rollback(const Recoder& recoder)
             if (m_data.find(entryIt,
                     EntryKey(std::string_view(change.table), std::string_view(change.key))))
             {
-                STORAGE_LOG(TRACE)
-                    << "Revert insert: " << change.table << " | " << toHex(change.key);
+                if (c_fileLogLevel >= bcos::LogLevel::TRACE)
+                {
+                    STORAGE_LOG(TRACE)
+                        << "Revert insert: " << change.table << " | " << toHex(change.key);
+                }
                 m_data.erase(entryIt);
             }
             else
