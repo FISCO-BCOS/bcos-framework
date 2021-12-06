@@ -17,6 +17,3 @@ URL "https://${URL_BASE}/hunter-packages/Microsoft.GSL/archive/v2.0.0-p0.tar.gz"
 SHA1 a94c9c1e41edf787a1c080b7cab8f2f4217dbc4b
 CMAKE_ARGS GSL_TEST=OFF
 )
-
-# Note: v2021.4.0 will cause 'plugin needed to handle lto object' error for use lto option
-hunter_config(tbb VERSION 2021.3.0 CMAKE_ARGS BUILD_SHARED_LIBS=OFF)

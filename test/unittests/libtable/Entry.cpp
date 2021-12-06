@@ -21,6 +21,8 @@
 #include "interfaces/storage/Table.h"
 #include "libstorage/StateStorage.h"
 #include "libutilities/Error.h"
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
@@ -28,6 +30,7 @@
 using namespace std;
 using namespace bcos;
 using namespace bcos::storage;
+
 namespace bcos
 {
 namespace test
@@ -36,8 +39,7 @@ struct EntryFixture
 {
     EntryFixture()
     {
-        tableInfo =
-            std::make_shared<TableInfo>("testTable", std::vector<std::string>{"key2", "value"});
+        tableInfo = std::make_shared<TableInfo>("testTable", std::vector<std::string>{"key2"});
     }
 
     ~EntryFixture() {}
@@ -46,74 +48,57 @@ struct EntryFixture
 };
 BOOST_FIXTURE_TEST_SUITE(EntryTest, EntryFixture)
 
+BOOST_AUTO_TEST_CASE(viewEqual)
+{
+    std::string a = "value";
+
+    BOOST_CHECK_EQUAL(a, "value");
+    BOOST_CHECK_EQUAL(std::string_view(a), "value");
+}
+
 BOOST_AUTO_TEST_CASE(copyFrom)
 {
     auto entry1 = std::make_shared<Entry>(tableInfo);
     auto entry2 = std::make_shared<Entry>(tableInfo);
     BOOST_CHECK_EQUAL(entry1->dirty(), false);
-    entry1->setField("key2", "value");
+    entry1->setField(0, "value");
     BOOST_TEST(entry1->dirty() == true);
-    BOOST_TEST(entry1->capacityOfHashField() == 5);
+    BOOST_TEST(entry1->size() == 5);
 
     *entry2 = *entry1;
-    BOOST_TEST(entry1->refCount() == 2);
-    BOOST_TEST(entry2->refCount() == 2);
 
     {
         auto entry3 = Entry(*entry1);
 
-        BOOST_CHECK_EQUAL(entry3.refCount(), 3);
-        BOOST_CHECK_EQUAL(entry2->refCount(), 3);
-        BOOST_CHECK_EQUAL(entry1->refCount(), 3);
-
-        entry3.setField("value", "i am key2");
-        BOOST_CHECK_EQUAL(entry3.refCount(), 1);
-        BOOST_CHECK_EQUAL(entry2->refCount(), 2);
-        BOOST_CHECK_EQUAL(entry1->refCount(), 2);
+        entry3.setField(0, "i am key2");
 
         auto entry4(std::move(entry3));
-        BOOST_CHECK_EQUAL(entry4.refCount(), 1);
-        BOOST_CHECK_EQUAL(entry3.refCount(), 0);
 
         auto entry5(*entry2);
-        BOOST_CHECK_EQUAL(entry5.refCount(), 3);
-        BOOST_CHECK_EQUAL(entry2->refCount(), 3);
-        BOOST_CHECK_EQUAL(entry1->refCount(), 3);
 
         auto entry6(std::move(entry5));
-        BOOST_CHECK_EQUAL(entry6.refCount(), 3);
-        BOOST_CHECK_EQUAL(entry5.refCount(), 0);
-        BOOST_CHECK_EQUAL(entry2->refCount(), 3);
-        BOOST_CHECK_EQUAL(entry1->refCount(), 3);
     }
 
-    BOOST_TEST(entry2->getField("key2") == "value");
+    BOOST_CHECK_EQUAL(entry2->getField(0), "value"sv);
 
-    entry2->setField("key2", "value2");
+    entry2->setField(0, "value2");
 
-    BOOST_TEST(entry2->getField("key2") == "value2");
-    BOOST_TEST(entry1->getField("key2") == "value");
-    BOOST_TEST(entry1->getField("key2") == "value");
-    BOOST_TEST(entry1->getField("value") == "");
-    BOOST_TEST(entry1->getField("value") == "");
+    BOOST_CHECK_EQUAL(entry2->getField(0), "value2");
+    BOOST_CHECK_EQUAL(entry1->getField(0), "value");
 
-    entry2->setField("key2", "value3");
-    BOOST_TEST(entry2->capacityOfHashField() == 6);
-    BOOST_TEST(entry2->getField("key2") == "value3");
-    BOOST_TEST(entry1->refCount() == 1);
-    BOOST_TEST(entry2->refCount() == 1);
+    entry2->setField(0, "value3");
+    BOOST_TEST(entry2->size() == 6);
+    BOOST_TEST(entry2->getField(0) == "value3");
     *entry2 = *entry2;
     BOOST_TEST(entry2->dirty() == true);
     entry2->setDirty(false);
     BOOST_TEST(entry2->dirty() == false);
-    auto key2 = "value";
     // test setField lValue and rValue
-    entry2->setField(key2, string("value2"));
+    entry2->setField(0, string("value2"));
     BOOST_TEST(entry2->dirty() == true);
-    BOOST_TEST(entry2->refCount() == 1);
-    BOOST_TEST(entry2->capacityOfHashField() == 12);
+    BOOST_TEST(entry2->size() == 6);
     auto value2 = "value2";
-    entry2->setField(key2, value2);
+    entry2->setField(0, value2);
 }
 
 BOOST_AUTO_TEST_CASE(functions)
@@ -126,72 +111,22 @@ BOOST_AUTO_TEST_CASE(functions)
     BOOST_TEST(entry->dirty() == true);
 }
 
-BOOST_AUTO_TEST_CASE(nullTableInfo)
-{
-    auto entry = std::make_shared<Entry>();
-    BOOST_CHECK_EQUAL(entry->capacityOfHashField(), 0);
-
-    std::vector<std::string> fields({"value1", "value2"});
-    entry->importFields({"value1", "value2"});
-
-    BOOST_CHECK_EQUAL(entry->fields().size(), 2);
-    BOOST_CHECK_EQUAL_COLLECTIONS(entry->begin(), entry->end(), fields.begin(), fields.end());
-    BOOST_CHECK_EQUAL(entry->getField(0), "value1");
-    BOOST_CHECK_EQUAL(entry->getField(1), "value2");
-    BOOST_CHECK_THROW(entry->getField("field1"), bcos::Error);
-    BOOST_CHECK_THROW(entry->setField("field2", "value1"), bcos::Error);
-
-    BOOST_CHECK_NO_THROW(entry->setField(1, "value22"));
-    BOOST_CHECK_EQUAL(entry->getField(1), "value22");
-    BOOST_CHECK_THROW(entry->setField(2, "value3"), bcos::Error);
-
-    entry = std::make_shared<Entry>(nullptr);
-    BOOST_CHECK_EQUAL(entry->capacityOfHashField(), 0);
-
-    entry->importFields({"value1", "value2"});
-
-    BOOST_CHECK_EQUAL(entry->fields().size(), 2);
-    BOOST_CHECK_EQUAL_COLLECTIONS(entry->begin(), entry->end(), fields.begin(), fields.end());
-    BOOST_CHECK_EQUAL(entry->getField(0), "value1");
-    BOOST_CHECK_EQUAL(entry->getField(1), "value2");
-    BOOST_CHECK_THROW(entry->getField("field1"), bcos::Error);
-    BOOST_CHECK_THROW(entry->setField("field2", "value1"), bcos::Error);
-
-    BOOST_CHECK_NO_THROW(entry->setField(1, "value22"));
-    BOOST_CHECK_EQUAL(entry->getField(1), "value22");
-    BOOST_CHECK_THROW(entry->setField(2, "value3"), bcos::Error);
-}
-
-BOOST_AUTO_TEST_CASE(EmptyEntry)
-{
-    Entry empty;
-    BOOST_CHECK_THROW(empty.getField("value1"), bcos::Error);
-    BOOST_CHECK_THROW(empty.setField(2, "hello world!"), bcos::Error);
-}
-
 BOOST_AUTO_TEST_CASE(BytesField)
 {
     Entry entry;
 
     std::string value = "abcdefghijklmn";
-    std::vector<char> data, data2;
+    std::vector<char> data;
     data.assign(value.begin(), value.end());
-    data2.assign(value.begin(), value.end());
 
-    entry.importFields({std::string(value), std::string(value)});
+    entry.importFields({std::string(value)});
 
-    for (auto it : entry)
-    {
-        BOOST_CHECK_EQUAL(it, value);
-    }
+    BOOST_CHECK_EQUAL(entry.getField(0), value);
 
     Entry entry2;
-    entry2.importFields({data, data2});
+    entry2.importFields({data});
 
-    for (auto it : entry)
-    {
-        BOOST_CHECK_EQUAL(it, value);
-    }
+    BOOST_CHECK_EQUAL(entry2.getField(0), value);
 }
 
 BOOST_AUTO_TEST_CASE(capacity)
@@ -203,8 +138,20 @@ BOOST_AUTO_TEST_CASE(capacity)
     entry.setField(
         0, std::string("abdflsakdjflkasjdfoiqwueroi!!!!sdlkfjsldfbclsadflaksjdfpqweioruaaa"));
 
-    BOOST_CHECK_LT(entry.capacityOfHashField(), 100);
-    BOOST_CHECK_GT(entry.capacityOfHashField(), 0);
+    BOOST_CHECK_LT(entry.size(), 100);
+    BOOST_CHECK_GT(entry.size(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(object)
+{
+    std::tuple<int, std::string, std::string> value = std::make_tuple(100, "hello", "world");
+
+    Entry entry;
+    entry.setObject(value);
+
+    auto out = entry.getObject<std::tuple<int, std::string, std::string>>();
+
+    BOOST_CHECK(out == value);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

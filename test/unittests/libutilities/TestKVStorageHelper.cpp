@@ -48,11 +48,11 @@ BOOST_AUTO_TEST_CASE(get)
         });
     getPromise3.get_future().get();
 
-    auto table = stateStorage->createTable("test_table", "value1,value2,value3");
+    auto table = stateStorage->createTable("test_table", "value1");
     BOOST_CHECK(table);
 
     bcos::storage::Entry entry1;
-    entry1.importFields({"v1", "v2", "v3"});
+    entry1.importFields({"v1"});
     table->setRow("key1", std::move(entry1));
 
     std::promise<void> getPromise;

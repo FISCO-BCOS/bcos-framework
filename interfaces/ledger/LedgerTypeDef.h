@@ -20,6 +20,8 @@
 
 #pragma once
 #include "../../libutilities/Common.h"
+#include "../protocol/ProtocolTypeDef.h"
+
 namespace bcos
 {
 namespace ledger
@@ -37,6 +39,9 @@ static const int32_t RECEIPTS = 0x0002;
 static const std::string SYSTEM_KEY_TX_GAS_LIMIT = "tx_gas_limit";
 static const std::string SYSTEM_KEY_TX_COUNT_LIMIT = "tx_count_limit";
 static const std::string SYSTEM_KEY_CONSENSUS_LEADER_PERIOD = "consensus_leader_period";
+
+// system config struct
+using SystemConfigEntry = std::tuple<std::string, bcos::protocol::BlockNumber>;
 
 const unsigned TX_GAS_LIMIT_MIN = 100000;
 // get consensus node list type

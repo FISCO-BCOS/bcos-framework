@@ -1,16 +1,18 @@
 #pragma once
 
 #include "../../libutilities/Common.h"
-#include "../../libutilities/ConcurrentCOW.h"
 #include "../../libutilities/Error.h"
-#include "../protocol/ProtocolTypeDef.h"
 #include "Common.h"
+#include <boost/archive/basic_archive.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/range/any_range.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/stream.hpp>
 #include <boost/throw_exception.hpp>
+#include <algorithm>
+#include <cstdint>
 #include <exception>
 #include <initializer_list>
+#include <type_traits>
 #include <variant>
 
 namespace bcos::storage
@@ -22,188 +24,215 @@ public:
     {
         NORMAL = 0,
         DELETED,
-        PURGED
+        PURGED,
     };
-    using ValueType = std::variant<std::string, std::vector<unsigned char>, std::vector<char>>;
 
-    Entry() : m_data(EntryData()) {}
+    constexpr static int32_t SMALL_SIZE = 32;
+    constexpr static int32_t MEDIUM_SIZE = 64;
+    constexpr static int32_t LARGE_SIZE = INT32_MAX;
 
-    explicit Entry(TableInfo::ConstPtr tableInfo)
-      : m_data(EntryData()), m_tableInfo(std::move(tableInfo))
-    {}
+    constexpr static int32_t ARCHIVE_FLAG =
+        boost::archive::no_header | boost::archive::no_codecvt | boost::archive::no_tracking;
 
-    Entry(const Entry&) noexcept = default;
+    using SBOBuffer = std::array<char, SMALL_SIZE>;
+
+    using ValueType = std::variant<SBOBuffer, std::string, std::vector<unsigned char>,
+        std::vector<char>, std::shared_ptr<std::string>,
+        std::shared_ptr<std::vector<unsigned char>>, std::shared_ptr<std::vector<char>>>;
+
+    Entry() = default;
+
+    explicit Entry(TableInfo::ConstPtr) {}
+
+    Entry(const Entry&) = default;
     Entry(Entry&&) noexcept = default;
-    bcos::storage::Entry& operator=(const Entry&) noexcept = default;
+    bcos::storage::Entry& operator=(const Entry&) = default;
     bcos::storage::Entry& operator=(Entry&&) noexcept = default;
 
     ~Entry() noexcept {}
 
+    template <typename Out, typename InputArchive = boost::archive::binary_iarchive,
+        int flag = ARCHIVE_FLAG>
+    void getObject(Out& out) const
+    {
+        auto view = get();
+        boost::iostreams::stream<boost::iostreams::array_source> inputStream(
+            view.data(), view.size());
+        InputArchive archive(inputStream, flag);
+
+        archive >> out;
+    }
+
+    template <typename Out, typename InputArchive = boost::archive::binary_iarchive,
+        int flag = ARCHIVE_FLAG>
+    Out getObject() const
+    {
+        Out out;
+        getObject<Out, InputArchive, flag>(out);
+
+        return out;
+    }
+
+    template <typename In, typename OutputArchive = boost::archive::binary_oarchive,
+        int flag = ARCHIVE_FLAG>
+    void setObject(const In& in)
+    {
+        std::string value;
+        boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> outputStream(
+            value);
+        OutputArchive archive(outputStream, flag);
+
+        archive << in;
+        outputStream.flush();
+
+        setField(0, std::move(value));
+    }
+
+    std::string_view get() const { return outputValueView(m_value); }
+
     std::string_view getField(size_t index) const
     {
-        auto& values = m_data.get()->values;
-        if (index >= values.size())
+        if (index > 0)
         {
             BOOST_THROW_EXCEPTION(
                 BCOS_ERROR(-1, "Get field index: " + boost::lexical_cast<std::string>(index) +
-                                   " failed, index out of range: " +
-                                   boost::lexical_cast<std::string>(values.size())));
+                                   " failed, index out of range"));
         }
 
-        return valueView(values[index]);
+        return get();
     }
 
-    std::string_view getField(const std::string_view& field) const
+    template <typename T>
+    void setField(size_t index, T&& input)
     {
-        if (!m_tableInfo)
-        {
-            BOOST_THROW_EXCEPTION(
-                BCOS_ERROR(-1, "Get field: " + std::string(field) + " error, tableInfo is null"));
-        }
-
-        auto index = m_tableInfo->fieldIndex(field);
-        return getField(index);
-    }
-
-    void setField(size_t index, ValueType value)
-    {
-        if (index >= m_data.get()->values.size())
+        if (index > 0)
         {
             BOOST_THROW_EXCEPTION(
                 BCOS_ERROR(-1, "Set field index: " + boost::lexical_cast<std::string>(index) +
-                                   " failed, index out of range: " +
-                                   boost::lexical_cast<std::string>(m_data.get()->values.size())));
+                                   " failed, index out of range"));
         }
 
-        auto mutableData = m_data.mutableGet();
-        auto& fieldValue = (mutableData->values)[index];
+        set(std::forward<T>(input));
+    }
 
-        int32_t updatedCapacity = static_cast<int32_t>(valueView(value).size()) -
-                                  static_cast<int32_t>(valueView(fieldValue).size());
+    void set(const char* p)
+    {
+        auto view = std::string_view(p, strlen(p));
+        m_size = view.size();
+        if (view.size() <= SMALL_SIZE)
+        {
+            if (m_value.index() != 0)
+            {
+                m_value = SBOBuffer();
+            }
 
-        fieldValue = std::move(value);
-        m_capacityOfHashField += updatedCapacity;
+            std::copy_n(view.data(), view.size(), std::get<0>(m_value).data());
+            m_dirty = true;
+        }
+        else
+        {
+            set(std::string(view));
+        }
+    }
+
+    template <typename Input>
+    void set(Input value)
+    {
+        auto view = inputValueView(value);
+        m_size = view.size();
+        if (m_size <= SMALL_SIZE)
+        {
+            if (m_value.index() != 0)
+            {
+                m_value = SBOBuffer();
+            }
+
+            std::copy_n(view.data(), view.size(), std::get<0>(m_value).data());
+        }
+        else if (m_size <= MEDIUM_SIZE)
+        {
+            m_value = std::move(value);
+        }
+        else
+        {
+            m_value = std::make_shared<Input>(std::move(value));
+        }
+
         m_dirty = true;
     }
 
-    void setField(const std::string_view& field, ValueType value)
-    {
-        if (!m_tableInfo)
-        {
-            BOOST_THROW_EXCEPTION(
-                BCOS_ERROR(-1, "Set field: " + std::string(field) + " error, tableInfo is null"));
-        }
+    Status status() const { return m_status; }
 
-        auto data = m_data.mutableGet();
-        if (data->values.size() < m_tableInfo->fields().size())
-        {
-            data->values.resize(m_tableInfo->fields().size());
-        }
-
-        auto index = m_tableInfo->fieldIndex(field);
-        setField(index, std::move(value));
-    }
-
-    auto begin() const
-    {
-        return boost::make_transform_iterator(m_data.get()->values.cbegin(),
-            std::bind(&Entry::valueView, this, std::placeholders::_1));
-    }
-    auto end() const
-    {
-        return boost::make_transform_iterator(
-            m_data.get()->values.cend(), std::bind(&Entry::valueView, this, std::placeholders::_1));
-    }
-
-    Status status() const noexcept { return m_status; }
-
-    void setStatus(Status status) noexcept
+    void setStatus(Status status)
     {
         m_status = status;
         m_dirty = true;
     }
 
-    bool dirty() const noexcept { return m_dirty; }
-    void setDirty(bool dirty) noexcept { m_dirty = dirty; }
+    bool dirty() const { return m_dirty; }
+    void setDirty(bool dirty) { m_dirty = dirty; }
 
-    int32_t capacityOfHashField() const noexcept
-    {  // the capacity is used to calculate gas, must return the same value in different DB
-        return m_capacityOfHashField;
-    }
+    int32_t size() const { return m_size; }
 
-    ssize_t refCount() const { return m_data.refCount(); }
-
-    auto& fields() const noexcept { return m_data.get()->values; }
-    size_t fieldCount() const { return m_data.get()->values.size(); }
-
-    void importFields(std::initializer_list<ValueType> values)
+    template <typename Input>
+    void importFields(std::initializer_list<Input> values)
     {
-        EntryData data;
-        data.values.reserve(values.size());
-        m_capacityOfHashField = 0;
-
-        for (auto& value : values)
+        if (values.size() != 1)
         {
-            m_capacityOfHashField += static_cast<int32_t>(valueView(value).size());
-            data.values.emplace_back(std::move(value));
+            BOOST_THROW_EXCEPTION(
+                BCOS_ERROR(StorageError::UnknownEntryType, "Import fields not equal to 1"));
         }
 
-        m_data.reset(std::move(data));
-        m_dirty = true;
-    }
-
-    void importFields(std::vector<std::string> values)
-    {
-        EntryData data;
-        data.values.reserve(values.size());
-        m_capacityOfHashField = 0;
-
-        for (auto& value : values)
-        {
-            m_capacityOfHashField += static_cast<int32_t>(value.size());
-            data.values.emplace_back(std::move(value));
-        }
-
-        m_data.reset(std::move(data));
-        m_dirty = true;
+        setField(0, std::move(*values.begin()));
     }
 
     auto&& exportFields()
     {
-        auto data = m_data.mutableGet();
-        m_capacityOfHashField = 0;
-        return std::move(data->values);
+        m_size = 0;
+        return std::move(m_value);
     }
 
-    TableInfo::ConstPtr tableInfo() const { return m_tableInfo; }
-    void setTableInfo(TableInfo::ConstPtr tableInfo) { m_tableInfo = std::move(tableInfo); }
-
-    bool valid() const noexcept
-    {
-        return ((m_status != Status::DELETED) && (m_status != Status::PURGED));
-    }
+    bool valid() const { return m_status == Status::NORMAL; }
 
 private:
-    std::string_view valueView(const ValueType& value) const
+    std::string_view outputValueView(const ValueType& value) const
     {
         std::string_view view;
         std::visit(
-            [&view](
-                auto&& value) { view = std::string_view((const char*)value.data(), value.size()); },
+            [this, &view](auto&& valueInside) {
+                auto viewRaw = inputValueView(valueInside);
+                view = std::string_view(viewRaw.data(), m_size);
+            },
             value);
-
         return view;
     }
 
-    struct EntryData
+    template <typename T>
+    std::string_view inputValueView(const T& value) const
     {
-        boost::container::small_vector<ValueType, 1> values;
-    };
+        std::string_view view((const char*)value.data(), value.size());
+        return view;
+    }
 
-    bcos::ConcurrentCOW<EntryData> m_data;  // should serialization
-    TableInfo::ConstPtr m_tableInfo;        // no need to serialization
-    int32_t m_capacityOfHashField = 0;      // no need to serialization
-    Status m_status = Status::NORMAL;       // should serialization
-    bool m_dirty = false;                   // no need to serialization
+    template <typename T>
+    std::string_view inputValueView(const std::shared_ptr<T>& value) const
+    {
+        std::string_view view((const char*)value->data(), value->size());
+        return view;
+    }
+
+    ValueType m_value;                 // should serialization
+    int32_t m_size = 0;                // no need to serialization
+    Status m_status = Status::NORMAL;  // should serialization
+    bool m_dirty = false;              // no need to serialization
 };
 }  // namespace bcos::storage
+
+namespace boost::serialization
+{
+template <typename Archive, typename... Types>
+void serialize(Archive& ar, std::tuple<Types...>& t, const unsigned int)
+{
+    std::apply([&](auto&... element) { ((ar & element), ...); }, t);
+}
+}  // namespace boost::serialization
