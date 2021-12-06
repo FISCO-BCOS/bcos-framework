@@ -118,6 +118,7 @@ public:
         void log(Change&& change) { m_changes.emplace_front(std::move(change)); }
         auto begin() const { return m_changes.cbegin(); }
         auto end() const { return m_changes.cend(); }
+        void clear() { m_changes.clear(); }
 
     private:
         std::list<Change> m_changes;
