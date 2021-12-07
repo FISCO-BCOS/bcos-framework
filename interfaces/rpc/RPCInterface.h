@@ -74,6 +74,9 @@ public:
     virtual void asyncNotifyAMOPMessage(int16_t _type, std::string const& _topic,
         bytesConstRef _requestData,
         std::function<void(Error::Ptr&& _error, bytesPointer _responseData)> _callback) = 0;
+
+    // the gateway notify the rpc to re-subscribe the topic when the gateway set-up
+    virtual void asyncNotifySubscribeTopic(std::function<void(Error::Ptr&& _error)> _callback) = 0;
 };
 }  // namespace rpc
 }  // namespace bcos
