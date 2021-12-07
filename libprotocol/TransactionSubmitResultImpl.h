@@ -31,7 +31,7 @@ class TransactionSubmitResultImpl : public TransactionSubmitResult
 {
 public:
     using Ptr = std::shared_ptr<TransactionSubmitResultImpl>;
-    virtual ~TransactionSubmitResultImpl() override {}
+    ~TransactionSubmitResultImpl() override {}
 
     uint32_t status() const override { return m_status; }
     void setStatus(uint32_t status) override { m_status = status; }

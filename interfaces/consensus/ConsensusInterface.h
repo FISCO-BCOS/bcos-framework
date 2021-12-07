@@ -69,7 +69,7 @@ public:
         size_t _unsealedTxsSize, std::function<void(Error::Ptr)> _onRecvResponse) = 0;
 
     // get the consensusNodeList
-    // Note: if seperate sealer with the PBFT module, should implement with notify
+    // Note: if separate sealer with the PBFT module, should implement with notify
     virtual ConsensusNodeList consensusNodeList() const { return ConsensusNodeList(); }
     virtual uint64_t nodeIndex() const { return 0; }
 

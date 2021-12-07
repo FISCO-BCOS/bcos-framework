@@ -25,7 +25,6 @@ namespace protocol
 {
 enum ModuleID
 {
-
     PBFT = 1000,
     Raft = 1001,
     BlockSync = 2000,

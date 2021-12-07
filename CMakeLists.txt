@@ -29,7 +29,7 @@ include(FetchContent)
 set(BCOS_CMAKE_SCRIPTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts")
 FetchContent_Declare(bcos-cmake-scripts
     GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-cmake-scripts.git
-    GIT_TAG 2d25e8957323ffa86a55528c22348088ba99e9c6
+    GIT_TAG 9b2ac5b979cbc97f640b2285feb2c74a18cfb935
     SOURCE_DIR ${BCOS_CMAKE_SCRIPTS_DIR}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -48,7 +48,7 @@ set(BCOS_PROTO_NAME bcos-proto)
 set(BCOS_PROTO_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libprotocol/${BCOS_PROTO_NAME})
 FetchContent_Declare(${BCOS_PROTO_NAME}
     GIT_REPOSITORY https://${URL_BASE}/FISCO-BCOS/bcos-proto.git
-    GIT_TAG 07bdcf037162f3f05db35d0c5ae7a301a3d2ee0a
+    GIT_TAG 28e5620d348bd82dff649ae37ca25120d5a6223e
     SOURCE_DIR ${BCOS_PROTO_PATH}
     CMAKE_ARGS -DHUNTER_PACKAGE_LOG_BUILD=${HUNTER_PACKAGE_LOG_BUILD}
                -DHUNTER_PACKAGE_LOG_INSTALL=${HUNTER_PACKAGE_LOG_INSTALL}
@@ -74,7 +74,7 @@ cmake_policy(SET CMP0074 NEW)
 
 project(bcos-framework VERSION "3.0.0")
 # Suffix like "-rc1" e.t.c. to append to versions wherever needed.
-set(VERSION_SUFFIX "")
+set(VERSION_SUFFIX "-rc1")
 
 # basic setting
 include(Options)
