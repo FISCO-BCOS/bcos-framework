@@ -58,7 +58,7 @@ public:
     virtual void decode(bytesConstRef _txData) = 0;
     virtual bytesConstRef encode(bool _onlyHashFields = false) const = 0;
     virtual bytes takeEncoded() = 0;
-    virtual bcos::crypto::HashType const& hash() const = 0;
+    virtual bcos::crypto::HashType hash() const = 0;
 
     virtual void verify() const
     {
@@ -88,7 +88,7 @@ public:
     virtual std::string_view chainId() const = 0;
     virtual std::string_view groupId() const = 0;
     virtual int64_t blockLimit() const = 0;
-    virtual u256 const& nonce() const = 0;
+    virtual u256 nonce() const = 0;
     virtual std::string_view to() const = 0;
     virtual std::string_view source() const = 0;
     virtual void setSource(std::string const& _source) = 0;
@@ -109,7 +109,7 @@ public:
         }
         return TransactionType::ContractCreation;
     }
-    virtual void forceSender(bytes const& _sender) const { m_sender = _sender; }
+    virtual void forceSender(bytes _sender) const { m_sender = std::move(_sender); }
     virtual bytesConstRef signatureData() const = 0;
 
     virtual uint32_t attribute() const = 0;

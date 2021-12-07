@@ -43,21 +43,14 @@ public:
     virtual void encode(bytes& _encodedData) const = 0;
     virtual bytesConstRef encode(bool _onlyHashFieldData = false) const = 0;
 
-    virtual bcos::crypto::HashType const& hash() const
+    virtual bcos::crypto::HashType hash() const
     {
-        UpgradableGuard l(x_hash);
-        if (m_hash != bcos::crypto::HashType())
-        {
-            return m_hash;
-        }
-        UpgradeGuard ul(l);
         auto hashFields = encode(true);
-        m_hash = m_cryptoSuite->hash(hashFields);
-        return m_hash;
+        return m_cryptoSuite->hash(hashFields);
     }
 
     virtual int32_t version() const = 0;
-    virtual u256 const& gasUsed() const = 0; // TODO: remove from hash
+    virtual u256 gasUsed() const = 0;  // TODO: remove from hash
     virtual std::string_view contractAddress() const = 0;
     virtual int32_t status() const = 0;
     virtual bytesConstRef output() const = 0;
@@ -68,8 +61,6 @@ public:
 
 protected:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
-    mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
-    mutable SharedMutex x_hash;
 };
 using Receipts = std::vector<TransactionReceipt::Ptr>;
 using ReceiptsPtr = std::shared_ptr<Receipts>;
