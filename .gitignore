@@ -6,6 +6,7 @@
 *.lo
 *.o
 *.obj
+build/**
 
 # Precompiled Headers
 *.gch
@@ -30,3 +31,17 @@
 *.exe
 *.out
 *.app
+
+# pb files
+*.pb.cc
+*.pb.h
+
+# other files
+cmake/scripts/**
+cmake/deps/**
+build*/**
+.vscode/**
+.idea**
+.DS_Store
+bcos-proto**
+cmake/scripts**
