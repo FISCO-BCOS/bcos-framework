@@ -42,20 +42,8 @@ public:
 
     virtual void decode(bytesConstRef _data) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
-    virtual bytesConstRef encode(bool _onlyHashFieldsData = false) const = 0;
 
-    virtual bcos::crypto::HashType const& hash() const
-    {
-        UpgradableGuard l(x_hash);
-        if (m_hash != bcos::crypto::HashType())
-        {
-            return m_hash;
-        }
-        UpgradeGuard ul(l);
-        auto hashFieldsData = encode(true);
-        m_hash = m_cryptoSuite->hash(hashFieldsData);
-        return m_hash;
-    }
+    virtual bcos::crypto::HashType hash() const { return {}; }
 
     virtual void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number)
     {
@@ -113,14 +101,14 @@ public:
     // parentInfo returns the parent information, including (parentBlockNumber, parentHash)
     virtual gsl::span<const ParentInfo> parentInfo() const = 0;
     // txsRoot returns the txsRoot of the current block
-    virtual bcos::crypto::HashType const& txsRoot() const = 0;
+    virtual bcos::crypto::HashType txsRoot() const = 0;
     // receiptsRoot returns the receiptsRoot of the current block
-    virtual bcos::crypto::HashType const& receiptsRoot() const = 0;
+    virtual bcos::crypto::HashType receiptsRoot() const = 0;
     // stateRoot returns the stateRoot of the current block
-    virtual bcos::crypto::HashType const& stateRoot() const = 0;
+    virtual bcos::crypto::HashType stateRoot() const = 0;
     // number returns the number of the current block
     virtual BlockNumber number() const = 0;
-    virtual u256 const& gasUsed() const = 0;
+    virtual u256 gasUsed() const = 0;
     virtual int64_t timestamp() const = 0;
     // sealer returns the sealer that generate this block
     virtual int64_t sealer() const = 0;
@@ -134,11 +122,11 @@ public:
     virtual void setParentInfo(gsl::span<const ParentInfo> const& _parentInfo) = 0;
     virtual void setParentInfo(ParentInfoList&& _parentInfo) = 0;
 
-    virtual void setTxsRoot(bcos::crypto::HashType const& _txsRoot) = 0;
-    virtual void setReceiptsRoot(bcos::crypto::HashType const& _receiptsRoot) = 0;
-    virtual void setStateRoot(bcos::crypto::HashType const& _stateRoot) = 0;
+    virtual void setTxsRoot(bcos::crypto::HashType _txsRoot) = 0;
+    virtual void setReceiptsRoot(bcos::crypto::HashType _receiptsRoot) = 0;
+    virtual void setStateRoot(bcos::crypto::HashType _stateRoot) = 0;
     virtual void setNumber(BlockNumber _blockNumber) = 0;
-    virtual void setGasUsed(u256 const& _gasUsed) = 0;
+    virtual void setGasUsed(u256 _gasUsed) = 0;
     virtual void setTimestamp(int64_t _timestamp) = 0;
     virtual void setSealer(int64_t _sealerId) = 0;
 
@@ -157,8 +145,6 @@ public:
 
 protected:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
-    mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
-    mutable SharedMutex x_hash;
 };
 }  // namespace protocol
 }  // namespace bcos

@@ -103,7 +103,7 @@ bytesConstRef PBTransaction::encode(bool _onlyHashFields) const
     return bytesConstRef((byte const*)m_dataCache->data(), m_dataCache->size());
 }
 
-bcos::crypto::HashType const& PBTransaction::hash() const
+bcos::crypto::HashType PBTransaction::hash() const
 {
     return *(
         reinterpret_cast<const bcos::crypto::HashType*>(m_transaction->hashfieldshash().data()));

@@ -51,7 +51,11 @@ public:
 
     void decode(bytesConstRef _data) override;
     void encode(bytes& _encodeData) const override;
-    bytesConstRef encode(bool _onlyHashFieldsData = false) const override;
+    bcos::crypto::HashType hash() const override
+    {
+        encodeHashFields();
+        return m_cryptoSuite->hash(m_blockHeader->hashfieldsdata());
+    }
     void clear() override;
 
     // the version of the blockHeader
@@ -59,14 +63,14 @@ public:
     // the parent information, including (parentBlockNumber, parentHash)
     gsl::span<const ParentInfo> parentInfo() const override { return m_parentInfo; }
     // the txsRoot of the current block
-    bcos::crypto::HashType const& txsRoot() const override { return m_txsRoot; }
+    bcos::crypto::HashType txsRoot() const override { return m_txsRoot; }
     // the receiptsRoot of the current block
-    bcos::crypto::HashType const& receiptsRoot() const override { return m_receiptsRoot; }
+    bcos::crypto::HashType receiptsRoot() const override { return m_receiptsRoot; }
     // the stateRoot of the current block
-    bcos::crypto::HashType const& stateRoot() const override { return m_stateRoot; }
+    bcos::crypto::HashType stateRoot() const override { return m_stateRoot; }
     // the number of the current block
     BlockNumber number() const override { return m_number; }
-    u256 const& gasUsed() const override { return m_gasUsed; }
+    u256 gasUsed() const override { return m_gasUsed; }
     int64_t timestamp() const override { return m_timestamp; }
     // the sealer that generate this block
     int64_t sealer() const override { return m_sealer; }
@@ -89,18 +93,18 @@ public:
         noteDirty();
     }
 
-    void setTxsRoot(bcos::crypto::HashType const& _txsRoot) override
+    void setTxsRoot(bcos::crypto::HashType _txsRoot) override
     {
         m_txsRoot = _txsRoot;
         noteDirty();
     }
 
-    void setReceiptsRoot(bcos::crypto::HashType const& _receiptsRoot) override
+    void setReceiptsRoot(bcos::crypto::HashType _receiptsRoot) override
     {
         m_receiptsRoot = _receiptsRoot;
         noteDirty();
     }
-    void setStateRoot(bcos::crypto::HashType const& _stateRoot) override
+    void setStateRoot(bcos::crypto::HashType _stateRoot) override
     {
         m_stateRoot = _stateRoot;
         noteDirty();
@@ -110,7 +114,7 @@ public:
         m_number = _blockNumber;
         noteDirty();
     }
-    void setGasUsed(u256 const& _gasUsed) override
+    void setGasUsed(u256 _gasUsed) override
     {
         m_gasUsed = _gasUsed;
         noteDirty();
@@ -208,6 +212,8 @@ private:
 
     SignatureList m_signatureList;
     WeightList m_consensusWeights;
+    bcos::SharedMutex x_hash;
+    bcos::crypto::HashType m_hash;
 };
 }  // namespace protocol
 }  // namespace bcos
