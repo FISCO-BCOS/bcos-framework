@@ -95,21 +95,6 @@ void PBBlockHeader::encode(bytes& _encodedData) const
     encodePBObject(_encodedData, m_blockHeader);
 }
 
-bytesConstRef PBBlockHeader::encode(bool _onlyHashFieldsData) const
-{
-    if (_onlyHashFieldsData)
-    {
-        encodeHashFields();
-        return bytesConstRef((byte const*)m_blockHeader->hashfieldsdata().data(),
-            m_blockHeader->hashfieldsdata().size());
-    }
-    if (m_dataCache->size() == 0)
-    {
-        encode(*m_dataCache);
-    }
-    return bytesConstRef((byte const*)m_dataCache->data(), m_dataCache->size());
-}
-
 void PBBlockHeader::clear()
 {
     m_blockHeader->clear_hashfieldsdata();

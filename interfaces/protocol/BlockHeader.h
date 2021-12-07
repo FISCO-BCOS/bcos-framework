@@ -42,19 +42,12 @@ public:
 
     virtual void decode(bytesConstRef _data) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
-    virtual bytesConstRef encode(bool _onlyHashFieldsData = false) const = 0;
 
     virtual bcos::crypto::HashType hash() const
     {
-        UpgradableGuard l(x_hash);
-        if (m_hash != bcos::crypto::HashType())
-        {
-            return m_hash;
-        }
-        UpgradeGuard ul(l);
-        auto hashFieldsData = encode(true);
-        m_hash = m_cryptoSuite->hash(hashFieldsData);
-        return m_hash;
+        return {};
+        // auto hashFieldsData = encode(true);
+        // return m_cryptoSuite->hash(hashFieldsData);
     }
 
     virtual void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number)
@@ -157,8 +150,6 @@ public:
 
 protected:
     bcos::crypto::CryptoSuite::Ptr m_cryptoSuite;
-    mutable bcos::crypto::HashType m_hash = bcos::crypto::HashType();
-    mutable SharedMutex x_hash;
 };
 }  // namespace protocol
 }  // namespace bcos

@@ -51,7 +51,6 @@ public:
 
     void decode(bytesConstRef _data) override;
     void encode(bytes& _encodeData) const override;
-    bytesConstRef encode(bool _onlyHashFieldsData = false) const override;
     void clear() override;
 
     // the version of the blockHeader
@@ -208,6 +207,8 @@ private:
 
     SignatureList m_signatureList;
     WeightList m_consensusWeights;
+    bcos::SharedMutex x_hash;
+    bcos::crypto::HashType m_hash;
 };
 }  // namespace protocol
 }  // namespace bcos
