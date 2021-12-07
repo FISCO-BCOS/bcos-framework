@@ -57,7 +57,7 @@ public:
     {
         return std::string_view((char*)m_contractAddress.data(), m_contractAddress.size());
     }
-    u256 const& gasUsed() const override { return m_gasUsed; }
+    u256 gasUsed() const override { return m_gasUsed; }
     gsl::span<const LogEntry> logEntries() const override
     {
         return gsl::span<const LogEntry>(m_logEntries->data(), m_logEntries->size());

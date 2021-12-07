@@ -116,8 +116,9 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
     std::shared_ptr<bytes> encodedData = std::make_shared<bytes>();
     blockHeader->encode(*encodedData);
 
-    auto encodedDataCache = blockHeader->encode();
-    BOOST_CHECK(*encodedData == encodedDataCache.toBytes());
+    bcos::bytes buffer;
+    blockHeader->encode(buffer);
+    BOOST_CHECK(*encodedData == buffer);
 
     // decode
     auto decodedBlockHeader = blockHeaderFactory->createBlockHeader(*encodedData);

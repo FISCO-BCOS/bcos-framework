@@ -57,9 +57,9 @@ public:
     bytesConstRef encode(bool _onlyHashFields = false) const override;
     bytes takeEncoded() override { return bytes(); };  // FIXME: no impl!
 
-    bcos::crypto::HashType const& hash() const override;
+    bcos::crypto::HashType hash() const override;
 
-    u256 const& nonce() const override { return m_nonce; }
+    u256 nonce() const override { return m_nonce; }
     int32_t version() const override { return m_transactionHashFields->version(); }
     std::string_view chainId() const override { return m_transactionHashFields->chainid(); }
     std::string_view groupId() const override { return m_transactionHashFields->groupid(); }
