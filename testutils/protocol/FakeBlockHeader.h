@@ -134,7 +134,7 @@ inline BlockHeader::Ptr fakeAndTestBlockHeader(CryptoSuite::Ptr _cryptoSuite, in
 
     // update the hash data field
     blockHeader->setNumber(_number + 1);
-    // BOOST_CHECK(blockHeader->hash() != decodedBlockHeader->hash());
+    BOOST_CHECK(blockHeader->hash() != decodedBlockHeader->hash());
     BOOST_CHECK(blockHeader->number() == decodedBlockHeader->number() + 1);
     // recover the hash field
     blockHeader->setNumber(_number);

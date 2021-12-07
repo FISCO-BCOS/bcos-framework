@@ -43,12 +43,7 @@ public:
     virtual void decode(bytesConstRef _data) = 0;
     virtual void encode(bytes& _encodeData) const = 0;
 
-    virtual bcos::crypto::HashType hash() const
-    {
-        return {};
-        // auto hashFieldsData = encode(true);
-        // return m_cryptoSuite->hash(hashFieldsData);
-    }
+    virtual bcos::crypto::HashType hash() const { return {}; }
 
     virtual void populateFromParents(BlockHeadersPtr _parents, BlockNumber _number)
     {

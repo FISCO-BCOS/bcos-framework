@@ -51,6 +51,11 @@ public:
 
     void decode(bytesConstRef _data) override;
     void encode(bytes& _encodeData) const override;
+    bcos::crypto::HashType hash() const override
+    {
+        encodeHashFields();
+        return m_cryptoSuite->hash(m_blockHeader->hashfieldsdata());
+    }
     void clear() override;
 
     // the version of the blockHeader
