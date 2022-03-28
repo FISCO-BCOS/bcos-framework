@@ -114,7 +114,15 @@ public:
         m_chainNodeInfoFactory = _chainNodeInfoFactory;
     }
 
-private:
+    bool wasm() const { return m_wasm; }
+    bool smCryptoType() const { return m_smCryptoType; }
+    virtual void setWasm(bool _wasm) { m_wasm = _wasm; }
+    virtual void setSmCryptoType(bool _smCryptoType) { m_smCryptoType = _smCryptoType; }
+
+protected:
+    bool m_wasm{false};
+    bool m_smCryptoType{false};
+
     ChainNodeInfoFactory::Ptr m_chainNodeInfoFactory;
 
     std::string m_chainID;
