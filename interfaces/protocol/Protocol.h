@@ -52,6 +52,7 @@ enum ProtocolModuleID : uint32_t
     GatewayService = 0x1,
     RpcService = 0x2,
     ExecutorService = 0x3,
+    SDK = 0x4,
 };
 enum ProtocolVersion : uint32_t
 {

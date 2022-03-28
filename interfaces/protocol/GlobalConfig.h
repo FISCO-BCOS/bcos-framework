@@ -55,6 +55,10 @@ public:
         c_supportedProtocols.insert({ProtocolModuleID::ExecutorService,
             std::make_shared<ProtocolInfo>(
                 ProtocolModuleID::ExecutorService, ProtocolVersion::V1, ProtocolVersion::V1)});
+        // SDK
+        c_supportedProtocols.insert({ProtocolModuleID::SDK,
+            std::make_shared<ProtocolInfo>(
+                ProtocolModuleID::ExecutorService, ProtocolVersion::V1, ProtocolVersion::V1)});
     }
     virtual ~GlobalConfig() {}
 
