@@ -38,6 +38,15 @@ enum NodeType : uint32_t
     OBSERVER_NODE = 0x0100,
     NODE_OUTSIDE_GROUP = 0x1000,
 };
+
+enum MessageType
+{
+    HANDESHAKE = 0x100,    // 256
+    BLOCK_NOTIFY = 0x101,  // 257
+    RPC_REQUEST = 0x102,   // 258
+    GROUP_NOTIFY = 0x103,  // 259
+};
+
 enum ModuleID
 {
     PBFT = 1000,
