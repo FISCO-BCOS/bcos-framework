@@ -95,7 +95,7 @@ public:
 
     virtual void setGroupID(std::string const& _groupID) { m_groupID = _groupID; }
     virtual void setChainID(std::string const& _chainID) { m_chainID = _chainID; }
-    virtual ssize_t nodesNum() const
+    virtual int64_t nodesNum() const
     {
         ReadGuard l(x_nodeInfos);
         return m_nodeInfos.size();
