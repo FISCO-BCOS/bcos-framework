@@ -89,7 +89,7 @@ public:
         }
         return false;
     }
-    bcos::protocol::ProtocolInfo const protocol() { return *m_protocol; }
+    bcos::protocol::ProtocolInfo const& protocol() const { return *m_protocol; }
 
 private:
     bcos::protocol::ProtocolInfo::Ptr m_protocol;
