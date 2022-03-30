@@ -41,12 +41,13 @@ public:
     using Ptr = std::shared_ptr<ChainNodeInfo>;
     using ConstPtr = std::shared_ptr<const ChainNodeInfo>;
     using ServicesInfo = std::map<bcos::protocol::ServiceType, std::string>;
-    ChainNodeInfo() = default;
-    ChainNodeInfo(std::string const& _nodeName, int32_t _type)
-      : m_nodeName(_nodeName),
-        m_nodeCryptoType((NodeCryptoType)_type),
-        m_nodeProtocol(std::make_shared<bcos::protocol::ProtocolInfo>())
-    {}
+    ChainNodeInfo() : m_nodeProtocol(std::make_shared<bcos::protocol::ProtocolInfo>()) {}
+    ChainNodeInfo(std::string const& _nodeName, int32_t _type) : ChainNodeInfo()
+    {
+        m_nodeName = _nodeName;
+        m_nodeCryptoType = (NodeCryptoType)_type;
+    }
+
     virtual ~ChainNodeInfo() {}
 
     virtual std::string const& nodeName() const { return m_nodeName; }
