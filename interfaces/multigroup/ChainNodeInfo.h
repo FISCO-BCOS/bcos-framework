@@ -105,6 +105,9 @@ public:
     bool wasm() const { return m_wasm; }
     bool smCryptoType() const { return m_smCryptoType; }
 
+    void setSystemVersion(uint32_t _version) { m_systemVersion = _version; }
+    uint32_t systemVersion() const { return m_systemVersion; }
+
 protected:
     bool m_microService = false;
     // the node name
@@ -123,6 +126,9 @@ protected:
 
     // the node protocol
     bcos::protocol::ProtocolInfo::Ptr m_nodeProtocol;
+
+    // the system version
+    uint32_t m_systemVersion;
 
     bool m_wasm{false};
     bool m_smCryptoType{false};
